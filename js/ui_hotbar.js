@@ -29,7 +29,9 @@
 
     const DRAG_THRESHOLD = 6;      // px before a press becomes a drag
     const FLOAT_LIFE = 1.5;        // seconds (game time) a floating "+5 Камень" lives
-    const KEY_LABELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+    const KEY_LABELS_PAGE1 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+    const KEY_LABELS_PAGE2 = ['A+Q', 'A+W', 'A+E', 'A+R', 'A+A', 'A+S', 'A+Z', 'A+X', 'A+C', '.'];
+    const KEY_LABELS = KEY_LABELS_PAGE1;
 
     function hueOf(str) {
         let h = 0;
@@ -83,12 +85,18 @@
             this.questsOpen = false;
             this.questTab = 'active';
             this.microMenuOpen = false;
-            this.cdCache = new Array(10).fill(-1);
+            this.currentPage = 0;
+            this.totalPages = 2;
+            this.cdCache = new Array(20).fill(-1);
             this.tooltipTimer = null;
             this._v = new THREE.Vector3();
 
             this.bar = document.getElementById('skill-bar');
             this.slots = Array.from(document.querySelectorAll('#skill-bar .skill-slot:not(.hud-btn)')).slice(0, 10);
+            this.pagerEl = document.getElementById('hotbar-pager');
+            this.pageUpBtn = document.getElementById('hotbar-page-up');
+            this.pageDownBtn = document.getElementById('hotbar-page-down');
+            this.pageNumEl = document.getElementById('hotbar-page-num');
             this.invPanel = document.getElementById('inventory-panel');
             this.invGrid = this.invPanel ? this.invPanel.querySelector('.inventory-grid') : null;
             this.chestPanel = document.getElementById('chest-panel');
@@ -142,6 +150,7 @@
             this.setupChest();
             this.dialog = window.AveloraDialog ? new window.AveloraDialog(game, this) : null;
             window.addEventListener('game:location', () => { if (this.state) this.renderSkills(); }); // skill names depend on the location
+            this.setupPager();
             this.setupEvents();
             this.setupDraggablePanels();
         }
@@ -366,21 +375,75 @@
             if (this.invEmpty) this.invEmpty.style.display = any ? 'none' : '';
         }
 
+        setupPager() {
+            if (this.pageUpBtn) {
+                this.pageUpBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.prevPage();
+                });
+            }
+            if (this.pageDownBtn) {
+                this.pageDownBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.nextPage();
+                });
+            }
+            if (this.pageNumEl) {
+                this.pageNumEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.nextPage();
+                });
+            }
+        }
+
+        prevPage() {
+            this.setPage(this.currentPage > 0 ? this.currentPage - 1 : this.totalPages - 1);
+        }
+
+        nextPage() {
+            this.setPage((this.currentPage + 1) % this.totalPages);
+        }
+
+        setPage(page) {
+            const next = Math.max(0, Math.min(this.totalPages - 1, page));
+            if (next === this.currentPage) return;
+            this.currentPage = next;
+            this.cdCache.fill(-1);
+            this.renderHotbar();
+        }
+
+        updatePager() {
+            if (this.pageNumEl) {
+                this.pageNumEl.textContent = String(this.currentPage + 1);
+            }
+            if (this.pageUpBtn) {
+                this.pageUpBtn.classList.toggle('disabled', this.currentPage === 0);
+            }
+            if (this.pageDownBtn) {
+                this.pageDownBtn.classList.toggle('disabled', this.currentPage >= this.totalPages - 1);
+            }
+        }
+
         renderHotbar() {
             const hb = this.state ? this.state.hotbar : [];
+            const baseIdx = this.currentPage * 10;
+            const labels = this.currentPage === 0 ? KEY_LABELS_PAGE1 : KEY_LABELS_PAGE2;
             this.slots.forEach((slot, i) => {
-                const e = hb[i] || null;
+                const slotIdx = baseIdx + i;
+                slot.dataset.slot = String(slotIdx);
+                const e = hb[slotIdx] || null;
                 slot._icon.innerHTML = '';
                 slot._count.textContent = '';
                 slot.classList.remove('missing', 'is-skill', 'is-item', 'is-basic-attack', 'equipped', 'out-of-range');
                 slot._outOfRange = false;
                 slot.classList.toggle('empty', !e);
-                this.cdCache[i] = -1;
+                this.cdCache[slotIdx] = -1;
                 slot._cd.style.background = '';
+                if (slot._key) slot._key.textContent = labels[i];
                 if (!e) {
                     // Touch UI fan: central button (Slot 0) defaults to weapon in hand or fists
                     const isTouchUi = document.body && document.body.classList.contains('touch-ui');
-                    if (i === 0 && isTouchUi) {
+                    if (slotIdx === 0 && isTouchUi) {
                         slot.classList.remove('empty');
                         slot.classList.add('is-basic-attack');
                         const eqId = this.state && this.state.equipped && this.state.equipped.right;
@@ -419,6 +482,7 @@
                     if (this.state.equippedSlotOf(e.id)) slot.classList.add('equipped');
                 }
             });
+            this.updatePager();
         }
 
         /** Skills panel: accordion by def.category (skill.json). */
@@ -1786,35 +1850,41 @@
 
         activateSlot(i) {
             if (!this.inputAllowed()) return;
-            const e = this.state.hotbar[i];
-            const slot = this.slots[i];
+            const e = this.state ? this.state.hotbar[i] : null;
+            const baseIdx = this.currentPage * 10;
+            const slot = (i >= baseIdx && i < baseIdx + 10) ? this.slots[i - baseIdx] : null;
             if (!e) {
                 const isTouchUi = document.body && document.body.classList.contains('touch-ui');
                 if (i === 0 && isTouchUi && this.game.combat) {
                     this.game.combat.performBasicAttack();
-                    this.flashSlot(slot, 'pressed');
+                    if (slot) this.flashSlot(slot, 'pressed');
                 }
                 return;
             }
             if (e.type === 'skill') {
                 const res = this.game.skills.activate(e.id);
-                if (res === 'ok') this.flashSlot(slot, 'pressed');
-                else this.flashSlot(slot, 'shake');
+                if (slot) {
+                    if (res === 'ok') this.flashSlot(slot, 'pressed');
+                    else this.flashSlot(slot, 'shake');
+                }
                 return;
             }
             const def = window.AveloraItems.get(e.id);
-            if (!def || this.state.ownedCount(e.id) <= 0) { this.flashSlot(slot, 'shake'); return; }
+            if (!def || this.state.ownedCount(e.id) <= 0) {
+                if (slot) this.flashSlot(slot, 'shake');
+                return;
+            }
             if (def.use && def.use.type === 'equip') {
                 this.toggleEquip(e.id);
-                this.flashSlot(slot, 'pressed');
+                if (slot) this.flashSlot(slot, 'pressed');
             } else if (def.use && def.use.type === 'heal') {
                 if (this.consumeHeal(e.id)) {
-                    this.flashSlot(slot, 'pressed');
+                    if (slot) this.flashSlot(slot, 'pressed');
                 } else {
-                    this.flashSlot(slot, 'shake');
+                    if (slot) this.flashSlot(slot, 'shake');
                 }
             } else {
-                this.flashSlot(slot, 'shake'); // other use types: not implemented yet
+                if (slot) this.flashSlot(slot, 'shake'); // other use types: not implemented yet
             }
         }
 
@@ -2615,11 +2685,13 @@
             const hitR = (target.def && target.def.hitRadius) || 0.4;
             const edgeDist = Math.max(0, dist - hitR);
             const hb = this.state ? this.state.hotbar : [];
+            const baseIdx = this.currentPage * 10;
             let hasAny = false;
 
             for (let i = 0; i < this.slots.length; i++) {
                 const slot = this.slots[i];
-                const e = hb[i];
+                const slotIdx = baseIdx + i;
+                const e = hb[slotIdx];
                 let outOfRange = false;
 
                 if (e && e.type === 'skill') {
@@ -2628,7 +2700,7 @@
                         const maxRange = (def.range || 12) + 2;
                         outOfRange = dist > maxRange;
                     }
-                } else if (i === 0 && (slot.classList.contains('is-basic-attack') || (!e && document.body && document.body.classList.contains('touch-ui')))) {
+                } else if (slotIdx === 0 && (slot.classList.contains('is-basic-attack') || (!e && document.body && document.body.classList.contains('touch-ui')))) {
                     const w = this.game.combat ? this.game.combat.weapon() : null;
                     const wRange = (w && w.range) ? w.range : 2.5;
                     outOfRange = edgeDist > wRange;
@@ -2654,13 +2726,15 @@
             if (this.heroOpen && (this._heroT = (this._heroT || 0) + delta) >= 0.4) { this._heroT = 0; this.updateHeroStats(); }
             if (!this.state) return;
             const hb = this.state.hotbar;
+            const baseIdx = this.currentPage * 10;
             for (let i = 0; i < this.slots.length; i++) {
-                const e = hb[i];
+                const slotIdx = baseIdx + i;
+                const e = hb[slotIdx];
                 if (!e || e.type !== 'skill') continue;
                 const frac = this.game.skills.cooldownFraction(e.id);
                 const q = Math.round(frac * 120); // quantized: only touch the DOM when the sweep visibly moves
-                if (q === this.cdCache[i]) continue;
-                this.cdCache[i] = q;
+                if (q === this.cdCache[slotIdx]) continue;
+                this.cdCache[slotIdx] = q;
                 const slot = this.slots[i];
                 slot.classList.toggle('cooling', q > 0);
                 // Classic clockwise sweep (WoW/Diablo): the uncovered part starts at
@@ -2695,22 +2769,80 @@
         // Input: keys, pointer drag & drop
         // -----------------------------------------------------------
         setupEvents() {
+            // Блокируем системный переход фокуса в меню браузера при нажатии Alt
+            window.addEventListener('keydown', (e) => {
+                const ae = document.activeElement;
+                if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)) return;
+                if (e.key === 'Alt') {
+                    e.preventDefault();
+                }
+            });
+
             window.addEventListener('keydown', (e) => {
                 if (e.repeat) return;
                 const ae = document.activeElement;
                 if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)) return;
-                const m = /^Digit([0-9])$/.exec(e.code);
-                if (m) {
-                    const d = parseInt(m[1], 10);
-                    this.activateSlot(d === 0 ? 9 : d - 1);
-                } else if (e.code === 'KeyK') { // physical key: works in RU layout too (Л)
-                    if (this.inputAllowed()) this.toggleSkills();
-                } else if (e.code === 'KeyC') { // physical key: works in RU layout too (С)
-                    if (this.inputAllowed()) this.toggleHero();
-                } else if (e.code === 'KeyL') { // physical key: works in RU layout too (Д)
-                    if (this.inputAllowed()) this.toggleQuests();
-                } else if (e.code === 'KeyN') { // physical key: works in RU layout too (Т): Ремесло
-                    if (this.inputAllowed()) this.toggleCrafting();
+
+                // 1. Вторая панель: Alt + Q, W, E, R, A, S, Z, X, C
+                if (e.altKey) {
+                    let altSlot = -1;
+                    if (e.code === 'KeyQ') altSlot = 10;
+                    else if (e.code === 'KeyW') altSlot = 11;
+                    else if (e.code === 'KeyE') altSlot = 12;
+                    else if (e.code === 'KeyR') altSlot = 13;
+                    else if (e.code === 'KeyA') altSlot = 14;
+                    else if (e.code === 'KeyS') altSlot = 15;
+                    else if (e.code === 'KeyZ') altSlot = 16;
+                    else if (e.code === 'KeyX') altSlot = 17;
+                    else if (e.code === 'KeyC') altSlot = 18;
+
+                    if (altSlot !== -1) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.activateSlot(altSlot);
+                        return;
+                    }
+                }
+
+                // 2. Десятый слот второй панели: обычная точка (.) на клавиатуре (EN: '.', RU: 'Ю') или numpad
+                if (!e.altKey && !e.ctrlKey && !e.metaKey) {
+                    if (e.code === 'Period' || e.code === 'NumpadDecimal' || (e.location === 3 && (e.key === '.' || e.key === ','))) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.activateSlot(19);
+                        return;
+                    }
+                }
+
+                // 3. Переключение страниц хотбара с клавиатуры: Shift + Up/Down или Shift + 1/2
+                if (e.shiftKey && !e.altKey && !e.ctrlKey) {
+                    if (e.code === 'Digit1') { e.preventDefault(); this.setPage(0); return; }
+                    if (e.code === 'Digit2') { e.preventDefault(); this.setPage(1); return; }
+                    if (e.code === 'ArrowUp') { e.preventDefault(); this.prevPage(); return; }
+                    if (e.code === 'ArrowDown') { e.preventDefault(); this.nextPage(); return; }
+                }
+
+                // 4. Первая панель: Digit 1..0
+                if (!e.altKey && !e.ctrlKey && !e.metaKey) {
+                    const m = /^Digit([0-9])$/.exec(e.code);
+                    if (m) {
+                        const d = parseInt(m[1], 10);
+                        this.activateSlot(d === 0 ? 9 : d - 1);
+                        return;
+                    }
+                }
+
+                // 5. Окна интерфейса (только без Alt/Ctrl/Meta)
+                if (!e.altKey && !e.ctrlKey && !e.metaKey) {
+                    if (e.code === 'KeyK') { // physical key: works in RU layout too (Л)
+                        if (this.inputAllowed()) this.toggleSkills();
+                    } else if (e.code === 'KeyC') { // physical key: works in RU layout too (С)
+                        if (this.inputAllowed()) this.toggleHero();
+                    } else if (e.code === 'KeyL') { // physical key: works in RU layout too (Д)
+                        if (this.inputAllowed()) this.toggleQuests();
+                    } else if (e.code === 'KeyN') { // physical key: works in RU layout too (Т): Ремесло
+                        if (this.inputAllowed()) this.toggleCrafting();
+                    }
                 }
             });
 
@@ -3183,7 +3315,10 @@
                 if (i !== index && e && e.type === entry.type && e.id === entry.id) st.hotbar[i] = null;
             });
             st.setHotbar(index, entry); // saves + re-renders
-            this.flashSlot(this.slots[index], 'pressed');
+            const baseIdx = this.currentPage * 10;
+            if (index >= baseIdx && index < baseIdx + 10) {
+                this.flashSlot(this.slots[index - baseIdx], 'pressed');
+            }
         }
     }
 

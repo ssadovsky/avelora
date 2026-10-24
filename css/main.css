@@ -1314,8 +1314,72 @@
         #menu-btn { order: 1; }
         #potion-btn { order: 2; margin-right: 3px; }
         .skill-slot:not(.hud-btn) { order: 3; }
-        .micromenu-container { order: 4; margin-left: 3px; }
-        #inventory-btn { order: 5; }
+        .hotbar-pager { order: 4; margin: 0 1px; }
+        .micromenu-container { order: 5; margin-left: 2px; }
+        #inventory-btn { order: 6; }
+
+        /* Hotbar Pager (narrow up/down arrows between skill slots and micromenu) */
+        .hotbar-pager {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            width: 14px;
+            height: clamp(34px, 2.7vw, 42px);
+            background: rgba(12, 16, 18, 0.85);
+            border: 1px solid rgba(195, 160, 95, 0.45);
+            border-radius: 4px;
+            padding: 2px 0;
+            box-sizing: border-box;
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.8), 0 2px 5px rgba(0,0,0,0.5);
+            pointer-events: auto;
+            user-select: none;
+            z-index: 105;
+        }
+        .hotbar-page-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 11px;
+            background: transparent;
+            border: none;
+            color: #efcf7a;
+            cursor: pointer;
+            padding: 0;
+            transition: color 0.15s, transform 0.1s, opacity 0.15s;
+        }
+        .hotbar-page-btn:hover {
+            color: #fff;
+            filter: drop-shadow(0 0 3px rgba(239, 207, 122, 0.8));
+        }
+        .hotbar-page-btn:active {
+            transform: scale(0.85);
+        }
+        .hotbar-page-btn.disabled,
+        .hotbar-page-btn:disabled {
+            color: rgba(195, 160, 95, 0.25);
+            cursor: default;
+            pointer-events: none;
+            filter: none;
+        }
+        .hotbar-pager-arrow {
+            width: 8px;
+            height: 5px;
+            display: block;
+        }
+        .hotbar-page-num {
+            font-size: 9px;
+            font-weight: bold;
+            font-family: 'Consolas', 'Courier New', monospace;
+            color: #efcf7a;
+            text-shadow: 0 0 2px #000;
+            line-height: 1;
+            pointer-events: none;
+        }
+        body.touch-ui .hotbar-pager {
+            display: none !important;
+        }
 
         /* Skill-bar HUD buttons (☰ menu first, inventory last) */
         .skill-slot.hud-btn {
@@ -3084,13 +3148,14 @@
         .slot-cd { inset: 0; }
         .slot-key {
             position: absolute;
-            left: 3px;
+            left: 2px;
             top: 1px;
             font-size: 9px;
             font-family: 'Consolas', 'Courier New', monospace;
             color: rgba(239, 207, 122, 0.85);
             text-shadow: 0 0 2px #000, 0 0 3px #000;
             pointer-events: none;
+            letter-spacing: -0.5px;
         }
         .slot-count, .cell-count {
             position: absolute;

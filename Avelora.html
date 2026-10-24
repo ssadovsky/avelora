@@ -159,7 +159,18 @@
         <div class="skill-slot"></div>
         <div class="skill-slot"></div>
         <div class="skill-slot"></div>
-        
+
+        <!-- Hotbar Pager (arrows between 1-0 and hero menu, PC Desktop only) -->
+        <div class="hotbar-pager pc-only" id="hotbar-pager" title="Переключение панели скилов (1 / 2)">
+            <button type="button" class="hotbar-page-btn up" id="hotbar-page-up" title="Предыдущая панель (1)" aria-label="Предыдущая панель">
+                <svg viewBox="0 0 10 6" class="hotbar-pager-arrow"><path d="M1 5 L5 1 L9 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <span class="hotbar-page-num" id="hotbar-page-num">1</span>
+            <button type="button" class="hotbar-page-btn down" id="hotbar-page-down" title="Следующая панель (2)" aria-label="Следующая панель">
+                <svg viewBox="0 0 10 6" class="hotbar-pager-arrow"><path d="M1 1 L5 5 L9 1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+        </div>
+
         <div class="micromenu-container">
             <button type="button" id="micromenu-toggle-btn" class="skill-slot micromenu-toggle hud-btn" title="Микроменю героя" aria-label="Микроменю">
                 <svg class="micromenu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">

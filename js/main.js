@@ -2213,6 +2213,7 @@ class AveloraGame {
         const MOVE_CODES = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'ShiftRight'];
         window.addEventListener('keydown', (e) => {
             if (!MOVE_CODES.includes(e.code)) return;
+            if (e.altKey) return;
             const t = e.target;
             const ae = document.activeElement;
             if ((t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) ||

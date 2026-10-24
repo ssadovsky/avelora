@@ -38,7 +38,7 @@
 
     const STATE_VERSION = 1;
     const KEY_PREFIX = 'avelora_state_';
-    const HOTBAR_SIZE = 10;
+    const HOTBAR_SIZE = 20; // 2 страницы по 10 слотов
 
     function keyFor(characterId) { return KEY_PREFIX + characterId; }
 
