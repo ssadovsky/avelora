@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <title>Avelora - Medieval Experience</title>
-    <link rel="stylesheet" href="css/main.css?v=20261024_dlgclose">
+    <link rel="stylesheet" href="css/main.css?v=20261025_house10">
 </head>
 <body>
 
@@ -221,7 +221,7 @@
                     <span class="micromenu-label">Ремесло</span>
                     <span class="micromenu-key">N</span>
                 </button>
-                <button type="button" class="micromenu-item" id="build-btn" role="menuitem" title="Строительство (B)" style="display:none">
+                <button type="button" class="micromenu-item" id="build-btn" role="menuitem" title="Строительство (B)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="#efcf7a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 21h18"/>
                         <path d="M5 21V10l7-6 7 6v11"/>
@@ -306,9 +306,19 @@
             </button>
             <div id="auto-gather-popup" class="auto-action-popup" style="display: none;">
                 <div class="auto-popup-header">
-                    <span>Режимы сбора</span>
+                    <span>Дистанция сбора</span>
                     <button type="button" class="auto-popup-close" title="Закрыть" aria-label="Закрыть">×</button>
                 </div>
+                <button type="button" class="auto-popup-option" data-gather-radius="18">
+                    <span>Близко</span><span class="auto-popup-hint">18м</span>
+                </button>
+                <button type="button" class="auto-popup-option active" data-gather-radius="30">
+                    <span>Средне</span><span class="auto-popup-hint">30м</span>
+                </button>
+                <button type="button" class="auto-popup-option" data-gather-radius="50">
+                    <span>Далеко</span><span class="auto-popup-hint">50м</span>
+                </button>
+                <div class="auto-popup-divider"></div>
                 <label class="auto-popup-item" title="Сбор трав и папоротников">
                     <input type="checkbox" id="auto-gather-herb" checked>
                     <span class="auto-popup-check"></span>
@@ -827,7 +837,7 @@
     <script src="js/items.js?v=20261020_fist1"></script>
     <script src="js/game_state.js?v=20261024_neck1"></script>
     <script src="js/world_objects.js?v=20261024_mobui2"></script>
-    <script src="js/building.js?v=20261023_build1"></script>
+    <script src="js/building.js?v=20261025_house10"></script>
     <!-- Game Configuration & Balance (js/config/) -->
     <script src="js/config/progression.js?v=20261024_honest1"></script>
     <script src="js/config/creatures.js?v=20261024_hp100"></script>

@@ -1192,8 +1192,8 @@ window.LOCATIONS = {
 
         cameraAngle: 0.0,           // на старте камера смотрит на север по компасу (север = −Z)
 
-        // Строительство (building.js): меню «Строить» (B) есть только здесь; ставить можно внутри area (метры)
-        building: { types: ['sawmill', 'forge', 'storage'], area: { x: 0.0, z: 10.0, hx: 38.0, hz: 30.0 } },   // z от −20 до 40
+        // Строительство (building.js): меню «Строить» (B) доступно везде для просмотра; ставить можно внутри area (метры)
+        building: { types: ['sawmill', 'forge', 'storage', 'block_floor', 'block_wall', 'block_door', 'block_window', 'block_roof', 'block_stairs'], area: { x: 0.0, z: 10.0, hx: 38.0, hz: 30.0 } },   // z от −20 до 40
 
         atmosphere: { sky: 0xd6e6dc, skyTop: 0x4f97d6, fogDensity: 0.0045 },
 

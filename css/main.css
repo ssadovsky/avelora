@@ -5498,10 +5498,10 @@ html { scrollbar-width: thin; scrollbar-color: rgba(214, 170, 60, 0.5) transpare
     position: fixed;
     left: max(env(safe-area-inset-left, 0px), 14px);
     top: 96px;
-    width: 320px;
-    max-height: calc(100% - 190px);
-    overflow-y: auto;
-    background: rgba(12, 16, 18, 0.92);
+    width: 330px;
+    height: min(calc(100% - 150px), 740px);
+    box-sizing: border-box;
+    background: rgba(12, 16, 18, 0.94);
     border: 1px solid rgba(195, 160, 95, 0.45);
     border-radius: 4px;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 0, 0, 0.6);
@@ -5512,6 +5512,42 @@ html { scrollbar-width: thin; scrollbar-color: rgba(214, 170, 60, 0.5) transpare
 }
 #build-panel.open { display: flex; flex-direction: column; overflow: hidden; }
 #build-panel .inventory-header { flex: 0 0 auto; }
+.build-top-actions { flex: 0 0 auto; margin: 8px 0 4px; }
+.build-bottom-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 0 0 auto;
+    padding-top: 8px;
+    margin-top: 4px;
+    border-top: 1px solid rgba(195, 160, 95, 0.2);
+}
+.build-move-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
+    padding: 7px 12px; font-family: inherit; font-size: 0.82rem; font-weight: 500;
+    color: #93c5fd; background: rgba(30, 58, 138, 0.22); border: 1px solid rgba(59, 130, 246, 0.45);
+    border-radius: 3px; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.build-move-btn:hover:not(:disabled) {
+    background: rgba(30, 58, 138, 0.45); border-color: #60a5fa; color: #fff;
+}
+.build-move-btn:disabled {
+    opacity: 0.4; cursor: not-allowed; border-color: rgba(150, 140, 120, 0.25); color: #8f9c9a; background: rgba(120, 120, 120, 0.1);
+}
+.build-demolish-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
+    padding: 7px 12px; font-family: inherit; font-size: 0.82rem; font-weight: 500;
+    color: #fca5a5; background: rgba(185, 28, 28, 0.16); border: 1px solid rgba(239, 68, 68, 0.45);
+    border-radius: 3px; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.build-demolish-btn:hover:not(:disabled) {
+    background: rgba(185, 28, 28, 0.35); border-color: #ef4444; color: #fff;
+}
+.build-demolish-btn:disabled {
+    opacity: 0.4; cursor: not-allowed; border-color: rgba(150, 140, 120, 0.25); color: #8f9c9a; background: rgba(120, 120, 120, 0.1);
+}
 #build-scroll {
     flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: 4px;
     touch-action: pan-y; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
@@ -5530,12 +5566,15 @@ html { scrollbar-width: thin; scrollbar-color: rgba(214, 170, 60, 0.5) transpare
 .build-go:disabled { opacity: 0.4; cursor: not-allowed; background: rgba(120, 120, 120, 0.15); border-color: rgba(150, 140, 120, 0.35); }
 .build-go:disabled:hover { background: rgba(120, 120, 120, 0.15); border-color: rgba(150, 140, 120, 0.35); color: #f1e2c8; }
 .build-section { margin: 10px 0 6px; font-size: 0.72rem; letter-spacing: 0.08rem; text-transform: uppercase; color: #b9a47a; }
+#build-accordion .skill-group { margin-bottom: 8px; }
+#build-accordion .skill-group-body { padding-top: 6px; }
 .build-card {
-    display: flex; gap: 10px; padding: 8px;
+    display: flex; gap: 10px; padding: 8px; margin-bottom: 6px;
     background: rgba(22, 27, 29, 0.9);
     border: 1px solid rgba(195, 160, 95, 0.3);
     border-radius: 3px;
 }
+.build-card:last-child { margin-bottom: 0; }
 .build-card-icon { flex: 0 0 48px; height: 48px; }
 .build-card-icon svg { width: 48px; height: 48px; }
 .build-card-body { flex: 1; min-width: 0; }
@@ -5544,6 +5583,9 @@ html { scrollbar-width: thin; scrollbar-color: rgba(214, 170, 60, 0.5) transpare
 .build-cost { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 0.76rem; margin-bottom: 7px; }
 .build-cost .ok { color: #a9d68c; }
 .build-cost .bad { color: #e0806c; }
+.build-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
+.build-placed-count { font-size: 0.72rem; color: #b9a47a; white-space: nowrap; }
+.build-placed-count.has { color: #a9d68c; font-weight: 500; }
 .build-go, .build-del, #build-bar button {
     font-family: inherit; font-size: 0.8rem; color: #f1e2c8; cursor: pointer;
     background: rgba(195, 160, 95, 0.18);
@@ -5552,10 +5594,46 @@ html { scrollbar-width: thin; scrollbar-color: rgba(214, 170, 60, 0.5) transpare
     -webkit-tap-highlight-color: transparent;
 }
 .build-go:hover, .build-del:hover, #build-bar button:hover { background: rgba(195, 160, 95, 0.38); border-color: #efcf7a; color: #fff; }
-.build-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px; margin-bottom: 4px; background: rgba(22, 27, 29, 0.9); border: 1px solid rgba(195, 160, 95, 0.18); border-radius: 3px; }
-.build-row-name { font-size: 0.82rem; color: #f1e2c8; }
-.build-row-name span { display: block; font-size: 0.7rem; color: #8f9c9a; }
-.build-empty { font-size: 0.76rem; font-style: italic; color: #7e8a89; }
+.btn-demolish-confirm {
+    background: rgba(220, 38, 38, 0.45) !important;
+    border-color: #ef4444 !important;
+    color: #fff !important;
+}
+.btn-demolish-confirm:hover:not(:disabled) {
+    background: rgba(220, 38, 38, 0.7) !important;
+}
+.btn-demolish-confirm:disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+}
+.btn-move-confirm {
+    background: rgba(29, 78, 216, 0.45) !important;
+    border-color: #3b82f6 !important;
+    color: #fff !important;
+}
+.btn-move-confirm:hover:not(:disabled) {
+    background: rgba(29, 78, 216, 0.7) !important;
+}
+.btn-move-confirm:disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+}
+body.build-demolish-mode,
+body.build-demolish-mode #game-container,
+body.build-demolish-mode canvas,
+body.build-move-mode,
+body.build-move-mode #game-container,
+body.build-move-mode canvas {
+    cursor: default !important;
+}
+body.build-demolish-mode.has-hover,
+body.build-demolish-mode.has-hover #game-container,
+body.build-demolish-mode.has-hover canvas,
+body.build-move-mode.has-hover,
+body.build-move-mode.has-hover #game-container,
+body.build-move-mode.has-hover canvas {
+    cursor: pointer !important;
+}
 .build-hint { margin-top: 10px; font-size: 0.7rem; font-style: italic; color: #7e8a89; line-height: 1.35; }
 #build-bar {
     position: fixed; left: 50%; transform: translateX(-50%);
@@ -5576,8 +5654,8 @@ html { scrollbar-width: thin; scrollbar-color: rgba(214, 170, 60, 0.5) transpare
 .build-bar-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 #build-bar button { padding: 8px 14px; font-size: 0.86rem; }
 #build-btn.active { background: rgba(195, 160, 95, 0.25); border-color: #efcf7a; }
-@media (max-width: 840px) {
-    #build-panel { left: 50%; transform: translateX(-50%); width: min(320px, calc(100% - 24px)); top: 8px; max-height: calc(100% - 100px); }
+@media (max-width: 880px), (max-height: 540px) and (orientation: landscape) {
+    #build-panel { left: 50%; transform: translateX(-50%); width: min(330px, calc(100% - 24px)); top: 12px; height: calc(100% - 24px); max-height: calc(100% - 24px); }
 }
 
 /* crafting: station requirement line (sawmill) */

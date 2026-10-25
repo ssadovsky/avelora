@@ -136,9 +136,11 @@
                 if (!b || typeof b.type !== 'string') return;
                 const x = Number(b.x), z = Number(b.z), r = Number(b.r), uid = Math.floor(Number(b.uid));
                 if (!Number.isFinite(x) || !Number.isFinite(z) || !(uid >= 1)) return;
-                list.push({ uid, type: b.type, x, z, r: Number.isFinite(r) ? r : 0 });
+                const item = { uid, type: b.type, x, z, r: Number.isFinite(r) ? r : 0 };
+                if (b.y !== undefined && Number.isFinite(Number(b.y))) item.y = Number(b.y);
+                list.push(item);
             });
-            if (list.length) out[loc] = list.slice(0, 40);
+            if (list.length) out[loc] = list.slice(0, 1000);
         });
         return out;
     }
@@ -656,11 +658,12 @@
 
         buildingsOf(locationId) { return this.buildings[locationId] || []; }
 
-        addBuilding(locationId, type, x, z, r) {
+        addBuilding(locationId, type, x, z, r, y) {
             const list = this.buildings[locationId] || (this.buildings[locationId] = []);
             let uid = 1;
             list.forEach(b => { if (b.uid >= uid) uid = b.uid + 1; });
             const b = { uid, type, x: Math.round(x * 100) / 100, z: Math.round(z * 100) / 100, r: Math.round(r * 1000) / 1000 };
+            if (y !== undefined && Number.isFinite(y)) b.y = Math.round(y * 100) / 100;
             list.push(b);
             this.save();
             return b;

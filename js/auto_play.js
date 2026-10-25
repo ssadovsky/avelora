@@ -16,6 +16,8 @@
             this.gatherEnabled = false;
 
             this.gatherConfig = this.loadGatherConfig();
+            this.gatherRadius = this.loadGatherRadius();
+            this.gatherAnchor = null; // запоминается только в сессии во время включенного автосбора
             this.combatRadius = this.loadCombatRadius();
             this.combatAttackNeutrals = this.loadCombatNeutrals();
             this.combatAnchor = null; // запоминается только в сессии во время включенного автобоя
@@ -63,6 +65,24 @@
         saveGatherConfig() {
             try {
                 localStorage.setItem('avelora_autogather_cfg', JSON.stringify(this.gatherConfig));
+            } catch (_) {}
+        }
+
+        loadGatherRadius() {
+            try {
+                const saved = localStorage.getItem('avelora_autogather_radius');
+                if (saved !== null) {
+                    const r = Number(saved);
+                    if (Number.isFinite(r) && r > 0) return r;
+                }
+            } catch (_) {}
+            return 30.0;
+        }
+
+        saveGatherRadius(r) {
+            this.gatherRadius = Number(r);
+            try {
+                localStorage.setItem('avelora_autogather_radius', String(this.gatherRadius));
             } catch (_) {}
         }
 
@@ -239,6 +259,26 @@
             syncCheckbox('auto-gather-ore', 'ore');
             syncCheckbox('auto-gather-loot', 'loot');
 
+            // Gather radius radio options
+            if (this.gatherPopup) {
+                const opts = this.gatherPopup.querySelectorAll('[data-gather-radius]');
+                opts.forEach(btn => {
+                    const r = Number(btn.getAttribute('data-gather-radius'));
+                    btn.classList.toggle('active', r === this.gatherRadius);
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.__avelora_just_ui_tap = performance.now();
+                        this.saveGatherRadius(r);
+                        opts.forEach(b => b.classList.toggle('active', b === btn));
+                        if (this.game.ui && this.game.ui.floatText) {
+                            this.game.ui.floatText(`Дистанция сбора: ${r} м`, 'good');
+                        }
+                        closeAllPopups();
+                    });
+                });
+            }
+
             // Combat attack neutrals checkbox
             const neutralsEl = document.getElementById('auto-combat-neutrals');
             if (neutralsEl) {
@@ -293,16 +333,21 @@
         }
 
         toggleGather(force) {
+            const c = this.game.character;
             this.gatherEnabled = (force !== undefined) ? !!force : !this.gatherEnabled;
             if (this.gatherBtn) {
                 this.gatherBtn.classList.toggle('active', this.gatherEnabled);
                 const stateSpan = this.gatherBtn.querySelector('.auto-action-state');
                 if (stateSpan) stateSpan.textContent = this.gatherEnabled ? 'ВКЛ' : 'ВЫКЛ';
             }
-            if (!this.gatherEnabled) {
+            if (this.gatherEnabled) {
+                if (c && c.position) {
+                    this.gatherAnchor = { x: c.position.x, z: c.position.z };
+                }
+            } else {
+                this.gatherAnchor = null;
                 this._currentGatherTarget = null;
-                const c = this.game.character;
-                if (c && c.isMoving) c.stopMovement();
+                if (c && c.isMoving && !this.questEnabled && !this.combatEnabled) c.stopMovement();
                 if (this.game.combat && this.game.combat.engagement) {
                     const k = this.game.combat.engagement.kind;
                     if (k === 'trees' || k === 'ores' || k === 'gather') {
@@ -314,7 +359,8 @@
                 }
             }
             if (this.game.ui && this.game.ui.floatText) {
-                this.game.ui.floatText(this.gatherEnabled ? 'Автосбор: ВКЛ' : 'Автосбор: ВЫКЛ', this.gatherEnabled ? 'good' : 'info');
+                const label = this.gatherEnabled ? `Автосбор (${this.gatherRadius}м): ВКЛ` : 'Автосбор: ВЫКЛ';
+                this.game.ui.floatText(label, this.gatherEnabled ? 'good' : 'info');
             }
         }
 
@@ -690,6 +736,13 @@
 
             const now = Date.now();
 
+            // Starting origin (anchor) and range limit
+            if (!this.gatherAnchor && c.position) {
+                this.gatherAnchor = { x: c.position.x, z: c.position.z };
+            }
+            const anchor = this.gatherAnchor || { x: c.position.x, z: c.position.z };
+            const maxRadius = this.gatherRadius || 30.0;
+
             // Clean expired unreachable items
             if (this._unreachableObjects.size > 0) {
                 for (const [id, until] of this._unreachableObjects.entries()) {
@@ -704,20 +757,29 @@
                 if (attackers.length > 0) return;
             }
 
+            // TREE FELLING CHECK: If a tree is currently falling within 8m, WAIT for it to land and drop loot!
+            if (harvest && harvest.falling && harvest.falling.length > 0) {
+                const nearbyFalling = harvest.falling.find(f => {
+                    const d = Math.hypot(f.entry.x - c.position.x, f.entry.z - c.position.z);
+                    return d < 8.0 && !f.landed;
+                });
+                if (nearbyFalling) {
+                    if (c.isMoving) c.stopMovement();
+                    return; // Pause 0.5-1.4s so we collect drops right under our feet!
+                }
+            }
+
             // Verify current active target
             if (this._currentGatherTarget) {
                 const tgt = this._currentGatherTarget;
                 const dist = Math.hypot(tgt.x - c.position.x, tgt.z - c.position.z);
                 const reach = tgt.reach || 1.8;
 
-                // Active harvesting in progress
                 const isHarvestEngaged = combat.engagement && (combat.engagement.id === tgt.id || (tgt.type === 'pile' && combat.engagement.kind === 'gather'));
                 const isWalkingToPile = tgt.type === 'pile' && wo && wo.pendingPileId === tgt.id;
 
                 if (isHarvestEngaged || (isWalkingToPile && c.isMoving)) {
-                    // Valid activity progressing
                     if (now - this._gatherTargetStartTime > 14000) {
-                        // Stuck timeout: taking way too long on a single node
                         this._unreachableObjects.set(tgt.id, now + 120000);
                         if (combat.engagement) combat.cancel();
                         if (wo && wo.cancelPending) wo.cancelPending();
@@ -727,11 +789,8 @@
                     return;
                 }
 
-                // If character stopped moving and did not engage harvesting within reach:
-                // Obstacle (waterfall rock, cliff, water) blocked path!
                 if (!c.isMoving && !isHarvestEngaged && !isWalkingToPile) {
                     if (dist > reach + 0.4) {
-                        // Unreachable! Blacklist node for 2 minutes so we don't repeatedly head into the rock
                         this._unreachableObjects.set(tgt.id, now + 120000);
                         if (combat.engagement) combat.cancel();
                         if (wo && wo.cancelPending) wo.cancelPending();
@@ -740,7 +799,6 @@
                 }
             }
 
-            // If hero is actively engaged in other combat
             if (combat.engagement) {
                 const k = combat.engagement.kind;
                 if (k === 'trees' || k === 'ores' || k === 'gather') return;
@@ -749,42 +807,62 @@
 
             this._currentGatherTarget = null;
 
-            // Inventory capacity check
+            // Check inventory capacity
             const inv = st && st.inventory;
-            const isBagFull = inv && inv.cells.every(cell => cell !== null);
+            const hasEmptyCells = inv ? inv.cells.some(cell => cell === null) : false;
 
             const px = c.position.x, pz = c.position.z;
-            const GATHER_RANGE = 35.0;
-            const candidates = [];
 
-            // 1. Drops / ground piles
+            // -------------------------------------------------------------
+            // PRIORITY 1: Ground loot / drops (piles)
+            // -------------------------------------------------------------
+            const pileCandidates = [];
             if (this.gatherConfig.loot && wo && wo.piles) {
                 for (const [pileId, pile] of wo.piles.entries()) {
                     if (!pile || pile.remaining <= 0) continue;
                     if (this._unreachableObjects.has(pileId)) continue;
 
-                    const dx = pile.data.x - px, dz = pile.data.z - pz;
-                    const dist = Math.hypot(dx, dz);
-                    if (dist > GATHER_RANGE) continue;
+                    // Must be within gather radius from the starting anchor
+                    const distFromAnchor = Math.hypot(pile.data.x - anchor.x, pile.data.z - anchor.z);
+                    if (distFromAnchor > maxRadius) continue;
 
-                    // If bag is full, only collect if item stacks into existing cell
+                    // Does the item fit into the bag?
                     if (inv && inv.spaceFor(pile.def.id) <= 0) continue;
 
-                    candidates.push({
+                    const distFromPlayer = Math.hypot(pile.data.x - px, pile.data.z - pz);
+                    pileCandidates.push({
                         type: 'pile',
                         pile,
                         id: pileId,
                         x: pile.data.x,
                         z: pile.data.z,
                         reach: 1.6,
-                        dist: Math.max(0, dist - 3.0), // Priority bonus for ground items
-                        rawDist: dist
+                        dist: distFromPlayer,
+                        rawDist: distFromPlayer
                     });
                 }
             }
 
-            // 2. Interactive environment nodes (trees, ores, ferns)
+            // If there is ANY collectable loot on the ground within radius, pick it up first!
+            if (pileCandidates.length > 0) {
+                pileCandidates.sort((a, b) => a.dist - b.dist);
+                const bestPile = this.findReachableGatherCandidate(pileCandidates, c);
+                if (bestPile) {
+                    this._currentGatherTarget = bestPile;
+                    this._gatherTargetStartTime = now;
+                    wo.requestPickup(bestPile.pile);
+                    return;
+                }
+            }
+
+            // -------------------------------------------------------------
+            // PRIORITY 2: Resource nodes (trees, ores, ferns)
+            // -------------------------------------------------------------
             const env = g.environment;
+            const nodeCandidates = [];
+            let anyNodeInRadius = false;
+            let bagBlockedNodes = 0;
+
             if (env && env.objects && harvest) {
                 for (const [objId, entry] of env.objects.entries()) {
                     if (!entry || entry.visible === false) continue;
@@ -793,40 +871,54 @@
                     const node = harvest.nodeFor(entry.kind);
                     if (!node) continue;
 
+                    // Must be within gather radius from the starting anchor
+                    const distFromAnchor = Math.hypot(entry.x - anchor.x, entry.z - anchor.z);
+                    if (distFromAnchor > maxRadius) continue;
+
                     const s = entry.s || 1;
                     let reach = 1.8;
+                    let canHarvestThis = false;
 
-                    // Herb / Fern gathering
+                    // 1. Herbs / Ferns
                     if (node.tool === 'gather' || entry.kind === 'ferns') {
                         if (!this.gatherConfig.herb) continue;
-                        const drops = node.drops || [{ item: 'fern' }];
-                        if (isBagFull && inv && drops.every(d => inv.spaceFor(d.item) <= 0)) continue;
+                        anyNodeInRadius = true;
+                        if (!hasEmptyCells && inv && inv.spaceFor('fern') <= 0) {
+                            bagBlockedNodes++;
+                            continue;
+                        }
                         reach = Math.max(1.3, 0.45 * s + 0.6);
+                        canHarvestThis = true;
                     }
-                    // Ore mining
+                    // 2. Ore / Stone
                     else if (node.tool === 'mine' || entry.kind === 'ores') {
                         if (!this.gatherConfig.ore) continue;
                         if (!harvest.hasTool(node) && !harvest.findToolInBag('mine')) continue;
-                        const drops = node.drops || [{ item: 'stone' }];
-                        if (isBagFull && inv && drops.every(d => inv.spaceFor(d.item) <= 0)) continue;
+                        anyNodeInRadius = true;
+                        if (!hasEmptyCells && inv && inv.spaceFor('stone') <= 0) {
+                            bagBlockedNodes++;
+                            continue;
+                        }
                         reach = Math.max(1.3, 0.6 * s + 0.9);
+                        canHarvestThis = true;
                     }
-                    // Tree logging
+                    // 3. Trees / Wood
                     else if (node.tool === 'chop' || entry.kind === 'trees') {
                         if (!this.gatherConfig.wood) continue;
                         if (!harvest.hasTool(node) && !harvest.findToolInBag('chop')) continue;
-                        const drops = node.drops || [{ item: 'log' }];
-                        if (isBagFull && inv && drops.every(d => inv.spaceFor(d.item) <= 0)) continue;
+                        anyNodeInRadius = true;
+                        if (!hasEmptyCells && inv && inv.spaceFor('log') <= 0) {
+                            bagBlockedNodes++;
+                            continue;
+                        }
                         reach = Math.max(1.6, 0.8 * s + 0.95 - 0.3 * s);
-                    } else {
-                        continue;
+                        canHarvestThis = true;
                     }
 
-                    const dx = entry.x - px, dz = entry.z - pz;
-                    const dist = Math.hypot(dx, dz);
-                    if (dist > GATHER_RANGE) continue;
+                    if (!canHarvestThis) continue;
 
-                    candidates.push({
+                    const distFromPlayer = Math.hypot(entry.x - px, entry.z - pz);
+                    nodeCandidates.push({
                         type: 'node',
                         entry,
                         node,
@@ -834,60 +926,68 @@
                         x: entry.x,
                         z: entry.z,
                         reach,
-                        dist,
-                        rawDist: dist
+                        dist: distFromPlayer,
+                        rawDist: distFromPlayer
                     });
                 }
             }
 
-            if (candidates.length === 0) {
-                if (now - this._lastGatherMsgTime > 10000) {
+            // Pick closest reachable resource node
+            if (nodeCandidates.length > 0) {
+                nodeCandidates.sort((a, b) => a.dist - b.dist);
+                const bestNode = this.findReachableGatherCandidate(nodeCandidates, c);
+                if (bestNode) {
+                    this._currentGatherTarget = bestNode;
+                    this._gatherTargetStartTime = now;
+                    harvest.request(bestNode.entry);
+                    return;
+                }
+            }
+
+            // BAG FULL GUARD: If resources exist in radius but ALL are blocked because bag cannot hold their drops:
+            if (anyNodeInRadius && bagBlockedNodes > 0 && nodeCandidates.length === 0 && pileCandidates.length === 0) {
+                if (now - this._lastGatherMsgTime > 4000) {
                     this._lastGatherMsgTime = now;
                     if (ui && ui.floatText) {
-                        if (isBagFull) ui.floatText('Сумка полна — автосбор ожидает', 'warn');
-                        else ui.floatText('Поблизости нет ресурсов для сбора', 'info');
+                        ui.floatText('Сумка полна — автосбор остановлен', 'warn');
                     }
+                    this.toggleGather(false); // Stop immediately instead of leaving loot behind!
                 }
                 return;
             }
 
-            // Sort candidates by effective distance
-            candidates.sort((a, b) => a.dist - b.dist);
+            // NO TARGETS IN RADIUS: Return to starting anchor point and wait for respawns
+            const distToAnchor = Math.hypot(anchor.x - px, anchor.z - pz);
+            if (distToAnchor > 3.0) {
+                this.navigateTowards(anchor.x, anchor.z);
+            } else {
+                if (c.isMoving && !this.questEnabled && !this.combatEnabled) {
+                    c.stopMovement();
+                }
+            }
+        }
 
-            // Path validation: find closest candidate that is actually reachable
-            let best = null;
+        findReachableGatherCandidate(candidates, c) {
+            const now = Date.now();
             for (let i = 0; i < candidates.length; i++) {
                 const cand = candidates[i];
-                if (g.pathfinder && cand.rawDist > cand.reach + 0.3) {
-                    const path = g.pathfinder.findPath(c.position, { x: cand.x, z: cand.z });
+                if (this.game.pathfinder && cand.rawDist > cand.reach + 0.3) {
+                    const path = this.game.pathfinder.findPath(c.position, { x: cand.x, z: cand.z });
                     if (!path || path.length === 0) {
                         this._unreachableObjects.set(cand.id, now + 120000);
                         continue;
                     }
                     const endPt = path[path.length - 1];
                     const endDist = Math.hypot(endPt.x - cand.x, endPt.z - cand.z);
-                    // If path ends short of reach distance (blocked by cliff, waterfall rocks or water)
                     if (endDist > cand.reach + 0.8) {
                         this._unreachableObjects.set(cand.id, now + 120000);
                         continue;
                     }
                 }
-                best = cand;
-                break;
+                return cand;
             }
-
-            if (!best) return;
-
-            this._currentGatherTarget = best;
-            this._gatherTargetStartTime = now;
-
-            if (best.type === 'pile') {
-                wo.requestPickup(best.pile);
-            } else if (best.type === 'node') {
-                harvest.request(best.entry);
-            }
+            return null;
         }
-
         // ---------------------------------------------------------------------
         // 3. AUTO-QUEST ENGINE
         // ---------------------------------------------------------------------
