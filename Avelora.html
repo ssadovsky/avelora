@@ -242,8 +242,8 @@
     <div id="auto-actions-dock" aria-label="Автоматические действия">
         <div class="auto-action-group" id="auto-combat-group">
             <button type="button" class="auto-action-chevron" id="auto-combat-chevron" title="Дистанция боя" aria-label="Дистанция боя">
-                <svg viewBox="0 0 10 6" width="9" height="6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 5l4-4 4 4"/>
+                <svg viewBox="0 0 10 7" fill="currentColor">
+                    <polygon points="5,1 9,6 1,6"/>
                 </svg>
             </button>
             <button type="button" id="auto-combat-btn" class="hud-btn auto-action-btn" title="Автобой (Z)" aria-label="Автобой">
@@ -274,16 +274,23 @@
                 <button type="button" class="auto-popup-option" data-radius="0">
                     <span>На месте</span><span class="auto-popup-hint">0м</span>
                 </button>
+                <div class="auto-popup-divider"></div>
+                <label class="auto-popup-item" title="Атаковать нейтральных (жёлтых) существ при автобое">
+                    <input type="checkbox" id="auto-combat-neutrals">
+                    <span class="auto-popup-check"></span>
+                    <span class="auto-popup-icon">⚔️</span>
+                    <span class="auto-popup-text">Нейтральные</span>
+                </label>
             </div>
         </div>
 
         <div class="auto-action-group" id="auto-gather-group">
             <button type="button" class="auto-action-chevron" id="auto-gather-chevron" title="Настройки автосбора" aria-label="Настройки автосбора">
-                <svg viewBox="0 0 10 6" width="9" height="6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 5l4-4 4 4"/>
+                <svg viewBox="0 0 10 7" fill="currentColor">
+                    <polygon points="5,1 9,6 1,6"/>
                 </svg>
             </button>
-            <button type="button" id="auto-gather-btn" class="hud-btn auto-action-btn" title="Автосбор (C)" aria-label="Автосбор">
+            <button type="button" id="auto-gather-btn" class="hud-btn auto-action-btn" title="Автосбор (])" aria-label="Автосбор">
                 <svg class="auto-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M4 12a8 8 0 0 1 14.9-4"/>
                     <polyline points="15 8 19 8 19 4"/>
@@ -294,7 +301,7 @@
                     <path d="M9.5 15.5c1.5 1.5 3.5 1.5 5 0"/>
                 </svg>
                 <span class="auto-action-label">СБОР</span>
-                <span class="auto-action-key">C</span>
+                <span class="auto-action-key">]</span>
                 <span class="auto-action-state">ВЫКЛ</span>
             </button>
             <div id="auto-gather-popup" class="auto-action-popup" style="display: none;">

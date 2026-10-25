@@ -17,6 +17,8 @@
 
             this.gatherConfig = this.loadGatherConfig();
             this.combatRadius = this.loadCombatRadius();
+            this.combatAttackNeutrals = this.loadCombatNeutrals();
+            this.combatAnchor = null; // запоминается только в сессии во время включенного автобоя
 
             // Combat throttling & state
             this._combatTimer = 0;
@@ -79,6 +81,21 @@
             this.combatRadius = Number(r);
             try {
                 localStorage.setItem('avelora_autocombat_radius', String(this.combatRadius));
+            } catch (_) {}
+        }
+
+        loadCombatNeutrals() {
+            try {
+                const saved = localStorage.getItem('avelora_autocombat_neutrals');
+                return saved === 'true';
+            } catch (_) {}
+            return false;
+        }
+
+        saveCombatNeutrals(val) {
+            this.combatAttackNeutrals = !!val;
+            try {
+                localStorage.setItem('avelora_autocombat_neutrals', String(this.combatAttackNeutrals));
             } catch (_) {}
         }
 
@@ -222,6 +239,18 @@
             syncCheckbox('auto-gather-ore', 'ore');
             syncCheckbox('auto-gather-loot', 'loot');
 
+            // Combat attack neutrals checkbox
+            const neutralsEl = document.getElementById('auto-combat-neutrals');
+            if (neutralsEl) {
+                neutralsEl.checked = !!this.combatAttackNeutrals;
+                neutralsEl.addEventListener('change', () => {
+                    this.saveCombatNeutrals(neutralsEl.checked);
+                    if (this.game.ui && this.game.ui.floatText) {
+                        this.game.ui.floatText(`Нейтральные: ${neutralsEl.checked ? 'ВКЛ' : 'ВЫКЛ'}`, neutralsEl.checked ? 'good' : 'info');
+                    }
+                });
+            }
+
             // Combat radius radio options
             if (this.combatPopup) {
                 const opts = this.combatPopup.querySelectorAll('.auto-popup-option');
@@ -256,7 +285,7 @@
                 } else if (e.code === 'KeyX') { // X key - Auto Quest
                     e.preventDefault();
                     this.toggleQuest();
-                } else if (e.code === 'KeyC') { // C key - Auto Gather
+                } else if (e.code === 'BracketRight' || e.key === ']' || e.key === 'ъ' || e.key === 'Ъ') { // ] key - Auto Gather
                     e.preventDefault();
                     this.toggleGather();
                 }
@@ -291,6 +320,17 @@
 
         toggleCombat(force) {
             this.combatEnabled = (force !== undefined) ? !!force : !this.combatEnabled;
+            if (this.combatEnabled) {
+                const c = this.game.character;
+                if (c && c.position) {
+                    this.combatAnchor = { x: c.position.x, z: c.position.z };
+                }
+            } else {
+                this.combatAnchor = null;
+                if (this.game.combat) this.game.combat.clearTarget();
+                const c = this.game.character;
+                if (c && c.isMoving && !this.questEnabled && !this.gatherEnabled) c.stopMovement();
+            }
             if (this.combatBtn) {
                 this.combatBtn.classList.toggle('active', this.combatEnabled);
                 const stateSpan = this.combatBtn.querySelector('.auto-action-state');
@@ -323,6 +363,12 @@
         onManualMove() {
             this._lastManualAt = Date.now();
             this._manualMovePauseUntil = this._lastManualAt + 3500;
+            if (this.combatEnabled) {
+                const c = this.game.character;
+                if (c && c.position) {
+                    this.combatAnchor = { x: c.position.x, z: c.position.z };
+                }
+            }
         }
 
         // ---------------------------------------------------------------------
@@ -455,6 +501,12 @@
             const hero = g.hero;
             if (!cr || !c || !combat) return;
 
+            // Anchor point where auto-combat was activated (in-memory only)
+            if (!this.combatAnchor && c.position) {
+                this.combatAnchor = { x: c.position.x, z: c.position.z };
+            }
+            const anchor = this.combatAnchor || { x: c.position.x, z: c.position.z };
+
             // Target Validation
             let tgt = customTarget || combat.selectedTarget;
             if (tgt && (!cr.isAlive(tgt) || tgt.state === 'return')) {
@@ -471,21 +523,29 @@
                     tgt = attackers[0];
                     combat.selectTarget(tgt);
                 } else {
-                    // Priority 2: If hunting specific quest target
+                    // Priority 2: If hunting specific quest target within anchor range
                     const huntType = this.getHuntCreatureType();
                     if (huntType) {
-                        const huntCandidates = (cr.list || []).filter(rec => cr.isAlive(rec) && rec.type === huntType && Math.hypot(rec.x - c.position.x, rec.z - c.position.z) <= 24.0);
+                        const huntCandidates = (cr.list || []).filter(rec => cr.isAlive(rec) && rec.type === huntType && Math.hypot(rec.x - anchor.x, rec.z - anchor.z) <= Math.max(24.0, this.combatRadius));
                         if (huntCandidates.length > 0) {
                             huntCandidates.sort((a, b) => Math.hypot(a.x - c.position.x, a.z - c.position.z) - Math.hypot(b.x - c.position.x, b.z - c.position.z));
                             tgt = huntCandidates[0];
                             combat.selectTarget(tgt);
                         }
                     }
-                    // Priority 3: Only naturally aggressive enemies (def.behavior === 'aggressive')
-                    // DO NOT attack neutral/yellow passive mobs unless already aggroed above!
+                    // Priority 3: Aggressive enemies (or neutral/yellow mobs) strictly within combatRadius FROM THE START ANCHOR
                     if (!tgt) {
                         const maxDist = this.combatRadius > 0 ? this.combatRadius : 4.0;
-                        const hostiles = (cr.list || []).filter(rec => cr.isAlive(rec) && rec.def && rec.def.behavior === 'aggressive' && Math.hypot(rec.x - c.position.x, rec.z - c.position.z) <= maxDist);
+                        const hostiles = (cr.list || []).filter(rec => {
+                            if (!cr.isAlive(rec) || !rec.def) return false;
+                            const isAggro = rec.def.behavior === 'aggressive';
+                            const isNeutral = !isAggro && rec.def.behavior !== 'friendly' && rec.def.behavior !== 'npc';
+                            const canTarget = isAggro || (this.combatAttackNeutrals && isNeutral);
+                            if (!canTarget) return false;
+                            // Считаем дистанцию строго ОТ СТАРТОВОГО ЯКОРЯ (anchor)
+                            const distFromAnchor = Math.hypot(rec.x - anchor.x, rec.z - anchor.z);
+                            return distFromAnchor <= maxDist;
+                        });
                         if (hostiles.length > 0) {
                             hostiles.sort((a, b) => Math.hypot(a.x - c.position.x, a.z - c.position.z) - Math.hypot(b.x - c.position.x, b.z - c.position.z));
                             tgt = hostiles[0];
@@ -495,17 +555,63 @@
                 }
             }
 
-            // If no target around -> IDLE mode. Conserve mana, do not cast in the air!
-            if (!tgt) return;
+            // If no target around in anchor radius -> Return to start anchor!
+            if (!tgt) {
+                if (this.combatRadius > 0 && !this.questEnabled && !this.gatherEnabled) {
+                    const distToAnchor = Math.hypot(anchor.x - c.position.x, anchor.z - c.position.z);
+                    if (distToAnchor > 2.5) {
+                        // Return smoothly to the starting point
+                        this.navigateTowards(anchor.x, anchor.z);
+                        return;
+                    }
+                }
+                if (c.isMoving && !this.questEnabled && !this.gatherEnabled) {
+                    c.stopMovement();
+                }
+                return;
+            }
 
             const dist = Math.hypot(tgt.x - c.position.x, tgt.z - c.position.z);
             const allSkills = this.getAvailableSkills();
             const w = combat.weapon ? combat.weapon() : null;
             const isRanged = (w && (w.style === 'bow' || w.style === 'staff')) || allSkills.some(s => s.type === 'projectile' || s.type === 'strike');
-            const maxCastRange = 16.0;
+            const targetHitR = (tgt.def && tgt.def.hitRadius) || 0.4;
 
-            // Out of range: autobattle never drags the hero around (the quest autopilot walks by itself)
-            if (dist > maxCastRange) return;
+            // Effective combat engagement distance:
+            // For ranged hero (staff/bow/spells) stop around 13.5m to comfortably cast.
+            // For melee hero (swords/axes/fists) approach to weapon reach.
+            const effectiveAttackRange = isRanged ? 13.5 : Math.max(1.8, ((w && w.range) || 2.0) + targetHitR);
+
+            // If target is farther than effective attack distance:
+            if (dist > effectiveAttackRange) {
+                // If "На месте" (0m) mode: hero never chases targets
+                if (this.combatRadius === 0) {
+                    if (c.isMoving && !this.questEnabled && !this.gatherEnabled) c.stopMovement();
+                    return;
+                }
+
+                // If target moved beyond the anchor combat radius with margin: drop target and return
+                const distFromAnchor = Math.hypot(tgt.x - anchor.x, tgt.z - anchor.z);
+                if (distFromAnchor > this.combatRadius + 5.0) {
+                    combat.clearTarget();
+                    tgt = null;
+                    return;
+                }
+
+                // Move towards target until within attack distance!
+                this.navigateTowards(tgt.x, tgt.z);
+                return;
+            }
+
+            // Target is within attack reach: halt walking to begin casting/attacking
+            if (c.isMoving && !this.questEnabled && !this.gatherEnabled) {
+                c.stopMovement();
+            }
+
+            // Smoothly turn to face the target when casting/fighting
+            if (c.faceTowards) {
+                c.faceTowards(tgt.x, tgt.z);
+            }
 
             // Wait if currently casting or channeling
             if (skills && (skills.casting || skills.channel)) return;
