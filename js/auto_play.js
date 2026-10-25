@@ -20,6 +20,7 @@
             this.gatherAnchor = null; // запоминается только в сессии во время включенного автосбора
             this.combatRadius = this.loadCombatRadius();
             this.combatAttackNeutrals = this.loadCombatNeutrals();
+            this.combatUseDefense = this.loadCombatDefense();
             this.combatAnchor = null; // запоминается только в сессии во время включенного автобоя
 
             // Combat throttling & state
@@ -116,6 +117,21 @@
             this.combatAttackNeutrals = !!val;
             try {
                 localStorage.setItem('avelora_autocombat_neutrals', String(this.combatAttackNeutrals));
+            } catch (_) {}
+        }
+
+        loadCombatDefense() {
+            try {
+                const saved = localStorage.getItem('avelora_autocombat_defense');
+                if (saved !== null) return saved === 'true';
+            } catch (_) {}
+            return true;
+        }
+
+        saveCombatDefense(val) {
+            this.combatUseDefense = !!val;
+            try {
+                localStorage.setItem('avelora_autocombat_defense', String(this.combatUseDefense));
             } catch (_) {}
         }
 
@@ -288,6 +304,18 @@
                     this.saveCombatNeutrals(neutralsEl.checked);
                     if (this.game.ui && this.game.ui.floatText) {
                         this.game.ui.floatText(`Нейтральные: ${neutralsEl.checked ? 'ВКЛ' : 'ВЫКЛ'}`, neutralsEl.checked ? 'good' : 'info');
+                    }
+                });
+            }
+
+            // Combat defense skills checkbox
+            const defenseEl = document.getElementById('auto-combat-defense');
+            if (defenseEl) {
+                defenseEl.checked = !!this.combatUseDefense;
+                defenseEl.addEventListener('change', () => {
+                    this.saveCombatDefense(defenseEl.checked);
+                    if (this.game.ui && this.game.ui.floatText) {
+                        this.game.ui.floatText(`Защитные скилы: ${defenseEl.checked ? 'ВКЛ' : 'ВЫКЛ'}`, defenseEl.checked ? 'good' : 'info');
                     }
                 });
             }
@@ -681,12 +709,14 @@
             // Wait if currently casting or channeling
             if (skills && (skills.casting || skills.channel)) return;
 
-            // 1. Defensive Buff / Shield (Metadata: s.type === 'buff')
-            const buffSkill = allSkills.find(s => s.type === 'buff' && skills.cooldownRemaining(s.id) === 0 && this.canAfford(s));
-            if (buffSkill && hero && this.isUnderThreat(tgt)) {
-                const buffId = (buffSkill.buff && buffSkill.buff.id) ? buffSkill.buff.id : buffSkill.id;
-                if (!hero.hasEffect(buffId)) {
-                    if (skills.activate(buffSkill.id) === 'ok') return;
+            // 1. Defensive Buff / Shield (Metadata: s.type === 'buff' or 'defense')
+            if (this.combatUseDefense) {
+                const buffSkill = allSkills.find(s => (s.type === 'buff' || s.type === 'defense' || s.isDefense) && skills.cooldownRemaining(s.id) === 0 && this.canAfford(s));
+                if (buffSkill && hero && this.isUnderThreat(tgt)) {
+                    const buffId = (buffSkill.buff && buffSkill.buff.id) ? buffSkill.buff.id : buffSkill.id;
+                    if (!hero.hasEffect(buffId)) {
+                        if (skills.activate(buffSkill.id) === 'ok') return;
+                    }
                 }
             }
 

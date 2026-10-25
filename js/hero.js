@@ -69,7 +69,6 @@
             this.mana = 0;
             this.maxMana = 0;
             this.manaRegen = 0;
-            this._manaRegenPause = 0;
             this._manaShown = -1;
             this._xpShown = '';
             this.manaBar = document.getElementById('mana-bar');
@@ -120,11 +119,11 @@
             const manaPerInt = D.manaPerInt !== undefined ? D.manaPerInt : 10;
             this.maxMana = Math.round((baseM + st.int * manaPerInt) * M.mana);
 
-            // Честная регенерация маны: фиксированная база класса/конфига + бонус от Интеллекта
+            // Регенерация маны (Вариант 2: База + Интеллект * perInt):
             const cfgManaRegen = CFG().manaRegen || {};
-            const baseRegen = Number.isFinite(cls.manaRegen) ? cls.manaRegen : (cfgManaRegen.base !== undefined ? cfgManaRegen.base : 3.0);
-            const intBonus = st.int * (D.manaRegenPerInt !== undefined ? D.manaRegenPerInt : 0.1);
-            this.manaRegen = Math.max(0.5, (baseRegen + intBonus) * (M.regen || 1));
+            const baseRegen = Number.isFinite(cfgManaRegen.base) ? cfgManaRegen.base : 3.0;
+            const perInt = Number.isFinite(cfgManaRegen.perInt) ? cfgManaRegen.perInt : 0.15;
+            this.manaRegen = Math.max(0.5, (baseRegen + st.int * perInt) * (M.regen || 1));
 
             if (this.mana > this.maxMana || heal || !Number.isFinite(this.mana) || this.mana <= 0) this.mana = this.maxMana;
             const cb = this.game.combat;
@@ -230,15 +229,16 @@
             return Math.max(0.1, (1 + startStat * dps) * CFG().multipliers.damage);
         }
 
-        /** Dynamic mana cost of a skill, organically scaling with skill power ratio. */
+        /** Dynamic mana cost of a skill, organically scaling with skill power ratio (only for damaging skills). */
         skillManaCost(def) {
             if (!def || !def.mana || def.mana <= 0) return 0;
             const base = def.mana;
+            if (!def.damage) return Math.max(1, Math.round(base));
             const currentMult = this.skillMult(def);
             const baseMult = this.skillBaseMult(def);
             const powerRatio = Math.max(1, currentMult / Math.max(1e-4, baseMult));
             const derived = (CFG() && CFG().derived) || {};
-            const exp = derived.manaCostPowerExp !== undefined ? derived.manaCostPowerExp : 0.75;
+            const exp = derived.manaCostPowerExp !== undefined ? derived.manaCostPowerExp : 0.25;
             const manaMult = Math.pow(powerRatio, exp);
             return Math.max(1, Math.round(base * manaMult));
         }
@@ -319,9 +319,7 @@
 
         update(delta) {
             if (!this.state) return;
-            if (this._manaRegenPause > 0) {
-                this._manaRegenPause = Math.max(0, this._manaRegenPause - delta);
-            } else if (this.mana < this.maxMana && this.manaRegen > 0) {
+            if (this.mana < this.maxMana && this.manaRegen > 0) {
                 this.mana = Math.min(this.maxMana, this.mana + this.manaRegen * delta);
                 this.renderBars();
             }
@@ -387,10 +385,6 @@
             let shield = null;
             this.effects.forEach(e => { if (!shield && e.manaPerDamage > 0) shield = e; });
             if (!shield) return amount;
-
-            // Пауза регенерации маны при получении урона в щит (защита от пассивного бессмертия):
-            const cfgManaRegen = (CFG() && CFG().manaRegen) || {};
-            this._manaRegenPause = Number.isFinite(cfgManaRegen.hitPause) ? cfgManaRegen.hitPause : 3.0;
 
             const k = shield.manaPerDamage;
             const need = amount * k;

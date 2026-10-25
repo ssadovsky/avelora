@@ -4509,7 +4509,7 @@ window.GAME_CONTENT = {
     "id": "mana_shield",
     "kind": "buff",
     "duration": 30,
-    "manaPerDamage": 1.5,
+    "manaPerDamage": 1.0,
     "shield": true
    },
    "vfx": {
