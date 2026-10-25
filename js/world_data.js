@@ -1348,16 +1348,16 @@ window.LOCATIONS = {
 
         creatures: [
             // Чёрные крысы в гротах и коридоре подземелья (5 уровень, Элита)
-            { id: 'catacombs_rat_1', type: 'rat', level: 5, rank: 'elite', x: -9.5, z: -30.0, r: 1.0, behavior: 'aggressive', aggroRadius: 8.0 },
-            { id: 'catacombs_rat_2', type: 'rat', level: 5, rank: 'elite', x: -6.0, z: -26.0, r: 4.2, behavior: 'aggressive', aggroRadius: 8.0 },
-            { id: 'catacombs_rat_3', type: 'rat', level: 5, rank: 'elite', x: -1.3, z: -15.5, r: 0.5, behavior: 'aggressive', aggroRadius: 8.0 },
-            { id: 'catacombs_rat_4', type: 'rat', level: 5, rank: 'elite', x: 1.3,  z: -13.0, r: 3.7, behavior: 'aggressive', aggroRadius: 8.0 },
-            { id: 'catacombs_rat_5', type: 'rat', level: 5, rank: 'elite', x: -1.1, z: -1.5,  r: 1.8, behavior: 'aggressive', aggroRadius: 8.0 },
-            { id: 'catacombs_rat_6', type: 'rat', level: 5, rank: 'elite', x: 1.1,  z: 2.0,   r: 5.0, behavior: 'aggressive', aggroRadius: 8.0 },
+            { id: 'catacombs_rat_1', type: 'rat', level: 5, rank: 'elite', x: -9.5, z: -30.0, r: 1.0, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 36.0 },
+            { id: 'catacombs_rat_2', type: 'rat', level: 5, rank: 'elite', x: -6.0, z: -26.0, r: 4.2, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 36.0 },
+            { id: 'catacombs_rat_3', type: 'rat', level: 5, rank: 'elite', x: -1.3, z: -15.5, r: 0.5, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 36.0 },
+            { id: 'catacombs_rat_4', type: 'rat', level: 5, rank: 'elite', x: 1.3,  z: -13.0, r: 3.7, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 36.0 },
+            { id: 'catacombs_rat_5', type: 'rat', level: 5, rank: 'elite', x: -1.1, z: -1.5,  r: 1.8, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 36.0 },
+            { id: 'catacombs_rat_6', type: 'rat', level: 5, rank: 'elite', x: 1.1,  z: 2.0,   r: 5.0, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 36.0 },
 
             // Пауки в боковых гротах подземелья (5 уровень, Элита)
-            { id: 'catacombs_spider_1', type: 'spider', level: 5, rank: 'elite', x: 12.0,  z: -13.7, r: -1.2, behavior: 'aggressive', aggroRadius: 9.0 },
-            { id: 'catacombs_spider_2', type: 'spider', level: 5, rank: 'elite', x: -20.5, z: -28.5, r: 1.57, behavior: 'aggressive', aggroRadius: 9.0 },
+            { id: 'catacombs_spider_1', type: 'spider', level: 5, rank: 'elite', x: 12.0,  z: -13.7, r: -1.2, behavior: 'aggressive', aggroRadius: 9.0, leashRadius: 36.0 },
+            { id: 'catacombs_spider_2', type: 'spider', level: 5, rank: 'elite', x: -20.5, z: -28.5, r: 1.57, behavior: 'aggressive', aggroRadius: 9.0, leashRadius: 36.0 },
 
             // Кобольд-рудокоп в каменном склепе перед решёткой (5 уровень, Элита)
             { id: 'catacombs_kobold_1', type: 'kobold', level: 5, rank: 'elite', x: 0.0, z: 15.0, r: Math.PI, behavior: 'aggressive', aggroRadius: 9.0, leashRadius: 22.0 },

@@ -99,6 +99,12 @@ class DiabloPathfinder {
         return this.isWalkable(g.x, g.z);
     }
 
+    hasLineOfSightWorld(wx0, wz0, wx1, wz1) {
+        const a = this.worldToGrid(wx0, wz0);
+        const b = this.worldToGrid(wx1, wz1);
+        return this.hasLineOfSight(a.x, a.z, b.x, b.z);
+    }
+
     findNearestWalkable(gx, gz, maxRadius = 120) {
         if (this.isWalkable(gx, gz)) return { x: gx, z: gz };
 

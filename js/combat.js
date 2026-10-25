@@ -382,8 +382,10 @@
             const reach = e.range(w);
             const d = this.edgeDistance(e);
             const now = g.gameTime;
+            const isRanged = w.style === 'bow' || w.style === 'staff';
+            const hasLoS = (!isRanged || !g.skills) ? true : g.skills.hasLineOfSight(c.position, { x: e.x(), y: 0, z: e.z(), height: 1.0 });
 
-            if (d > reach) {
+            if (d > reach || !hasLoS) {
                 // Walk toward it; re-path when it moved or the path ran out
                 const moved = Math.hypot(e.x() - e.lastGoalX, e.z() - e.lastGoalZ);
                 const stopped = !c.isMoving && now - e.lastPathAt > 0.15;

@@ -801,7 +801,9 @@
             const dxp = p ? p.x - rec.x : 0, dzp = p ? p.z - rec.z : 0;
             const distP = p ? Math.sqrt(dxp * dxp + dzp * dzp) : Infinity;
             const distHome = Math.hypot(rec.x - rec.home.x, rec.z - rec.home.z);
-            const leash = rec.rallied ? 400 : (def.leashRadius || 14);   // rallied dungeon mobs chase across the whole dungeon
+            const isDungeon = Boolean(this.location && this.location.isDungeon);
+            const defaultLeash = isDungeon ? 36 : 24;
+            const leash = rec.rallied ? 400 : Math.max(defaultLeash, def.leashRadius || defaultLeash);
             const reach = (def.attackRange || 0.8) + (def.hitRadius || 0.4) + PLAYER_RADIUS;
             rec.speed = 0;
             // Оглушение (стан на 5 сек): существо парализовано, не двигается и не атакует

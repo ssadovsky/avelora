@@ -446,6 +446,11 @@
                     return 'out_of_range';
                 }
 
+                if (!this.hasLineOfSight(c.position, tgt)) {
+                    if (g.ui && g.ui.floatText) g.ui.floatText('Цель вне зоны видимости', 'warn');
+                    return 'no_los';
+                }
+
                 if (!this.payMana(def)) {
                     return 'mana';
                 }
@@ -1087,6 +1092,7 @@
             // Если цель жива, берём её самые свежие текущие координаты прямо сейчас (попадание по движущейся цели)
             const cr = g.creatures;
             const aliveTgt = (tgt && cr && cr.isAlive(tgt)) ? tgt : null;
+            if (aliveTgt && !this.hasLineOfSight(g.character.position, aliveTgt)) return;
             const tx = aliveTgt ? aliveTgt.x : target.x;
             const tz = aliveTgt ? aliveTgt.z : target.z;
             const ty = aliveTgt ? aliveTgt.y : (g.terrain ? g.terrain.getHeightAt(tx, tz) : target.y);
@@ -1629,6 +1635,15 @@
         }
 
         hitsBlocker(pos) {
+            const g = this.game;
+            if (g && g.location && g.location.isDungeon) {
+                if (g.dungeon && g.dungeon._isWalkPoint) {
+                    if (!g.dungeon._isWalkPoint(pos.x, pos.z)) return true;
+                } else {
+                    const pf = g.pathfinding || g.pathfinder;
+                    if (pf && !pf.isWalkableWorld(pos.x, pos.z)) return true;
+                }
+            }
             const list = this.getBlockers();
             for (let i = 0; i < list.length; i++) {
                 const b = list[i];
@@ -1636,6 +1651,74 @@
                 if (dx * dx + dz * dz < b.r * b.r && pos.y < b.gy + b.h) return true;
             }
             return false;
+        }
+
+        hasLineOfSight(from, to, checkHeight = true) {
+            if (!from || !to) return true;
+            const fx = from.x !== undefined ? from.x : from.position.x;
+            const fy = (from.y !== undefined ? from.y : (from.position ? from.position.y : 0)) + 1.2;
+            const fz = from.z !== undefined ? from.z : from.position.z;
+
+            const tx = to.x !== undefined ? to.x : to.position.x;
+            const ty = (to.y !== undefined ? to.y : (to.position ? to.position.y : 0)) + (to.height ? to.height * 0.5 : 0.8);
+            const tz = to.z !== undefined ? to.z : to.position.z;
+
+            const g = this.game;
+            // 1. Сетка навигации (стены данжей, скалы)
+            const pf = g && (g.pathfinding || g.pathfinder);
+            if (pf && pf.hasLineOfSightWorld) {
+                if (!pf.hasLineOfSightWorld(fx, fz, tx, tz)) return false;
+            }
+
+            // 2. В данже дополнительно проверяем геометрию пещеры/коридоров вдоль луча
+            const isDungeon = Boolean(g && g.location && g.location.isDungeon);
+            if (isDungeon && g.dungeon && g.dungeon._isWalkPoint) {
+                const dx = tx - fx, dz = tz - fz;
+                const dist = Math.hypot(dx, dz);
+                if (dist > 0.4) {
+                    const steps = Math.ceil(dist / 0.4);
+                    for (let i = 1; i < steps; i++) {
+                        const s = i / steps;
+                        if (!g.dungeon._isWalkPoint(fx + dx * s, fz + dz * s)) return false;
+                    }
+                }
+            }
+
+            // 3. Блокеры (бревна, валуны, деревья, постройки)
+            const blockers = this.getBlockers();
+            if (blockers && blockers.length > 0) {
+                const dx = tx - fx, dz = tz - fz;
+                const lenSq = dx * dx + dz * dz;
+                if (lenSq > 0.01) {
+                    const minX = Math.min(fx, tx) - 2, maxX = Math.max(fx, tx) + 2;
+                    const minZ = Math.min(fz, tz) - 2, maxZ = Math.max(fz, tz) + 2;
+
+                    for (let i = 0; i < blockers.length; i++) {
+                        const b = blockers[i];
+                        if (b.x < minX || b.x > maxX || b.z < minZ || b.z > maxZ) continue;
+
+                        const t = ((b.x - fx) * dx + (b.z - fz) * dz) / lenSq;
+                        if (t <= 0.04 || t >= 0.96) continue;
+
+                        const px = fx + t * dx;
+                        const pz = fz + t * dz;
+                        const dSq = (px - b.x) * (px - b.x) + (pz - b.z) * (pz - b.z);
+                        const br = b.r || 0.4;
+                        if (dSq < br * br) {
+                            if (checkHeight) {
+                                const rayY = fy + t * (ty - fy);
+                                const bgy = (b.gy !== null && b.gy !== undefined) ? b.gy : 0;
+                                const topY = bgy + (b.h || 1.5);
+                                if (rayY < topY) return false;
+                            } else {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return true;
         }
 
         // -----------------------------------------------------------

@@ -559,7 +559,12 @@
                 // Priority 1: Enemies currently aggressive/attacking the player
                 const attackers = (cr.list || []).filter(rec => cr.isAlive(rec) && rec.aggro && (rec.state === 'chase' || rec.state === 'attack'));
                 if (attackers.length > 0) {
-                    attackers.sort((a, b) => Math.hypot(a.x - c.position.x, a.z - c.position.z) - Math.hypot(b.x - c.position.x, b.z - c.position.z));
+                    attackers.sort((a, b) => {
+                        const losA = skills ? skills.hasLineOfSight(c.position, a) : true;
+                        const losB = skills ? skills.hasLineOfSight(c.position, b) : true;
+                        if (losA !== losB) return losA ? -1 : 1;
+                        return Math.hypot(a.x - c.position.x, a.z - c.position.z) - Math.hypot(b.x - c.position.x, b.z - c.position.z);
+                    });
                     tgt = attackers[0];
                     combat.selectTarget(tgt);
                 } else {
@@ -587,7 +592,12 @@
                             return distFromAnchor <= maxDist;
                         });
                         if (hostiles.length > 0) {
-                            hostiles.sort((a, b) => Math.hypot(a.x - c.position.x, a.z - c.position.z) - Math.hypot(b.x - c.position.x, b.z - c.position.z));
+                            hostiles.sort((a, b) => {
+                                const losA = skills ? skills.hasLineOfSight(c.position, a) : true;
+                                const losB = skills ? skills.hasLineOfSight(c.position, b) : true;
+                                if (losA !== losB) return losA ? -1 : 1;
+                                return Math.hypot(a.x - c.position.x, a.z - c.position.z) - Math.hypot(b.x - c.position.x, b.z - c.position.z);
+                            });
                             tgt = hostiles[0];
                             combat.selectTarget(tgt);
                         }
@@ -635,9 +645,10 @@
 
             // Для дальнего боя (посох/лук или готовые спеллы) держим ~18.5м, для ближнего боя — сближаемся вплотную
             const effectiveAttackRange = isRanged ? rangedDist : Math.max(1.6, ((w && w.range) || 1.2) + targetHitR);
+            const hasLoS = skills ? skills.hasLineOfSight(c.position, tgt) : true;
 
-            // If target is farther than effective attack distance:
-            if (dist > effectiveAttackRange) {
+            // If target is farther than effective attack distance OR line of sight is obstructed (walls, logs, boulders):
+            if (dist > effectiveAttackRange || !hasLoS) {
                 // If "На месте" (0m) mode: hero never chases targets
                 if (this.combatRadius === 0) {
                     if (c.isMoving && !this.questEnabled && !this.gatherEnabled) c.stopMovement();
