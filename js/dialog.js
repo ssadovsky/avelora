@@ -1240,6 +1240,11 @@
             };
             row.appendChild(mk(btnLabel, fn, enabled));
             if (extra) row.appendChild(mk(extra.label, extra.fn, true));
+            row.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (enabled && typeof fn === 'function') fn();
+            });
             list.appendChild(row);
         }
 

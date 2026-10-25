@@ -89,6 +89,7 @@
             this.totalPages = 2;
             this.cdCache = new Array(20).fill(-1);
             this.tooltipTimer = null;
+            this._lastCellTap = null;
             this._v = new THREE.Vector3();
 
             this.bar = document.getElementById('skill-bar');
@@ -2233,6 +2234,29 @@
                     unequipDiv.style.fontSize = '12px';
                     unequipDiv.textContent = 'Нажмите, чтобы снять (уйдёт в сумку)';
                     this.tooltip.appendChild(unequipDiv);
+                } else if (this.chestInv && el && el.closest) {
+                    const isInv = !!el.closest('.inventory-cell');
+                    const isChest = !!el.closest('.chest-cell');
+                    if (isInv || isChest) {
+                        const hintDiv = document.createElement('div');
+                        hintDiv.className = 'tt-hint';
+                        hintDiv.style.color = '#8ec07c';
+                        hintDiv.style.marginTop = '4px';
+                        hintDiv.style.fontSize = '12px';
+                        hintDiv.textContent = isInv ? 'ПКМ / 2× клик: переложить в сундук' : 'ПКМ / клик: забрать в сумку';
+                        this.tooltip.appendChild(hintDiv);
+                    }
+                } else if (this.dialog && this.dialog.isShopOpen() && el && el.closest && el.closest('.inventory-cell')) {
+                    const price = this.dialog.sellPriceOf(id);
+                    if (price > 0) {
+                        const hintDiv = document.createElement('div');
+                        hintDiv.className = 'tt-hint';
+                        hintDiv.style.color = '#ffd700';
+                        hintDiv.style.marginTop = '4px';
+                        hintDiv.style.fontSize = '12px';
+                        hintDiv.textContent = `ПКМ / 2× клик: продать за ${price * (count || 1)} зол.`;
+                        this.tooltip.appendChild(hintDiv);
+                    }
                 }
             }
             this.placeTooltip(el);
@@ -2412,6 +2436,14 @@
                     };
                     mkSell(`Продать за ${price}`, false);
                     if (src.count > 1) mkSell(`Продать все (${price * src.count})`, true);
+
+                    const hint = document.createElement('div');
+                    hint.className = 'tt-hint';
+                    hint.style.color = '#ffd700';
+                    hint.style.fontSize = '12px';
+                    hint.style.marginTop = '6px';
+                    hint.textContent = 'ПКМ или 2× тап: быстро продать всё';
+                    this.tooltip.appendChild(hint);
                 }
             }
 
@@ -2426,6 +2458,14 @@
                     if (this.chestInv && st) this.quickMove(st.inventory, src.index, this.chestInv);
                 });
                 actions.appendChild(btnPut);
+
+                const hint = document.createElement('div');
+                hint.className = 'tt-hint';
+                hint.style.color = '#8ec07c';
+                hint.style.fontSize = '12px';
+                hint.style.marginTop = '6px';
+                hint.textContent = 'ПКМ или 2× тап: быстро переложить в сундук';
+                this.tooltip.appendChild(hint);
             }
 
             const btnDrop = document.createElement('button');
@@ -2890,7 +2930,7 @@
             // Press on any drag source (delegated)
             document.addEventListener('pointerdown', (e) => {
                 if (this.tooltip && this.tooltip.classList.contains('interactive')) {
-                    if (!this.tooltip.contains(e.target) && !e.target.closest('.inventory-cell')) {
+                    if (!this.tooltip.contains(e.target) && !e.target.closest('.inventory-cell') && !e.target.closest('.chest-cell')) {
                         this.hideTooltip();
                     }
                 }
@@ -2916,12 +2956,71 @@
                 if (src && !(e.relatedTarget && src.el.contains(e.relatedTarget)) && !(this.tooltip && this.tooltip.classList.contains('warn'))) this.hideTooltip();
             });
 
-            // Double click on a bag item that can be worn/held -> take it into the hand
+            // Right-click: quick-move between bag and chest/storage, or equip/use item if chest is closed
+            document.addEventListener('contextmenu', (e) => {
+                const src = this.sourceFromEl(e.target);
+                if (!src) return;
+                e.preventDefault();
+                e.stopPropagation();
+                if (!this.inputAllowed()) return;
+
+                if (this.chestInv && this.state) {
+                    if (src.kind === 'inv') {
+                        this.hideTooltip();
+                        this.quickMove(this.state.inventory, src.index, this.chestInv);
+                        return;
+                    } else if (src.kind === 'chest') {
+                        this.hideTooltip();
+                        this.quickMove(this.chestInv, src.index, this.state.inventory);
+                        return;
+                    }
+                }
+
+                // Merchant shop open: sell item/stack instantly
+                if (this.dialog && this.dialog.isShopOpen() && this.state && src.kind === 'inv') {
+                    this.hideTooltip();
+                    this.dialog.sellFromBag(src.index, true);
+                    return;
+                }
+
+                if (!this.chestInv && this.state && src.kind === 'inv') {
+                    const c = this.state.inventory.cells[src.index];
+                    if (c) {
+                        const def = window.AveloraItems.get(c.item);
+                        if (def && def.use) {
+                            this.hideTooltip();
+                            if (def.use.type === 'equip') {
+                                this.equip(c.item);
+                            } else if (def.use.type === 'heal') {
+                                this.consumeHeal(c.item);
+                            }
+                        }
+                    }
+                }
+            }, { capture: true });
+
+            // Double click: move between bag and chest/storage, or equip
             document.addEventListener('dblclick', (e) => {
-                const cell = e.target && e.target.closest && e.target.closest('.inventory-cell');
-                if (!cell || !this.state || this.chestInv) return;
-                const c = this.state.inventory.cells[parseInt(cell.dataset.cell, 10)];
-                if (c && window.AveloraItems.isEquippable(c.item)) { this.hideTooltip(); this.equip(c.item); }
+                const src = this.sourceFromEl(e.target);
+                if (!src || !this.state) return;
+                if (this.chestInv) {
+                    if (src.kind === 'inv') {
+                        this.hideTooltip();
+                        this.quickMove(this.state.inventory, src.index, this.chestInv);
+                    } else if (src.kind === 'chest') {
+                        this.hideTooltip();
+                        this.quickMove(this.chestInv, src.index, this.state.inventory);
+                    }
+                } else if (this.dialog && this.dialog.isShopOpen() && src.kind === 'inv') {
+                    this.hideTooltip();
+                    this.dialog.sellFromBag(src.index, true);
+                } else if (src.kind === 'inv') {
+                    const c = this.state.inventory.cells[src.index];
+                    if (c && window.AveloraItems.isEquippable(c.item)) {
+                        this.hideTooltip();
+                        this.equip(c.item);
+                    }
+                }
             });
 
             window.addEventListener('game:pause', () => { this.cancelDrag(); this.hideTooltip(); });
@@ -3074,6 +3173,48 @@
                 return;
             }
             if (!d.active) {
+                // Double-tap detector (especially for touch/mobile devices)
+                const now = performance.now();
+                const last = this._lastCellTap;
+                const isDoubleTap = !!(last && last.kind === d.src.kind && last.index === d.src.index && (now - last.time < 380));
+                this._lastCellTap = { kind: d.src.kind, index: d.src.index, time: now };
+
+                if (isDoubleTap) {
+                    this._lastCellTap = null;
+                    if (this.chestInv) {
+                        if (d.src.kind === 'inv') {
+                            this.hideTooltip();
+                            if (this.state) this.quickMove(this.state.inventory, d.src.index, this.chestInv);
+                            return;
+                        } else if (d.src.kind === 'chest') {
+                            this.hideTooltip();
+                            if (this.state) this.quickMove(this.chestInv, d.src.index, this.state.inventory);
+                            return;
+                        }
+                    } else if (this.dialog && this.dialog.isShopOpen() && this.state) {
+                        if (d.src.kind === 'inv') {
+                            this.hideTooltip();
+                            this.dialog.sellFromBag(d.src.index, true);
+                            return;
+                        }
+                    } else if (d.src.kind === 'inv' && this.state) {
+                        const c = this.state.inventory.cells[d.src.index];
+                        if (c) {
+                            const def = window.AveloraItems.get(c.item);
+                            if (def && def.use) {
+                                this.hideTooltip();
+                                if (def.use.type === 'equip') {
+                                    this.equip(c.item);
+                                    return;
+                                } else if (def.use.type === 'heal') {
+                                    this.consumeHeal(c.item);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Plain tap/click
                 if (d.src.kind === 'slot') {
                     this.activateSlot(d.src.index);
