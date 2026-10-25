@@ -73,7 +73,7 @@
                 const saved = localStorage.getItem('avelora_autogather_radius');
                 if (saved !== null) {
                     const r = Number(saved);
-                    if (Number.isFinite(r) && r > 0) return r;
+                    if ((Number.isFinite(r) && r > 0) || r === Infinity) return r;
                 }
             } catch (_) {}
             return 30.0;
@@ -91,7 +91,7 @@
                 const saved = localStorage.getItem('avelora_autocombat_radius');
                 if (saved !== null) {
                     const r = Number(saved);
-                    if (Number.isFinite(r)) return r;
+                    if (Number.isFinite(r) || r === Infinity) return r;
                 }
             } catch (_) {}
             return 18.0;
@@ -271,8 +271,9 @@
                         window.__avelora_just_ui_tap = performance.now();
                         this.saveGatherRadius(r);
                         opts.forEach(b => b.classList.toggle('active', b === btn));
+                        const label = !Number.isFinite(r) ? 'Вся локация' : `${r} м`;
                         if (this.game.ui && this.game.ui.floatText) {
-                            this.game.ui.floatText(`Дистанция сбора: ${r} м`, 'good');
+                            this.game.ui.floatText(`Дистанция сбора: ${label}`, 'good');
                         }
                         closeAllPopups();
                     });
@@ -293,7 +294,7 @@
 
             // Combat radius radio options
             if (this.combatPopup) {
-                const opts = this.combatPopup.querySelectorAll('.auto-popup-option');
+                const opts = this.combatPopup.querySelectorAll('[data-radius]');
                 opts.forEach(btn => {
                     const r = Number(btn.getAttribute('data-radius'));
                     btn.classList.toggle('active', r === this.combatRadius);
@@ -303,7 +304,7 @@
                         window.__avelora_just_ui_tap = performance.now();
                         this.saveCombatRadius(r);
                         opts.forEach(b => b.classList.toggle('active', b === btn));
-                        const label = r === 0 ? 'На месте' : `${r} м`;
+                        const label = !Number.isFinite(r) ? 'Вся локация' : (r === 0 ? 'На месте' : `${r} м`);
                         if (this.game.ui && this.game.ui.floatText) {
                             this.game.ui.floatText(`Дистанция боя: ${label}`, 'good');
                         }
@@ -359,7 +360,8 @@
                 }
             }
             if (this.game.ui && this.game.ui.floatText) {
-                const label = this.gatherEnabled ? `Автосбор (${this.gatherRadius}м): ВКЛ` : 'Автосбор: ВЫКЛ';
+                const radLabel = !Number.isFinite(this.gatherRadius) ? 'Вся локация' : `${this.gatherRadius}м`;
+                const label = this.gatherEnabled ? `Автосбор (${radLabel}): ВКЛ` : 'Автосбор: ВЫКЛ';
                 this.game.ui.floatText(label, this.gatherEnabled ? 'good' : 'info');
             }
         }
@@ -383,7 +385,9 @@
                 if (stateSpan) stateSpan.textContent = this.combatEnabled ? 'ВКЛ' : 'ВЫКЛ';
             }
             if (this.game.ui && this.game.ui.floatText) {
-                this.game.ui.floatText(this.combatEnabled ? 'Автобой: ВКЛ' : 'Автобой: ВЫКЛ', this.combatEnabled ? 'good' : 'info');
+                const radLabel = !Number.isFinite(this.combatRadius) ? 'Вся локация' : (this.combatRadius === 0 ? 'На месте' : `${this.combatRadius}м`);
+                const label = this.combatEnabled ? `Автобой (${radLabel}): ВКЛ` : 'Автобой: ВЫКЛ';
+                this.game.ui.floatText(label, this.combatEnabled ? 'good' : 'info');
             }
         }
 
@@ -593,7 +597,7 @@
 
             // If no target around in anchor radius -> Return to start anchor!
             if (!tgt) {
-                if (this.combatRadius > 0 && !this.questEnabled && !this.gatherEnabled) {
+                if (this.combatRadius > 0 && Number.isFinite(this.combatRadius) && !this.questEnabled && !this.gatherEnabled) {
                     const distToAnchor = Math.hypot(anchor.x - c.position.x, anchor.z - c.position.z);
                     if (distToAnchor > 2.5) {
                         // Return smoothly to the starting point
@@ -642,7 +646,7 @@
 
                 // If target moved beyond the anchor combat radius with margin: drop target and return
                 const distFromAnchor = Math.hypot(tgt.x - anchor.x, tgt.z - anchor.z);
-                if (distFromAnchor > this.combatRadius + 5.0) {
+                if (Number.isFinite(this.combatRadius) && distFromAnchor > this.combatRadius + 5.0) {
                     combat.clearTarget();
                     tgt = null;
                     return;
@@ -964,9 +968,9 @@
                 return;
             }
 
-            // NO TARGETS IN RADIUS: Return to starting anchor point and wait for respawns
+            // NO TARGETS IN RADIUS: Return to starting anchor point and wait for respawns (if radius is finite)
             const distToAnchor = Math.hypot(anchor.x - px, anchor.z - pz);
-            if (distToAnchor > 3.0) {
+            if (Number.isFinite(this.gatherRadius) && distToAnchor > 3.0) {
                 this.navigateTowards(anchor.x, anchor.z);
             } else {
                 if (c.isMoving && !this.questEnabled && !this.combatEnabled) {
