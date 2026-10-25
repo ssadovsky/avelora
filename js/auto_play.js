@@ -485,21 +485,10 @@
 
             const list = [];
             const seen = new Set();
-
-            // 1. Hotbar skills (what player actually has equipped on slots 1..9)
-            if (st && st.hotbar) {
-                for (const slot of st.hotbar) {
-                    if (slot && slot.type === 'skill' && !seen.has(slot.id)) {
-                        seen.add(slot.id);
-                        const def = skills.get(slot.id);
-                        if (def) list.push(def);
-                    }
-                }
-            }
-
-            // 2. Class skills from forCharacter
             const charCfg = g.currentCharacterConfig || {};
             const classId = (st && st.classId) || charCfg.id || 'mage';
+
+            // Навыки, которые персонаж РЕАЛЬНО изучил и может использовать в игре
             try {
                 const classSkills = skills.forCharacter ? skills.forCharacter(classId) : [];
                 for (const def of classSkills) {
@@ -510,14 +499,15 @@
                 }
             } catch (_) {}
 
-            // 3. Fallback: query GAME_CONTENT.characters[classId].skills
-            const gc = window.GAME_CONTENT;
-            if (gc && gc.characters && gc.characters[classId] && gc.characters[classId].skills) {
-                for (const sid of gc.characters[classId].skills) {
-                    if (!seen.has(sid)) {
-                        seen.add(sid);
-                        const def = skills.get(sid);
-                        if (def) list.push(def);
+            // Навыки на хотбаре (только если они выучены персонажем)
+            if (st && st.hotbar) {
+                for (const slot of st.hotbar) {
+                    if (slot && slot.type === 'skill' && !seen.has(slot.id)) {
+                        if (!skills.hasSkill || skills.hasSkill(classId, slot.id)) {
+                            seen.add(slot.id);
+                            const def = skills.get(slot.id);
+                            if (def) list.push(def);
+                        }
                     }
                 }
             }
@@ -620,13 +610,27 @@
             const dist = Math.hypot(tgt.x - c.position.x, tgt.z - c.position.z);
             const allSkills = this.getAvailableSkills();
             const w = combat.weapon ? combat.weapon() : null;
-            const isRanged = (w && (w.style === 'bow' || w.style === 'staff')) || allSkills.some(s => s.type === 'projectile' || s.type === 'strike');
+            const isRangedWeapon = !!(w && (w.style === 'bow' || w.style === 'staff'));
+            // Есть ли дальнобойные заклинания, готовые к касту прямо сейчас?
+            const hasReadyRangedSpell = allSkills.some(s => (s.type === 'projectile' || s.type === 'strike' || s.type === 'rain') && skills.cooldownRemaining(s.id) === 0 && this.canAfford(s));
+            // Дистанционный режим активен ТОЛЬКО если в руках дальнобойное оружие (посох/лук) ЛИБО готово заклинание дальнего боя
+            const isRanged = isRangedWeapon || hasReadyRangedSpell;
             const targetHitR = (tgt.def && tgt.def.hitRadius) || 0.4;
 
-            // Effective combat engagement distance:
-            // For ranged hero (staff/bow/spells) stop around 13.5m to comfortably cast.
-            // For melee hero (swords/axes/fists) approach to weapon reach.
-            const effectiveAttackRange = isRanged ? 13.5 : Math.max(1.8, ((w && w.range) || 2.0) + targetHitR);
+            // Динамический расчет комфортной дистанции:
+            // У посоха и боевых заклинаний дальность 20м (у лука 22м). Держим дистанцию ~18.5м (с запасом 1.5м на движение моба).
+            let rangedDist = 18.5;
+            if (isRangedWeapon && w && w.range) {
+                rangedDist = Math.max(rangedDist, w.range - 1.5);
+            }
+            if (hasReadyRangedSpell) {
+                const readySpells = allSkills.filter(s => (s.type === 'projectile' || s.type === 'strike' || s.type === 'rain') && skills.cooldownRemaining(s.id) === 0 && this.canAfford(s));
+                const maxRange = Math.max(...readySpells.map(s => s.range || 20));
+                rangedDist = Math.max(rangedDist, maxRange - 1.5);
+            }
+
+            // Для дальнего боя (посох/лук или готовые спеллы) держим ~18.5м, для ближнего боя — сближаемся вплотную
+            const effectiveAttackRange = isRanged ? rangedDist : Math.max(1.6, ((w && w.range) || 1.2) + targetHitR);
 
             // If target is farther than effective attack distance:
             if (dist > effectiveAttackRange) {
@@ -672,14 +676,19 @@
             }
 
             // 2. Crowd Control / AoE: type nova (around hero) / rain (on the target area).
-            //    Used only when it will really hit several enemies that are fighting us.
             const foes = (cr.list || []).filter(rec => cr.isAlive(rec) && (rec.aggro || rec === tgt));
             const around = (x, z, r) => foes.filter(rec => Math.hypot(rec.x - x, rec.z - z) <= r).length;
             for (const s of allSkills) {
                 if (skills.cooldownRemaining(s.id) > 0 || !this.canAfford(s)) continue;
-                if (s.type === 'nova' && around(c.position.x, c.position.z, s.radius || 6.0) >= 2) {
-                    if (skills.activate(s.id) === 'ok') return;
-                } else if (s.type === 'rain' && dist <= ((s.range || 16) + 2) && around(tgt.x, tgt.z, s.radius || 5.0) >= 3) {
+                if (s.type === 'nova') {
+                    const novaR = (s.vfx && s.vfx.impactRadius) || s.impactRadius || s.radius || 10.0;
+                    const countAround = around(c.position.x, c.position.z, novaR);
+                    const isThreatClose = dist <= Math.min(5.0, novaR);
+                    // Активируем нову (Огненную волну), если рядом 2+ врага ИЛИ цель подобралась в упор (<= 5м)
+                    if (countAround >= 2 || isThreatClose) {
+                        if (skills.activate(s.id) === 'ok') return;
+                    }
+                } else if (s.type === 'rain' && dist <= ((s.range || 20) + 1.5) && around(tgt.x, tgt.z, s.radius || 5.0) >= 3) {
                     if (skills.activate(s.id) === 'ok') return;
                 }
             }
@@ -689,7 +698,7 @@
 
             // 4. Single-target attacks (projectile / strike / melee), longest cooldown first:
             //    the shortest-cooldown spell naturally becomes the filler.
-            const attacks = allSkills.filter(s => (s.type === 'strike' || s.type === 'projectile' || s.type === 'melee') && dist <= ((s.range || 16) + 2));
+            const attacks = allSkills.filter(s => (s.type === 'strike' || s.type === 'projectile' || s.type === 'melee') && dist <= ((s.range || 20) + 1.5));
             attacks.sort((a, b) => (b.cooldown || 0) - (a.cooldown || 0));
             for (const attack of attacks) {
                 if (skills.cooldownRemaining(attack.id) === 0 && this.canAfford(attack)) {
@@ -697,16 +706,15 @@
                 }
             }
 
-            // 5. Nothing to cast right now: plain weapon attack (a staff / bow shoots its bolt).
-            const hasRangedSkills = allSkills.some(s => s.type === 'strike' || s.type === 'projectile');
-            if (!hasRangedSkills) {
-                combat.performBasicAttack();   // melee hero: walks up and swings
+            // 5. Nothing to cast right now: plain weapon attack (or bare hands).
+            if (!isRangedWeapon) {
+                // Если в руках НЕ посох и НЕ лук (кулаки, меч, топор, кинжал):
+                // Персонаж подходит вплотную и бьет кулаками / оружием!
+                combat.performBasicAttack();
                 return;
             }
-            // Ranged hero: attack only when the target is already within weapon reach (never walk toward it),
-            // and do not restart an attack that is already running on this target.
-            const wpn = combat.weapon ? combat.weapon() : null;
-            const reach = (wpn && wpn.range) || 2;
+            // Ranged hero (с посохом или луком): стреляет автоатакой с дистанции оружия
+            const reach = (w && w.range) || 20;
             const edge = dist - ((tgt.def && tgt.def.hitRadius) || 0.4);
             const eng = combat.engagement;
             if (edge <= reach && !(eng && eng.rec === tgt)) combat.attackCreature(tgt);
