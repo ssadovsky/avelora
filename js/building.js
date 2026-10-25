@@ -1102,7 +1102,7 @@
                 e.stopPropagation();
                 if (this.mgr && this.mgr.moving) this.mgr.unselectMove();
             });
-            E.btnRot.addEventListener('click', (e) => { e.stopPropagation(); if (this.mgr) this.mgr.rotateBy(Math.PI / 12); });
+            E.btnRot.addEventListener('click', (e) => { e.stopPropagation(); if (this.mgr) this.mgr.rotateBy(Math.PI / 2); });
             E.btnAlign.addEventListener('click', (e) => { e.stopPropagation(); if (this.mgr) this.mgr.alignGrid(); });
             E.btnOk.addEventListener('click', (e) => { e.stopPropagation(); if (this.mgr) this.mgr.commit(); });
             E.btnConfirmDemolish.addEventListener('click', (e) => {
@@ -1143,8 +1143,8 @@
                     if (m.canOpen()) this.togglePanel();
                 } else if (e.code === 'KeyG' && m.placing && !e.repeat) {
                     m.alignGrid();
-                } else if (e.code === 'KeyR' && m.placing) {
-                    m.keyRotate = e.shiftKey ? -1 : 1;
+                } else if (e.code === 'KeyR' && m.placing && !e.repeat) {
+                    m.rotateBy(e.shiftKey ? -Math.PI / 2 : Math.PI / 2);
                 } else if ((e.code === 'Enter' || e.code === 'NumpadEnter') && m.placing && !e.repeat) {
                     e.preventDefault();
                     m.commit();
@@ -1987,6 +1987,7 @@
                 z: moveRec ? moveRec.z : Math.round(z0 * 2) / 2,
                 y: moveRec && moveRec.y !== undefined ? moveRec.y : undefined,
                 r: moveRec ? moveRec.r : Math.round(a / (Math.PI / 2)) * (Math.PI / 2),
+                _flipGable: false,
                 ok: false, reason: '', dirty: true
             };
             UI.els.barTitle.textContent = `${moveRec ? 'Перемещение' : 'Размещение'}: ${def.name}`;
@@ -2008,7 +2009,13 @@
                 if (diff < minDiff) { minDiff = diff; best = d; }
             });
             const idx = dirs.indexOf(best);
-            pl.r = dirs[(idx + 1) % 4];
+            if (pl.def.blockType === 'gable') {
+                pl._flipGable = !pl._flipGable;
+                pl.r += Math.PI;
+                pl.r = Math.atan2(Math.sin(pl.r), Math.cos(pl.r));
+            } else {
+                pl.r = dirs[(idx + 1) % 4];
+            }
             pl.dirty = true;
             if (this.game.ui) this.game.ui.floatText('Выровнено по сетке', 'info');
         }
@@ -2029,14 +2036,14 @@
 
         rotateBy(d) {
             if (this.placing) {
-                this.placing.r += d;
-                const snapped = this.snapToNeighbors(this.placing, this.placing.x, this.placing.z);
-                if (snapped) {
-                    this.placing.x = snapped.x;
-                    this.placing.z = snapped.z;
-                    if (snapped.y !== undefined) this.placing.y = snapped.y;
-                    this.placing.r = snapped.r;
+                const bType = this.placing.def.blockType;
+                if (bType === 'gable') {
+                    this.placing._flipGable = !this.placing._flipGable;
+                    this.placing.r += Math.PI;
+                } else {
+                    this.placing.r += d;
                 }
+                this.placing.r = Math.atan2(Math.sin(this.placing.r), Math.cos(this.placing.r));
                 this.placing.dirty = true;
                 this.refreshGhost();
             }
@@ -2073,7 +2080,8 @@
             let bestDist = 2.8;
             let snappedX = targetX, snappedZ = targetZ;
             let snappedY = undefined;
-            let snappedR = pl.r;
+            let snappedR = undefined;
+            
             let found = false;
 
             const bType = pl.def.blockType;
@@ -2116,7 +2124,7 @@
                                 snappedX = Math.round((inst.x + ox * c + oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - ox * s + oz * c) * 100) / 100;
                                 snappedY = instY;
-                                snappedR = inst.r;
+                                
                                 found = true;
                             }
                         }
@@ -2129,60 +2137,132 @@
                                 snappedX = Math.round((inst.x + ox * c + oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - ox * s + oz * c) * 100) / 100;
                                 snappedY = instY;
-                                snappedR = inst.r;
+                                
                                 found = true;
                             }
                         }
                     }
                 }
 
-                // --- 2. РАЗМЕЩАЕМ СТЕНЫ (wall, door, window, gable_rect, gable_left, gable_right) ---
+                // --- 2. РАЗМЕЩАЕМ СТЕНЫ И ФРОНТОНЫ ---
                 else if (isWallLike(bType)) {
-                    if (isFloorLike(inst.def.blockType)) {
+                    const isGable = bType === 'gable' || bType === 'gable_rect' || bType === 'gable_peak';
+                    if (isGable) {
+                        // Фронтоны садятся строго на верхушку стены 1 этажа или на прямоугольный фронтон
+                        if (inst.def.blockType === 'wall' || inst.def.blockType === 'door' || inst.def.blockType === 'window') {
+                            if (d < 1.8 && d < bestDist) {
+                                bestDist = d;
+                                snappedX = inst.x;
+                                snappedZ = inst.z;
+                                snappedY = instY + WALL_H;
+                                if (bType === 'gable') {
+                                    // Ищем скат крыши рядом для автоматического согласования стороны уклона
+                                    let roofInst = null, minRoofD = Infinity;
+                                    for (const o of this.instances) {
+                                        if (o.def.blockType === 'roof') {
+                                            const dr = Math.hypot(inst.x - o.x, inst.z - o.z);
+                                            if (dr < 2.0 && dr < minRoofD) { minRoofD = dr; roofInst = o; }
+                                        }
+                                    }
+                                    if (roofInst) {
+                                        let bestR = (Math.sin(roofInst.r - inst.r) > 0) ? inst.r : (inst.r + Math.PI);
+                                        if (pl._flipGable) bestR += Math.PI;
+                                        snappedR = Math.atan2(Math.sin(bestR), Math.cos(bestR));
+                                    } else {
+                                        let bestR = pickBestRot(inst.r, [0, Math.PI]);
+                                        if (pl._flipGable) bestR += Math.PI;
+                                        snappedR = Math.atan2(Math.sin(bestR), Math.cos(bestR));
+                                    }
+                                } else {
+                                    snappedR = pickBestRot(inst.r, [0, Math.PI]);
+                                }
+                                found = true;
+                            }
+                        } else if (inst.def.blockType === 'gable_rect') {
+                            if (d < 1.8 && d < bestDist) {
+                                bestDist = d;
+                                snappedX = inst.x;
+                                snappedZ = inst.z;
+                                snappedY = instY + 1.0;
+                                snappedR = pickBestRot(inst.r, [0, Math.PI]);
+                                found = true;
+                            }
+                        } else if (inst.def.blockType === 'roof') {
+                            // Курсор наведен на крышу — ищем стену под ней
+                            let wallUnder = null, minWallD = Infinity;
+                            for (const o of this.instances) {
+                                if (o.def.blockType === 'wall' || o.def.blockType === 'door' || o.def.blockType === 'window' || o.def.blockType === 'gable_rect') {
+                                    const dw = Math.hypot(inst.x - o.x, inst.z - o.z);
+                                    if (dw < 1.8 && dw < minWallD) { minWallD = dw; wallUnder = o; }
+                                }
+                            }
+                            if (wallUnder && d < 1.8 && d < bestDist) {
+                                bestDist = d;
+                                snappedX = wallUnder.x;
+                                snappedZ = wallUnder.z;
+                                const wY = wallUnder.fit ? wallUnder.fit.deckY : (wallUnder.y || 0);
+                                snappedY = wY + (wallUnder.def.blockType === 'gable_rect' ? 1.0 : WALL_H);
+                                if (bType === 'gable') {
+                                    let bestR = (Math.sin(inst.r - wallUnder.r) > 0) ? wallUnder.r : (wallUnder.r + Math.PI);
+                                    if (pl._flipGable) bestR += Math.PI;
+                                    snappedR = Math.atan2(Math.sin(bestR), Math.cos(bestR));
+                                } else {
+                                    snappedR = pickBestRot(wallUnder.r, [0, Math.PI]);
+                                }
+                                found = true;
+                            }
+                        } else if (inst.def.blockType === 'gable' || inst.def.blockType === 'gable_peak') {
+                            const sideSockets = [
+                                { ox: BLOCK_MOD, oz: 0 },
+                                { ox: -BLOCK_MOD, oz: 0 }
+                            ];
+                            for (const sock of sideSockets) {
+                                const dSock = Math.hypot(lx - sock.ox, lz - sock.oz);
+                                if (dSock < 1.5 && dSock < bestDist) {
+                                    bestDist = dSock;
+                                    snappedX = Math.round((inst.x + sock.ox * c + sock.oz * s) * 100) / 100;
+                                    snappedZ = Math.round((inst.z - sock.ox * s + sock.oz * c) * 100) / 100;
+                                    snappedY = instY;
+                                    snappedR = pickBestRot(inst.r, [0, Math.PI]);
+                                    found = true;
+                                }
+                            }
+                        }
+                    } else if (isFloorLike(inst.def.blockType)) {
                         const wallEdges = [
-                            { ox: 0, oz: BLOCK_HMOD, rOff: 0 },
-                            { ox: 0, oz: -BLOCK_HMOD, rOff: Math.PI },
-                            { ox: BLOCK_HMOD, oz: 0, rOff: -Math.PI / 2 },
-                            { ox: -BLOCK_HMOD, oz: 0, rOff: Math.PI / 2 }
+                            { ox: 0, oz: BLOCK_HMOD },
+                            { ox: 0, oz: -BLOCK_HMOD },
+                            { ox: BLOCK_HMOD, oz: 0 },
+                            { ox: -BLOCK_HMOD, oz: 0 }
                         ];
                         for (const edge of wallEdges) {
                             const dEdge = Math.hypot(lx - edge.ox, lz - edge.oz);
-                            if (dEdge < 1.2 && dEdge < bestDist) {
+                            if (dEdge < 1.4 && dEdge < bestDist) {
                                 bestDist = dEdge;
                                 snappedX = Math.round((inst.x + edge.ox * c + edge.oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - edge.ox * s + edge.oz * c) * 100) / 100;
                                 snappedY = instY;
-                                snappedR = inst.r + edge.rOff;
+                                if (edge.rOff !== undefined) snappedR = inst.r + edge.rOff;
                                 found = true;
                             }
                         }
-                    } else if ((bType === 'gable' || bType === 'gable_rect') && (inst.def.blockType === 'wall' || inst.def.blockType === 'door' || inst.def.blockType === 'window')) {
-                        // Фронтоны садятся точно на верхушку стены 1 этажа. Поворот задается пользователем кнопками панели и не крутится в воздухе!
-                        if (d < 1.2 && d < bestDist) {
-                            bestDist = d;
-                            snappedX = inst.x;
-                            snappedZ = inst.z;
-                            snappedY = instY + WALL_H;
-                            snappedR = pl.r;
-                            found = true;
-                        }
                     } else if (isWallLike(inst.def.blockType)) {
                         const wallSockets = [
-                            { ox: BLOCK_MOD, oz: 0, rOffs: [0, Math.PI] },
-                            { ox: -BLOCK_MOD, oz: 0, rOffs: [0, Math.PI] },
-                            { ox: BLOCK_HMOD, oz: BLOCK_HMOD, rOffs: [Math.PI / 2, -Math.PI / 2] },
-                            { ox: BLOCK_HMOD, oz: -BLOCK_HMOD, rOffs: [Math.PI / 2, -Math.PI / 2] },
-                            { ox: -BLOCK_HMOD, oz: BLOCK_HMOD, rOffs: [Math.PI / 2, -Math.PI / 2] },
-                            { ox: -BLOCK_HMOD, oz: -BLOCK_HMOD, rOffs: [Math.PI / 2, -Math.PI / 2] }
+                            { ox: BLOCK_MOD, oz: 0 },
+                            { ox: -BLOCK_MOD, oz: 0 },
+                            { ox: BLOCK_HMOD, oz: BLOCK_HMOD },
+                            { ox: BLOCK_HMOD, oz: -BLOCK_HMOD },
+                            { ox: -BLOCK_HMOD, oz: BLOCK_HMOD },
+                            { ox: -BLOCK_HMOD, oz: -BLOCK_HMOD }
                         ];
                         for (const sock of wallSockets) {
                             const dSock = Math.hypot(lx - sock.ox, lz - sock.oz);
-                            if (dSock < 1.3 && dSock < bestDist) {
+                            if (dSock < 1.4 && dSock < bestDist) {
                                 bestDist = dSock;
                                 snappedX = Math.round((inst.x + sock.ox * c + sock.oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - sock.ox * s + sock.oz * c) * 100) / 100;
                                 snappedY = instY;
-                                snappedR = (bType === 'gable' || bType === 'gable_rect') ? pl.r : pickBestRot(inst.r, sock.rOffs);
+                                if (sock.rOff !== undefined) snappedR = inst.r + sock.rOff;
                                 found = true;
                             }
                         }
@@ -2202,7 +2282,7 @@
                                 snappedX = Math.round((inst.x + sock.ox * c + sock.oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - sock.ox * s + sock.oz * c) * 100) / 100;
                                 snappedY = instY + sock.yOff;
-                                snappedR = inst.r;
+                                
                                 found = true;
                             }
                         }
@@ -2215,7 +2295,7 @@
                                 snappedX = Math.round((inst.x + ox * c + oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - ox * s + oz * c) * 100) / 100;
                                 snappedY = instY + 1.0;
-                                snappedR = inst.r;
+                                
                                 found = true;
                             }
                         }
@@ -2225,7 +2305,7 @@
                             snappedX = inst.x;
                             snappedZ = inst.z;
                             snappedY = instY + WALL_H;
-                            snappedR = inst.r;
+                            
                             found = true;
                         }
                     } else if (isWallLike(inst.def.blockType)) {
@@ -2237,7 +2317,7 @@
                                 snappedX = Math.round((inst.x + ox * c + oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - ox * s + oz * c) * 100) / 100;
                                 snappedY = instY + WALL_H;
-                                snappedR = inst.r;
+                                
                                 found = true;
                             }
                         }
@@ -2252,7 +2332,7 @@
                                 snappedX = Math.round((inst.x + ox * c + oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - ox * s + oz * c) * 100) / 100;
                                 snappedY = instY;
-                                snappedR = inst.r;
+                                
                                 found = true;
                             }
                         }
@@ -2268,7 +2348,7 @@
                             snappedX = inst.x;
                             snappedZ = inst.z;
                             snappedY = targetY;
-                            snappedR = pickBestRot(inst.r, [0, Math.PI, Math.PI / 2, -Math.PI / 2]);
+                            
                             found = true;
                         }
                     } else if (isWallLike(inst.def.blockType)) {
@@ -2283,7 +2363,7 @@
                                 snappedX = Math.round((inst.x + sock.ox * c + sock.oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - sock.ox * s + sock.oz * c) * 100) / 100;
                                 snappedY = instY + WALL_H;
-                                snappedR = pickBestRot(inst.r, sock.rOffs);
+                                if (sock.rOffs) snappedR = pickBestRot(inst.r, sock.rOffs);
                                 found = true;
                             }
                         }
@@ -2302,7 +2382,7 @@
                                 snappedX = Math.round((inst.x + sock.ox * c + sock.oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - sock.ox * s + sock.oz * c) * 100) / 100;
                                 snappedY = instY + (sock.yOff || 0);
-                                snappedR = pickBestRot(inst.r, sock.rOffs);
+                                if (sock.rOffs) snappedR = pickBestRot(inst.r, sock.rOffs);
                                 found = true;
                             }
                         }
@@ -2323,7 +2403,7 @@
                                 snappedX = Math.round((inst.x + sock.ox * c + sock.oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - sock.ox * s + sock.oz * c) * 100) / 100;
                                 snappedY = instY + sock.yOff;
-                                snappedR = pickBestRot(inst.r, sock.rOffs);
+                                if (sock.rOffs) snappedR = pickBestRot(inst.r, sock.rOffs);
                                 found = true;
                             }
                         }
@@ -2339,7 +2419,7 @@
                                 snappedX = Math.round((inst.x + sock.ox * c + sock.oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - sock.ox * s + sock.oz * c) * 100) / 100;
                                 snappedY = instY + 1.0;
-                                snappedR = pickBestRot(inst.r, sock.rOffs);
+                                
                                 found = true;
                             }
                         }
@@ -2350,7 +2430,7 @@
                             snappedX = inst.x;
                             snappedZ = inst.z;
                             snappedY = targetY;
-                            snappedR = pickBestRot(inst.r, [0, Math.PI / 2]);
+                            
                             found = true;
                         }
                     } else if (inst.def.blockType === 'roof_ridge') {
@@ -2365,7 +2445,7 @@
                                 snappedX = Math.round((inst.x + sock.ox * c + sock.oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - sock.ox * s + sock.oz * c) * 100) / 100;
                                 snappedY = instY;
-                                snappedR = inst.r;
+                                
                                 found = true;
                             }
                         }
@@ -2380,7 +2460,7 @@
                             snappedX = inst.x;
                             snappedZ = inst.z;
                             snappedY = instY + 1.0;
-                            snappedR = pl.r;
+                            
                             found = true;
                         }
                     } else if (isWallLike(inst.def.blockType)) {
@@ -2389,7 +2469,7 @@
                             snappedX = inst.x;
                             snappedZ = inst.z;
                             snappedY = instY + WALL_H;
-                            snappedR = pl.r;
+                            
                             found = true;
                         }
                     } else if (inst.def.blockType === 'roof_ridge') {
@@ -2404,7 +2484,7 @@
                                 snappedX = Math.round((inst.x + sock.ox * c + sock.oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - sock.ox * s + sock.oz * c) * 100) / 100;
                                 snappedY = instY;
-                                snappedR = pickBestRot(inst.r, sock.rOffs);
+                                
                                 found = true;
                             }
                         }
@@ -2426,7 +2506,7 @@
                             snappedX = Math.round((inst.x + edge.ox * c + edge.oz * s) * 100) / 100;
                             snappedZ = Math.round((inst.z - edge.ox * s + edge.oz * c) * 100) / 100;
                             snappedY = instY;
-                            snappedR = inst.r + edge.rOff;
+                            
                             found = true;
                         }
                     }
@@ -2434,7 +2514,7 @@
             }
 
             return found
-                ? { x: snappedX, z: snappedZ, y: snappedY, r: snappedR }
+                ? { x: snappedX, z: snappedZ, y: snappedY, r: (snappedR !== undefined ? snappedR : pl.r) }
                 : { x: targetX, z: targetZ, y: undefined, r: pl.r };
         }
 
@@ -2480,13 +2560,24 @@
             const rawX = Math.round(p.x * 4) / 4, rawZ = Math.round(p.z * 4) / 4;
             const snapped = this.snapToNeighbors(pl, rawX, rawZ);
 
-            if (snapped.x !== pl.x || snapped.z !== pl.z || (snapped.y !== undefined && snapped.y !== pl.y) || snapped.r !== pl.r) {
+            let changed = false;
+            if (snapped.x !== pl.x || snapped.z !== pl.z) {
                 pl.x = snapped.x;
                 pl.z = snapped.z;
-                if (snapped.y !== undefined) pl.y = snapped.y;
-                pl.r = snapped.r;
-                pl.dirty = true;
+                changed = true;
             }
+            if (snapped.y !== undefined && snapped.y !== pl.y) {
+                pl.y = snapped.y;
+                changed = true;
+            }
+            if (snapped.r !== undefined) {
+                const diff = Math.abs(Math.atan2(Math.sin(snapped.r - pl.r), Math.cos(snapped.r - pl.r)));
+                if (diff > 0.01) {
+                    pl.r = snapped.r;
+                    changed = true;
+                }
+            }
+            if (changed) pl.dirty = true;
         }
 
         handleWorldClick(e) {
@@ -2952,7 +3043,7 @@
 
             const pl = this.placing;
             if (pl) {
-                if (this.keyRotate) { pl.r += this.keyRotate * 1.8 * delta; pl.dirty = true; }
+                // keyRotate handled discrete in onKeyDown
                 const ch = this.game.character;
                 if (ch) {
                     const mv = Math.hypot(ch.position.x - (pl._hx || 0), ch.position.z - (pl._hz || 0));
