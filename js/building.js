@@ -1807,6 +1807,7 @@
                 this.terrain.addPlatform(platform);
                 deckBox = addBox(low, 2 * BLOCK_HMOD, 0.2, 2 * BLOCK_HMOD, 0, -0.1, 0);
                 this.floorProxies.push(deckBox);
+                addBox(shell, 2 * BLOCK_HMOD, 0.18, 2 * BLOCK_HMOD, 0, -0.09, 0);
             } else if (def.blockType === 'wall' || def.blockType === 'window') {
                 addBox(shell, 2 * BLOCK_HMOD, WALL_H, WALL_TH, 0, WALL_H / 2, 0);
             } else if (def.blockType === 'door') {
@@ -1814,7 +1815,8 @@
                 addBox(shell, 0.5, WALL_H, WALL_TH, 0.75, WALL_H / 2, 0);
                 addBox(shell, 1.0, 0.3, WALL_TH, 0, WALL_H - 0.15, 0);
             } else if (def.blockType === 'roof') {
-                addBox(shell, 2 * BLOCK_HMOD, 0.2, 2.2, 0, 0.6, 0);
+                const ang = 0.3948, slopeLen = 2.60, eaveOverhang = 0.15, totalSlope = slopeLen + eaveOverhang;
+                addBox(shell, 2 * BLOCK_HMOD, 0.14, totalSlope, 0, 0.50 - Math.sin(ang) * (eaveOverhang / 2), Math.cos(ang) * (eaveOverhang / 2), ang, 0, 0);
             } else if (def.blockType === 'roof_ridge') {
                 addBox(shell, 2 * BLOCK_HMOD, 0.3, 2 * BLOCK_HMOD, 0, 0.45, 0);
             } else if (def.blockType === 'gable' || def.blockType === 'gable_rect') {
@@ -1832,6 +1834,8 @@
 
             this.blockCells(inst);
             this.game.addCameraBlocker(low);
+            this.game.addCameraBlocker(shell);
+            inst.shellOn = true;
             this.instances.push(inst);
             this.updateShell(inst, 0, true);
             return inst;
@@ -1898,6 +1902,31 @@
 
         updateShell(inst, delta, force) {
             const g = this.game;
+
+            // Для модульных блоков дома (kind === 'block') камера работает как в данже:
+            // стены и крыша всегда 100% твёрдые и непрозрачные, а камера блокируется ими и удерживается внутри
+            if (inst.def.kind === 'block') {
+                inst.inside = false;
+                inst.wallOp = 1;
+                inst.roofOp = 1;
+                if (!inst.shellOn) {
+                    inst.shellOn = true;
+                    g.addCameraBlocker(inst.shell);
+                }
+                const m = inst.model.meshes;
+                if (m.wall) {
+                    m.wall.visible = true;
+                    m.wall.material.opacity = 1;
+                    m.wall.material.depthWrite = true;
+                }
+                if (m.roof) {
+                    m.roof.visible = true;
+                    m.roof.material.opacity = 1;
+                    m.roof.material.depthWrite = true;
+                }
+                return;
+            }
+
             const ch = g.character;
             const pl = inst.platform;
             let inside = inst.inside;
@@ -1906,14 +1935,10 @@
                 const lx = dx * pl.cos - dz * pl.sin, lz = dx * pl.sin + dz * pl.cos;
                 const F = inst.fp, fhx = F.hx, fhz = F.hz;
                 let heroIn = false;
-                if (inst.def.kind === 'block') {
-                    heroIn = Math.abs(lx) < fhx + 1.2 && Math.abs(lz) < fhz + 1.2;
-                } else {
-                    const stn = inst.def.kind === 'station';
-                    const zFront = stn ? fhz : fhz + 0.1, zFrontOut = stn ? fhz + 0.35 : fhz + 0.7;
-                    if (!inst.heroIn) heroIn = Math.abs(lx) < fhx - 0.05 && lz > -fhz && lz < zFront;
-                    else heroIn = !(Math.abs(lx) > fhx + 0.3 || lz < -fhz - 0.3 || lz > zFrontOut);
-                }
+                const stn = inst.def.kind === 'station';
+                const zFront = stn ? fhz : fhz + 0.1, zFrontOut = stn ? fhz + 0.35 : fhz + 0.7;
+                if (!inst.heroIn) heroIn = Math.abs(lx) < fhx - 0.05 && lz > -fhz && lz < zFront;
+                else heroIn = !(Math.abs(lx) > fhx + 0.3 || lz < -fhz - 0.3 || lz > zFrontOut);
                 inst.heroIn = heroIn;
 
                 let camIn = false;
@@ -1930,7 +1955,7 @@
 
             const isBuilding = !!(this.placing || UI.panelOpen || this.demolishing || this.moving);
             const wT = inside ? WALL_FADE : 1;
-            // В режиме строительства крыша всегда видна (1.0). В обычной игре при нахождении внутри крыша становится полупрозрачной (0.28), а не исчезает!
+            // Для склада и крафтовых навесов крыша становится полупрозрачной для удобства обзора сундука сверху
             const rT = isBuilding ? 1 : (inside ? 0.28 : 1);
             const k = force ? 1 : Math.min(1, (delta || 0) * 4);
             inst.wallOp += (wT - inst.wallOp) * k;
