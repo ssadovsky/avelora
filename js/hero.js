@@ -18,12 +18,34 @@
     const CFG = () => window.AVELORA_PROGRESSION;
     const STATS = ['str', 'dex', 'int', 'sta'];
 
-    /** XP needed to go from `level` to `level + 1`. */
+    /** Базовый опыт за обычного моба на уровне level (формульная модель) */
+    function mobBaseXp(level) {
+        const c = (CFG() && CFG().xp) || {};
+        const startXp = c.mobBaseXp !== undefined ? c.mobBaseXp : 20;
+        const stepBase = c.mobStepBase !== undefined ? c.mobStepBase : 8;
+        const stepAcc = c.mobStepAcc !== undefined ? c.mobStepAcc : 1.5;
+        const lvl = Math.max(1, Math.floor(level || 1));
+        const n = lvl - 1;
+        return startXp + n * stepBase + (n * lvl / 2) * stepAcc;
+    }
+
+    /** Итоговый опыт за моба с учетом ранга и индивидуальных множителей */
+    function mobXp(level, rank, statMult, xpMult) {
+        const r = rank || 'normal';
+        const rankMult = (r === 'boss' ? 3.0 : (r === 'elite' ? 2.0 : 1.0));
+        const base = mobBaseXp(level);
+        return Math.max(1, Math.round(base * rankMult * (statMult || 1.0) * (xpMult !== undefined ? xpMult : 1.0)));
+    }
+
+    /** XP needed to go from level to level + 1: самосогласовано через Опыт_моба * Число_мобов */
     function xpStep(level) {
-        const c = CFG().xp;
-        const base = (c && c.base) || 500;
-        const g = (c && c.growth !== undefined) ? c.growth : 1.0;
-        return Math.max(1, Math.round(base * level * g));
+        const c = (CFG() && CFG().xp) || {};
+        const lvl = Math.max(1, Math.floor(level || 1));
+        const baseMobs = c.baseMobs !== undefined ? c.baseMobs : 6;
+        const steepness = c.steepness !== undefined ? c.steepness : 1.2;
+        const normalMobXp = mobBaseXp(lvl);
+        const mobsNeeded = baseMobs + (lvl - 1) * steepness;
+        return Math.max(1, Math.round(normalMobXp * mobsNeeded));
     }
     /** Total XP at which `level` is reached (level 1 = 0). */
     function xpForLevel(level) {
@@ -47,6 +69,7 @@
             this.mana = 0;
             this.maxMana = 0;
             this.manaRegen = 0;
+            this._manaRegenPause = 0;
             this._manaShown = -1;
             this._xpShown = '';
             this.manaBar = document.getElementById('mana-bar');
@@ -97,11 +120,11 @@
             const manaPerInt = D.manaPerInt !== undefined ? D.manaPerInt : 10;
             this.maxMana = Math.round((baseM + st.int * manaPerInt) * M.mana);
 
-            // Регенерация маны: процент от maxMana (5%/сек по умолчанию) + бонус от Интеллекта
+            // Честная регенерация маны: фиксированная база класса/конфига + бонус от Интеллекта
             const cfgManaRegen = CFG().manaRegen || {};
-            const basePct = Number.isFinite(cfgManaRegen.percent) ? cfgManaRegen.percent : 0.05;
-            const intBonus = st.int * (D.manaRegenPerInt || 0.1) * 0.001;
-            this.manaRegen = Math.max(cls.manaRegen || 5, Math.round(this.maxMana * (basePct + intBonus) * M.regen));
+            const baseRegen = Number.isFinite(cls.manaRegen) ? cls.manaRegen : (cfgManaRegen.base !== undefined ? cfgManaRegen.base : 3.0);
+            const intBonus = st.int * (D.manaRegenPerInt !== undefined ? D.manaRegenPerInt : 0.1);
+            this.manaRegen = Math.max(0.5, (baseRegen + intBonus) * (M.regen || 1));
 
             if (this.mana > this.maxMana || heal || !Number.isFinite(this.mana) || this.mana <= 0) this.mana = this.maxMana;
             const cb = this.game.combat;
@@ -196,14 +219,27 @@
             return Math.max(0.1, (1 + totalStat * dps) * CFG().multipliers.damage);
         }
 
-        /** Dynamic mana cost of a skill, scaled symmetrically with skillMult damage bonus. */
+        /** Base damage multiplier of a skill at starting stats (level 1, no gear). */
+        skillBaseMult(def) {
+            const map = CFG().damageStat || {};
+            const stat = (def && def.stat) || map[(def && def.damage && def.damage.type) || 'default'] || map.default || 'int';
+            const cls = this.classCfg();
+            const startStat = (cls && cls.start && cls.start[stat]) || 1;
+            const D = CFG().derived || {};
+            const dps = D.damagePerStat !== undefined ? D.damagePerStat : 0.05;
+            return Math.max(0.1, (1 + startStat * dps) * CFG().multipliers.damage);
+        }
+
+        /** Dynamic mana cost of a skill, organically scaling with skill power ratio. */
         skillManaCost(def) {
             if (!def || !def.mana || def.mana <= 0) return 0;
             const base = def.mana;
-            const mult = this.skillMult(def);
+            const currentMult = this.skillMult(def);
+            const baseMult = this.skillBaseMult(def);
+            const powerRatio = Math.max(1, currentMult / Math.max(1e-4, baseMult));
             const derived = (CFG() && CFG().derived) || {};
-            const k = derived.manaCostScaling !== undefined ? derived.manaCostScaling : 0.25;
-            const manaMult = 1 + (mult - 1) * k;
+            const exp = derived.manaCostPowerExp !== undefined ? derived.manaCostPowerExp : 0.75;
+            const manaMult = Math.pow(powerRatio, exp);
             return Math.max(1, Math.round(base * manaMult));
         }
 
@@ -254,11 +290,16 @@
 
         onKilled(d) {
             if (!d || !this.state) return;
-            const def = (window.GAME_CONTENT && window.GAME_CONTENT.creatures && window.GAME_CONTENT.creatures[d.type]) || null;
-            if (!def) return;
-            const mult = Number.isFinite(d.xpMult) ? d.xpMult : (Number.isFinite(d.levelMult) ? d.levelMult : 1);
-            const base = (Number.isFinite(def.xp) ? def.xp : Math.max(1, Math.round((def.hp || 10) / 4))) * mult;
-            const lvl = Number.isFinite(d.level) ? d.level : (Number.isFinite(def.level) ? def.level : 1);
+            const lvl = Number.isFinite(d.level) ? d.level : 1;
+            let base = 0;
+            if (d.xpReward !== undefined && Number.isFinite(d.xpReward)) {
+                base = d.xpReward;
+            } else {
+                const def = (window.GAME_CONTENT && window.GAME_CONTENT.creatures && window.GAME_CONTENT.creatures[d.type]) || null;
+                const customMult = (def && def.xp === 0) ? 0 : 1;
+                base = customMult === 0 ? 0 : mobXp(lvl, d.rank || 'normal');
+            }
+            if (base <= 0) return;
             const c = CFG();
             const k = Math.max(c.minXpFactor, Math.min(c.maxXpFactor, 1 + (lvl - this.level) * c.levelXpSwing));
             this.addXp(base * k);
@@ -278,7 +319,9 @@
 
         update(delta) {
             if (!this.state) return;
-            if (this.mana < this.maxMana && this.manaRegen > 0) {
+            if (this._manaRegenPause > 0) {
+                this._manaRegenPause = Math.max(0, this._manaRegenPause - delta);
+            } else if (this.mana < this.maxMana && this.manaRegen > 0) {
                 this.mana = Math.min(this.maxMana, this.mana + this.manaRegen * delta);
                 this.renderBars();
             }
@@ -344,6 +387,11 @@
             let shield = null;
             this.effects.forEach(e => { if (!shield && e.manaPerDamage > 0) shield = e; });
             if (!shield) return amount;
+
+            // Пауза регенерации маны при получении урона в щит (защита от пассивного бессмертия):
+            const cfgManaRegen = (CFG() && CFG().manaRegen) || {};
+            this._manaRegenPause = Number.isFinite(cfgManaRegen.hitPause) ? cfgManaRegen.hitPause : 3.0;
+
             const k = shield.manaPerDamage;
             const need = amount * k;
             if (this.mana + 1e-6 >= need) {
@@ -445,5 +493,5 @@
     }
 
     window.AveloraHero = AveloraHero;
-    window.AveloraProgress = { xpStep, xpForLevel, levelForXp };
+    window.AveloraProgress = { xpStep, xpForLevel, levelForXp, mobBaseXp, mobXp };
 })();

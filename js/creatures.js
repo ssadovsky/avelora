@@ -249,7 +249,22 @@
             const dmgMin = Math.max(1, Math.round(((baseDmgCfg[0] || 5) + dmgAdd) * dmgStatMult * rm.dmg));
             const dmgMax = Math.max(dmgMin, Math.round(((baseDmgCfg[1] || baseDmgCfg[0] || 8) + dmgAdd) * dmgStatMult * rm.dmg));
 
-            const xpMult = level * rm.xp * (cfg.xpMultiplier !== undefined ? cfg.xpMultiplier : 1.0);
+            // Расчет опыта за моба по формуле AveloraProgress.mobXp:
+            const xpMultiplier = (cfg.xpMultiplier !== undefined ? cfg.xpMultiplier : 1.0);
+            let customXpMult = 1.0;
+            if (mergedDef.xp !== undefined && Number.isFinite(mergedDef.xp)) {
+                if (mergedDef.xp === 0) customXpMult = 0;
+            }
+            if (mergedDef.xpMultiplier !== undefined && Number.isFinite(mergedDef.xpMultiplier)) {
+                customXpMult *= mergedDef.xpMultiplier;
+            }
+            const scaledXp = (customXpMult === 0) ? 0 : (
+                (window.AveloraProgress && window.AveloraProgress.mobXp)
+                    ? window.AveloraProgress.mobXp(level, rank, statMult, xpMultiplier * customXpMult)
+                    : Math.max(1, Math.round((20 + (level - 1) * 8) * rm.xp * statMult * xpMultiplier * customXpMult))
+            );
+            const xpMult = rm.xp * xpMultiplier * customXpMult;
+
             const goldMult = level * rm.gold * (cfg.goldMultiplier !== undefined ? cfg.goldMultiplier : 1.0);
             const baseGold = Array.isArray(mergedDef.gold) ? mergedDef.gold : (cfg.baseGold || [1, 2]);
             const scaledGold = [
@@ -263,6 +278,7 @@
                 rank: rank,
                 levelMult: hpMult,
                 xpMult: xpMult,
+                xpReward: scaledXp,
                 scaledDamage: [dmgMin, dmgMax],
                 scaledGold: scaledGold,
                 home: { x: sp.x, z: sp.z },
@@ -1169,7 +1185,7 @@
             if (this.state && bd && bd.bossId === rec.id) this.state.setKilled(this.location.id, '__cleared', Math.floor(Date.now() / 1000));   // boss killed under the dungeon-reset rules
             this.dropLoot(rec);
             window.dispatchEvent(new CustomEvent('game:creatureKilled', {
-                detail: { id: rec.id, type: rec.type, level: rec.level, levelMult: rec.levelMult, rank: rec.rank, xpMult: rec.xpMult }
+                detail: { id: rec.id, type: rec.type, level: rec.level, levelMult: rec.levelMult, rank: rec.rank, xpMult: rec.xpMult, xpReward: rec.xpReward }
             }));
         }
 
