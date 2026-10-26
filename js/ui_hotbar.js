@@ -1875,6 +1875,10 @@
 
                 listEl.appendChild(card);
             });
+
+            // Restore spin animation on the focused quest button after DOM rebuild
+            const _apSync = this.game && this.game.autoPlay;
+            if (_apSync && _apSync.syncQuestButtons) _apSync.syncQuestButtons();
         }
 
         // -----------------------------------------------------------

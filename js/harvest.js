@@ -316,6 +316,15 @@
             return true;
         }
 
+        awardHarvestXp() {
+            const p = window.AVELORA_PROGRESSION;
+            const xp = (p && p.xp && typeof p.xp.harvestXp === 'number') ? p.xp.harvestXp : 0;
+            if (xp > 0 && this.game.hero) {
+                this.game.hero.addXp(xp);
+                if (this.game.ui) this.game.ui.floatText('+' + xp + ' опыт', 'xp', 0.3);
+            }
+        }
+
         gather(entry, node) {
             const g = this.game;
             const c = g.character;
@@ -363,7 +372,7 @@
             }
 
             window.dispatchEvent(new CustomEvent('game:nodeGathered', { detail: { id: entry.id } }));
-            if (g.hero) g.hero.addXp(10);
+            this.awardHarvestXp();
         }
 
         hit(entry, node) {
@@ -410,7 +419,7 @@
             const axis = new THREE.Vector3(fz, 0, -fx).normalize();
             this.falling.push({ entry, node, pivot, axis, fx, fz, t: 0, landed: false });
             window.dispatchEvent(new CustomEvent('game:treeFelled', { detail: { id: entry.id } }));
-            if (g.hero) g.hero.addXp(25);
+            this.awardHarvestXp();
             if (g.ui) g.ui.floatText(`${node.name || 'Дерево'} срублено`, 'info');
         }
 
@@ -447,7 +456,7 @@
 
             this.restoreTool();
             window.dispatchEvent(new CustomEvent('game:oreMined', { detail: { id: entry.id } }));
-            if (g.hero) g.hero.addXp(20);
+            this.awardHarvestXp();
             if (g.ui) g.ui.floatText(`${node.name || 'Жила'} выработана`, 'info');
         }
 

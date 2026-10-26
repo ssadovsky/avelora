@@ -2706,11 +2706,13 @@
             width: 17px;
             height: 17px;
             stroke-width: 2.2;
-            transition: transform 0.2s ease;
+            animation: questLoopSpin 1.6s linear infinite;
+            animation-play-state: paused;
+            transition: color 0.15s ease, filter 0.15s ease;
         }
         .qt-auto-btn.active .quest-loop-icon,
         .quest-card-auto-btn.active .quest-loop-icon {
-            animation: questLoopSpin 1.6s linear infinite;
+            animation-play-state: running;
             color: #ffe699;
             filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.95));
         }
@@ -3903,6 +3905,7 @@
         .float-text.heal { color: #69f0ae; font-size: 1.05rem; text-shadow: 0 0 10px rgba(105, 240, 174, 0.6), 0 2px 4px #000; }
         .float-text.warn { color: #ff9ea5; }
         .float-text.info { color: #efcf7a; font-size: 0.9rem; }
+        .float-text.xp   { color: #ffd24d; font-size: 0.85rem; opacity: 0.9; }
 
         
 /* ==========================================================================

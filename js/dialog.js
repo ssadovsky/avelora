@@ -395,7 +395,7 @@
                 if (!q) return;
                 const p = this.questProgress(q);
                 if (p.ready) hasReady = true;
-                const autoBtn = (!p.ready && this.canAutoRunQuest(q)) ? `<button type="button" class="qt-auto-btn" data-quest="${id}" title="Авто-выполнение этого задания"><svg class="quest-loop-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14.93-4M20 12a8 8 0 0 1-14.93 4"/><polyline points="19 3 19 8 14 8"/><polyline points="5 21 5 16 10 16"/></svg></button>` : '';
+                const autoBtn = (this.canAutoRunQuest(q)) ? `<button type="button" class="qt-auto-btn" data-quest="${id}" title="Авто-выполнение этого задания"><svg class="quest-loop-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14.93-4M20 12a8 8 0 0 1-14.93 4"/><polyline points="19 3 19 8 14 8"/><polyline points="5 21 5 16 10 16"/></svg></button>` : '';
                 lines.push(`<div class="qt-row${p.ready ? ' ready' : ''}" data-quest="${id}"><div class="qt-row-body"><b>${q.name}</b><span>${p.ready ? 'Вернись к ' + (this.giverName(q) || 'заказчику') : this.questLabel(q, p)}</span></div>${autoBtn}</div>`);
             });
             if (lines.length) {
@@ -489,6 +489,10 @@
                         }
                     };
                 }
+
+                // Restore spin animation on the focused quest button after DOM rebuild
+                const _apSync = this.game && this.game.autoPlay;
+                if (_apSync && _apSync.syncQuestButtons) _apSync.syncQuestButtons();
             } else {
                 const ui = this.ui || (this.game && this.game.ui) || window.AveloraHotbar;
                 if (ui && ui.hideTooltip) ui.hideTooltip();

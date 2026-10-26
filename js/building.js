@@ -2960,9 +2960,6 @@
             window.dispatchEvent(new CustomEvent('game:questUpdated'));
             if (this.game.ui && this.game.ui.updateQuestsProgress) this.game.ui.updateQuestsProgress();
             if (this.game.ui && this.game.ui.dialog && this.game.ui.dialog.updateTracker) this.game.ui.dialog.updateTracker();
-            if (this.game.hero && this.game.hero.addXp) {
-                this.game.hero.addXp(25);
-            }
 
             this.cancelPlacing();
             if (this.game.ui) {

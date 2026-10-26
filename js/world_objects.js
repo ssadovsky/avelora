@@ -1049,10 +1049,6 @@
             if (pile.dynamic) state.takeGround(this.location.id, pile.data.uid, n);
             else state.addTaken(this.location.id, pile.data.id, n);
             state.inventory.add(itemId, n);
-            if (!pile.dynamic && this.game.hero) {
-                if (itemId === 'fern') this.game.hero.addXp(10 * n);
-                else if (itemId === 'stone') this.game.hero.addXp(10 * n);
-            }
             this.rebuildPile(pile);
             if (pile.dynamic && pile.remaining <= 0) this.piles.delete(pile.id);
             if (ui) {

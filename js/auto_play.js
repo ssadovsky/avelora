@@ -421,22 +421,26 @@
         }
 
         toggleQuest(force) {
-            this.questEnabled = (force !== undefined) ? !!force : !this.questEnabled;
-            if (this.questBtn) {
-                this.questBtn.classList.toggle('active', this.questEnabled);
-                const stateSpan = this.questBtn.querySelector('.auto-action-state');
-                if (stateSpan) stateSpan.textContent = this.questEnabled ? 'ВКЛ' : 'ВЫКЛ';
-            }
-            if (!this.questEnabled) {
-                // Stop any active navigation
+            const enabling = (force !== undefined) ? !!force : !this.questEnabled;
+            this.questEnabled = enabling;
+
+            if (enabling) {
+                // Normal full auto-quest: cancel any single-quest focus
+                if (this.focusedQuestId) {
+                    this.focusedQuestId = null;
+                }
+            } else {
+                // Stopping: clear focus, stop movement
+                this.focusedQuestId = null;
                 if (this.game.character && this.game.character.isMoving) {
                     this.game.character.stopMovement();
                 }
-                this.focusedQuestId = null;
-                this.syncQuestButtons();
             }
+
+            this.syncQuestButtons();
+
             if (this.game.ui && this.game.ui.floatText) {
-                this.game.ui.floatText(this.questEnabled ? 'Автоквест: ВКЛ' : 'Автоквест: ВЫКЛ', this.questEnabled ? 'good' : 'info');
+                this.game.ui.floatText(enabling ? 'Автоквест: ВКЛ' : 'Автоквест: ВЫКЛ', enabling ? 'good' : 'info');
             }
         }
 
@@ -1025,24 +1029,59 @@
 
         /**
          * Toggle focused auto-run for one specific quest.
-         * While active, the quest loop ONLY pursues that quest (no batch).
-         * Clicking again on the same quest deactivates it.
+         * Stops combat/gather, runs ONLY that quest. Main auto-quest btn stays OFF.
+         * Clicking same button again — stops. Pressing main auto-quest btn — switches to full mode.
          */
         focusQuest(questId) {
             if (this.questEnabled && this.focusedQuestId === questId) {
-                // Same button: cancel focus and stop entirely
+                // Same button pressed again → stop everything
                 this.focusedQuestId = null;
-                this.toggleQuest(false);
-            } else {
-                this.focusedQuestId = questId;
-                if (!this.questEnabled) this.toggleQuest(true);
+                this.questEnabled = false;
+                if (this.game.character && this.game.character.isMoving) {
+                    this.game.character.stopMovement();
+                }
+                this.syncQuestButtons();
+                if (this.game.ui && this.game.ui.floatText) {
+                    this.game.ui.floatText('Автоквест: ВЫКЛ', 'info');
+                }
+                return;
             }
+
+            // Stop combat and gather — full focus on one quest
+            if (this.combatEnabled) this.toggleCombat(false);
+            if (this.gatherEnabled) this.toggleGather(false);
+
+            // Activate quest engine without touching main button visual
+            this.focusedQuestId = questId;
+            this.questEnabled = true;
             this.syncQuestButtons();
+
+            const gc = window.GAME_CONTENT;
+            const qDef = gc && gc.quests && gc.quests[questId];
+            const name = qDef ? qDef.name : questId;
+            if (this.game.ui && this.game.ui.floatText) {
+                this.game.ui.floatText(`Авто: «${name}»`, 'good');
+            }
         }
 
-        /** Update .active class on all auto-run buttons matching (or not) the current focusedQuestId */
+        /**
+         * Sync all quest-related UI buttons:
+         *  - Main auto-quest btn: active ONLY in normal mode (questEnabled + no focus)
+         *  - Per-quest circular btns: only the focused one spins
+         */
         syncQuestButtons() {
-            const activeId = (this.questEnabled && this.focusedQuestId) ? this.focusedQuestId : null;
+            const focusMode = this.questEnabled && !!this.focusedQuestId;
+            const normalMode = this.questEnabled && !this.focusedQuestId;
+
+            // Main auto-quest button
+            if (this.questBtn) {
+                this.questBtn.classList.toggle('active', normalMode);
+                const stateSpan = this.questBtn.querySelector('.auto-action-state');
+                if (stateSpan) stateSpan.textContent = normalMode ? 'ВКЛ' : 'ВЫКЛ';
+            }
+
+            // Per-quest circular buttons
+            const activeId = focusMode ? this.focusedQuestId : null;
             document.querySelectorAll('.qt-auto-btn, .quest-card-auto-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.quest === activeId);
             });
@@ -1091,10 +1130,16 @@
                 const fqDef = allQuests[this.focusedQuestId];
                 const st2 = this.game.gameState;
                 if (!fqDef || !st2 || st2.quests[this.focusedQuestId] !== 'active') {
-                    // Quest gone / done — stop focus
+                    // Quest gone / done — stop focus and disable quest engine
+                    this.questEnabled = false;
                     this.focusedQuestId = null;
                     this.syncQuestButtons();
-                    this.toggleQuest(false);
+                    if (this.game.character && this.game.character.isMoving) {
+                        this.game.character.stopMovement();
+                    }
+                    if (this.game.ui && this.game.ui.floatText) {
+                        this.game.ui.floatText('Задание выполнено — авто остановлен', 'good');
+                    }
                     return;
                 }
                 const fReady = this.isQuestReady(fqDef);
