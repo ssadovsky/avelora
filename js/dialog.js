@@ -387,118 +387,163 @@
         updateTracker() {
             if (!this.tracker) return;
             const st = this.state;
-            const lines = [];
+            const activeQuests = [];
             let hasReady = false;
-            if (st) Object.keys(st.quests || {}).forEach(id => {
-                if (st.quests[id] !== 'active') return;
-                const q = this.questDef(id);
-                if (!q) return;
-                const p = this.questProgress(q);
-                if (p.ready) hasReady = true;
-                const autoBtn = (this.canAutoRunQuest(q)) ? `<button type="button" class="qt-auto-btn" data-quest="${id}" title="Авто-выполнение этого задания"><svg class="quest-loop-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14.93-4M20 12a8 8 0 0 1-14.93 4"/><polyline points="19 3 19 8 14 8"/><polyline points="5 21 5 16 10 16"/></svg></button>` : '';
-                lines.push(`<div class="qt-row${p.ready ? ' ready' : ''}" data-quest="${id}"><div class="qt-row-body"><b>${q.name}</b><span>${p.ready ? 'Вернись к ' + (this.giverName(q) || 'заказчику') : this.questLabel(q, p)}</span></div>${autoBtn}</div>`);
-            });
-            if (lines.length) {
-                const iconChar = hasReady ? '?' : '!';
-                this.tracker.innerHTML = `<div class="qt-btn-icon${hasReady ? ' ready' : ''}" title="Задания">${iconChar}</div><div class="qt-content"><div class="qt-title"><span>Задания</span><span class="qt-toggle" title="Свернуть задания">▸</span></div><div class="qt-list">${lines.join('')}</div></div>`;
-                this.tracker.style.display = 'flex';
-
-                // Hover on quest row shows reward tooltip
-                const rows = this.tracker.querySelectorAll('.qt-row');
-                rows.forEach(row => {
-                    const qid = row.dataset.quest;
-                    if (!qid) return;
-                    const q = this.questDef(qid);
+            if (st) {
+                Object.keys(st.quests || {}).forEach(id => {
+                    if (st.quests[id] !== 'active') return;
+                    const q = this.questDef(id);
                     if (!q) return;
-
-                    row.addEventListener('pointerenter', () => {
-                        const ui = this.ui || (this.game && this.game.ui) || window.AveloraHotbar;
-                        if (ui && ui.showQuestRewardTooltip) {
-                            const p = this.questProgress(q);
-                            const rw = this.getQuestRewards ? this.getQuestRewards(q) : { gold: 0, xp: 0, items: [] };
-                            ui.showQuestRewardTooltip(row, {
-                                id: qid,
-                                title: q.name,
-                                desc: q.summary || '',
-                                completed: false,
-                                badge: p.ready ? 'Вернись к ' + (this.giverName(q) || 'заказчику') : this.questLabel(q, p),
-                                reward: rw
-                            });
-                        }
-                    });
-
-                    row.addEventListener('pointerleave', () => {
-                        const ui = this.ui || (this.game && this.game.ui) || window.AveloraHotbar;
-                        if (ui && ui.hideTooltip) ui.hideTooltip();
-                    });
-
-                    // Auto-run button click
-                    const autoRunBtn = row.querySelector('.qt-auto-btn');
-                    if (autoRunBtn) {
-                        autoRunBtn.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            window.__avelora_just_ui_tap = performance.now();
-                            const ap = this.game && this.game.autoPlay;
-                            if (ap && ap.focusQuest) ap.focusQuest(qid);
-                        });
-                    }
+                    const p = this.questProgress(q);
+                    if (p.ready) hasReady = true;
+                    activeQuests.push({ id, q, p });
                 });
+            }
 
-                // Click when collapsed expands the tracker
-                this.tracker.onclick = (e) => {
-                    if (this.tracker.classList.contains('collapsed')) {
-                        e.stopPropagation();
-                        this.tracker.classList.remove('collapsed');
-                    }
-                };
-
-                // Click on header / toggle button collapses tracker
-                const title = this.tracker.querySelector('.qt-title');
-                if (title) {
-                    title.onclick = (e) => {
-                        e.stopPropagation();
-                        const ui = this.ui || (this.game && this.game.ui) || window.AveloraHotbar;
-                        if (ui && ui.hideTooltip) ui.hideTooltip();
-                        this.tracker.classList.add('collapsed');
-                    };
-                }
-
-                // Click on quest row opens full quests log (ignoring scrollbar clicks and touch scrolling drags)
-                const list = this.tracker.querySelector('.qt-list');
-                if (list) {
-                    makeTouchScrollable(list);
-                    list.addEventListener('wheel', (e) => { e.stopPropagation(); }, { passive: true });
-                    list.onclick = (e) => {
-                        if (list.__touchDragging) {
-                            list.__touchDragging = false;
-                            return;
-                        }
-                        if (!e.target.closest('.qt-row')) return;
-                        e.stopPropagation();
-                        const ui = this.ui || (this.game && this.game.ui) || window.AveloraHotbar;
-                        if (ui && ui.hideTooltip) ui.hideTooltip();
-                        if (ui && ui.toggleQuests) {
-                            ui.toggleQuests();
-                        } else {
-                            const qp = document.getElementById('quests-panel');
-                            if (qp) {
-                                qp.classList.toggle('open');
-                                if (ui && ui.updateQuestsProgress) ui.updateQuestsProgress();
-                            }
-                        }
-                    };
-                }
-
-                // Restore spin animation on the focused quest button after DOM rebuild
-                const _apSync = this.game && this.game.autoPlay;
-                if (_apSync && _apSync.syncQuestButtons) _apSync.syncQuestButtons();
-            } else {
+            if (!activeQuests.length) {
                 const ui = this.ui || (this.game && this.game.ui) || window.AveloraHotbar;
                 if (ui && ui.hideTooltip) ui.hideTooltip();
                 this.tracker.innerHTML = '';
                 this.tracker.style.display = 'none';
+                return;
             }
+
+            // IN-PLACE UPDATE: If the set of active quests has not changed, update text/ready flags
+            // without rebuilding DOM elements. This keeps rotating SVG icons spinning seamlessly without jerking!
+            const listEl = this.tracker.querySelector('.qt-list');
+            const existingRows = listEl ? Array.from(listEl.querySelectorAll('.qt-row')) : [];
+            const existingIds = existingRows.map(r => r.dataset.quest);
+            const newIds = activeQuests.map(item => item.id);
+
+            const isSameList = existingRows.length === activeQuests.length &&
+                               existingIds.every((id, idx) => id === newIds[idx]);
+
+            if (isSameList && listEl) {
+                const iconBtn = this.tracker.querySelector('.qt-btn-icon');
+                if (iconBtn) {
+                    iconBtn.textContent = hasReady ? '?' : '!';
+                    iconBtn.classList.toggle('ready', hasReady);
+                }
+
+                existingRows.forEach((row, idx) => {
+                    const item = activeQuests[idx];
+                    row.classList.toggle('ready', item.p.ready);
+                    const labelSpan = row.querySelector('.qt-row-body span');
+                    if (labelSpan) {
+                        const targetText = item.p.ready ? ('Вернись к ' + (this.giverName(item.q) || 'заказчику')) : this.questLabel(item.q, item.p);
+                        if (labelSpan.textContent !== targetText) {
+                            labelSpan.textContent = targetText;
+                        }
+                    }
+                });
+
+                const _apSync = this.game && this.game.autoPlay;
+                if (_apSync && _apSync.syncQuestButtons) _apSync.syncQuestButtons();
+                return;
+            }
+
+            // Full rebuild when quests are accepted, abandoned or completed
+            const lines = [];
+            activeQuests.forEach(item => {
+                const { id, q, p } = item;
+                const autoBtn = (this.canAutoRunQuest(q)) ? `<button type="button" class="qt-auto-btn" data-quest="${id}" title="Авто-выполнение этого задания"><svg class="quest-loop-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14.93-4M20 12a8 8 0 0 1-14.93 4"/><polyline points="19 3 19 8 14 8"/><polyline points="5 21 5 16 10 16"/></svg></button>` : '';
+                lines.push(`<div class="qt-row${p.ready ? ' ready' : ''}" data-quest="${id}"><div class="qt-row-body"><b>${q.name}</b><span>${p.ready ? 'Вернись к ' + (this.giverName(q) || 'заказчику') : this.questLabel(q, p)}</span></div>${autoBtn}</div>`);
+            });
+
+            const iconChar = hasReady ? '?' : '!';
+            this.tracker.innerHTML = `<div class="qt-btn-icon${hasReady ? ' ready' : ''}" title="Задания">${iconChar}</div><div class="qt-content"><div class="qt-title"><span>Задания</span><span class="qt-toggle" title="Свернуть задания">▸</span></div><div class="qt-list">${lines.join('')}</div></div>`;
+            this.tracker.style.display = 'flex';
+
+            // Hover on quest row shows reward tooltip
+            const rows = this.tracker.querySelectorAll('.qt-row');
+            rows.forEach(row => {
+                const qid = row.dataset.quest;
+                if (!qid) return;
+                const q = this.questDef(qid);
+                if (!q) return;
+
+                row.addEventListener('pointerenter', () => {
+                    const ui = this.ui || (this.game && this.game.ui) || window.AveloraHotbar;
+                    if (ui && ui.showQuestRewardTooltip) {
+                        const p = this.questProgress(q);
+                        const rw = this.getQuestRewards ? this.getQuestRewards(q) : { gold: 0, xp: 0, items: [] };
+                        ui.showQuestRewardTooltip(row, {
+                            id: qid,
+                            title: q.name,
+                            desc: q.summary || '',
+                            completed: false,
+                            badge: p.ready ? 'Вернись к ' + (this.giverName(q) || 'заказчику') : this.questLabel(q, p),
+                            reward: rw
+                        });
+                    }
+                });
+
+                row.addEventListener('pointerleave', () => {
+                    const ui = this.ui || (this.game && this.game.ui) || window.AveloraHotbar;
+                    if (ui && ui.hideTooltip) ui.hideTooltip();
+                });
+
+                // Auto-run button click
+                const autoRunBtn = row.querySelector('.qt-auto-btn');
+                if (autoRunBtn) {
+                    autoRunBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        window.__avelora_just_ui_tap = performance.now();
+                        const ap = this.game && this.game.autoPlay;
+                        if (ap && ap.focusQuest) ap.focusQuest(qid);
+                    });
+                }
+            });
+
+            // Click when collapsed expands the tracker
+            this.tracker.onclick = (e) => {
+                if (this.tracker.classList.contains('collapsed')) {
+                    e.stopPropagation();
+                    this.tracker.classList.remove('collapsed');
+                }
+            };
+
+            // Click on header / toggle button collapses tracker
+            const title = this.tracker.querySelector('.qt-title');
+            if (title) {
+                title.onclick = (e) => {
+                    e.stopPropagation();
+                    const ui = this.ui || (this.game && this.game.ui) || window.AveloraHotbar;
+                    if (ui && ui.hideTooltip) ui.hideTooltip();
+                    this.tracker.classList.add('collapsed');
+                };
+            }
+
+            // Click on quest row opens full quests log (ignoring scrollbar clicks and touch scrolling drags)
+            const list = this.tracker.querySelector('.qt-list');
+            if (list) {
+                makeTouchScrollable(list);
+                list.addEventListener('wheel', (e) => { e.stopPropagation(); }, { passive: true });
+                list.onclick = (e) => {
+                    if (list.__touchDragging) {
+                        list.__touchDragging = false;
+                        return;
+                    }
+                    if (!e.target.closest('.qt-row')) return;
+                    e.stopPropagation();
+                    const ui = this.ui || (this.game && this.game.ui) || window.AveloraHotbar;
+                    if (ui && ui.hideTooltip) ui.hideTooltip();
+                    if (ui && ui.toggleQuests) {
+                        ui.toggleQuests();
+                    } else {
+                        const qp = document.getElementById('quests-panel');
+                        if (qp) {
+                            qp.classList.toggle('open');
+                            if (ui && ui.updateQuestsProgress) ui.updateQuestsProgress();
+                        }
+                    }
+                };
+            }
+
+            // Restore spin animation on the focused quest button after DOM rebuild
+            const _apSync = this.game && this.game.autoPlay;
+            if (_apSync && _apSync.syncQuestButtons) _apSync.syncQuestButtons();
         }
 
         giverName(q) {
