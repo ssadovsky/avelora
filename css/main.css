@@ -5769,3 +5769,23 @@ body.build-move-mode.has-hover canvas {
 .build-row-btns { display: flex; gap: 4px; flex-shrink: 0; }
 .build-mv { font-family: inherit; font-size: 0.8rem; color: #f1e2c8; cursor: pointer; background: rgba(195, 160, 95, 0.18); border: 1px solid rgba(195, 160, 95, 0.55); border-radius: 3px; padding: 5px 9px; -webkit-tap-highlight-color: transparent; }
 .build-mv:hover { background: rgba(195, 160, 95, 0.38); border-color: #efcf7a; color: #fff; }
+
+/* Desktop HUD readability: enlarge only the numeric and name text. */
+body:not(.touch-ui) #player-frame #hud-coords {
+    font-size: 10.8px !important;
+}
+body:not(.touch-ui) #target-name {
+    font-size: max(7px, calc(27 * var(--u))) !important;
+}
+body:not(.touch-ui) #player-frame #hud-top-left {
+    left: calc((var(--cx0) + 10) * var(--u)) !important;
+    width: calc((var(--cx1) - var(--cx0) - 20) * var(--u));
+}
+body:not(.touch-ui) #target-header {
+    left: calc((var(--tx0) + 18) * var(--u));
+    width: calc((var(--tx1) - var(--tx0) - 18) * var(--u));
+}
+body:not(.touch-ui) #player-frame .hp-text,
+body:not(.touch-ui) #target-frame .hp-text {
+    font-size: max(7px, calc(36 * var(--u))) !important;
+}
