@@ -1063,8 +1063,28 @@
         if (def.mesh) {
             const group = new THREE.Group();
             group.name = 'building:' + def.id;
+            const meshes = {};
+            if (def.id === 'forge') {
+                // Каменный пол кузни: закрывает грунт и траву под навесом и наковальней
+                const stoneBuf = makeBuf();
+                const STONE_COL = [0.52, 0.50, 0.48];
+                const BORDER_COL = [0.36, 0.34, 0.32];
+                // Основная каменная плита мастерской 5.8 x 4.6 м
+                pushBox(stoneBuf, 5.8, 0.18, 4.6, mat(0, -0.07, 0.05), STONE_COL, rnd);
+                // Каменный бордюр по периметру
+                [-1, 1].forEach(side => {
+                    pushBox(stoneBuf, 5.86, 0.12, 0.14, mat(0, 0.0, 0.05 + side * 2.26), BORDER_COL, rnd);
+                    pushBox(stoneBuf, 0.14, 0.12, 4.4, mat(side * 2.86, 0.0, 0.05), BORDER_COL, rnd);
+                });
+                const floorMesh = bufToMesh(stoneBuf, mats.stone || mats.solid, 'forge_floor');
+                if (floorMesh) {
+                    floorMesh.receiveShadow = true;
+                    group.add(floorMesh);
+                    meshes.floor = floorMesh;
+                }
+            }
             if (mats.attachMesh) mats.attachMesh(group, def);
-            return { group, meshes: {}, slopeLen: 0, roofW: 0, th: 0, rampLen: 0, rampAngle: 0 };
+            return { group, meshes, slopeLen: 0, roofW: 0, th: 0, rampLen: 0, rampAngle: 0 };
         }
         return def.kind === 'station' ? buildSawmill({ forge: def.id === 'forge' }, mats, rnd) : buildStorage(p, mats, rnd);
     }
@@ -1589,7 +1609,7 @@
                         if (h > smx) smx = h;
                     }
                 }
-                return { mn: smn, mx: smx, rmn: smn, rmx: smx, deckY: smx - 0.04, drop: 0, endY: smx, gEnd: smx };
+                return { mn: smn, mx: smx, rmn: smn, rmx: smx, deckY: smx + 0.04, drop: 0, endY: smx, gEnd: smx };
             }
 
             let mn = Infinity, mx = -Infinity;
@@ -1818,6 +1838,14 @@
                 light.position.set(0, 1.35, -0.2);
                 g.add(light);
                 inst.light = light;
+                // Платформа пола кузни в terrain для ровной ходьбы героя
+                const platform = {
+                    id: 'building:' + b.uid, x: b.x, z: b.z, cos: Math.cos(b.r), sin: Math.sin(b.r),
+                    hx: 2.9, hz: 2.3, y: f.deckY + 0.02, rampLen: 0.5, rampHx: 2.9, endY: f.deckY - 0.1,
+                    reach2: 3.8 * 3.8
+                };
+                this.terrain.addPlatform(platform);
+                inst.platform = platform;
             }
             this.blockCells(inst);
             this.game.addCameraBlocker(low);
@@ -2269,10 +2297,7 @@
             return { x, z };
         }
 
-        snapToNeighbors(pl, targetX, targetZ, hintY) {
-            // Штраф за несовпадение высоты гнезда с высотой плоскости прицеливания: стена и фронтон-прямоугольник
-            // стоят в одной точке плана, ярус выбирается тем, на какую высоту целится курсор.
-            const yPen = (y) => (hintY === undefined ? 0 : 0.5 * Math.abs(y - hintY));
+        snapToNeighbors(pl, targetX, targetZ) {
             const isBlock = pl.def.kind === 'block';
             if (!isBlock) return { x: targetX, z: targetZ, y: undefined, r: pl.r };
 
@@ -2349,14 +2374,15 @@
                     if (isGable) {
                         // Фронтоны садятся строго на верхушку стены 1 этажа или на прямоугольный фронтон
                         if (inst.def.blockType === 'wall' || inst.def.blockType === 'door' || inst.def.blockType === 'window') {
-                            const dEff = d + yPen(instY + WALL_H);
-                            if (d < 1.8 && dEff < bestDist) {
-                                bestDist = dEff;
+                            // Если прямо над этой стеной уже стоит gable_rect (прямоугольный фронтон 2 этажа),
+                            // то наклонный фронтон или пик должен сесть на него (на 2-й ярус), а не на стену 1 этажа!
+                            const hasGableAbove = this.instances.some(o => o.def.blockType === 'gable_rect' && Math.hypot(o.x - inst.x, o.z - inst.z) < 0.25);
+                            if (!hasGableAbove && d < 1.8 && d < bestDist) {
+                                bestDist = d;
                                 snappedX = inst.x;
                                 snappedZ = inst.z;
                                 snappedY = instY + WALL_H;
                                 if (bType === 'gable') {
-                                    // Ищем скат крыши рядом для автоматического согласования стороны уклона
                                     let roofInst = null, minRoofD = Infinity;
                                     for (const o of this.instances) {
                                         if (o.def.blockType === 'roof') {
@@ -2379,13 +2405,31 @@
                                 found = true;
                             }
                         } else if (inst.def.blockType === 'gable_rect') {
-                            const dEff = d + yPen(instY + 1.0);
-                            if (d < 1.8 && dEff < bestDist) {
-                                bestDist = dEff;
+                            if (d < 1.8 && d < bestDist) {
+                                bestDist = d;
                                 snappedX = inst.x;
                                 snappedZ = inst.z;
                                 snappedY = instY + 1.0;
-                                snappedR = pickBestRot(inst.r, [0, Math.PI]);
+                                if (bType === 'gable') {
+                                    let roofInst = null, minRoofD = Infinity;
+                                    for (const o of this.instances) {
+                                        if (o.def.blockType === 'roof') {
+                                            const dr = Math.hypot(inst.x - o.x, inst.z - o.z);
+                                            if (dr < 2.0 && dr < minRoofD) { minRoofD = dr; roofInst = o; }
+                                        }
+                                    }
+                                    if (roofInst) {
+                                        let bestR = (Math.sin(roofInst.r - inst.r) > 0) ? inst.r : (inst.r + Math.PI);
+                                        if (pl._flipGable) bestR += Math.PI;
+                                        snappedR = Math.atan2(Math.sin(bestR), Math.cos(bestR));
+                                    } else {
+                                        let bestR = pickBestRot(inst.r, [0, Math.PI]);
+                                        if (pl._flipGable) bestR += Math.PI;
+                                        snappedR = Math.atan2(Math.sin(bestR), Math.cos(bestR));
+                                    }
+                                } else {
+                                    snappedR = pickBestRot(inst.r, [0, Math.PI]);
+                                }
                                 found = true;
                             }
                         } else if (inst.def.blockType === 'roof') {
@@ -2742,37 +2786,27 @@
             const pl = this.placing;
             if (!pl) return;
 
-            // Кровельные блоки и фронтоны: плоскость прицеливания зависит от яруса, поэтому пробуем
-            // несколько высот и выбираем гнездо, ближайшее к курсору НА ЭКРАНЕ (без параллакса).
+            // Кровельные блоки и фронтоны: курсор целится строго в горизонтальную плоскость верха стены
             const bType = pl.def.blockType;
-            const high = bType === 'roof' || bType === 'roof_flat' || bType === 'roof_ridge' || bType === 'gable' || bType === 'gable_rect' || bType === 'gable_peak';
-            let snapped = null;
-            if (high) {
+            let targetPlaneY = undefined;
+            if (bType === 'roof' || bType === 'roof_flat' || bType === 'roof_ridge' || bType === 'gable' || bType === 'gable_rect' || bType === 'gable_peak') {
                 let sumY = 0, countY = 0;
                 for (const inst of this.instances) {
-                    if (inst.def.kind === 'block') { const iy = (inst.fit ? inst.fit.deckY : (inst.y || 0)); sumY = countY ? Math.min(sumY, iy) : iy; countY++; }
+                    if (inst.def.kind === 'block') {
+                        const iy = (inst.fit ? inst.fit.deckY : (inst.y || 0));
+                        sumY = countY ? Math.min(sumY, iy) : iy;
+                        countY++;
+                    }
                 }
                 const baseY = countY > 0 ? sumY : 0;
-                const v3 = new THREE.Vector3();
-                let bestScr = Infinity;
-                for (const off of [WALL_H, WALL_H + 1.0, WALL_H + 2.0]) {
-                    const q = this.groundAt(ndcX, ndcY, baseY + off);
-                    if (!q) continue;
-                    const rx = Math.round(q.x * 4) / 4, rz = Math.round(q.z * 4) / 4;
-                    const cand = this.snapToNeighbors(pl, rx, rz, baseY + off);
-                    if (cand.y === undefined) continue;
-                    v3.set(cand.x, cand.y, cand.z).project(cam);
-                    const ds = Math.hypot(v3.x - ndcX, v3.y - ndcY);
-                    if (ds < bestScr) { bestScr = ds; snapped = cand; }
-                }
+                targetPlaneY = baseY + WALL_H;
             }
-            if (!snapped) {
-                // Нет подходящего гнезда — призрак по земле под курсором (не у камеры и не за героем)
-                const p = this.groundAt(ndcX, ndcY, undefined);
-                if (!p) return;
-                const rawX = Math.round(p.x * 4) / 4, rawZ = Math.round(p.z * 4) / 4;
-                snapped = this.snapToNeighbors(pl, rawX, rawZ);
-            }
+
+            const p = this.groundAt(ndcX, ndcY, targetPlaneY);
+            if (!p) return;
+
+            const rawX = Math.round(p.x * 4) / 4, rawZ = Math.round(p.z * 4) / 4;
+            const snapped = this.snapToNeighbors(pl, rawX, rawZ);
 
             let changed = false;
             if (snapped.x !== pl.x || snapped.z !== pl.z) {
