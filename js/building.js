@@ -1691,10 +1691,38 @@
                 }
             }
 
+            const isWall1 = (t) => t === 'wall' || t === 'door' || t === 'window';
+            const isGable = (t) => t === 'gable' || t === 'gable_rect' || t === 'gable_peak';
+            const isRoof = (t) => t === 'roof' || t === 'roof_flat' || t === 'roof_ridge';
+
             for (const inst of this.instances) {
                 const dx = x - inst.x, dz = z - inst.z;
                 const dist = Math.hypot(dx, dz);
-                if (dist < 0.25 && inst.type === def.id) return fail('Здесь уже установлена такая постройка');
+                const instY = inst.fit ? inst.fit.deckY : (inst.y || 0);
+                const dy = Math.abs(f.deckY - instY);
+
+                if (dist < 0.35) {
+                    // Нельзя ставить стену/окно/дверь на место, где уже стоит любая стена 1 этажа
+                    if (isWall1(def.blockType) && isWall1(inst.def.blockType) && dy < 1.2) {
+                        return fail('Здесь уже установлена стена');
+                    }
+                    // Нельзя дублировать пол на одной высоте
+                    if (def.blockType === 'floor' && inst.def.blockType === 'floor' && dy < 1.0) {
+                        return fail('Здесь уже установлен пол');
+                    }
+                    // Нельзя дублировать перекрытия и скаты на одной высоте
+                    if (isRoof(def.blockType) && isRoof(inst.def.blockType) && dy < 0.6) {
+                        return fail('Здесь уже установлена крыша');
+                    }
+                    // Нельзя дублировать фронтоны на одной высоте
+                    if (isGable(def.blockType) && isGable(inst.def.blockType) && dy < 0.6) {
+                        return fail('Здесь уже установлен фронтон');
+                    }
+                    // Одинаковый тип любого объекта
+                    if (inst.type === def.id && dy < 0.6) {
+                        return fail('Здесь уже установлена такая постройка');
+                    }
+                }
                 if (!isBlock && inst.def.kind !== 'block') {
                     const G = inst.fp, pc = inst.platform.cos, ps = inst.platform.sin;
                     const mg = 0.6;
