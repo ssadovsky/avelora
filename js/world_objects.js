@@ -652,7 +652,8 @@
             const def = window.AveloraItems.get(g.item);
             if (!def) return Promise.resolve();
             const id = 'ground:' + g.uid;
-            const pile = { data: g, id, def, dynamic: true, group: null, proxy: null, remaining: 0 };
+            const count = Math.max(0, g.count | 0);
+            const pile = { data: g, id, def, dynamic: true, group: null, proxy: null, remaining: count };
             this.piles.set(id, pile);
             return this.loadTemplates('items', def.id, def).then(variants => {
                 pile.variants = variants;

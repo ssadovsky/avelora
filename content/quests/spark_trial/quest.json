@@ -3,8 +3,9 @@
   "name": "Первая искра",
   "giver": "lirael",
   "requires": [
-    "home_camp_visit",
-    "potion_trial"
+    "fern_gathering",
+    "log_gathering",
+    "stone_gathering"
   ],
   "summary": "Порази любого монстра заклинанием «Искра» и доложи Лираэль.",
   "objective": {

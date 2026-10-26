@@ -36,7 +36,7 @@
     const TRUNK_RADIUS = 0.3;     // m at s = 1 (projectile blocker uses 0.32)
     const CHOP_REACH = 1.6;       // m from the trunk surface
     const STUMP_SCALE = 0.8;
-    const FALL_TIME = 1.4, BOUNCE_TIME = 0.45, LIE_TIME = 3.2, SINK_TIME = 1.8;
+    const FALL_TIME = 0.65, BOUNCE_TIME = 0.25, LIE_TIME = 2.0, SINK_TIME = 1.0;
     const FALL_ANGLE = 85 * Math.PI / 180;
     const SHAKE_TIME = 0.4;
     const REGROW_TIME = 1.6;

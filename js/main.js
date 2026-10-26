@@ -2626,6 +2626,9 @@ class AveloraGame {
         // Creature: target on first click, attack on second click (same creature already targeted)
         const creature = this.creatures ? this.creatures.pickAt(this.raycaster) : null;
         if (creature && this.combat) {
+            if (this.autoPlay && this.autoPlay.hasAnyActive && this.autoPlay.hasAnyActive()) {
+                this.autoPlay.onManualMove('Авто остановлен: ручная атака');
+            }
             const alreadyTargeted = this.combat.selectedTarget === creature;
             this.combat.selectTarget(creature);   // always update/confirm the target
             if (alreadyTargeted) {
@@ -2653,6 +2656,9 @@ class AveloraGame {
         if (this.worldObjects) {
             const pile = this.worldObjects.pickAt(this.raycaster);
             if (pile) {
+                if (this.autoPlay && this.autoPlay.hasAnyActive && this.autoPlay.hasAnyActive()) {
+                    this.autoPlay.onManualMove('Авто остановлен: ручной сбор');
+                }
                 this.worldObjects.requestPickup(pile);
                 return;
             }
@@ -2687,6 +2693,9 @@ class AveloraGame {
                 const path = this.pathfinder.findPath(this.character.position, hitPoint);
                 if (path && path.length > 0) {
                     this.character.setPath(path);
+                    if (this.autoPlay && this.autoPlay.hasAnyActive && this.autoPlay.hasAnyActive()) {
+                        this.autoPlay.onManualMove('Авто остановлен: шаг мышью');
+                    }
                 }
             }
         }

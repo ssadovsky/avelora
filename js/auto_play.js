@@ -421,17 +421,33 @@
         }
 
         toggleQuest(force) {
-            const enabling = (force !== undefined) ? !!force : !this.questEnabled;
+            let enabling;
+            if (force !== undefined) {
+                enabling = !!force;
+            } else if (this.focusedQuestId) {
+                // Single quest focus was active: clicking main button switches DIRECTLY to full auto-quest!
+                enabling = true;
+            } else {
+                enabling = !this.questEnabled;
+            }
+
+            // Transitioning from single to full: collect any close drops immediately
+            if (this.focusedQuestId && enabling) {
+                this.collectNearbyLootNow();
+            }
+
+            this.focusedQuestId = null;
             this.questEnabled = enabling;
 
             if (enabling) {
-                // Normal full auto-quest: cancel any single-quest focus
-                if (this.focusedQuestId) {
-                    this.focusedQuestId = null;
-                }
+                this._manualMovePauseUntil = 0;
+                this._lastManualAt = 0;
+                this._currentQuestMob = null;
+                this._combatTimer = 0;
+                this._questTimer = 0;
+                this._nextPathTime = 0;
+                this._lastNavPoint = null;
             } else {
-                // Stopping: clear focus, stop movement
-                this.focusedQuestId = null;
                 this._currentQuestMob = null;
                 if (this.game.character && this.game.character.isMoving) {
                     this.game.character.stopMovement();
@@ -441,19 +457,84 @@
             this.syncQuestButtons();
 
             if (this.game.ui && this.game.ui.floatText) {
-                this.game.ui.floatText(enabling ? 'Автоквест: ВКЛ' : 'Автоквест: ВЫКЛ', enabling ? 'good' : 'info');
+                this.game.ui.floatText(enabling ? 'Общий автоквест: ВКЛ' : 'Автоквест: ВЫКЛ', enabling ? 'good' : 'info');
+            }
+        }
+
+        /** Immediate collection of nearby drops (< 20m) during mode transitions */
+        collectNearbyLootNow() {
+            const g = this.game;
+            const wo = g.worldObjects;
+            const c = g.character;
+            const st = g.gameState;
+            if (!wo || !wo.piles || !c || !st) return;
+            const inv = st.inventory;
+            const px = c.position.x, pz = c.position.z;
+            for (const [pileId, pile] of wo.piles.entries()) {
+                if (!pile || pile.remaining <= 0) continue;
+                if (inv && inv.spaceFor(pile.def.id) <= 0) continue;
+                const d = Math.hypot(pile.data.x - px, pile.data.z - pz);
+                if (d <= 20.0) {
+                    wo.requestPickup(pile);
+                    break;
+                }
+            }
+        }
+
+        /** Checks if any automation mode is currently active */
+        hasAnyActive() {
+            return !!(this.questEnabled || this.focusedQuestId || this.combatEnabled || this.gatherEnabled);
+        }
+
+        /**
+         * Stops all automated modes instantly (auto-quest, single quest, auto-combat, auto-gather).
+         * Triggered when player takes manual control via mouse click to move, WASD, joystick, etc.
+         */
+        stopAll(reason = null) {
+            let changed = false;
+            if (this.questEnabled || this.focusedQuestId) {
+                this.questEnabled = false;
+                this.focusedQuestId = null;
+                this._currentQuestMob = null;
+                changed = true;
+            }
+            if (this.combatEnabled) {
+                this.combatEnabled = false;
+                this.combatAnchor = null;
+                if (this.game.combat) this.game.combat.clearTarget();
+                changed = true;
+            }
+            if (this.gatherEnabled) {
+                this.gatherEnabled = false;
+                this.gatherAnchor = null;
+                this._currentGatherTarget = null;
+                changed = true;
+            }
+
+            if (changed) {
+                this.syncQuestButtons();
+                if (this.combatBtn) {
+                    this.combatBtn.classList.remove('active');
+                    const s = this.combatBtn.querySelector('.auto-action-state');
+                    if (s) s.textContent = 'ВЫКЛ';
+                }
+                if (this.gatherBtn) {
+                    this.gatherBtn.classList.remove('active');
+                    const s = this.gatherBtn.querySelector('.auto-action-state');
+                    if (s) s.textContent = 'ВЫКЛ';
+                }
+                if (this.game.ui && this.game.ui.floatText && reason) {
+                    this.game.ui.floatText(reason, 'info');
+                }
             }
         }
 
         /** Called when user touches joystick, WASD or arrows to give manual control */
-        onManualMove() {
+        onManualMove(reason = 'Авто остановлен') {
             this._lastManualAt = Date.now();
             this._manualMovePauseUntil = this._lastManualAt + 3500;
-            if (this.combatEnabled) {
-                const c = this.game.character;
-                if (c && c.position) {
-                    this.combatAnchor = { x: c.position.x, z: c.position.z };
-                }
+            if (this.hasAnyActive()) {
+                this.stopAll(reason);
             }
         }
 
@@ -590,10 +671,10 @@
             if (!cr || !c || !combat) return;
 
             // Anchor point where auto-combat was activated (in-memory only)
-            if (!this.combatAnchor && c.position) {
+            if (this.combatEnabled && !this.combatAnchor && c.position) {
                 this.combatAnchor = { x: c.position.x, z: c.position.z };
             }
-            const anchor = this.combatAnchor || { x: c.position.x, z: c.position.z };
+            const anchor = this.combatAnchor || (c.position ? { x: c.position.x, z: c.position.z } : { x: 0, z: 0 });
 
             // Target Validation
             let tgt = customTarget || combat.selectedTarget;
@@ -697,18 +778,22 @@
 
             // If target is farther than effective attack distance OR line of sight is obstructed (walls, logs, boulders):
             if (dist > effectiveAttackRange || !hasLoS) {
-                // If "На месте" (0m) mode: hero never chases targets
-                if (this.combatRadius === 0) {
-                    if (c.isMoving && !this.questEnabled && !this.gatherEnabled) c.stopMovement();
-                    return;
-                }
+                // In quest mode (or when customTarget is provided), never restrict by combatRadius/anchor!
+                const isQuestCombat = this.questEnabled || !!customTarget;
+                if (!isQuestCombat) {
+                    // If "На месте" (0m) mode: hero never chases targets
+                    if (this.combatRadius === 0) {
+                        if (c.isMoving && !this.gatherEnabled) c.stopMovement();
+                        return;
+                    }
 
-                // If target moved beyond the anchor combat radius with margin: drop target and return
-                const distFromAnchor = Math.hypot(tgt.x - anchor.x, tgt.z - anchor.z);
-                if (Number.isFinite(this.combatRadius) && distFromAnchor > this.combatRadius + 5.0) {
-                    combat.clearTarget();
-                    tgt = null;
-                    return;
+                    // If target moved beyond the anchor combat radius with margin: drop target and return
+                    const distFromAnchor = Math.hypot(tgt.x - anchor.x, tgt.z - anchor.z);
+                    if (Number.isFinite(this.combatRadius) && distFromAnchor > this.combatRadius + 5.0) {
+                        combat.clearTarget();
+                        tgt = null;
+                        return;
+                    }
                 }
 
                 // Move towards target until within attack distance!
@@ -1050,9 +1135,16 @@
                 // Same button pressed again → stop everything
                 this.focusedQuestId = null;
                 this._currentQuestMob = null;
+                this._currentQuestTargetId = null;
                 this.questEnabled = false;
                 if (this.game.character && this.game.character.isMoving) {
                     this.game.character.stopMovement();
+                }
+                if (this.game.combat && this.game.combat.cancel) {
+                    this.game.combat.cancel();
+                }
+                if (this.game.worldObjects && this.game.worldObjects.cancelPending) {
+                    this.game.worldObjects.cancelPending();
                 }
                 this.syncQuestButtons();
                 if (this.game.ui && this.game.ui.floatText) {
@@ -1068,6 +1160,13 @@
             // Activate quest engine without touching main button visual
             this.focusedQuestId = questId;
             this.questEnabled = true;
+            this._manualMovePauseUntil = 0;
+            this._lastManualAt = 0;
+            this._currentQuestMob = null;
+            this._combatTimer = 0;
+            this._questTimer = 0;
+            this._nextPathTime = 0;
+            this._lastNavPoint = null;
             this.syncQuestButtons();
 
             const gc = window.GAME_CONTENT;
@@ -1105,6 +1204,10 @@
             const now = Date.now();
             for (let i = 0; i < candidates.length; i++) {
                 const cand = candidates[i];
+                // Nearby ground drops (within 4m) are right at our feet: always reachable, never ban them!
+                if (cand.type === 'pile' && cand.dist <= 4.0) {
+                    return cand;
+                }
                 if (this.game.pathfinder && cand.rawDist > cand.reach + 0.3) {
                     const path = this.game.pathfinder.findPath(c.position, { x: cand.x, z: cand.z });
                     if (!path || path.length === 0) {
@@ -1147,10 +1250,19 @@
                     // Quest gone / done — stop focus and disable quest engine
                     this.questEnabled = false;
                     this.focusedQuestId = null;
-                    this.syncQuestButtons();
+                    this._currentQuestMob = null;
+                    this._currentQuestTargetId = null;
+                    // Явно останавливаем движение и бой — иначе setPath продолжит идти сам по себе
                     if (this.game.character && this.game.character.isMoving) {
                         this.game.character.stopMovement();
                     }
+                    if (this.game.combat && this.game.combat.cancel) {
+                        this.game.combat.cancel();
+                    }
+                    if (this.game.worldObjects && this.game.worldObjects.cancelPending) {
+                        this.game.worldObjects.cancelPending();
+                    }
+                    this.syncQuestButtons();
                     if (this.game.ui && this.game.ui.floatText) {
                         this.game.ui.floatText('Задание выполнено — авто остановлен', 'good');
                     }
@@ -1536,7 +1648,8 @@
                     const d = Math.hypot(pile.data.x - px, pile.data.z - pz);
                     const isQuestItem = neededItems.has(pile.def.id) && neededItems.get(pile.def.id).remaining > 0;
 
-                    if (isQuestItem || d <= 16.0) {
+                    // Pick up ALL ground loot within 35m (ore, stone, wood, loot) + all quest items anywhere
+                    if (isQuestItem || d <= 35.0) {
                         pileCandidates.push({
                             type: 'pile',
                             pile,

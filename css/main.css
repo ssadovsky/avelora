@@ -1689,42 +1689,52 @@
             transform: scale(0.92);
         }
         .auto-action-btn .auto-action-icon {
-            width: 17px;
-            height: 17px;
-            color: #efcf7a;
+            position: absolute;
+            inset: 1px;
+            width: calc(100% - 2px);
+            height: calc(100% - 2px);
+            color: rgba(239, 207, 122, 0.65);
             display: block;
+            pointer-events: none;
+            transform: rotate(0deg);
+            transition: color 0.15s ease, filter 0.15s ease, transform 0.2s ease-out;
         }
         .auto-action-btn .auto-action-label {
-            font-size: 7px;
+            font-size: 7.5px;
             font-weight: 700;
             color: #ded1b8;
             letter-spacing: 0.5px;
             line-height: 1;
-            margin-top: 1px;
+            margin-top: 6px;
             text-shadow: 0 1px 2px #000;
+            z-index: 2;
+            pointer-events: none;
         }
         .auto-action-btn .auto-action-key {
             position: absolute;
-            top: 2px;
-            left: 5px;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
             font-size: 7.5px;
             color: rgba(239, 207, 122, 0.75);
             font-family: inherit;
             pointer-events: none;
             line-height: 1;
             text-shadow: 0 0 2px #000;
+            z-index: 2;
         }
         .auto-action-btn .auto-action-state {
             display: none;
         }
         .auto-action-btn.active {
-            border-color: #efcf7a;
-            background: radial-gradient(circle, rgba(239, 207, 122, 0.32) 0%, rgba(16, 22, 30, 0.85) 100%);
-            box-shadow: 0 0 14px rgba(239, 207, 122, 0.6), inset 0 0 8px rgba(239, 207, 122, 0.35);
+            border-color: rgba(239, 207, 122, 0.85);
+            background: rgba(24, 30, 38, 0.85);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
         }
         .auto-action-btn.active .auto-action-icon {
-            color: #fff2b8;
-            filter: drop-shadow(0 0 5px rgba(239, 207, 122, 0.9));
+            animation: questLoopSpin 3.2s linear infinite;
+            color: #ffe699;
+            filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.85));
         }
         .auto-action-btn.active .auto-action-label {
             color: #ffe699;
@@ -2706,13 +2716,12 @@
             width: 17px;
             height: 17px;
             stroke-width: 2.2;
-            animation: questLoopSpin 1.6s linear infinite;
-            animation-play-state: paused;
-            transition: color 0.15s ease, filter 0.15s ease;
+            transform: rotate(0deg);
+            transition: color 0.15s ease, filter 0.15s ease, transform 0.2s ease-out;
         }
         .qt-auto-btn.active .quest-loop-icon,
         .quest-card-auto-btn.active .quest-loop-icon {
-            animation-play-state: running;
+            animation: questLoopSpin 3.2s linear infinite;
             color: #ffe699;
             filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.95));
         }
@@ -5075,8 +5084,10 @@
                 padding: 6px 6px !important;
             }
             body.touch-ui .auto-action-btn .auto-action-icon {
-                width: 22px !important;
-                height: 22px !important;
+                position: absolute !important;
+                inset: 1px !important;
+                width: calc(100% - 2px) !important;
+                height: calc(100% - 2px) !important;
             }
             body.touch-ui .auto-action-btn .auto-action-label,
             body.touch-ui .auto-action-btn .auto-action-key {

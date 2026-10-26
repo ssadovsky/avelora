@@ -4,7 +4,8 @@
   "giver": "lirael",
   "requires": [
     "home_camp_visit",
-    "potion_trial"
+    "potion_trial",
+    "spark_trial"
   ],
   "summary": "Убей 5 радужных барсуков в лесочке к югу от тропы.",
   "objective": {

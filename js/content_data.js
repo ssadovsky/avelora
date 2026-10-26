@@ -6313,7 +6313,8 @@ window.GAME_CONTENT = {
    "giver": "lirael",
    "requires": [
     "home_camp_visit",
-    "potion_trial"
+    "potion_trial",
+    "spark_trial"
    ],
    "summary": "Убей 5 радужных барсуков в лесочке к югу от тропы.",
    "objective": {
@@ -6368,7 +6369,8 @@ window.GAME_CONTENT = {
    "giver": "lirael",
    "requires": [
     "home_camp_visit",
-    "potion_trial"
+    "potion_trial",
+    "spark_trial"
    ],
    "summary": "Убей 5 лесных пчёл. Они кружат над цветущей поляной клевера к западу отсюда.",
    "objective": {
@@ -6782,8 +6784,9 @@ window.GAME_CONTENT = {
    "name": "Первая искра",
    "giver": "lirael",
    "requires": [
-    "home_camp_visit",
-    "potion_trial"
+    "fern_gathering",
+    "log_gathering",
+    "stone_gathering"
    ],
    "summary": "Порази любого монстра заклинанием «Искра» и доложи Лираэль.",
    "objective": {
