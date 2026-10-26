@@ -5772,7 +5772,7 @@ body.build-move-mode.has-hover canvas {
 
 /* Desktop HUD readability: enlarge only the numeric and name text. */
 body:not(.touch-ui) #player-frame #hud-coords {
-    font-size: 10.8px !important;
+    font-size: 10px !important;
 }
 body:not(.touch-ui) #target-name {
     font-size: max(7px, calc(27 * var(--u))) !important;
