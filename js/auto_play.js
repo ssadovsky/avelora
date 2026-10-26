@@ -697,17 +697,20 @@
                     tgt = attackers[0];
                     combat.selectTarget(tgt);
                 } else {
-                    // Priority 2: If hunting specific quest target within anchor range
-                    const huntTypes = this.getHuntCreatureTypes();
-                    if (huntTypes && huntTypes.size > 0) {
-                        const huntCandidates = (cr.list || []).filter(rec => cr.isAlive(rec) && huntTypes.has(rec.type) && Math.hypot(rec.x - anchor.x, rec.z - anchor.z) <= Math.max(24.0, this.combatRadius));
-                        if (huntCandidates.length > 0) {
-                            huntCandidates.sort((a, b) => Math.hypot(a.x - c.position.x, a.z - c.position.z) - Math.hypot(b.x - c.position.x, b.z - c.position.z));
-                            tgt = huntCandidates[0];
-                            combat.selectTarget(tgt);
+                    // Priority 2: ONLY if auto-quest is active without a specific target: hunt quest target
+                    if (this.questEnabled) {
+                        const huntTypes = this.getHuntCreatureTypes();
+                        if (huntTypes && huntTypes.size > 0) {
+                            const huntCandidates = (cr.list || []).filter(rec => cr.isAlive(rec) && huntTypes.has(rec.type));
+                            if (huntCandidates.length > 0) {
+                                huntCandidates.sort((a, b) => Math.hypot(a.x - c.position.x, a.z - c.position.z) - Math.hypot(b.x - c.position.x, b.z - c.position.z));
+                                tgt = huntCandidates[0];
+                                combat.selectTarget(tgt);
+                            }
                         }
                     }
-                    // Priority 3: Aggressive enemies (or neutral/yellow mobs) strictly within combatRadius FROM THE START ANCHOR
+                    // Priority 3: Normal auto-combat: closest aggressive enemies (or neutrals) strictly within combatRadius
+                    // Fights closest enemies sequentially (e.g. rats in dungeon) instead of rushing past them to bosses!
                     if (!tgt) {
                         const maxDist = this.combatRadius > 0 ? this.combatRadius : 4.0;
                         const hostiles = (cr.list || []).filter(rec => {
