@@ -597,9 +597,9 @@
                     combat.selectTarget(tgt);
                 } else {
                     // Priority 2: If hunting specific quest target within anchor range
-                    const huntType = this.getHuntCreatureType();
-                    if (huntType) {
-                        const huntCandidates = (cr.list || []).filter(rec => cr.isAlive(rec) && rec.type === huntType && Math.hypot(rec.x - anchor.x, rec.z - anchor.z) <= Math.max(24.0, this.combatRadius));
+                    const huntTypes = this.getHuntCreatureTypes();
+                    if (huntTypes && huntTypes.size > 0) {
+                        const huntCandidates = (cr.list || []).filter(rec => cr.isAlive(rec) && huntTypes.has(rec.type) && Math.hypot(rec.x - anchor.x, rec.z - anchor.z) <= Math.max(24.0, this.combatRadius));
                         if (huntCandidates.length > 0) {
                             huntCandidates.sort((a, b) => Math.hypot(a.x - c.position.x, a.z - c.position.z) - Math.hypot(b.x - c.position.x, b.z - c.position.z));
                             tgt = huntCandidates[0];
@@ -1042,7 +1042,7 @@
             return null;
         }
         // ---------------------------------------------------------------------
-        // 3. AUTO-QUEST ENGINE
+        // 3. AUTO-QUEST ENGINE (Batch accept, opportunistic multi-objective, auto-equip)
         // ---------------------------------------------------------------------
         updateQuest(delta) {
             const g = this.game;
@@ -1056,38 +1056,166 @@
             if (this._questTimer > 0) return;
             this._questTimer = 0.20; // Check quest progress every 200ms
 
-            const gc = window.GAME_CONTENT;
-            const allQuests = (gc && gc.quests) || {};
+            const activeList = this.getActiveQuests();
+            const unreadyList = activeList.filter(q => !q.ready);
+            const readyList = activeList.filter(q => q.ready);
 
-            // 1. Find currently active quest
-            let activeQuestDef = null;
-            for (const [qid, status] of Object.entries(st.quests || {})) {
-                if (status === 'active' && allQuests[qid]) {
-                    activeQuestDef = allQuests[qid];
-                    break;
-                }
-            }
-
-            // 2. If NO active quest: find and accept the next available quest!
-            if (!activeQuestDef) {
-                activeQuestDef = this.findNextEligibleQuest();
-                if (!activeQuestDef) {
-                    // All quests are finished!
+            // 1. If NO active quests at all: find and take the next eligible quest(s)
+            if (activeList.length === 0) {
+                const nextQuestDef = this.findNextEligibleQuest();
+                if (!nextQuestDef) {
+                    // All quests in the game are finished!
                     this.toggleQuest(false);
                     if (g.ui && g.ui.floatText) g.ui.floatText('Все доступные задания выполнены!', 'good');
                     return;
                 }
-                this.executeTakeQuest(activeQuestDef);
+                this.executeTakeQuest(nextQuestDef);
                 return;
             }
 
-            // 3. We have an active quest: check if ready to turn in
-            const ready = this.isQuestReady(activeQuestDef);
-            if (ready) {
-                this.executeTurnInQuest(activeQuestDef);
-            } else {
-                this.executeQuestObjective(activeQuestDef, delta);
+            // 2. If ALL active quests are ready: return and turn them all in!
+            if (unreadyList.length === 0 && readyList.length > 0) {
+                // Find turnIn NPC (prefer same location first)
+                readyList.sort((a, b) => {
+                    const locA = this.findNpcLocation(a.def.turnInNpc || a.def.giver);
+                    const locB = this.findNpcLocation(b.def.turnInNpc || b.def.giver);
+                    const sameA = (locA && locA.locId === this.curLocId()) ? 0 : 1;
+                    const sameB = (locB && locB.locId === this.curLocId()) ? 0 : 1;
+                    return sameA - sameB;
+                });
+                this.executeTurnInQuest(readyList[0].def);
+                return;
             }
+
+            // 3. We still have unready quests!
+            // OPPORTUNISTIC TURN-IN: If standing right next to an NPC who accepts one of our ready quests (<= 3.5m), turn it in!
+            if (readyList.length > 0) {
+                const c = g.character;
+                for (const rq of readyList) {
+                    const turnNpc = rq.def.turnInNpc || rq.def.giver;
+                    const npcLoc = this.findNpcLocation(turnNpc);
+                    if (npcLoc && npcLoc.locId === this.curLocId()) {
+                        const dist = Math.hypot(npcLoc.x - c.position.x, npcLoc.z - c.position.z);
+                        if (dist <= 3.5) {
+                            this.executeTurnInQuest(rq.def);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // Execute objectives for all unready quests in parallel (closest mob / resource first)
+            this.executeMultiQuestObjectives(unreadyList.map(q => q.def), delta);
+        }
+
+        /** Returns list of all currently active quests with their ready status */
+        getActiveQuests() {
+            const st = this.game.gameState;
+            const gc = window.GAME_CONTENT;
+            const allQuests = (gc && gc.quests) || {};
+            const active = [];
+
+            for (const [qid, status] of Object.entries((st && st.quests) || {})) {
+                if (status === 'active' && allQuests[qid]) {
+                    const qDef = allQuests[qid];
+                    active.push({
+                        id: qid,
+                        def: qDef,
+                        ready: this.isQuestReady(qDef)
+                    });
+                }
+            }
+            return active;
+        }
+
+        /** Returns all quests given by npcId that are eligible to be accepted right now */
+        getAvailableQuestsForNpc(npcId) {
+            const st = this.game.gameState;
+            const gc = window.GAME_CONTENT;
+            const allQuests = (gc && gc.quests) || {};
+            const dialog = this.game.ui && this.game.ui.dialog;
+            const list = [];
+
+            for (const [qid, q] of Object.entries(allQuests)) {
+                if (q.giver !== npcId) continue;
+                if (st.quests && (st.quests[qid] === 'done' || st.quests[qid] === 'active')) continue;
+
+                const available = dialog ? dialog.questAvailable(q) : this._checkRequires(q, st);
+                if (available) {
+                    list.push(q);
+                }
+            }
+            return list;
+        }
+
+        /** Returns all active quests that should be turned in to npcId and are ready */
+        getReadyQuestsForNpc(npcId) {
+            const st = this.game.gameState;
+            const gc = window.GAME_CONTENT;
+            const allQuests = (gc && gc.quests) || {};
+            const list = [];
+
+            for (const [qid, status] of Object.entries((st && st.quests) || {})) {
+                if (status !== 'active') continue;
+                const q = allQuests[qid];
+                if (!q) continue;
+                const turnInNpcId = q.turnInNpc || q.giver;
+                if (turnInNpcId === npcId && this.isQuestReady(q)) {
+                    list.push(q);
+                }
+            }
+            return list;
+        }
+
+        /**
+         * Auto-equips rewarded profile weapon, armor, ring, etc. into an empty slot.
+         * Only equips if the target slot is currently empty (if slot has item, leaves it untouched).
+         * Gathering tools (axe, pickaxe) are never auto-equipped into weapon hand.
+         */
+        autoEquipRewardIfSlotEmpty(itemId) {
+            const g = this.game;
+            const ui = g.ui;
+            const st = g.gameState;
+            if (!ui || !st || !itemId) return false;
+
+            const def = window.AveloraItems && window.AveloraItems.get(itemId);
+            if (!def || !window.AveloraItems.isEquippable(itemId)) return false;
+
+            // Never auto-equip gathering tools (axe, pickaxe) into main hand
+            if (def.category === 'tool' || (def.weapon && (def.weapon.chop || def.weapon.mine))) {
+                return false;
+            }
+
+            // Check requirements (stats, level, class)
+            if (typeof ui.unmetRequirement === 'function') {
+                const lack = ui.unmetRequirement(def);
+                if (lack) return false;
+            }
+
+            const rawSlot = window.AveloraItems.equipSlot(itemId);
+            let targetSlot = null;
+
+            if (rawSlot === 'ring') {
+                if (!st.equipped.ring) {
+                    targetSlot = 'ring';
+                } else if (!st.equipped.ring2) {
+                    targetSlot = 'ring2';
+                } else {
+                    return false; // both ring slots are occupied
+                }
+            } else {
+                const slotKey = rawSlot === 'weapon' ? 'right' : rawSlot;
+                if (!st.equipped[slotKey]) {
+                    targetSlot = slotKey;
+                } else {
+                    return false; // slot already occupied
+                }
+            }
+
+            if (targetSlot && typeof ui.equip === 'function') {
+                return ui.equip(itemId, targetSlot);
+            }
+            return false;
         }
 
         /** Checks if active quest objectives are fulfilled using dialog.js questProgress */
@@ -1109,19 +1237,29 @@
             return false;
         }
 
-        /** Returns the creature type needed for current active kill quest (or null) */
-        getHuntCreatureType() {
+        /** Returns Set of creature types needed for all active unready kill quests */
+        getHuntCreatureTypes() {
             const st = this.game.gameState;
             const allQuests = (window.GAME_CONTENT && window.GAME_CONTENT.quests) || {};
-            for (const [qid, status] of Object.entries(st.quests || {})) {
+            const types = new Set();
+            for (const [qid, status] of Object.entries((st && st.quests) || {})) {
                 if (status === 'active' && allQuests[qid]) {
                     const qDef = allQuests[qid];
                     if (qDef.objective && qDef.objective.type === 'kill' && !this.isQuestReady(qDef)) {
-                        return qDef.objective.creature;
+                        if (qDef.objective.creature) types.add(qDef.objective.creature);
+                        if (Array.isArray(qDef.objective.creatures)) {
+                            qDef.objective.creatures.forEach(c => types.add(c));
+                        }
                     }
                 }
             }
-            return null;
+            return types;
+        }
+
+        /** Returns the creature type needed for current active kill quest (or null) */
+        getHuntCreatureType() {
+            const types = this.getHuntCreatureTypes();
+            return types.size > 0 ? types.values().next().value : null;
         }
 
         /** Moves to NPC, opens dialog, and accepts quest */
@@ -1178,117 +1316,296 @@
             }
         }
 
-        /** Executes quest objectives (kill or gather) */
-        executeQuestObjective(qDef, delta) {
-            const obj = qDef.objective;
+        /**
+         * Executes objectives for multiple unready quests in parallel:
+         * Opportunistically picks the nearest resource node, ground loot pile, or mob.
+         */
+        executeMultiQuestObjectives(unreadyDefs, delta) {
             const g = this.game;
             const c = g.character;
+            const st = g.gameState;
+            if (!c || !st) return;
 
-            if (obj.type === 'kill') {
-                const cr = g.creatures;
-                // Find nearest alive target of needed type
-                const aliveList = (cr.list || []).filter(rec => cr.isAlive(rec) && rec.type === obj.creature);
-                if (aliveList.length > 0) {
-                    aliveList.sort((a, b) => Math.hypot(a.x - c.position.x, a.z - c.position.z) - Math.hypot(b.x - c.position.x, b.z - c.position.z));
-                    const targetMob = aliveList[0];
-                    const dist = Math.hypot(targetMob.x - c.position.x, targetMob.z - c.position.z);
-
-                    if (dist > 14.0) {
-                        this.navigateTowards(targetMob.x, targetMob.z);
-                    } else {
-                        // In spell range: stop and engage via combat rotation!
-                        c.stopMovement();
-                        g.combat.selectTarget(targetMob);
-                        this.updateCombat(delta, targetMob);
-                    }
-                } else {
-                    // No live creature of this type here -> walk to their grounds (maybe via another location)
-                    const spawnPos = this.findCreatureSpawnPosition(obj.creature);
-                    if (spawnPos) {
-                        this.navigateTowards(spawnPos.x, spawnPos.z);
-                    } else {
-                        const loc = this.findCreatureLocation(obj.creature);
-                        if (loc && loc !== this.curLocId()) this.navigateToLocation(loc);
-                    }
+            // Wait if hero is actively harvesting or tree is currently falling
+            if (g.combat && g.combat.engagement) {
+                const k = g.combat.engagement.kind;
+                if (k === 'trees' || k === 'ores' || k === 'gather') return;
+            }
+            if (g.worldObjects && g.worldObjects.pendingPileId) return;
+            if (g.harvest && g.harvest.falling && g.harvest.falling.length > 0) {
+                const nearbyFalling = g.harvest.falling.find(f => {
+                    const d = Math.hypot(f.entry.x - c.position.x, f.entry.z - c.position.z);
+                    return d < 8.0 && !f.landed;
+                });
+                if (nearbyFalling) {
+                    if (c.isMoving) c.stopMovement();
+                    return;
                 }
-            } else if (obj.type === 'gather' || obj.type === 'collect') {
-                // Objective: gather or collect item for quest
-                const needItem = obj.item;
-                const env = g.environment, harvest = g.harvest, wo = g.worldObjects;
-                const px = c.position.x, pz = c.position.z;
+            }
 
-                // Priority 1: Ground drop piles with needed item
-                let bestTarget = null, bestDist = Infinity;
-                if (wo && wo.piles) {
-                    for (const [pileId, pile] of wo.piles.entries()) {
-                        if (!pile || pile.remaining <= 0 || pile.def.id !== needItem) continue;
-                        const dist = Math.hypot(pile.data.x - px, pile.data.z - pz);
-                        if (dist < bestDist) { bestDist = dist; bestTarget = { type: 'pile', pile }; }
-                    }
-                }
-                // Priority 2: Resource nodes that drop needed item
-                if (!bestTarget && env && env.objects && harvest) {
-                    for (const [id, entry] of env.objects.entries()) {
-                        if (!entry || entry.visible === false) continue;
-                        const node = harvest.nodeFor(entry.kind);
-                        if (!node) continue;
-                        const drops = node.drops || [];
-                        if (drops.some(d => d.item === needItem)) {
-                            const dist = Math.hypot(entry.x - px, entry.z - pz);
-                            if (dist < bestDist) { bestDist = dist; bestTarget = { type: 'node', entry }; }
+            const px = c.position.x, pz = c.position.z;
+
+            // Collect needed creatures and needed items
+            const neededCreatures = new Map(); // creatureType -> qDef
+            const neededItems = new Map();     // itemId -> { remaining, qDef }
+            const manualQuests = [];
+
+            for (const qDef of unreadyDefs) {
+                const obj = qDef.objective;
+                if (!obj) continue;
+
+                if (obj.type === 'kill') {
+                    const kills = (st.questKills && st.questKills[qDef.id]) || 0;
+                    const count = obj.count || 1;
+                    if (kills < count) {
+                        if (obj.creature) neededCreatures.set(obj.creature, qDef);
+                        if (Array.isArray(obj.creatures)) {
+                            obj.creatures.forEach(cr => neededCreatures.set(cr, qDef));
                         }
                     }
-                }
-
-                if (bestTarget) {
-                    if (bestTarget.type === 'pile') wo.requestPickup(bestTarget.pile);
-                    else harvest.request(bestTarget.entry);
+                } else if (obj.type === 'gather' || obj.type === 'collect') {
+                    const have = st.inventory ? st.inventory.count(obj.item) : 0;
+                    const count = obj.count || 1;
+                    if (have < count) {
+                        neededItems.set(obj.item, { remaining: count - have, qDef });
+                    }
                 } else {
-                    this.toggleQuest(false);
-                    if (g.ui && g.ui.floatText) g.ui.floatText('Автоквест: «' + qDef.name + '» не найдены ресурсы рядом', 'warn');
+                    manualQuests.push(qDef);
                 }
-            } else {
-                this.toggleQuest(false);
-                if (g.ui && g.ui.floatText) g.ui.floatText('Автоквест: «' + qDef.name + '» нужно выполнить вручную', 'warn');
             }
+
+            let bestTarget = null;
+            let bestDist = Infinity;
+
+            // 1. Search ground piles for any needed item
+            const wo = g.worldObjects;
+            if (neededItems.size > 0 && wo && wo.piles) {
+                for (const [pileId, pile] of wo.piles.entries()) {
+                    if (!pile || pile.remaining <= 0) continue;
+                    if (this._unreachableObjects && this._unreachableObjects.has(pileId)) continue;
+                    const req = neededItems.get(pile.def.id);
+                    if (!req || req.remaining <= 0) continue;
+
+                    const d = Math.hypot(pile.data.x - px, pile.data.z - pz);
+                    if (d < bestDist) {
+                        bestDist = d;
+                        bestTarget = { type: 'pile', pile, qDef: req.qDef };
+                    }
+                }
+            }
+
+            // 2. Search resource nodes for any needed item
+            const env = g.environment, harvest = g.harvest;
+            if (neededItems.size > 0 && env && env.objects && harvest) {
+                for (const [objId, entry] of env.objects.entries()) {
+                    if (!entry || entry.visible === false) continue;
+                    if (this._unreachableObjects && this._unreachableObjects.has(objId)) continue;
+                    const node = harvest.nodeFor(entry.kind);
+                    if (!node) continue;
+
+                    const drops = node.drops || [];
+                    const matchDrop = drops.find(d => neededItems.has(d.item) && neededItems.get(d.item).remaining > 0);
+                    if (!matchDrop) continue;
+
+                    const d = Math.hypot(entry.x - px, entry.z - pz);
+                    if (d < bestDist) {
+                        bestDist = d;
+                        bestTarget = { type: 'node', entry, qDef: neededItems.get(matchDrop.item).qDef };
+                    }
+                }
+            }
+
+            // 3. Search alive creatures for any needed kill quest
+            const cr = g.creatures;
+            if (neededCreatures.size > 0 && cr && cr.list) {
+                for (const rec of cr.list) {
+                    if (!cr.isAlive(rec)) continue;
+                    if (!neededCreatures.has(rec.type)) continue;
+
+                    const d = Math.hypot(rec.x - px, rec.z - pz);
+                    if (d < bestDist) {
+                        bestDist = d;
+                        bestTarget = { type: 'mob', mob: rec, qDef: neededCreatures.get(rec.type) };
+                    }
+                }
+            }
+
+            // If an actionable target found, execute it!
+            if (bestTarget) {
+                if (bestTarget.type === 'pile') {
+                    wo.requestPickup(bestTarget.pile);
+                    return;
+                }
+                if (bestTarget.type === 'node') {
+                    harvest.request(bestTarget.entry);
+                    return;
+                }
+                if (bestTarget.type === 'mob') {
+                    if (bestDist > 14.0) {
+                        this.navigateTowards(bestTarget.mob.x, bestTarget.mob.z);
+                    } else {
+                        c.stopMovement();
+                        g.combat.selectTarget(bestTarget.mob);
+                        this.updateCombat(delta, bestTarget.mob);
+                    }
+                    return;
+                }
+            }
+
+            // If no immediate targets in line of sight, navigate towards creature spawn
+            if (neededCreatures.size > 0) {
+                const firstCreatureType = neededCreatures.keys().next().value;
+                const spawnPos = this.findCreatureSpawnPosition(firstCreatureType);
+                if (spawnPos) {
+                    this.navigateTowards(spawnPos.x, spawnPos.z);
+                    return;
+                }
+                const loc = this.findCreatureLocation(firstCreatureType);
+                if (loc && loc !== this.curLocId()) {
+                    this.navigateToLocation(loc);
+                    return;
+                }
+            }
+
+            // If only manual quests remain
+            if (manualQuests.length > 0) {
+                this.toggleQuest(false);
+                if (g.ui && g.ui.floatText) g.ui.floatText('Автоквест: «' + manualQuests[0].name + '» нужно выполнить вручную', 'warn');
+                return;
+            }
+
+            // No reachable targets found
+            this.toggleQuest(false);
+            if (g.ui && g.ui.floatText) g.ui.floatText('Автоквест: цели поблизости не найдены', 'warn');
         }
 
-        /** Interacts with NPC dialog to accept or complete a quest */
+        /** Single-quest fallback for executeQuestObjective */
+        executeQuestObjective(qDef, delta) {
+            this.executeMultiQuestObjectives([qDef], delta);
+        }
+
+        /** Interacts with NPC dialog to accept or complete quests in batch */
         interactNpc(npcId, action, questId) {
             const now = Date.now();
             if (now < this._dialogCooldown) return;
-            this._dialogCooldown = now + 800;
+            this._dialogCooldown = now + 900;
 
             const g = this.game;
             const ui = g.ui;
             const dialog = ui && ui.dialog;
             const npcObj = this.findNpcInstance(npcId);
+            const st = g.gameState;
 
             if (action === 'questAccept') {
-                if (dialog) {
-                    if (!dialog.panel || !dialog.panel.classList.contains('open')) {
-                        if (npcObj) ui.openDialog(npcObj);
+                if (dialog && (!dialog.panel || !dialog.panel.classList.contains('open'))) {
+                    if (npcObj) ui.openDialog(npcObj);
+                }
+
+                // Batch accept: take ALL eligible quests from this NPC at once
+                let toAccept = this.getAvailableQuestsForNpc(npcId);
+                if (questId && !toAccept.some(q => q.id === questId)) {
+                    const qDef = window.GAME_CONTENT && window.GAME_CONTENT.quests && window.GAME_CONTENT.quests[questId];
+                    if (qDef) toAccept.push(qDef);
+                }
+
+                let acceptedCount = 0;
+                for (const q of toAccept) {
+                    if (dialog && typeof dialog.choose === 'function') {
+                        dialog.choose({ action: 'questAccept', quest: q.id });
                     }
-                    dialog.choose({ action: 'questAccept', quest: questId });
+                    if (st && st.questStatus(q.id) !== 'active') {
+                        st.startQuest(q.id);
+                    }
+                    // Grant tools if any (axe, pickaxe, etc.)
+                    const tools = dialog ? dialog.questTools(q) : (q.tools || []);
+                    if (tools && tools.length && dialog && typeof dialog.grantItems === 'function') {
+                        dialog.grantItems(tools);
+                    }
+                    acceptedCount++;
                 }
-                // Direct guarantee: activate quest in gameState so the hero proceeds immediately
-                if (g.gameState && g.gameState.questStatus(questId) !== 'active') {
-                    g.gameState.startQuest(questId);
-                    if (ui && ui.floatText) ui.floatText('Новое задание', 'good');
-                    if (dialog && dialog.updateTracker) dialog.updateTracker();
+
+                if (dialog && dialog.updateTracker) dialog.updateTracker();
+                window.dispatchEvent(new CustomEvent('game:questUpdated'));
+                if (ui && ui.floatText) {
+                    ui.floatText(acceptedCount > 1 ? `Взято заданий: ${acceptedCount}` : 'Новое задание', 'good');
                 }
+
                 if (dialog && dialog.close) {
                     setTimeout(() => dialog.close(), 350);
                 }
             } else if (action === 'questTurnIn') {
-                if (dialog) {
-                    if (!dialog.panel || !dialog.panel.classList.contains('open')) {
-                        if (npcObj) ui.openDialog(npcObj);
+                if (dialog && (!dialog.panel || !dialog.panel.classList.contains('open'))) {
+                    if (npcObj) ui.openDialog(npcObj);
+                }
+
+                // Batch turn-in: complete ALL ready quests for this NPC
+                let readyList = this.getReadyQuestsForNpc(npcId);
+                if (questId && !readyList.some(q => q.id === questId)) {
+                    const qDef = window.GAME_CONTENT && window.GAME_CONTENT.quests && window.GAME_CONTENT.quests[questId];
+                    if (qDef && this.isQuestReady(qDef)) readyList.push(qDef);
+                }
+
+                const charCfg = g.currentCharacterConfig || {};
+                const classId = (st && st.classId) || charCfg.id || 'mage';
+
+                for (const q of readyList) {
+                    if (dialog && typeof dialog.choose === 'function') {
+                        dialog.choose({ action: 'questTurnIn', quest: q.id });
                     }
-                    dialog.choose({ action: 'questTurnIn', quest: questId });
+                    // Ensure completion in gameState if dialog didn't trigger it
+                    if (st && st.questStatus(q.id) === 'active' && this.isQuestReady(q)) {
+                        if (q.objective && q.objective.type === 'collect') {
+                            st.inventory.remove(q.objective.item, q.objective.count);
+                        }
+                        if (q.reward && q.reward.gold) st.addGold(q.reward.gold);
+                        if (q.reward && q.reward.xp && g.hero) g.hero.addXp(q.reward.xp);
+                        if (dialog && typeof dialog.giveClassRewards === 'function') {
+                            dialog.giveClassRewards(q);
+                        }
+                        if (q.reward && q.reward.items && dialog && typeof dialog.grantItems === 'function') {
+                            dialog.grantItems(q.reward.items);
+                        }
+                        st.completeQuest(q.id);
+                    }
+
+                    // Auto-equip any rewarded profile weapon/armor/ring into empty slot
+                    const classRewards = (q.reward && q.reward.classItems && q.reward.classItems[classId]) || [];
+                    const itemRewards = (q.reward && q.reward.items) || [];
+                    const allRewards = [...classRewards, ...itemRewards];
+                    allRewards.forEach(r => {
+                        const itemId = r.item || r;
+                        this.autoEquipRewardIfSlotEmpty(itemId);
+                    });
+                }
+
+                if (dialog && dialog.updateTracker) dialog.updateTracker();
+                window.dispatchEvent(new CustomEvent('game:questUpdated'));
+                if (ui && ui.renderAll) ui.renderAll();
+
+                // Check if turning in opened NEW quests for this same NPC right now!
+                const newlyAvailable = this.getAvailableQuestsForNpc(npcId);
+                if (newlyAvailable.length > 0) {
+                    for (const nq of newlyAvailable) {
+                        if (dialog && typeof dialog.choose === 'function') {
+                            dialog.choose({ action: 'questAccept', quest: nq.id });
+                        }
+                        if (st && st.questStatus(nq.id) !== 'active') {
+                            st.startQuest(nq.id);
+                        }
+                        const tools = dialog ? dialog.questTools(nq) : (nq.tools || []);
+                        if (tools && tools.length && dialog && typeof dialog.grantItems === 'function') {
+                            dialog.grantItems(tools);
+                        }
+                    }
+                    if (dialog && dialog.updateTracker) dialog.updateTracker();
+                    window.dispatchEvent(new CustomEvent('game:questUpdated'));
+                    if (ui && ui.floatText) ui.floatText(`Взято новых заданий: ${newlyAvailable.length}`, 'good');
+                }
+
+                if (dialog) {
                     setTimeout(() => {
                         if (dialog.mode === 'reward') dialog.choose({ action: 'close' });
-                        else dialog.close();
+                        else if (dialog.close) dialog.close();
                     }, 400);
                 }
             }
