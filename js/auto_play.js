@@ -432,6 +432,7 @@
             } else {
                 // Stopping: clear focus, stop movement
                 this.focusedQuestId = null;
+                this._currentQuestMob = null;
                 if (this.game.character && this.game.character.isMoving) {
                     this.game.character.stopMovement();
                 }
@@ -478,7 +479,19 @@
 
             if (this.combatEnabled) this.updateCombat(delta);
             if (this.gatherEnabled) this.updateGather(delta);
-            if (this.questEnabled) this.updateQuest(delta);
+            if (this.questEnabled) {
+                // If actively fighting a quest mob, run combat update EVERY frame (identical to auto-combat)
+                if (this._currentQuestMob) {
+                    const cr = g.creatures;
+                    if (cr && cr.isAlive(this._currentQuestMob) && this._currentQuestMob.state !== 'return') {
+                        this.updateCombat(delta, this._currentQuestMob);
+                        return;
+                    }
+                    this._currentQuestMob = null;
+                    if (g.combat) g.combat.clearTarget();
+                }
+                this.updateQuest(delta);
+            }
         }
 
         /** Enough mana for the skill (same cost formula the skill system pays). */
@@ -704,7 +717,7 @@
             }
 
             // Target is within attack reach: halt walking to begin casting/attacking
-            if (c.isMoving && !this.questEnabled && !this.gatherEnabled) {
+            if (c.isMoving) {
                 c.stopMovement();
             }
 
@@ -1036,6 +1049,7 @@
             if (this.questEnabled && this.focusedQuestId === questId) {
                 // Same button pressed again → stop everything
                 this.focusedQuestId = null;
+                this._currentQuestMob = null;
                 this.questEnabled = false;
                 if (this.game.character && this.game.character.isMoving) {
                     this.game.character.stopMovement();
@@ -1625,13 +1639,9 @@
 
             if (bestMob) {
                 this._currentQuestTargetId = bestMob.id || ('mob_' + bestMob.type);
-                if (bestMobDist > 14.0) {
-                    this.navigateTowards(bestMob.x, bestMob.z);
-                } else {
-                    c.stopMovement();
-                    g.combat.selectTarget(bestMob);
-                    this.updateCombat(delta, bestMob);
-                }
+                this._currentQuestMob = bestMob;
+                g.combat.selectTarget(bestMob);
+                this.updateCombat(delta, bestMob);
                 return;
             }
 
