@@ -1159,8 +1159,14 @@
             const bar = document.createElement('div');
             bar.id = 'build-bar';
             bar.innerHTML = `
-                <div id="build-bar-title"></div>
-                <div id="build-bar-status"></div>
+                <div class="build-bar-header">
+                    <span id="build-bar-title"></span>
+                    <span id="build-bar-badge" class="ok" title="Можно строить">
+                        <svg class="badge-icon ok-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="#66e07a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2 6.8-7.4"/></svg>
+                        <svg class="badge-icon bad-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+                    </span>
+                    <span id="build-bar-status"></span>
+                </div>
                 <div class="build-bar-btns">
                     <button type="button" id="build-rot" title="Повернуть на 90° (R), назад — Shift+R">⟳ Повернуть (R)</button>
                     <button type="button" id="build-align" title="Выровнять по сетке (G)">⊞ По сетке (G)</button>
@@ -1171,10 +1177,11 @@
                     <button type="button" id="build-demolish-unselect" style="display:none;">Отмена выбора</button>
                     <button type="button" id="build-cancel" title="Отмена (Esc)">✖ Отмена</button>
                 </div>
-                <div class="build-bar-keys" id="build-bar-keys" style="margin-top:6px;font-size:11px;line-height:1.35;opacity:.75;text-align:center;">R — повернуть на 90° (Shift+R — в другую сторону) · для наклонного фронтона и ската R меняет сторону уклона · G — выровнять по сетке · ЛКМ / Enter — построить · Esc — отмена. Призрак сам прилипает к соседним блокам — просто наведи курсор на нужное место.</div>`;
+                <div class="build-bar-keys" id="build-bar-keys">R — поворот · G — по сетке · ЛКМ / Enter — построить · Esc — отмена</div>`;
             (document.getElementById('game-ui') || document.body).appendChild(bar);
             E.bar = bar;
             E.barTitle = bar.querySelector('#build-bar-title');
+            E.barBadge = bar.querySelector('#build-bar-badge');
             E.barStatus = bar.querySelector('#build-bar-status');
             E.btnRot = bar.querySelector('#build-rot');
             E.btnAlign = bar.querySelector('#build-align');
@@ -1449,9 +1456,17 @@
         },
 
         setStatus(ok, text) {
-            if (!this.els.barStatus) return;
-            this.els.barStatus.textContent = text;
-            this.els.barStatus.className = ok ? 'ok' : 'bad';
+            if (this.els.barBadge) {
+                this.els.barBadge.className = ok ? 'ok' : 'bad';
+                this.els.barBadge.title = ok ? 'Можно строить' : (text || 'Нельзя строить');
+            }
+            if (this.els.barStatus) {
+                // Если строить можно, надпись "Можно строить" убираем — остаётся только зелёная галочка.
+                // Если строить нельзя или идёт подсказка выбора, отображаем причину/текст рядом с крестиком.
+                const hideText = ok && (!text || text === 'Можно строить');
+                this.els.barStatus.textContent = hideText ? '' : (text || '');
+                this.els.barStatus.className = ok ? 'ok' : 'bad';
+            }
         },
 
         /** Обновляет только цифры ресурсов и доступность кнопок без пересоздания DOM */
