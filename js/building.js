@@ -435,6 +435,7 @@
     // Процедурные блоки дома
     // ------------------------------------------------------------------
     function buildBlock(def, p, mats, rnd) {
+        let doorPivot = null;
         const B = { frame: makeBuf(), floor: makeBuf(), wall: makeBuf(), roof: makeBuf(), furn: makeBuf() };
         const WOOD = [0.62, 0.49, 0.33], DARK = [0.36, 0.27, 0.18], LOG = [0.44, 0.33, 0.22];
         const ROOF = [0.50, 0.40, 0.29], ROOFD = [0.24, 0.19, 0.14];
@@ -484,6 +485,75 @@
                 }
             });
 
+            // Дверное полотно на шарнире в средневековом стиле (Medieval Dynasty push-to-open)
+            doorPivot = new THREE.Group();
+            doorPivot.name = 'door_pivot';
+            doorPivot.position.set(-0.39, 0.03, 0);
+
+            const D = makeBuf();
+            const D_WOOD = [0.55, 0.43, 0.28];
+            const D_DARK = [0.38, 0.29, 0.19];
+            const IRON = [0.18, 0.18, 0.20];
+            const dW = 0.78, dH = 1.98, dTh = 0.042;
+
+            // 1. 4 вертикальные дубовые доски полотна
+            const nPl = 4, plW = dW / nPl;
+            for (let i = 0; i < nPl; i++) {
+                const plX = plW * (i + 0.5);
+                pushBox(D, plW - 0.012, dH, dTh, mat(plX, dH / 2, 0), sh(D_WOOD, kv()), rnd);
+            }
+
+            // 2. Горизонтальные поперечины (обвязка) с обеих сторон створки
+            const hBars = [0.32, 0.98, 1.66];
+            [-1, 1].forEach(side => {
+                const zBar = side * (dTh / 2 + 0.01);
+                hBars.forEach(yB => {
+                    pushBox(D, dW - 0.03, 0.11, 0.02, mat(dW / 2, yB, zBar), sh(D_DARK, 1.05), rnd);
+                });
+
+                // 3. Диагональные укосины (Z-обвязка)
+                const dx1 = dW - 0.12, dy1 = 0.54;
+                const len1 = Math.hypot(dx1, dy1);
+                const ang1 = Math.atan2(dy1, dx1);
+                pushBox(D, len1, 0.08, 0.018, mat(dW / 2, (0.38 + 0.92) / 2, zBar, 0, 0, ang1), sh(D_DARK, 1.0), rnd);
+
+                const dx2 = dW - 0.12, dy2 = 0.56;
+                const len2 = Math.hypot(dx2, dy2);
+                const ang2 = Math.atan2(dy2, dx2);
+                pushBox(D, len2, 0.08, 0.018, mat(dW / 2, (1.04 + 1.60) / 2, zBar, 0, 0, ang2), sh(D_DARK, 1.0), rnd);
+            });
+
+            // 4. Кованые фигурные петли на створке и шарнире (в y = 0.32 и 1.66)
+            [0.32, 1.66].forEach(yH => {
+                pushBox(D, 0.04, 0.15, 0.07, mat(0.01, yH, 0), IRON, rnd);
+                [-1, 1].forEach(side => {
+                    const zH = side * (dTh / 2 + 0.021);
+                    pushBox(D, 0.40, 0.045, 0.012, mat(0.21, yH, zH), IRON, rnd);
+                    [0.08, 0.22, 0.36].forEach(rx => {
+                        pushBox(D, 0.02, 0.02, 0.016, mat(rx, yH, zH + side * 0.005), [0.12, 0.12, 0.14], rnd);
+                    });
+                });
+            });
+
+            // 5. Двусторонняя кованая ручка-скоба (Medieval handle)
+            const hX = dW - 0.10, hY = 0.98;
+            [-1, 1].forEach(side => {
+                const zPlate = side * (dTh / 2 + 0.02);
+                pushBox(D, 0.05, 0.24, 0.008, mat(hX, hY, zPlate), IRON, rnd);
+                pushBox(D, 0.018, 0.018, 0.014, mat(hX, hY + 0.09, zPlate + side * 0.004), [0.12, 0.12, 0.14], rnd);
+                pushBox(D, 0.018, 0.018, 0.014, mat(hX, hY - 0.09, zPlate + side * 0.004), [0.12, 0.12, 0.14], rnd);
+                const zPost = side * (dTh / 2 + 0.045);
+                pushBox(D, 0.022, 0.022, 0.04, mat(hX, hY + 0.06, side * (dTh / 2 + 0.035)), IRON, rnd);
+                pushBox(D, 0.022, 0.022, 0.04, mat(hX, hY - 0.06, side * (dTh / 2 + 0.035)), IRON, rnd);
+                pushBox(D, 0.024, 0.14, 0.022, mat(hX, hY, zPost), IRON, rnd);
+            });
+
+            const leafMesh = bufToMesh(D, mats.solid, 'door_leaf');
+            if (leafMesh) {
+                leafMesh.castShadow = true;
+                leafMesh.receiveShadow = true;
+                doorPivot.add(leafMesh);
+            }
         } else if (bType === 'window') {
             [-1, 1].forEach(s => box(B.frame, 0.16, WALL_H, 0.16, s * (BLOCK_HMOD - 0.08), WALL_H / 2, 0, sh(LOG, kv())));
             box(B.frame, 2 * BLOCK_HMOD, 0.16, 0.16, 0, WALL_H - 0.08, 0, sh(LOG, 1));
@@ -630,7 +700,8 @@
             roof: bufToMesh(B.roof, mats.roof, 'roof')
         };
         Object.keys(meshes).forEach(k => { if (meshes[k]) group.add(meshes[k]); });
-        return { group, meshes, slopeLen: 0, roofW: 0, th: 0, rampLen: 0, rampAngle: 0 };
+        if (doorPivot) group.add(doorPivot);
+        return { group, meshes, slopeLen: 0, roofW: 0, th: 0, rampLen: 0, rampAngle: 0, doorPivot };
     }
 
     // ------------------------------------------------------------------
@@ -1071,15 +1142,16 @@
                 <div id="build-bar-title"></div>
                 <div id="build-bar-status"></div>
                 <div class="build-bar-btns">
-                    <button type="button" id="build-rot" title="Повернуть (R)">⟳ Повернуть</button>
-                    <button type="button" id="build-align" title="Выровнять по сетке (G)">⊞ По сетке</button>
-                    <button type="button" id="build-ok" title="Построить (ЛКМ / Enter)">✔ Построить</button>
+                    <button type="button" id="build-rot" title="Повернуть на 90° (R), назад — Shift+R">⟳ Повернуть (R)</button>
+                    <button type="button" id="build-align" title="Выровнять по сетке (G)">⊞ По сетке (G)</button>
+                    <button type="button" id="build-ok" title="Построить (ЛКМ / Enter)">✔ Построить (ЛКМ / Enter)</button>
                     <button type="button" id="build-move-confirm" class="btn-move-confirm" style="display:none;">✔ Переместить</button>
                     <button type="button" id="build-move-unselect" style="display:none;">Отмена выбора</button>
                     <button type="button" id="build-demolish-confirm" class="btn-demolish-confirm" style="display:none;">✔ Снести</button>
                     <button type="button" id="build-demolish-unselect" style="display:none;">Отмена выбора</button>
                     <button type="button" id="build-cancel" title="Отмена (Esc)">✖ Отмена</button>
-                </div>`;
+                </div>
+                <div class="build-bar-keys" id="build-bar-keys" style="margin-top:6px;font-size:11px;line-height:1.35;opacity:.75;text-align:center;">R — повернуть на 90° (Shift+R — в другую сторону) · для наклонного фронтона и ската R меняет сторону уклона · G — выровнять по сетке · ЛКМ / Enter — построить · Esc — отмена. Призрак сам прилипает к соседним блокам — просто наведи курсор на нужное место.</div>`;
             (document.getElementById('game-ui') || document.body).appendChild(bar);
             E.bar = bar;
             E.barTitle = bar.querySelector('#build-bar-title');
@@ -1092,6 +1164,7 @@
             E.btnConfirmDemolish = bar.querySelector('#build-demolish-confirm');
             E.btnUnselectDemolish = bar.querySelector('#build-demolish-unselect');
             E.btnCancel = bar.querySelector('#build-cancel');
+            E.barKeys = bar.querySelector('#build-bar-keys');
 
             bar.addEventListener('click', (e) => e.stopPropagation());
             E.btnConfirmMove.addEventListener('click', (e) => {
@@ -1298,6 +1371,7 @@
                 const isMove = mode === 'move';
                 const isInteract = isDemolish || isMove;
                 this.els.btnRot.style.display = isInteract ? 'none' : '';
+                if (this.els.barKeys) this.els.barKeys.style.display = isInteract ? 'none' : '';
                 this.els.btnAlign.style.display = isInteract ? 'none' : '';
                 this.els.btnOk.style.display = isInteract ? 'none' : '';
                 this.els.btnConfirmDemolish.style.display = 'none';
@@ -1831,6 +1905,10 @@
                 low, shell, deckBox, rampBox,
                 cells: [], shellOn: false, wallOp: 1, roofOp: 1, inside: false, rec: null, fp: def.fp
             };
+            if (model.doorPivot) {
+                inst.doorPivot = model.doorPivot;
+                inst.doorAngle = 0;
+            }
 
             this.blockCells(inst);
             this.game.addCameraBlocker(low);
@@ -1876,11 +1954,20 @@
             const reach = Math.hypot(inst.fp.hx, inst.fp.hz) + 0.8;
             const g0 = pf.worldToGrid(inst.x - reach, inst.z - reach), g1 = pf.worldToGrid(inst.x + reach, inst.z + reach);
             const ext = 0.5 * pf.cellWidth * (Math.abs(c) + Math.abs(s));
+            const isDoor = inst.def.blockType === 'door';
             for (let gz = g0.z; gz <= g1.z; gz++) {
                 for (let gx = g0.x; gx <= g1.x; gx++) {
                     const w = pf.gridToWorld(gx, gz);
                     const dx = w.x - inst.x, dz = w.z - inst.z;
                     const lx = dx * c - dz * s, lz = dx * s + dz * c;
+
+                    // Если это дверь и точка находится в створе дверного проёма — проход всегда свободен!
+                    if (isDoor && Math.abs(lx) < 0.42 && Math.abs(lz) < 0.70) {
+                        const idx = pf.getIndex(gx, gz);
+                        if (idx >= 0 && idx < pf.grid.length) pf.grid[idx] = 0;
+                        continue;
+                    }
+
                     let blocked = false;
                     for (let k = 0; k < rects.length && !blocked; k++) {
                         const R = rects[k];
@@ -2017,6 +2104,7 @@
             };
             UI.els.barTitle.textContent = `${moveRec ? 'Перемещение' : 'Размещение'}: ${def.name}`;
             UI.showBar(true, 'place');
+            this.showZones();
             this.refreshGhost();
         }
 
@@ -2045,6 +2133,88 @@
             if (this.game.ui) this.game.ui.floatText('Выровнено по сетке', 'info');
         }
 
+        /** Красная подсветка на земле: вне зоны лагеря, вода, крутизна, деревья/камни/предметы и соседние постройки. */
+        showZones() {
+            this.hideZones();
+            const area = this.cfg && this.cfg.area;
+            const pl = this.placing;
+            if (!area || !pl) return;
+            const T = this.terrain, pf = this.pathfinder;
+            const isBlock = pl.def.kind === 'block';
+            const step = 1.0, pad = 5;
+            const x0 = area.x - area.hx - pad, z0 = area.z - area.hz - pad;
+            const nx = Math.ceil((2 * (area.hx + pad)) / step), nz = Math.ceil((2 * (area.hz + pad)) / step);
+            const W = nx + 1;
+            const H = new Float32Array(W * (nz + 1));
+            for (let j = 0; j <= nz; j++) for (let i = 0; i <= nx; i++) H[j * W + i] = T.getRawHeightAt(x0 + i * step, z0 + j * step);
+            const obj = new Uint8Array(nx * nz);
+            const mark = (wx, wz, rad) => {
+                const i0 = Math.max(0, Math.floor((wx - rad - x0) / step)), i1 = Math.min(nx - 1, Math.floor((wx + rad - x0) / step));
+                const j0 = Math.max(0, Math.floor((wz - rad - z0) / step)), j1 = Math.min(nz - 1, Math.floor((wz + rad - z0) / step));
+                for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) obj[j * nx + i] = 1;
+            };
+            const env = this.game.environment;
+            if (env && env.objects) env.objects.forEach(o => { if (o.visible !== false && o.x !== undefined) mark(o.x, o.z, 0.5); });
+            const wo = this.game.worldObjects;
+            if (wo) {
+                if (wo.props) wo.props.forEach(q => { if (!q.building && q.prop !== 'building') mark(q.x, q.z, (q.r || 0.5) + 0.3); });
+                if (wo.piles) wo.piles.forEach(q => { if (q.group && q.data) mark(q.data.x, q.data.z, 0.6); });
+            }
+            // Соседние постройки: для станций и сооружений запрещена зона вокруг чужого основания (те же 0.6 м, что в validate)
+            if (!isBlock) {
+                const mg = 0.6;
+                for (const inst of this.instances) {
+                    if (inst.def.kind === 'block' || !inst.fp) continue;
+                    const G = inst.fp, pc = inst.platform.cos, ps = inst.platform.sin;
+                    const R = Math.hypot(G.hx + mg, G.hz + (G.front || 0) + mg);
+                    const i0 = Math.max(0, Math.floor((inst.x - R - x0) / step)), i1 = Math.min(nx - 1, Math.floor((inst.x + R - x0) / step));
+                    const j0 = Math.max(0, Math.floor((inst.z - R - z0) / step)), j1 = Math.min(nz - 1, Math.floor((inst.z + R - z0) / step));
+                    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+                        const dx = x0 + (i + 0.5) * step - inst.x, dz = z0 + (j + 0.5) * step - inst.z;
+                        const lx = dx * pc - dz * ps, lz = dx * ps + dz * pc;
+                        if (Math.abs(lx) <= G.hx + mg + 0.5 && lz >= -G.hz - mg - 0.5 && lz <= G.hz + (G.front || 0) + mg + 0.5) obj[j * nx + i] = 1;
+                    }
+                }
+            }
+            const pos = [];
+            const push = (i, j) => { const h = H[j * W + i] + 0.09; pos.push(x0 + i * step, h, z0 + j * step); };
+            for (let j = 0; j < nz; j++) {
+                for (let i = 0; i < nx; i++) {
+                    const cx = x0 + (i + 0.5) * step, cz = z0 + (j + 0.5) * step;
+                    const hs = [H[j * W + i], H[j * W + i + 1], H[(j + 1) * W + i], H[(j + 1) * W + i + 1]];
+                    const hmin = Math.min(hs[0], hs[1], hs[2], hs[3]), hmax = Math.max(hs[0], hs[1], hs[2], hs[3]);
+                    const outside = Math.abs(cx - area.x) > area.hx || Math.abs(cz - area.z) > area.hz;
+                    const bad = outside || hmin < 0.3 || hmax - hmin > 0.5 || obj[j * nx + i] === 1 || (!isBlock && pf && !pf.isWalkableWorld(cx, cz));
+                    if (!bad) continue;
+                    push(i, j); push(i, j + 1); push(i + 1, j + 1);
+                    push(i, j); push(i + 1, j + 1); push(i + 1, j);
+                }
+            }
+            if (!pos.length) return;
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+            geo.computeBoundingSphere();
+            const m = new THREE.MeshBasicMaterial({
+                color: 0xd8332b, transparent: true, opacity: 0.30, depthWrite: false, side: THREE.DoubleSide,
+                polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2
+            });
+            const mesh = new THREE.Mesh(geo, m);
+            mesh.name = 'build-zones';
+            mesh.renderOrder = 2;
+            mesh.frustumCulled = false;
+            this.root.add(mesh);
+            this.zones = mesh;
+        }
+
+        hideZones() {
+            const z = this.zones;
+            if (!z) return;
+            this.zones = null;
+            if (z.parent) z.parent.remove(z);
+            if (z.geometry) z.geometry.dispose();
+            if (z.material) z.material.dispose();
+        }
+
         cancelPlacing() {
             const pl = this.placing;
             if (!pl) return;
@@ -2053,6 +2223,7 @@
             this.root.remove(pl.ghost.group);
             pl.ghost.group.traverse(o => { if (o.geometry) o.geometry.dispose(); });
             pl.mat.dispose();
+            this.hideZones();
             UI.showBar(false);
             if (pl.moveRec && !pl.committed && !this.disposed) {
                 try { this.spawn(pl.moveRec); } catch (err) { console.error('[Avelora] building restore failed', err); }
@@ -2098,7 +2269,10 @@
             return { x, z };
         }
 
-        snapToNeighbors(pl, targetX, targetZ) {
+        snapToNeighbors(pl, targetX, targetZ, hintY) {
+            // Штраф за несовпадение высоты гнезда с высотой плоскости прицеливания: стена и фронтон-прямоугольник
+            // стоят в одной точке плана, ярус выбирается тем, на какую высоту целится курсор.
+            const yPen = (y) => (hintY === undefined ? 0 : 0.5 * Math.abs(y - hintY));
             const isBlock = pl.def.kind === 'block';
             if (!isBlock) return { x: targetX, z: targetZ, y: undefined, r: pl.r };
 
@@ -2175,8 +2349,9 @@
                     if (isGable) {
                         // Фронтоны садятся строго на верхушку стены 1 этажа или на прямоугольный фронтон
                         if (inst.def.blockType === 'wall' || inst.def.blockType === 'door' || inst.def.blockType === 'window') {
-                            if (d < 1.8 && d < bestDist) {
-                                bestDist = d;
+                            const dEff = d + yPen(instY + WALL_H);
+                            if (d < 1.8 && dEff < bestDist) {
+                                bestDist = dEff;
                                 snappedX = inst.x;
                                 snappedZ = inst.z;
                                 snappedY = instY + WALL_H;
@@ -2204,8 +2379,9 @@
                                 found = true;
                             }
                         } else if (inst.def.blockType === 'gable_rect') {
-                            if (d < 1.8 && d < bestDist) {
-                                bestDist = d;
+                            const dEff = d + yPen(instY + 1.0);
+                            if (d < 1.8 && dEff < bestDist) {
+                                bestDist = dEff;
                                 snappedX = inst.x;
                                 snappedZ = inst.z;
                                 snappedY = instY + 1.0;
@@ -2401,7 +2577,9 @@
                             { ox: 0, oz: BLOCK_MOD, yOff: -1.0, rOffs: [0] }
                         ];
                         for (const sock of roofSockets) {
-                            const dSock = Math.hypot(lx - sock.ox, lz - sock.oz);
+                            // Гнёзда в одной точке (конёк-зеркало yOff 0 и ярус yOff 1) различаем по повороту (клавиша R)
+                            const rotDiff = Math.abs(Math.atan2(Math.sin(inst.r + sock.rOffs[0] - pl.r), Math.cos(inst.r + sock.rOffs[0] - pl.r)));
+                            const dSock = Math.hypot(lx - sock.ox, lz - sock.oz) + (rotDiff > 1.5 ? 0.35 : 0);
                             if (dSock < 1.6 && dSock < bestDist) {
                                 bestDist = dSock;
                                 snappedX = Math.round((inst.x + sock.ox * c + sock.oz * s) * 100) / 100;
@@ -2564,26 +2742,37 @@
             const pl = this.placing;
             if (!pl) return;
 
-            // Если размещаем кровельные блоки или фронтоны, поднимаем плоскость прицеливания луча
+            // Кровельные блоки и фронтоны: плоскость прицеливания зависит от яруса, поэтому пробуем
+            // несколько высот и выбираем гнездо, ближайшее к курсору НА ЭКРАНЕ (без параллакса).
             const bType = pl.def.blockType;
-            let targetPlaneY = undefined;
-            if (bType === 'roof' || bType === 'roof_flat' || bType === 'roof_ridge' || bType === 'gable' || bType === 'gable_rect' || bType === 'gable_peak') {
+            const high = bType === 'roof' || bType === 'roof_flat' || bType === 'roof_ridge' || bType === 'gable' || bType === 'gable_rect' || bType === 'gable_peak';
+            let snapped = null;
+            if (high) {
                 let sumY = 0, countY = 0;
                 for (const inst of this.instances) {
-                    if (inst.def.kind === 'block') {
-                        sumY += (inst.y || 0);
-                        countY++;
-                    }
+                    if (inst.def.kind === 'block') { const iy = (inst.fit ? inst.fit.deckY : (inst.y || 0)); sumY = countY ? Math.min(sumY, iy) : iy; countY++; }
                 }
-                const baseY = countY > 0 ? (sumY / countY) : 0;
-                targetPlaneY = baseY + WALL_H;
+                const baseY = countY > 0 ? sumY : 0;
+                const v3 = new THREE.Vector3();
+                let bestScr = Infinity;
+                for (const off of [WALL_H, WALL_H + 1.0, WALL_H + 2.0]) {
+                    const q = this.groundAt(ndcX, ndcY, baseY + off);
+                    if (!q) continue;
+                    const rx = Math.round(q.x * 4) / 4, rz = Math.round(q.z * 4) / 4;
+                    const cand = this.snapToNeighbors(pl, rx, rz, baseY + off);
+                    if (cand.y === undefined) continue;
+                    v3.set(cand.x, cand.y, cand.z).project(cam);
+                    const ds = Math.hypot(v3.x - ndcX, v3.y - ndcY);
+                    if (ds < bestScr) { bestScr = ds; snapped = cand; }
+                }
             }
-
-            const p = this.groundAt(ndcX, ndcY, targetPlaneY);
-            if (!p) return;
-
-            const rawX = Math.round(p.x * 4) / 4, rawZ = Math.round(p.z * 4) / 4;
-            const snapped = this.snapToNeighbors(pl, rawX, rawZ);
+            if (!snapped) {
+                // Нет подходящего гнезда — призрак по земле под курсором (не у камеры и не за героем)
+                const p = this.groundAt(ndcX, ndcY, undefined);
+                if (!p) return;
+                const rawX = Math.round(p.x * 4) / 4, rawZ = Math.round(p.z * 4) / 4;
+                snapped = this.snapToNeighbors(pl, rawX, rawZ);
+            }
 
             let changed = false;
             if (snapped.x !== pl.x || snapped.z !== pl.z) {
@@ -3047,6 +3236,39 @@
         update(delta) {
             if (!this.cfg) return;
             for (let i = 0; i < this.instances.length; i++) this.updateShell(this.instances[i], delta, false);
+
+            // Анимация дверей (Medieval Dynasty: распахивание толканием персонажа в обе стороны и авто-закрытие)
+            const ch = this.game.character;
+            if (ch && ch.position) {
+                const px = ch.position.x, py = ch.position.y, pz = ch.position.z;
+                for (let i = 0; i < this.instances.length; i++) {
+                    const inst = this.instances[i];
+                    if (!inst.doorPivot) continue;
+                    const dx = px - inst.x, dz = pz - inst.z;
+                    const c = inst.platform.cos, s = inst.platform.sin;
+                    const lx = dx * c - dz * s;
+                    const lz = dx * s + dz * c;
+                    const dy = Math.abs(py - inst.y);
+
+                    let targetAngle = 0;
+                    // Зона взаимодействия: по ширине створа (|lx| < 0.65), по дистанции приближения (|lz| < 1.35), по высоте (dy < 2.2)
+                    if (dy < 2.2 && Math.abs(lx) < 0.65 && Math.abs(lz) < 1.35) {
+                        if (lz > 0.06) {
+                            targetAngle = 1.45; // толкаем внутрь
+                            inst._doorDir = 1;
+                        } else if (lz < -0.06) {
+                            targetAngle = -1.45; // толкаем наружу
+                            inst._doorDir = -1;
+                        } else {
+                            targetAngle = (inst._doorDir || 1) * 1.45; // держим открытой в створе
+                        }
+                    }
+                    const speed = (targetAngle !== 0) ? 9.0 : 4.5;
+                    inst.doorAngle = THREE.MathUtils.damp(inst.doorAngle || 0, targetAngle, speed, delta);
+                    if (Math.abs(inst.doorAngle) < 0.002 && targetAngle === 0) inst.doorAngle = 0;
+                    inst.doorPivot.rotation.y = inst.doorAngle;
+                }
+            }
             this._fT = (this._fT || 0) + delta;
             const ft = this._fT, fl = 0.8 + 0.12 * Math.sin(ft * 9.1) + 0.08 * Math.sin(ft * 23.7 + 1.3);
             if (this.mats && this.mats.glow) this.mats.glow.color.setScalar(fl);
