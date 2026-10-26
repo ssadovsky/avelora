@@ -373,6 +373,17 @@
             });
         }
 
+
+        /** Returns true if the quest can be auto-run (kill/gather/collect, not tutorial specials) */
+        canAutoRunQuest(q) {
+            if (!q || !q.objective) return false;
+            const t = q.objective.type;
+            if (t !== 'kill' && t !== 'gather' && t !== 'collect') return false;
+            const NO_AUTO = ['home_camp_visit', 'potion_trial', 'spark_trial'];
+            if (NO_AUTO.indexOf(q.id || '') >= 0) return false;
+            return true;
+        }
+
         updateTracker() {
             if (!this.tracker) return;
             const st = this.state;
@@ -384,7 +395,8 @@
                 if (!q) return;
                 const p = this.questProgress(q);
                 if (p.ready) hasReady = true;
-                lines.push(`<div class="qt-row${p.ready ? ' ready' : ''}" data-quest="${id}"><b>${q.name}</b><span>${p.ready ? 'Вернись к ' + (this.giverName(q) || 'заказчику') : this.questLabel(q, p)}</span></div>`);
+                const autoBtn = (!p.ready && this.canAutoRunQuest(q)) ? `<button type="button" class="qt-auto-btn" data-quest="${id}" title="Авто-выполнение этого задания"><svg class="quest-loop-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14.93-4M20 12a8 8 0 0 1-14.93 4"/><polyline points="19 3 19 8 14 8"/><polyline points="5 21 5 16 10 16"/></svg></button>` : '';
+                lines.push(`<div class="qt-row${p.ready ? ' ready' : ''}" data-quest="${id}"><div class="qt-row-body"><b>${q.name}</b><span>${p.ready ? 'Вернись к ' + (this.giverName(q) || 'заказчику') : this.questLabel(q, p)}</span></div>${autoBtn}</div>`);
             });
             if (lines.length) {
                 const iconChar = hasReady ? '?' : '!';
@@ -419,6 +431,18 @@
                         const ui = this.ui || (this.game && this.game.ui) || window.AveloraHotbar;
                         if (ui && ui.hideTooltip) ui.hideTooltip();
                     });
+
+                    // Auto-run button click
+                    const autoRunBtn = row.querySelector('.qt-auto-btn');
+                    if (autoRunBtn) {
+                        autoRunBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            window.__avelora_just_ui_tap = performance.now();
+                            const ap = this.game && this.game.autoPlay;
+                            if (ap && ap.focusQuest) ap.focusQuest(qid);
+                        });
+                    }
                 });
 
                 // Click when collapsed expands the tracker

@@ -2286,16 +2286,23 @@
             color: #a2aba9;
             line-height: 1.35;
         }
-        .quest-card-reward {
-            font-size: 0.72rem;
-            color: #efcf7a;
+        .quest-card-footer {
             margin-top: 6px;
             padding-top: 4px;
             border-top: 1px dashed rgba(195, 160, 95, 0.25);
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .quest-card-reward {
+            font-size: 0.72rem;
+            color: #efcf7a;
+            display: flex;
+            align-items: center;
             gap: 6px;
             flex-wrap: wrap;
+            flex: 1 1 auto;
         }
         .quest-card-reward .coin { vertical-align: -2px; }
         .quest-reward-label { color: #8fa39e; font-weight: 600; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.04em; }
@@ -2655,13 +2662,61 @@
         }
         #quest-tracker .qt-row {
             display: flex;
-            flex-direction: column;
-            gap: 2px;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
             line-height: 1.3;
             padding: 4px 6px;
             border-radius: 4px;
             transition: background 0.15s ease;
             cursor: pointer;
+        }
+        #quest-tracker .qt-row-body {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .qt-auto-btn, .quest-card-auto-btn {
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            flex: 0 0 24px;
+            color: rgba(239, 207, 122, 0.65);
+            border-radius: 50%;
+            transition: color 0.15s ease, filter 0.15s ease, transform 0.15s ease;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .qt-auto-btn:hover, .quest-card-auto-btn:hover {
+            color: #ffd700;
+            filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.75));
+        }
+        .qt-auto-btn .quest-loop-icon,
+        .quest-card-auto-btn .quest-loop-icon {
+            width: 17px;
+            height: 17px;
+            stroke-width: 2.2;
+            transition: transform 0.2s ease;
+        }
+        .qt-auto-btn.active .quest-loop-icon,
+        .quest-card-auto-btn.active .quest-loop-icon {
+            animation: questLoopSpin 1.6s linear infinite;
+            color: #ffe699;
+            filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.95));
+        }
+        @keyframes questLoopSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
         #quest-tracker .qt-row:hover {
             background: rgba(214, 170, 60, 0.14);
@@ -4474,10 +4529,17 @@
         }
         body.touch-ui #quest-tracker .qt-row {
             display: flex !important;
-            flex-direction: column !important;
-            gap: 1px !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 4px !important;
             line-height: 1.25 !important;
             margin-bottom: 2px !important;
+        }
+        body.touch-ui .qt-auto-btn, body.touch-ui .quest-card-auto-btn {
+            width: 28px !important;
+            height: 28px !important;
+            flex: 0 0 28px !important;
         }
         body.touch-ui #quest-tracker .qt-row b {
             font-size: 11px !important;

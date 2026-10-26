@@ -1731,6 +1731,17 @@
             this.placeTooltip(el);
         }
 
+
+        /** Returns true if quest can be auto-run (kill/gather/collect objective, not tutorial specials) */
+        canAutoRunQuest(qDef) {
+            if (!qDef || !qDef.objective) return false;
+            const t = qDef.objective.type;
+            if (t !== 'kill' && t !== 'gather' && t !== 'collect') return false;
+            const NO_AUTO = ['home_camp_visit', 'potion_trial', 'spark_trial'];
+            if (NO_AUTO.indexOf(qDef.id || '') >= 0) return false;
+            return true;
+        }
+
         updateQuestsProgress() {
             const listEl = document.getElementById('quests-list');
             if (!listEl) return;
@@ -1833,6 +1844,35 @@
                         if (dlg && dlg.abandonQuest) dlg.abandonQuest(q.id);
                     });
                 }
+
+                // Auto-run button for eligible active quests
+                if (!q.completed && dlg) {
+                    const rawQDef = dlg.questDef ? dlg.questDef(q.id) : null;
+                    if (rawQDef && this.canAutoRunQuest(rawQDef)) {
+                        const footer = document.createElement('div');
+                        footer.className = 'quest-card-footer';
+                        const autoBtn = document.createElement('button');
+                        autoBtn.type = 'button';
+                        autoBtn.className = 'quest-card-auto-btn';
+                        autoBtn.dataset.quest = q.id;
+                        autoBtn.title = 'Авто-выполнение этого задания';
+                        autoBtn.innerHTML = '<svg class="quest-loop-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14.93-4M20 12a8 8 0 0 1-14.93 4"/><polyline points="19 3 19 8 14 8"/><polyline points="5 21 5 16 10 16"/></svg>';
+                        // Sync initial active state
+                        const ap = this.game && this.game.autoPlay;
+                        if (ap && ap.questEnabled && ap.focusedQuestId === q.id) {
+                            autoBtn.classList.add('active');
+                        }
+                        autoBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            window.__avelora_just_ui_tap = performance.now();
+                            if (ap && ap.focusQuest) ap.focusQuest(q.id);
+                        });
+                        footer.appendChild(autoBtn);
+                        card.appendChild(footer);
+                    }
+                }
+
                 listEl.appendChild(card);
             });
         }

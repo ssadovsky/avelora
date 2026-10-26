@@ -14,6 +14,7 @@
             this.combatEnabled = false;
             this.questEnabled = false;
             this.gatherEnabled = false;
+            this.focusedQuestId = null; // null = normal multi-quest, string = focus one quest
 
             this.gatherConfig = this.loadGatherConfig();
             this.gatherRadius = this.loadGatherRadius();
@@ -431,6 +432,8 @@
                 if (this.game.character && this.game.character.isMoving) {
                     this.game.character.stopMovement();
                 }
+                this.focusedQuestId = null;
+                this.syncQuestButtons();
             }
             if (this.game.ui && this.game.ui.floatText) {
                 this.game.ui.floatText(this.questEnabled ? 'Автоквест: ВКЛ' : 'Автоквест: ВЫКЛ', this.questEnabled ? 'good' : 'info');
@@ -1020,7 +1023,32 @@
             }
         }
 
-        findReachableGatherCandidate(candidates, c) {
+        /**
+         * Toggle focused auto-run for one specific quest.
+         * While active, the quest loop ONLY pursues that quest (no batch).
+         * Clicking again on the same quest deactivates it.
+         */
+        focusQuest(questId) {
+            if (this.questEnabled && this.focusedQuestId === questId) {
+                // Same button: cancel focus and stop entirely
+                this.focusedQuestId = null;
+                this.toggleQuest(false);
+            } else {
+                this.focusedQuestId = questId;
+                if (!this.questEnabled) this.toggleQuest(true);
+            }
+            this.syncQuestButtons();
+        }
+
+        /** Update .active class on all auto-run buttons matching (or not) the current focusedQuestId */
+        syncQuestButtons() {
+            const activeId = (this.questEnabled && this.focusedQuestId) ? this.focusedQuestId : null;
+            document.querySelectorAll('.qt-auto-btn, .quest-card-auto-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.quest === activeId);
+            });
+        }
+
+                findReachableGatherCandidate(candidates, c) {
             const now = Date.now();
             for (let i = 0; i < candidates.length; i++) {
                 const cand = candidates[i];
@@ -1055,6 +1083,29 @@
             this._questTimer -= delta;
             if (this._questTimer > 0) return;
             this._questTimer = 0.20; // Check quest progress every 200ms
+
+            // If a single quest is focused, only pursue that quest
+            if (this.focusedQuestId) {
+                const gc = window.GAME_CONTENT;
+                const allQuests = (gc && gc.quests) || {};
+                const fqDef = allQuests[this.focusedQuestId];
+                const st2 = this.game.gameState;
+                if (!fqDef || !st2 || st2.quests[this.focusedQuestId] !== 'active') {
+                    // Quest gone / done — stop focus
+                    this.focusedQuestId = null;
+                    this.syncQuestButtons();
+                    this.toggleQuest(false);
+                    return;
+                }
+                const fReady = this.isQuestReady(fqDef);
+                if (fReady) {
+                    this.executeTurnInQuest(fqDef);
+                    // After turn-in the quest status becomes 'done' → next tick will reset
+                } else {
+                    this.executeMultiQuestObjectives([fqDef], delta);
+                }
+                return;
+            }
 
             const activeList = this.getActiveQuests();
             const unreadyList = activeList.filter(q => !q.ready);
