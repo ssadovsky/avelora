@@ -298,7 +298,6 @@ window.LOCATIONS = {
             // === Юго-восточный сектор (Z 5..35, лагерь Лираэль и крысы): аккуратные перелески ===
             { id: 'lirael_east_woods', type: 'forest', x: 136.0, z: 34.0, rx: 5.0, rz: 6.0, count: 6, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, seed: 141 },
             { id: 'lirael_west_copse', type: 'forest', x: 106.0, z: 20.0, radius: 8.0, count: 8, types: ['tree', 'small'], undergrowth: true, seed: 142 },
-            { id: 'waterfall_rocks', type: 'rocks', x: 128.0, z: 5.5, radius: 5.0, count: 4, seed: 161 },
 
             // === ТРАВА СЕВЕРО-ВОСТОЧНОГО ЛЕСА: отдельный слой, одиночные кустики 4 видов (grass_set), БЕЗ куч ===
             // Те же эллипсы, что у лесных групп выше; rng у всех свой. Плотность — кустиков на 100 м² (density), минимум 2.6 м между кустиками.
@@ -498,8 +497,6 @@ window.LOCATIONS = {
                 { modelKey: 'ore_boulder_b', x: 135.0, z: 58.0, s: 1.45, r: 2.73, dy: 0.08 },
                 { modelKey: 'ore_boulder_a', x: 133.8, z: 47.0, s: 1.55, r: 4.89, dy: 0.08 },
                 { modelKey: 'ore_boulder_b', x: 135.5, z: 36.0, s: 1.50, r: 0.35, dy: 0.08 },
-                { modelKey: 'ore_boulder_a', x: 134.0, z: 25.0, s: 1.48, r: 3.52, dy: 0.08 },
-                { modelKey: 'ore_boulder_b', x: 134.5, z: 16.5, s: 1.50, r: 5.61, dy: 0.08 },
                 { modelKey: 'ore_boulder_a', x: 119.5, z: 62.0, s: 1.50, r: 1.85, dy: 0.08 },
                 { modelKey: 'ore_boulder_b', x: 120.0, z: 44.0, s: 1.48, r: 4.21, dy: 0.08 }
             ],

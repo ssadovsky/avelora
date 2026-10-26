@@ -331,7 +331,7 @@ window.GAME_CONTENT = {
    "id": "apprentice_staff",
    "name": "Посох ученика",
    "description": "Посох ученика-мага: резное навершие с аметистом в бронзовой оправе. Берётся в правую руку; обычная атака — сгусток магии по цели (клик по врагу), урон от Интеллекта.",
-   "category": "tool",
+   "category": "weapon",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -490,7 +490,7 @@ window.GAME_CONTENT = {
    "id": "bow",
    "name": "Простой лук",
    "description": "Лёгкий охотничий лук из гибкого ясеня. Берётся в руку; обычная атака — выстрел стрелой по цели (клик по врагу), урон от Ловкости.",
-   "category": "tool",
+   "category": "weapon",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -588,7 +588,7 @@ window.GAME_CONTENT = {
    "id": "dagger",
    "name": "Кинжал",
    "description": "Простой стальной кинжал. Быстрый, бьёт вблизи.",
-   "category": "tool",
+   "category": "weapon",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -911,7 +911,7 @@ window.GAME_CONTENT = {
    "id": "minotaur_axe",
    "name": "Секира Пылающего Лабиринта",
    "description": "Тяжелая двуручная секира Минотавра. Закаленная сталь требует недюжинной силы и ловкости.",
-   "category": "tool",
+   "category": "weapon",
    "quality": "rare",
    "stackMax": 1,
    "ground": {
@@ -1109,7 +1109,7 @@ window.GAME_CONTENT = {
    "id": "staff",
    "name": "Посох",
    "description": "Узловатый посох странника с кристаллом в навершии. Берётся в правую руку; обычная атака — сгусток магии по цели (клик по врагу), урон от Интеллекта.",
-   "category": "tool",
+   "category": "weapon",
    "stackMax": 1,
    "ground": {
     "variants": 1,

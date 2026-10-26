@@ -1181,7 +1181,7 @@
             const def = window.AveloraItems && window.AveloraItems.get(itemId);
             if (!def || !window.AveloraItems.isEquippable(itemId)) return false;
 
-            // Never auto-equip gathering tools (axe, pickaxe) into main hand
+            // Never auto-equip gathering tools (axe, pickaxe) into weapon slot
             if (def.category === 'tool' || (def.weapon && (def.weapon.chop || def.weapon.mine))) {
                 return false;
             }
@@ -1319,6 +1319,8 @@
         /**
          * Executes objectives for multiple unready quests in parallel:
          * Opportunistically picks the nearest resource node, ground loot pile, or mob.
+         * Validates path reachability so the hero never runs into cliff obstacles.
+         * Collects ALL nearby drops (ore, stone, resin, etc.) so nothing is abandoned.
          */
         executeMultiQuestObjectives(unreadyDefs, delta) {
             const g = this.game;
@@ -1341,6 +1343,39 @@
                     if (c.isMoving) c.stopMovement();
                     return;
                 }
+            }
+
+            // Clean up expired unreachable objects
+            const now = Date.now();
+            if (this._unreachableObjects && this._unreachableObjects.size > 0) {
+                for (const [id, until] of this._unreachableObjects.entries()) {
+                    if (now >= until) this._unreachableObjects.delete(id);
+                }
+            }
+
+            // STUCK GUARD: If hero is moving but stuck in place against a cliff / obstacle for > 1.4s
+            if (c.isMoving) {
+                if (!this._lastMoveCheckPos) {
+                    this._lastMoveCheckPos = { x: c.position.x, z: c.position.z, time: now };
+                } else {
+                    const movedDist = Math.hypot(c.position.x - this._lastMoveCheckPos.x, c.position.z - this._lastMoveCheckPos.z);
+                    if (movedDist > 0.4) {
+                        this._lastMoveCheckPos = { x: c.position.x, z: c.position.z, time: now };
+                    } else if (now - this._lastMoveCheckPos.time > 1400) {
+                        // Hero is running into a wall or cliff!
+                        if (this._currentQuestTargetId) {
+                            this._unreachableObjects.set(this._currentQuestTargetId, now + 120000);
+                            this._currentQuestTargetId = null;
+                        }
+                        if (c.isMoving) c.stopMovement();
+                        if (g.combat && g.combat.cancel) g.combat.cancel();
+                        if (g.worldObjects && g.worldObjects.cancelPending) g.worldObjects.cancelPending();
+                        this._lastMoveCheckPos = null;
+                        return;
+                    }
+                }
+            } else {
+                this._lastMoveCheckPos = null;
             }
 
             const px = c.position.x, pz = c.position.z;
@@ -1374,28 +1409,56 @@
                 }
             }
 
-            let bestTarget = null;
-            let bestDist = Infinity;
-
-            // 1. Search ground piles for any needed item
+            // -------------------------------------------------------------
+            // PRIORITY 1: Ground loot / drops (piles)
+            // Pick up ALL drops within 16m (ore, stone, resin, etc.) so nothing is abandoned!
+            // Plus any needed quest item from any distance across the location.
+            // -------------------------------------------------------------
             const wo = g.worldObjects;
-            if (neededItems.size > 0 && wo && wo.piles) {
+            const inv = st.inventory;
+            const pileCandidates = [];
+            if (wo && wo.piles) {
                 for (const [pileId, pile] of wo.piles.entries()) {
                     if (!pile || pile.remaining <= 0) continue;
                     if (this._unreachableObjects && this._unreachableObjects.has(pileId)) continue;
-                    const req = neededItems.get(pile.def.id);
-                    if (!req || req.remaining <= 0) continue;
+                    if (inv && inv.spaceFor(pile.def.id) <= 0) continue;
 
                     const d = Math.hypot(pile.data.x - px, pile.data.z - pz);
-                    if (d < bestDist) {
-                        bestDist = d;
-                        bestTarget = { type: 'pile', pile, qDef: req.qDef };
+                    const isQuestItem = neededItems.has(pile.def.id) && neededItems.get(pile.def.id).remaining > 0;
+
+                    if (isQuestItem || d <= 16.0) {
+                        pileCandidates.push({
+                            type: 'pile',
+                            pile,
+                            id: pileId,
+                            x: pile.data.x,
+                            z: pile.data.z,
+                            reach: 1.6,
+                            dist: d,
+                            rawDist: d,
+                            isQuestItem
+                        });
                     }
                 }
             }
 
-            // 2. Search resource nodes for any needed item
+            if (pileCandidates.length > 0) {
+                pileCandidates.sort((a, b) => a.dist - b.dist);
+                const bestPile = this.findReachableGatherCandidate(pileCandidates, c);
+                if (bestPile) {
+                    this._currentQuestTargetId = bestPile.id;
+                    this._currentGatherTarget = bestPile;
+                    this._gatherTargetStartTime = now;
+                    wo.requestPickup(bestPile.pile);
+                    return;
+                }
+            }
+
+            // -------------------------------------------------------------
+            // PRIORITY 2: Resource nodes (trees, ores, ferns)
+            // -------------------------------------------------------------
             const env = g.environment, harvest = g.harvest;
+            const nodeCandidates = [];
             if (neededItems.size > 0 && env && env.objects && harvest) {
                 for (const [objId, entry] of env.objects.entries()) {
                     if (!entry || entry.visible === false) continue;
@@ -1407,49 +1470,73 @@
                     const matchDrop = drops.find(d => neededItems.has(d.item) && neededItems.get(d.item).remaining > 0);
                     if (!matchDrop) continue;
 
+                    const s = entry.s || 1;
+                    let reach = 1.8;
+                    if (node.tool === 'gather' || entry.kind === 'ferns') reach = Math.max(1.3, 0.45 * s + 0.6);
+                    else if (node.tool === 'mine' || entry.kind === 'ores') reach = Math.max(1.3, 0.6 * s + 0.9);
+                    else if (node.tool === 'chop' || entry.kind === 'trees') reach = Math.max(1.6, 0.8 * s + 0.95 - 0.3 * s);
+
                     const d = Math.hypot(entry.x - px, entry.z - pz);
-                    if (d < bestDist) {
-                        bestDist = d;
-                        bestTarget = { type: 'node', entry, qDef: neededItems.get(matchDrop.item).qDef };
-                    }
+                    nodeCandidates.push({
+                        type: 'node',
+                        entry,
+                        node,
+                        id: objId,
+                        x: entry.x,
+                        z: entry.z,
+                        reach,
+                        dist: d,
+                        rawDist: d,
+                        qDef: neededItems.get(matchDrop.item).qDef
+                    });
                 }
             }
 
-            // 3. Search alive creatures for any needed kill quest
+            let bestReachableNode = null;
+            if (nodeCandidates.length > 0) {
+                nodeCandidates.sort((a, b) => a.dist - b.dist);
+                bestReachableNode = this.findReachableGatherCandidate(nodeCandidates, c);
+            }
+
+            // -------------------------------------------------------------
+            // PRIORITY 3: Alive creatures for kill quests
+            // -------------------------------------------------------------
             const cr = g.creatures;
+            let bestMob = null;
+            let bestMobDist = Infinity;
             if (neededCreatures.size > 0 && cr && cr.list) {
                 for (const rec of cr.list) {
                     if (!cr.isAlive(rec)) continue;
                     if (!neededCreatures.has(rec.type)) continue;
 
                     const d = Math.hypot(rec.x - px, rec.z - pz);
-                    if (d < bestDist) {
-                        bestDist = d;
-                        bestTarget = { type: 'mob', mob: rec, qDef: neededCreatures.get(rec.type) };
+                    if (d < bestMobDist) {
+                        bestMobDist = d;
+                        bestMob = rec;
                     }
                 }
             }
 
-            // If an actionable target found, execute it!
-            if (bestTarget) {
-                if (bestTarget.type === 'pile') {
-                    wo.requestPickup(bestTarget.pile);
-                    return;
+            // Decide between best reachable node and best mob
+            const nodeDist = bestReachableNode ? bestReachableNode.dist : Infinity;
+            if (bestReachableNode && nodeDist <= bestMobDist) {
+                this._currentQuestTargetId = bestReachableNode.id;
+                this._currentGatherTarget = bestReachableNode;
+                this._gatherTargetStartTime = now;
+                harvest.request(bestReachableNode.entry);
+                return;
+            }
+
+            if (bestMob) {
+                this._currentQuestTargetId = bestMob.id || ('mob_' + bestMob.type);
+                if (bestMobDist > 14.0) {
+                    this.navigateTowards(bestMob.x, bestMob.z);
+                } else {
+                    c.stopMovement();
+                    g.combat.selectTarget(bestMob);
+                    this.updateCombat(delta, bestMob);
                 }
-                if (bestTarget.type === 'node') {
-                    harvest.request(bestTarget.entry);
-                    return;
-                }
-                if (bestTarget.type === 'mob') {
-                    if (bestDist > 14.0) {
-                        this.navigateTowards(bestTarget.mob.x, bestTarget.mob.z);
-                    } else {
-                        c.stopMovement();
-                        g.combat.selectTarget(bestTarget.mob);
-                        this.updateCombat(delta, bestTarget.mob);
-                    }
-                    return;
-                }
+                return;
             }
 
             // If no immediate targets in line of sight, navigate towards creature spawn

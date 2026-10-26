@@ -2,7 +2,7 @@
   "id": "dagger",
   "name": "Кинжал",
   "description": "Простой стальной кинжал. Быстрый, бьёт вблизи.",
-  "category": "tool",
+  "category": "weapon",
   "stackMax": 1,
   "ground": {
     "variants": 1,

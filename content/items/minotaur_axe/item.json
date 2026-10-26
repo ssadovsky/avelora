@@ -2,7 +2,7 @@
   "id": "minotaur_axe",
   "name": "Секира Пылающего Лабиринта",
   "description": "Тяжелая двуручная секира Минотавра. Закаленная сталь требует недюжинной силы и ловкости.",
-  "category": "tool",
+  "category": "weapon",
   "quality": "rare",
   "stackMax": 1,
   "ground": {
