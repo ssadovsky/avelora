@@ -228,6 +228,7 @@
                 this.isMounted = true;
                 c.isMounted = true;
                 c.mountPoseW = 0;          // character.js blends the rider pose in
+                c.riderPose = skillDef.riderPose || null;   // per-mount pose tweaks (over characters.js riderPose)
                 c.isCasting = false;
                 c.isGreeting = false;
                 if (c.fadeToLogical) c.fadeToLogical('idle', 0.2);
@@ -238,7 +239,7 @@
                 c.moveSpeed = this.normalSpeed + bonus;
 
                 if (g.ui && g.ui.floatText) {
-                    g.ui.floatText('Верхом на лютоволке!', 'loot');
+                    g.ui.floatText(skillDef.mountedText || 'Верхом на лютоволке!', 'loot');
                 }
 
                 // Trigger small arrival poof / sparkles
@@ -268,6 +269,7 @@
                 c.isMounted = false;
                 c.mountSaddleY = undefined;
                 c.mountPoseW = 0;
+                c.riderPose = null;
                 if (c.mesh) c.mesh.rotation.set(0, c.currentRotation + (c.facingOffset || 0), 0);
                 c.moveSpeed = this.normalSpeed;
                 // Instantly snap back to ground height
@@ -459,8 +461,9 @@
             const pos = m.group.position;
             const yaw = m.group.rotation.y;
 
-            const span = 0.85; // distance between front and hind paws
-            const halfW = 0.35; // half width between left and right paws
+            // paw spacing for the slope probe (skill JSON; defaults = the riding wolf)
+            const span = m.def.tiltSpan !== undefined ? m.def.tiltSpan : 0.85;          // centre -> front / hind paws
+            const halfW = m.def.tiltHalfWidth !== undefined ? m.def.tiltHalfWidth : 0.35; // half width between left and right paws
             const sinY = Math.sin(yaw), cosY = Math.cos(yaw);
 
             // Front & hind paw offsets in world coords
