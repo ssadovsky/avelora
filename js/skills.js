@@ -418,7 +418,9 @@
                 if (g.mount) return g.mount.activate(def);
                 return 'unavailable';
             }
-            if (g.mount && g.mount.isMounted) {
+            // Combat skills dismount; travel spells (portals, home recall) are cast from the saddle —
+            // the rider stays mounted unless the destination is a dungeon (mount.js beforeLocationChange).
+            if (g.mount && g.mount.isMounted && def.type !== 'teleport') {
                 g.mount.dismount('combat');
             }
 

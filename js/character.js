@@ -64,6 +64,18 @@ const BOW_KEYS = {
 const SWING_HIT_FRAC = 0.55;
 const DEG = Math.PI / 180;
 
+// Rider pose (applyMountPose): unit-ish direction [forward, outward, up] for each limb segment in the
+// rider's frame, plus torso lean (deg). Tuned for the mage on the riding wolf (mount_wolf, scale 1.45).
+const RIDER_POSE = {
+    thigh: [0.62, 0.62, -0.48],     // hip -> knee: forward and wide around the wolf's ribs
+    shin: [-0.12, 0.30, -0.95],     // knee -> ankle: down the flank, a little out and back
+    foot: [0.92, 0.18, -0.34],      // ankle -> toes: toes forward
+    upperArm: [0.42, 0.14, -0.90],  // shoulder -> elbow: elbows close to the body, a bit forward
+    forearm: [0.80, -0.28, -0.52],  // elbow -> wrist: hands forward and together over the withers
+    lean: 7,                        // torso lean at rest (deg)
+    gallopLean: 9                   // extra lean while running
+};
+
 /** Keyframe value at u: smoothstep between keys (the strike segment accelerates: ease-in). */
 function swingKey(keys, u) {
     if (u <= keys[0][0]) return keys[0][1];
@@ -581,62 +593,113 @@ class MedievalCharacter {
 
     /** Undo last frame's overlay (a bone without an animation track would otherwise accumulate it). */
     findMountBones() {
-        return {
+        const b = {
+            hips: this.findBone('Hips'),
             lUpLeg: this.findBone('LeftUpLeg'),
             rUpLeg: this.findBone('RightUpLeg'),
             lLeg: this.findBone('LeftLeg'),
             rLeg: this.findBone('RightLeg'),
             lFoot: this.findBone('LeftFoot'),
             rFoot: this.findBone('RightFoot'),
+            lToe: this.findBone('LeftToeBase'),
+            rToe: this.findBone('RightToeBase'),
             lArm: this.findBone('LeftArm'),
             rArm: this.findBone('RightArm'),
             lForearm: this.findBone('LeftForeArm'),
             rForearm: this.findBone('RightForeArm'),
-            spine: this.findBone('Spine')
+            lHand: this.findBone('LeftHand'),
+            rHand: this.findBone('RightHand'),
+            spine: this.findBone('Spine'),
+            spine1: this.findBone('Spine1'),
+            neck: this.findBone('Neck'),
+            head: this.findBone('Head')
         };
+        b.all = Object.keys(b).map(k => b[k]).filter(Boolean);
+        return b;
     }
 
+    /** Rotate `bone` by the WORLD rotation `qw` (pivot = the bone itself). */
+    rotateBoneWorldQ(bone, qw) {
+        if (!bone || !bone.parent) return;
+        const qp = this._q1, ql = this._q2;
+        bone.parent.getWorldQuaternion(qp);
+        ql.copy(qp).invert().multiply(qw).multiply(qp);   // local = parent^-1 * world * parent
+        bone.quaternion.premultiply(ql);
+    }
+
+    /**
+     * Turns `bone` so that the segment bone -> child points along the WORLD direction
+     * `dir` (unit). Minimal-arc rotation (keeps the bone's twist), blended by `w`.
+     */
+    aimBoneWorld(bone, child, dir, w) {
+        if (!bone || !child || !bone.parent || w <= 0) return;
+        const p0 = this._mv1 || (this._mv1 = new THREE.Vector3());
+        const p1 = this._mv2 || (this._mv2 = new THREE.Vector3());
+        const q = this._mq1 || (this._mq1 = new THREE.Quaternion());
+        bone.updateMatrixWorld(true);
+        p0.setFromMatrixPosition(bone.matrixWorld);
+        p1.setFromMatrixPosition(child.matrixWorld).sub(p0);
+        if (p1.lengthSq() < 1e-10) return;
+        p1.normalize();
+        q.setFromUnitVectors(p1, dir);
+        if (w < 1) q.slerp(this._mqI || (this._mqI = new THREE.Quaternion()), 1 - w);
+        this.rotateBoneWorldQ(bone, q);
+        bone.updateMatrixWorld(true);
+    }
+
+    /**
+     * Rider pose on a mount (mount.js). Works in the rider's own yaw frame; mount.js then tilts the
+     * whole mesh with the mount's back bone, so the pose stays glued to the saddle on slopes and
+     * in the gallop. Directions: f = forward, s = outward (per side), u = up.
+     * `this.riderPose` (characters.js `riderPose` / skill `riderPose`) may override any value.
+     */
     applyMountPose(delta) {
         const b = this.mountBones;
         if (!b || !this.mesh) return;
+        const P = Object.assign({}, RIDER_POSE, this.config.riderPose || {}, this.riderPose || {});
 
-        const allBones = [b.lUpLeg, b.rUpLeg, b.lLeg, b.rLeg, b.lFoot, b.rFoot, b.spine].filter(Boolean);
-        for (let i = 0; i < allBones.length; i++) this.saveOverlayBone(allBones[i]);
+        // blend in over ~0.35 s after mounting (mount.js resets mountPoseW to 0)
+        this.mountPoseW = Math.min(1, (this.mountPoseW || 0) + delta / 0.35);
+        const w = this.mountPoseW * this.mountPoseW * (3 - 2 * this.mountPoseW);
+
+        for (let i = 0; i < b.all.length; i++) this.saveOverlayBone(b.all[i]);
+        this.mesh.updateMatrixWorld(true);
 
         const r = this.currentRotation;
-        this._fwd.set(-Math.sin(r), 0, -Math.cos(r));
-        this._right.set(Math.cos(r), 0, -Math.sin(r));
+        const f = this._fwd.set(-Math.sin(r), 0, -Math.cos(r));
+        const rt = this._right.set(Math.cos(r), 0, -Math.sin(r));
+        const d = this._mv3 || (this._mv3 = new THREE.Vector3());
+        const dirOf = (fw, side, up, sideSign) => d.set(0, 0, 0)
+            .addScaledVector(f, fw).addScaledVector(rt, side * sideSign).addScaledVector(this._up, up).normalize();
 
-        // Thighs: pitch forward and abduct snuggly around wolf flanks
-        if (b.lUpLeg) {
-            this.rotateBoneWorld(b.lUpLeg, this._right, 42 * DEG);
-            this.rotateBoneWorld(b.lUpLeg, this._fwd, 28 * DEG);
-        }
-        if (b.rUpLeg) {
-            this.rotateBoneWorld(b.rUpLeg, this._right, 42 * DEG);
-            this.rotateBoneWorld(b.rUpLeg, this._fwd, -28 * DEG);
-        }
-        // Knees: flex backward along animal sides
-        if (b.lLeg) {
-            this.rotateBoneWorld(b.lLeg, this._right, -62 * DEG);
-            this.rotateBoneWorld(b.lLeg, this._fwd, -12 * DEG);
-        }
-        if (b.rLeg) {
-            this.rotateBoneWorld(b.rLeg, this._right, -62 * DEG);
-            this.rotateBoneWorld(b.rLeg, this._fwd, 12 * DEG);
-        }
-        // Feet: leveled pitch, toes pointing forward along wolf flanks
-        if (b.lFoot) {
-            this.rotateBoneWorld(b.lFoot, this._right, 24 * DEG);
-            this.rotateBoneWorld(b.lFoot, this._up, 26 * DEG);
-        }
-        if (b.rFoot) {
-            this.rotateBoneWorld(b.rFoot, this._right, 24 * DEG);
-            this.rotateBoneWorld(b.rFoot, this._up, -26 * DEG);
+        // gallop: the rider leans into the run (eased)
+        const gal = this.isMoving ? 1 : 0;
+        this.mountGallop = (this.mountGallop || 0) + (gal - (this.mountGallop || 0)) * Math.min(1, delta * 4);
+        const lean = (P.lean + P.gallopLean * this.mountGallop) * DEG * w;
+        // (+angle about `right` swings a hanging limb forward, i.e. tips an upright torso BACK -> negative = lean forward)
+        if (b.spine) this.rotateBoneWorld(b.spine, rt, -lean * 0.6);
+        if (b.spine1) this.rotateBoneWorld(b.spine1, rt, -lean * 0.4);
+        if (b.neck) this.rotateBoneWorld(b.neck, rt, lean * 0.7);   // eyes stay on the road
+
+        // legs: thigh forward + wide around the barrel, shin down the flank, toes forward
+        const legs = [[b.lUpLeg, b.lLeg, b.lFoot, b.lToe, -1], [b.rUpLeg, b.rLeg, b.rFoot, b.rToe, 1]];
+        for (let i = 0; i < 2; i++) {
+            const [up, low, foot, toe, sg] = legs[i];
+            this.aimBoneWorld(up, low, dirOf(P.thigh[0], P.thigh[1], P.thigh[2], sg), w);
+            this.aimBoneWorld(low, foot, dirOf(P.shin[0], P.shin[1], P.shin[2], sg), w);
+            this.aimBoneWorld(foot, toe, dirOf(P.foot[0], P.foot[1], P.foot[2], sg), w);
         }
 
-        // Spine: slight forward rider lean
-        if (b.spine) this.rotateBoneWorld(b.spine, this._right, 6 * DEG);
+        // arms: elbows by the body, hands forward over the withers (as if on the reins / the scruff).
+        // Not while a cast clip owns the arms.
+        if (!this.isCasting && !this.isChanneling && !this.isAttacking) {
+            const arms = [[b.lArm, b.lForearm, b.lHand, -1], [b.rArm, b.rForearm, b.rHand, 1]];
+            for (let i = 0; i < 2; i++) {
+                const [ua, fa, hand, sg] = arms[i];
+                this.aimBoneWorld(ua, fa, dirOf(P.upperArm[0], P.upperArm[1], P.upperArm[2], sg), w);
+                this.aimBoneWorld(fa, hand, dirOf(P.forearm[0], P.forearm[1], P.forearm[2], sg), w);
+            }
+        }
     }
 
     restoreOverlay() {
@@ -1249,7 +1312,7 @@ class MedievalCharacter {
 
         // Idle "greeting" gesture (e.g. the mage's wave) after standing still
         // for a while — only for characters with a mapped 'greeting' clip.
-        if (!this.isMoving && !this.isGreeting && (this.config.animMap || {}).greeting) {
+        if (!this.isMoving && !this.isGreeting && !this.isMounted && (this.config.animMap || {}).greeting) {
             this.idleTimer += delta;
             if (this.idleTimer >= IDLE_GREETING_DELAY) {
                 this.playGreeting();

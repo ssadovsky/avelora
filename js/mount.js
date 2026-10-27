@@ -49,10 +49,23 @@
                 if (this.summoning) this.cancelSummon();
             });
 
+            // Travelling between ordinary locations keeps the rider in the saddle (the mount lives in the
+            // scene root, not in locationRoot, so it survives the rebuild); dungeons are on foot only.
             window.addEventListener('game:location', () => {
-                if (this.isMounted) this.dismount('location');
                 if (this.summoning) this.cancelSummon();
+                if (this.isMounted && AveloraMountManager.isNoMountLocation(this.game.location)) this.dismount('dungeon');
             });
+        }
+
+        /** Dungeons (and any location with `noMount: true`) forbid riding. */
+        static isNoMountLocation(loc) {
+            return !!(loc && (loc.isDungeon || loc.dungeon || loc.noMount));
+        }
+
+        /** main.js changeLocation(): called before the old location is torn down. */
+        beforeLocationChange(target) {
+            if (this.summoning) this.cancelSummon();
+            if (this.isMounted && AveloraMountManager.isNoMountLocation(target)) this.dismount('dungeon');
         }
 
         /** Loads and caches the base creature GLB template */
@@ -120,6 +133,10 @@
             }
 
             if (g.combat && g.combat.isDead) return 'unavailable';
+            if (AveloraMountManager.isNoMountLocation(g.location)) {
+                if (g.ui && g.ui.floatText) g.ui.floatText('В подземелье верховое животное не призвать', 'warn');
+                return 'unavailable';
+            }
 
             const castTime = Math.max(0, skillDef.castTime || 0);
             if (castTime > 0) {
@@ -178,28 +195,20 @@
                     });
                 }
 
-                let saddleBone = null;
-                model.traverse(o => {
-                    if (!saddleBone && o.isBone && (o.name === 'spine_1' || o.name.endsWith('spine_1') || o.name === 'spine_2')) {
-                        saddleBone = o;
-                    }
-                });
-
                 const idleAct = actions.Idle;
                 if (idleAct) idleAct.play();
 
-                const r = c.currentRotation;
-                const fwdX = -Math.sin(r), fwdZ = -Math.cos(r);
+                const yaw = c.currentRotation + Math.PI;   // creature models face +Z
+                const fwdX = Math.sin(yaw), fwdZ = Math.cos(yaw);
                 const seatOffset = skillDef.seatForward !== undefined ? skillDef.seatForward : 0.45;
                 const mx = c.position.x + fwdX * seatOffset;
                 const mz = c.position.z + fwdZ * seatOffset;
                 const groundY = g.terrain.getHeightAt(mx, mz);
                 group.position.set(mx, groundY, mz);
-                if (c.mesh) group.rotation.y = c.mesh.rotation.y;
-
+                group.rotation.y = yaw;
                 g.scene.add(group);
 
-                this.activeMount = {
+                const m = {
                     group,
                     model,
                     mixer,
@@ -210,12 +219,17 @@
                     tiltX: 0,
                     tiltZ: 0,
                     tiltY: 0,
-                    saddleBone
+                    seat: null
                 };
+                if (mixer) mixer.update(0);
+                m.seat = this.calibrateSeat(m, c, skillDef);
+                this.activeMount = m;
 
                 this.isMounted = true;
                 c.isMounted = true;
+                c.mountPoseW = 0;          // character.js blends the rider pose in
                 c.isCasting = false;
+                c.isGreeting = false;
                 if (c.fadeToLogical) c.fadeToLogical('idle', 0.2);
                 c.mountRideHeight = skillDef.rideHeight || 0.62;
 
@@ -253,10 +267,8 @@
             if (c) {
                 c.isMounted = false;
                 c.mountSaddleY = undefined;
-                if (c.mesh) {
-                    c.mesh.rotation.x = 0;
-                    c.mesh.rotation.z = 0;
-                }
+                c.mountPoseW = 0;
+                if (c.mesh) c.mesh.rotation.set(0, c.currentRotation + (c.facingOffset || 0), 0);
                 c.moveSpeed = this.normalSpeed;
                 // Instantly snap back to ground height
                 const groundY = g.terrain ? g.terrain.getHeightAt(c.position.x, c.position.z) : c.position.y;
@@ -267,6 +279,8 @@
             if (g.ui && g.ui.floatText) {
                 if (reason === 'damage') {
                     g.ui.floatText('Спешивание (получен урон)', 'warn');
+                } else if (reason === 'dungeon') {
+                    g.ui.floatText('В подземелье — пешком', 'info');
                 } else if (reason === 'manual') {
                     g.ui.floatText('Спешивание', 'info');
                 }
@@ -276,6 +290,7 @@
         spawnSummonVfx(x, y, z) {
             const g = this.game;
             if (!g.skills || !g.skills.addSpark) return;
+            if (g.skills.ensureResources) g.skills.ensureResources();   // VFX pools are created lazily
             const count = 18;
             for (let i = 0; i < count; i++) {
                 const a = (i / count) * Math.PI * 2;
@@ -311,65 +326,130 @@
             const m = this.activeMount;
             if (!c || !m.group || !g.terrain) return;
 
-            // Sync horizontal position with hero (offset backward so wolf saddle aligns with rider)
-            const r = c.currentRotation;
-            const fwdX = -Math.sin(r), fwdZ = -Math.cos(r);
+            // The wolf walks under the hero: hero position + seatForward ahead, facing the hero's heading
+            const yaw = c.currentRotation + Math.PI;   // creature models face +Z
             const seatOffset = m.def.seatForward !== undefined ? m.def.seatForward : 0.45;
-            const mx = c.position.x + fwdX * seatOffset;
-            const mz = c.position.z + fwdZ * seatOffset;
+            const mx = c.position.x + Math.sin(yaw) * seatOffset;
+            const mz = c.position.z + Math.cos(yaw) * seatOffset;
             const groundY = g.terrain.getHeightAt(mx, mz);
             m.group.position.set(mx, groundY + m.tiltY, mz);
-
-            // Sync yaw rotation with character mesh
-            if (c.mesh) {
-                m.group.rotation.y = c.mesh.rotation.y;
-            }
+            m.group.rotation.y = yaw;
 
             // Align mount body to terrain slope (tilt pitch & roll)
             this.alignMountToTerrain(m, delta);
 
             // Animation state: Run when moving, Idle when stopped
-            const wantsRun = c.isMoving;
-            const targetAnim = wantsRun ? 'Run' : 'Idle';
-
+            const targetAnim = c.isMoving ? 'Run' : 'Idle';
             if (m.currentAnim !== targetAnim && m.actions[targetAnim]) {
                 const prev = m.actions[m.currentAnim];
                 const next = m.actions[targetAnim];
                 if (prev) prev.fadeOut(0.18);
-                if (next) {
-                    next.reset().fadeIn(0.18).play();
-                }
+                if (next) next.reset().fadeIn(0.18).play();
                 m.currentAnim = targetAnim;
             }
-
-            // Adjust run playback speed based on actual hero velocity
             if (m.mixer) {
-                if (m.currentAnim === 'Run') {
-                    m.mixer.timeScale = 1.15;
-                } else {
-                    m.mixer.timeScale = 1.0;
-                }
+                m.mixer.timeScale = m.currentAnim === 'Run' ? (m.def.runAnimSpeed || 1.15) : 1.0;
                 m.mixer.update(delta);
             }
 
-            // Smooth rhythmic rider bobbing synced with wolf breathing and gallop
-            let bobY = 0;
-            if (c.isMoving) {
-                m.bobTime = (m.bobTime || 0) + delta * 9.5;
-                bobY = Math.sin(m.bobTime) * 0.035;
-            } else {
-                m.bobTime = (m.bobTime || 0) + delta * 2.6;
-                bobY = Math.sin(m.bobTime) * 0.012;
+            // Rider sits on the wolf's back bones: follows breathing, gallop and slope
+            if (m.seat && c.mesh) this.seatRider(m, c, delta);
+            else {
+                c.position.y = groundY + (m.def.rideHeight || 0.65);
+                if (c.mesh) c.mesh.position.y = c.position.y;
             }
+        }
 
-            const targetHeight = (m.def.rideHeight || 0.65) + bobY;
-            c.mountRideHeight = targetHeight;
-            c.position.y = groundY + targetHeight;
-            if (c.mesh) {
-                c.mesh.position.y = c.position.y;
-                // Rider leans together with wolf along hills and slopes
-                c.mesh.rotation.x = m.tiltX * 0.65;
-                c.mesh.rotation.z = m.tiltZ * 0.65;
+        /**
+         * Saddle socket. The seat point (rider's hips at the tuned rideHeight / seatForward) is stored in
+         * the local space of the two wolf spine bones around it; every frame it is read back from the
+         * animated bones, and the rider's whole mesh is turned by the same rotation as that piece of spine.
+         */
+        calibrateSeat(m, c, def) {
+            if (!c.mesh) return null;
+            const names = def.seatBones || ['spine_0', 'spine_1', 'spine_2'];
+            const bones = [];
+            m.model.traverse(o => { if (o.isBone && names.indexOf(o.name) >= 0) bones.push(o); });
+            const hips = c.mountBones && c.mountBones.hips;
+            if (!bones.length || !hips) return null;
+
+            m.group.updateMatrixWorld(true);
+            const yaw = m.group.rotation.y;
+            const fwd = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+            const rideH = def.rideHeight || 0.65;
+            const seatF = def.seatForward !== undefined ? def.seatForward : 0.45;
+
+            // rider rest root on flat ground, hips offset in the rider's yaw frame
+            const root = m.group.position.clone().addScaledVector(fwd, -seatF);
+            root.y += rideH;
+            c.mesh.rotation.set(0, c.currentRotation + (c.facingOffset || 0), 0);
+            c.mesh.position.copy(root);
+            c.mesh.updateMatrixWorld(true);
+            const hipsW = hips.getWorldPosition(new THREE.Vector3());
+            const hipsOff = hipsW.clone().sub(root).applyQuaternion(c.mesh.quaternion.clone().invert());
+
+            // the two bones that bracket the seat along the wolf's length
+            const proj = b => b.getWorldPosition(new THREE.Vector3()).sub(m.group.position).dot(fwd);
+            const tH = hipsW.clone().sub(m.group.position).dot(fwd);
+            bones.sort((a, b) => proj(a) - proj(b));
+            let b0 = bones[0], b1 = bones[0], w = 0;
+            for (let i = 0; i < bones.length - 1; i++) {
+                const ta = proj(bones[i]), tb = proj(bones[i + 1]);
+                if (tH >= ta && tH <= tb) { b0 = bones[i]; b1 = bones[i + 1]; w = (tH - ta) / Math.max(1e-6, tb - ta); break; }
+            }
+            if (tH > proj(bones[bones.length - 1])) { b0 = b1 = bones[bones.length - 1]; w = 0; }
+
+            const gq = m.group.getWorldQuaternion(new THREE.Quaternion()).invert();
+            const mk = bone => ({
+                bone,
+                local: bone.worldToLocal(hipsW.clone()),
+                qRel: gq.clone().multiply(bone.getWorldQuaternion(new THREE.Quaternion()))
+            });
+            return {
+                a: mk(b0), b: mk(b1), w, hipsOff,
+                follow: def.riderFollow !== undefined ? def.riderFollow : 0.9,
+                upright: def.riderUpright !== undefined ? def.riderUpright : 0.5,
+                _p0: new THREE.Vector3(), _p1: new THREE.Vector3(),
+                _q0: new THREE.Quaternion(), _q1: new THREE.Quaternion(), _qg: new THREE.Quaternion(),
+                _qy: new THREE.Quaternion(), _qd: new THREE.Quaternion(), _qi: new THREE.Quaternion(),
+                _e: new THREE.Euler()
+            };
+        }
+
+        seatRider(m, c, delta) {
+            const st = m.seat;
+            m.group.updateMatrixWorld(true);
+            const gq = m.group.getWorldQuaternion(st._qg);
+
+            // seat point from the animated spine
+            const p0 = st.a.bone.localToWorld(st._p0.copy(st.a.local));
+            const p1 = st.b.bone.localToWorld(st._p1.copy(st.b.local));
+            p0.lerp(p1, st.w);
+
+            // rotation of that piece of spine relative to its rest pose (world): D = Q_now * (G * Q_rel)^-1
+            const dOf = (s, out) => {
+                s.bone.getWorldQuaternion(out);
+                const ref = st._qd.copy(gq).multiply(s.qRel).invert();
+                return out.multiply(ref);
+            };
+            const d0 = dOf(st.a, st._q0), d1 = dOf(st.b, st._q1);
+            d0.slerp(d1, st.w);
+            d0.slerp(st._qi.identity(), 1 - st.follow);   // d0 = rider tilt
+
+            // rider mesh: tilt * own yaw; hips land on the seat point
+            st._qy.setFromEuler(st._e.set(0, c.currentRotation + (c.facingOffset || 0), 0));
+            c.mesh.quaternion.copy(d0).multiply(st._qy);
+            const off = st._p1.copy(st.hipsOff).applyQuaternion(c.mesh.quaternion);
+            c.mesh.position.copy(p0).sub(off);
+            c.position.y = c.mesh.position.y;
+
+            // torso stays a bit more upright than the wolf's back (legs and pelvis follow it fully)
+            const sp = c.mountBones && c.mountBones.spine;
+            if (sp && st.upright > 0 && c.rotateBoneWorldQ) {
+                c.mesh.updateMatrixWorld(true);
+                const inv = st._q1.copy(d0).invert();
+                st._qi.identity().slerp(inv, st.upright * (c.mountPoseW || 1));
+                c.rotateBoneWorldQ(sp, st._qi);
             }
         }
 

@@ -1429,6 +1429,7 @@ class AveloraGame {
         this.setInventoryOpen(false);
         if (this.ui) this.ui.setSkillsOpen(false);
         if (this.character) this.character.stopMovement();
+        if (this.mount && this.mount.beforeLocationChange) this.mount.beforeLocationChange(target);   // dungeons: on foot
 
         this.showLoading(target.name || targetId, loadingText || 'Дорога ведёт дальше…');
         if (this.gameState) this.gameState.save(); // persists playTime (the respawn/regrow clock)
