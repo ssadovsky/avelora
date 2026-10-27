@@ -83,7 +83,7 @@ window.LOCATIONS = {
             // Ровная площадка под порталом (радиус 4.5 м, дальше 5 м плавно возвращается к рельефу)
             rimDip: [{ x: 0.0, k0: 0.85, w: 30.0, cragK: 0.0 }, { side: 'west', axis: 'z', z: 8.0, k0: 0.85, w: 30.0, cragK: 0.0 }],
             rockTint: { x: 0.0, z: 94.0, tintRadius: 26.0, tintStrength: 0.9 },
-            flatSpots: [{ x: -130.0, z: 8.0, radius: 2.2, blend: 2.5, hFrom: [-120.0, 8.0] }, { x: -136.5, z: 8.0, radius: 2.2, blend: 3.0, hFrom: [-120.0, 8.0], dh: 0.0 }, { x: -140.5, z: 8.0, radius: 2.2, blend: 3.5, hFrom: [-120.0, 8.0], dh: 0.22 }, { x: -144.0, z: 8.0, radius: 2.2, blend: 4.0, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: -147.0, z: 8.0, radius: 2.0, blend: 4.5, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: 70.0, z: -15.0, radius: 4.6, blend: 5.0 }, { x: 25.5, z: -20.1, radius: 3.4, blend: 4.0 }, { x: 64.3, z: -12.3, radius: 3.8, blend: 4.0 }, { x: 0.0, z: 86.0, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.07 }, { x: 0.0, z: 89.5, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.1 }, { x: 0.0, z: 93.0, radius: 2.2, blend: 4.5, hFrom: [0.0, 79.0], dh: 0.0 }, { x: 0.0, z: 95.3, radius: 1.6, blend: 6.5, hFrom: [0.0, 79.0], dh: -0.11 }],   // 2-й: под домиком, 3-й: под беседкой, 4-й: под кузней
+            flatSpots: [{ x: -130.0, z: 8.0, radius: 2.2, blend: 2.5, hFrom: [-120.0, 8.0] }, { x: -136.5, z: 8.0, radius: 2.2, blend: 3.0, hFrom: [-120.0, 8.0], dh: 0.0 }, { x: -140.5, z: 8.0, radius: 2.2, blend: 3.5, hFrom: [-120.0, 8.0], dh: 0.22 }, { x: -144.0, z: 8.0, radius: 2.2, blend: 4.0, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: -147.0, z: 8.0, radius: 2.0, blend: 4.5, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: 70.0, z: -15.0, radius: 4.6, blend: 5.0 }, { x: 25.5, z: -20.1, radius: 3.4, blend: 4.0 }, { x: 64.3, z: -12.3, radius: 3.8, blend: 4.0 }, { x: 0.0, z: 86.0, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.07 }, { x: 0.0, z: 89.5, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.1 }, { x: 0.0, z: 93.0, radius: 2.2, blend: 4.5, hFrom: [0.0, 79.0], dh: 0.0 }, { x: 0.0, z: 95.3, radius: 1.6, blend: 6.5, hFrom: [0.0, 79.0], dh: -0.11 }, { x: 47.0, z: 16.0, radius: 4.8, blend: 5.0 }],   // 2-й: под домиком, 3-й: под беседкой, 4-й: под кузней
             // Арочный вырез в восточном горном барьере для грота (севернее водопада)
             caves: [
                 { x: 139.5, z: -18.0, minX: 134.0, maxX: 143.5, radiusZ: 3.5, backLen: 1.0, tintRadius: 26.0, tintStrength: 0.85 }
@@ -131,11 +131,12 @@ window.LOCATIONS = {
         atmosphere: { sky: 0xc6dbe3, skyTop: 0x4a8fc9, fogDensity: 0.0055 },
         cameraAngle: 0.0,           // на старте камера смотрит на север (по тропе к Лираэль)
         // Зоны без папоротников (поляна барсуков): эллипсы {x, z, rx, rz}
-        noFerns: [{ x: 72.0, z: 62.0, rx: 32.0, rz: 28.0 }, { x: 24.5, z: -16.5, rx: 6.5, rz: 8.5 }, { x: 64.3, z: -12.3, rx: 6.5, rz: 6.5 }, { x: 0.0, z: 89.0, rx: 10.0, rz: 10.0 }],   // 2-й: беседка и подход к ней
+        noFerns: [{ x: 47.0, z: 14.0, rx: 8.0, rz: 8.0 }, { x: 72.0, z: 62.0, rx: 32.0, rz: 28.0 }, { x: 24.5, z: -16.5, rx: 6.5, rz: 8.5 }, { x: 64.3, z: -12.3, rx: 6.5, rz: 6.5 }, { x: 0.0, z: 89.0, rx: 10.0, rz: 10.0 }],   // 2-й: беседка и подход к ней
 
         spawns: {
             default:   { x: 127.0,  z: 77.5, r: 0.0 },   // новая игра: юго-восток долины, лицом на север к тропе (r: поворот модели = atan2+π, север = 0)
             camp:      { x: 6.0,    z: 12.0 },
+            fromRuneLands: { x: 47.0, z: 8.0, r: 0.0 },   // выход из рунного портала (47, 16): перед ступенями, лицом на север к каменной дороге
             fromSavanna:  { x: -128.0, z: 8.0, r: 4.71 },  // выход из портала: в 14 м от рунного вепря (aggro 9), лицом на восток в долину
             waterfall: { x: 104.0,  z: 6.0, r: 4.71 },  // с видом на восточный каскадный водопад
             fromPrimeval: { x: 0.0, z: 78.5, r: 0.0 },    // выход из горного прохода на юге (лицом на север)
@@ -167,6 +168,8 @@ window.LOCATIONS = {
         ],
 
         exits: [
+            // Рунный портал (47, 16) в Рунные земли: вход в центре арки (ступени смотрят на север)
+            { id: 'toRuneLands', x: 47.0, z: 16.0, radius: 1.5, to: 'runeLands', spawn: 'fromForest', label: 'Рунные земли', color: 0x6be3c0, height: 4.6, track: true },
             // Проход в Золотую саванну через горный каньон на западе
             { id: 'toLake', x: -146.0, z: 8.0, radius: 2.0, to: 'savanna', spawn: 'fromForest', label: 'Золотая саванна', color: 0xffd285, height: 5.0, track: true, noRing: true, r: -Math.PI / 2, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.25, color: 0xdec08a } },
             // Каменный проход в горах на юге, за лесом: в Долину Забытых Эпох (в конце ущелья — дымка)
@@ -188,6 +191,7 @@ window.LOCATIONS = {
 
             // Тропы и поляны (свободные от плотных деревьев)
         clearings: [
+            { x: 47.0, z: 13.0, radius: 9.0 },   // рунный портал и подход к нему
             { x: -144.5, z: 8.0, radius: 10.0 },
             { x: -136.5, z: 8.0, radius: 8.0 },
             { x: -122.0, z: 8.0, radius: 8.0 },
@@ -429,6 +433,8 @@ window.LOCATIONS = {
 
         props: [
             { id: 'start_stump', prop: 'stump', x: 107.0, z: 68.0, r: 0.4, s: 1.0 },
+            // Рунный портал в Рунные земли (ступени смотрят на север, к каменной дороге)
+            { id: 'forestEdge.rune_portal', prop: 'rune_portal', x: 47.0, z: 16.0, r: Math.PI },
             // Домик (фасад с дверью смотрит на запад) и наковальня рядом
             { id: 'forestEdge.cottage', prop: 'cottage', x: 70.0, z: -15.0, r: 0.0 },
             { id: 'forestEdge.smithy', prop: 'smithy', x: 64.3, z: -12.3, r: 1.45 },
@@ -1260,6 +1266,61 @@ window.LOCATIONS = {
         creatures: [
             { id: 'homeCamp.dancer', type: 'midnight_dancer', level: 20, rank: 'elite', x: -9.0, z: -6.0, r: 1.57 }
         ]
+    },
+
+    // -------------------------------------------------------------
+    // ЛОКАЦИЯ: Рунные земли (новая, пока пустая)
+    // Размер как у Лесной опушки (300×200), горы по периметру.
+    // В центре — рунный портал назад на опушку (к порталу у 47, 16).
+    // -------------------------------------------------------------
+    runeLands: {
+        id: 'runeLands',
+        name: 'Рунные земли',
+
+        terrain: {
+            sizeX: 300,
+            sizeZ: 200,
+            seed: 4471,
+            biome: 'forest',
+            groundSet: 'baseForest',
+            segmentsX: 300,
+            segmentsZ: 200,
+            border: 0,
+            baseHeight: 1.7,
+            landFloor: 0.85,
+            mountainRim: { width: 16.0, height: 6.0 },
+            mountainPasses: [],
+            // ровная площадка под порталом в центре
+            flatSpots: [{ x: 0.0, z: 0.0, radius: 4.8, blend: 5.0 }],
+            waterBody: { type: 'none' },
+            hills: { amplitude: 1.2, inclineX: 0.0, inclineZ: 0.0 }
+        },
+
+        atmosphere: { sky: 0xc6dbe3, skyTop: 0x4a8fc9, fogDensity: 0.0055 },
+        cameraAngle: 0.0,
+        noFerns: [{ x: 0.0, z: -2.0, rx: 8.0, rz: 8.0 }],
+
+        spawns: {
+            default:    { x: 0.0, z: -8.0, r: 0.0 },
+            fromForest: { x: 0.0, z: -8.0, r: 0.0 }    // выход из портала: перед ступенями, лицом на север
+        },
+
+        exits: [
+            // Рунный портал в центре локации — назад на Лесную опушку
+            { id: 'toForest', x: 0.0, z: 0.0, radius: 1.5, to: 'forestEdge', spawn: 'fromRuneLands', label: 'Лесная опушка', color: 0x6be3c0, height: 4.6, track: true }
+        ],
+
+        clearings: [
+            { x: 0.0, z: -3.0, radius: 9.0 }
+        ],
+
+        groups: [],
+
+        props: [
+            { id: 'runeLands.rune_portal', prop: 'rune_portal', x: 0.0, z: 0.0, r: Math.PI }
+        ],
+
+        creatures: []
     },
 
     // -------------------------------------------------------------
