@@ -2999,7 +2999,22 @@ class AveloraGame {
             }
         }
         const pf = this.pathfinder;
-        c.driveStep(delta, vx, vz, pf ? (x, z) => !pf.isWalkableWorld(x, z) : null);
+        c.driveStep(delta, vx, vz, pf ? (x, z) => {
+            const terrain = this.terrain;
+            const rawY = terrain ? terrain.getRawHeightAt(x, z) : 0;
+            if (terrain && terrain.platforms) {
+                for (const p of terrain.platforms) {
+                    if (!p.stair) continue;
+                    const dx = x - p.x, dz = z - p.z;
+                    const lx = dx * p.cos - dz * p.sin, lz = dx * p.sin + dz * p.cos;
+                    if (lz >= p.hz - 0.1 && lz <= p.hz + p.rampLen + 0.1 &&
+                        Math.abs(lx) > p.rampHx - 0.18 && Math.abs(lx) < p.rampHx + 0.28) return true;
+                }
+            }
+            const elevatedSurface = terrain && c.position.y > rawY + 1.0 &&
+                terrain.getHeightAt(x, z, c.position.y) > rawY + 1.0;
+            return !elevatedSurface && !pf.isWalkableWorld(x, z);
+        } : null);
     }
 
     /** 'first' | 'third'. Hides the whole hero body in first person, shows the crosshair. */

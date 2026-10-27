@@ -337,6 +337,55 @@ class DiabloPathfinder {
     }
 
     findPath(startWorld, targetWorld) {
+        // Home camp platforms can stack vertically while this pathfinder is 2D.
+        // Route level changes through the registered upper stairs, then keep movement
+        // on the same level when walking across a roof/deck above ground obstacles.
+        const terrain = this.terrain;
+        const rawAt = (x, z) => terrain && terrain.getRawHeightAt ? terrain.getRawHeightAt(x, z) : 0;
+        const startElevated = !!(terrain && startWorld.y > rawAt(startWorld.x, startWorld.z) + 1.0);
+        const targetElevated = !!(terrain && targetWorld.y > rawAt(targetWorld.x, targetWorld.z) + 1.0 &&
+            Math.abs(terrain.getHeightAt(targetWorld.x, targetWorld.z, targetWorld.y) - targetWorld.y) < 0.8);
+        const upperStairs = (terrain && terrain.platforms ? terrain.platforms : []).filter(p => p.stair);
+        const stairPoint = (p, lz) => new THREE.Vector3(
+            p.x + lz * p.sin,
+            p.y + (p.endY - p.y) * ((lz - p.hz) / p.rampLen),
+            p.z + lz * p.cos
+        );
+
+        if (targetElevated && startElevated) return [new THREE.Vector3(targetWorld.x, targetWorld.y, targetWorld.z)];
+        if (targetElevated && !startElevated) {
+            const stair = upperStairs.filter(p => Math.abs(p.y - targetWorld.y) < 0.8)
+                .sort((a, b) => Math.hypot(a.x - targetWorld.x, a.z - targetWorld.z) - Math.hypot(b.x - targetWorld.x, b.z - targetWorld.z))[0];
+            if (stair) {
+                const bottomLz = stair.hz + stair.rampLen - 0.12;
+                const topLz = stair.hz + 0.12;
+                const bottom = stairPoint(stair, bottomLz);
+                bottom.y = rawAt(bottom.x, bottom.z);
+                const approach = this.findPath(startWorld, bottom);
+                if (!approach.length) return [];
+                const climb = [];
+                for (let i = 1; i <= 8; i++) climb.push(stairPoint(stair, bottomLz + (topLz - bottomLz) * i / 8));
+                climb.push(new THREE.Vector3(targetWorld.x, targetWorld.y, targetWorld.z));
+                return approach.concat(climb);
+            }
+        }
+        if (startElevated && !targetElevated) {
+            const stair = upperStairs.filter(p => Math.abs(p.y - startWorld.y) < 0.8)
+                .sort((a, b) => Math.hypot(a.x - startWorld.x, a.z - startWorld.z) - Math.hypot(b.x - startWorld.x, b.z - startWorld.z))[0];
+            if (stair) {
+                const bottomLz = stair.hz + stair.rampLen - 0.12;
+                const topLz = stair.hz + 0.12;
+                const top = stairPoint(stair, topLz);
+                const descent = [new THREE.Vector3(top.x, top.y, top.z)];
+                for (let i = 1; i <= 8; i++) descent.push(stairPoint(stair, topLz + (bottomLz - topLz) * i / 8));
+                const bottom = stairPoint(stair, bottomLz);
+                bottom.y = rawAt(bottom.x, bottom.z);
+                return [new THREE.Vector3(top.x, top.y, top.z)].concat(
+                    descent.slice(1), this.findPath(bottom, targetWorld)
+                );
+            }
+        }
+
         let start = this.worldToGrid(startWorld.x, startWorld.z);
         let target = this.worldToGrid(targetWorld.x, targetWorld.z);
         let startAdjusted = false;

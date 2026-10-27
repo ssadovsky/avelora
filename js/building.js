@@ -222,11 +222,23 @@
             kind: 'block',
             blockType: 'stairs',
             name: 'Крыльцо со ступенями',
-            desc: 'Деревянный наклонный вход 1.2×1.6 м со ступенями. Обеспечивает удобный подъем на пол дома с земли.',
+            desc: 'Деревянные ступени 1.2×1.6 м, стыкуются с краем пола и спускаются к земле.',
             cost: [{ item: 'plank', count: 3 }, { item: 'log', count: 1 }],
-            fp: { hx: 0.6, hz: 0.8, front: 0, eaveX: 0.6, ridgeY: 0.6 },
+            fp: { hx: 0.6, hz: 0, front: 1.6, eaveX: 0.6, ridgeY: 0.6 },
             rects: [],
             icon: '<path d="M6 38h8v-8h8v-8h8v-8h8"/><path d="M6 38v-8l24-24h8v32z" opacity="0.3"/>'
+        },
+        block_stairs_upper: {
+            id: 'block_stairs_upper',
+            group: 'blocks',
+            kind: 'block',
+            blockType: 'stairs_upper',
+            name: 'Лестница на второй этаж',
+            desc: 'Длинная деревянная лестница с двенадцатью ступенями. Стыкуется с краем верхнего пола.',
+            cost: [{ item: 'plank', count: 8 }, { item: 'log', count: 3 }],
+            fp: { hx: 0.7, hz: 0, front: 4.2, eaveX: 0.7, ridgeY: 2.4 },
+            rects: [],
+            icon: '<path d="M5 40h8v-6h7v-6h7v-6h7v-6h7"/><path d="M8 40 36 12"/>'
         },
 
         // --- Хранение ---
@@ -676,17 +688,21 @@
             pushBox(B.frame, halfHyp + 0.04, 0.12, 0.16, mat(BLOCK_HMOD / 2, peakH / 2, 0, 0, 0, -aGable), sh(DARK, 1), rnd);
             pushBox(B.frame, halfHyp + 0.04, 0.12, 0.16, mat(-BLOCK_HMOD / 2, peakH / 2, 0, 0, 0, aGable), sh(DARK, 1), rnd);
 
-        } else if (bType === 'stairs') {
-            const stW = 1.2, stL = 1.6;
-            const nSteps = 5;
-            const stepRise = 0.10, stepRun = stL / nSteps;
+        } else if (bType === 'stairs' || bType === 'stairs_upper') {
+            const tall = bType === 'stairs_upper';
+            const stW = tall ? 1.3 : 1.2, stL = tall ? 4.2 : 1.6;
+            const nSteps = tall ? 12 : 5;
+            const stepRise = tall ? WALL_H / nSteps : 0.10, stepRun = stL / nSteps;
             for (let i = 0; i < nSteps; i++) {
                 const py = -stepRise * (nSteps - 1 - i);
-                const pz = -stL / 2 + stepRun * (i + 0.5);
-                box(B.floor, stW, stepRise + 0.02, stepRun + 0.04, 0, py - stepRise / 2, pz, sh(WOOD, kv()));
+                const pz = tall ? stepRun * (nSteps - i - 0.5) : stL - stepRun * (i + 1);
+                box(B.floor, stW, stepRise + 0.025, stepRun + 0.04, 0, py - stepRise / 2, pz, sh(WOOD, kv()));
             }
             [-1, 1].forEach(s => {
-                box(B.frame, 0.10, 0.18, Math.hypot(stL, nSteps * stepRise), s * (stW / 2 + 0.05), -0.25, 0, sh(LOG, 1), Math.atan2(nSteps * stepRise, stL), 0, 0);
+                const rise = nSteps * stepRise;
+                const supportH = tall ? 0.28 : 0.22;
+                const supportZ = tall ? stL / 2 : stL / 2 - stepRun / 2;
+                box(B.frame, 0.12, supportH, Math.hypot(stL, rise), s * (stW / 2 + 0.02), -rise / 2, supportZ, sh(LOG, 1), Math.atan2(rise, stL), 0, 0);
             });
         }
 
@@ -1936,12 +1952,20 @@
                 this.floorProxies.push(deckBox);
             } else if (def.blockType === 'stairs') {
                 platform = {
-                    id: 'building:' + b.uid, x: b.x, z: b.z, cos: Math.cos(b.r), sin: Math.sin(b.r),
-                    hx: 0.6, hz: 0.8, y: f.deckY, rampLen: 1.6, rampHx: 0.6, endY: f.deckY - 0.5,
+                    id: 'building:' + b.uid, x: b.x, z: b.z, cos: Math.cos(b.r), sin: Math.sin(b.r), stair: true,
+                    hx: 0.6, hz: 0, y: f.deckY, rampLen: 1.6, rampHx: 0.6, endY: f.deckY - 0.5,
                     reach2: 2.5 * 2.5
                 };
                 this.terrain.addPlatform(platform);
-                rampBox = addBox(low, 1.2, 0.4, 1.6, 0, -0.2, 0);
+                rampBox = addBox(low, 1.2, 0.4, 1.6, 0, -0.25, 0.8, Math.atan2(0.5, 1.6), 0, 0);
+            } else if (def.blockType === 'stairs_upper') {
+                platform = {
+                    id: 'building:' + b.uid, x: b.x, z: b.z, cos: Math.cos(b.r), sin: Math.sin(b.r), stair: true,
+                    hx: 0.7, hz: 0, y: f.deckY, rampLen: 4.2, rampHx: 0.7, endY: f.deckY - WALL_H,
+                    reach2: 5.0 * 5.0
+                };
+                this.terrain.addPlatform(platform);
+                rampBox = addBox(low, 1.3, 0.3, 4.2, 0, -WALL_H / 2, 2.1, Math.atan2(WALL_H, 4.2), 0, 0);
                 this.floorProxies.push(rampBox);
             } else if (def.blockType === 'roof_flat') {
                 platform = {
@@ -2020,9 +2044,14 @@
         blockCells(inst) {
             const pf = this.pathfinder;
             if (!pf || !inst.def.rects || !inst.def.rects.length) return;
+            // Карта пути двумерная. Стены второго этажа не должны повторно
+            // блокировать клетки дверного проёма и окон первого этажа.
+            const bt = inst.def.blockType;
+            if ((bt === 'wall' || bt === 'door' || bt === 'window') && this.terrain &&
+                inst.y > this.terrain.getRawHeightAt(inst.x, inst.z) + 0.6) return;
             const c = inst.platform.cos, s = inst.platform.sin;
             const rects = inst.def.rects;
-            const reach = Math.hypot(inst.fp.hx, inst.fp.hz) + 0.8;
+            const reach = Math.hypot(inst.fp.hx, inst.fp.hz + (inst.fp.front || 0)) + 0.8;
             const g0 = pf.worldToGrid(inst.x - reach, inst.z - reach), g1 = pf.worldToGrid(inst.x + reach, inst.z + reach);
             const ext = 0.5 * pf.cellWidth * (Math.abs(c) + Math.abs(s));
             const isDoor = inst.def.blockType === 'door';
@@ -2345,6 +2374,7 @@
             if (!isBlock) return { x: targetX, z: targetZ, y: undefined, r: pl.r };
 
             let bestDist = 2.8;
+            let bestHeightDiff = Infinity;
             let snappedX = targetX, snappedZ = targetZ;
             let snappedY = undefined;
             let snappedR = undefined;
@@ -2516,6 +2546,21 @@
                                 }
                             }
                         }
+                    } else if (isWallLike(inst.def.blockType)) {
+                        // Стена/дверь/окно над таким же элементом формирует следующий этаж.
+                        // Если ячейка занята стеной, дверь или окно ставятся этажом выше.
+                        // При наведении на уже поднятый призрак выбираем стену его уровня,
+                        // чтобы можно было последовательно строить третий и следующие этажи.
+                        const levelDiff = Math.abs((pl.y === undefined ? instY : pl.y) - instY);
+                        const currentLevelDiff = Math.abs((pl.y === undefined ? instY : pl.y) - (snappedY === undefined ? instY : snappedY - WALL_H));
+                        if (d < 1.8 && (d < bestDist || (Math.abs(d - bestDist) < 0.1 && levelDiff < currentLevelDiff))) {
+                            bestDist = d;
+                            snappedX = inst.x;
+                            snappedZ = inst.z;
+                            snappedY = instY + WALL_H;
+                            snappedR = pickBestRot(inst.r, [0, Math.PI / 2, Math.PI, -Math.PI / 2]);
+                            found = true;
+                        }
                     } else if (isFloorLike(inst.def.blockType)) {
                         const wallEdges = [
                             { ox: 0, oz: BLOCK_HMOD },
@@ -2646,8 +2691,11 @@
                         ];
                         for (const sock of roofWallSockets) {
                             const dSock = Math.hypot(lx - sock.ox, lz - sock.oz);
-                            if (dSock < 1.5 && dSock < bestDist) {
+                            const heightDiff = Number.isFinite(pl._targetY)
+                                ? Math.abs(pl._targetY - (instY + WALL_H)) : 0;
+                            if (dSock < 1.5 && (dSock < bestDist || (Math.abs(dSock - bestDist) < 0.1 && heightDiff < bestHeightDiff))) {
                                 bestDist = dSock;
+                                bestHeightDiff = heightDiff;
                                 snappedX = Math.round((inst.x + sock.ox * c + sock.oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - sock.ox * s + sock.oz * c) * 100) / 100;
                                 snappedY = instY + WALL_H;
@@ -2782,12 +2830,42 @@
                 }
 
                 // --- 7. РАЗМЕЩАЕМ ЛЕСТНИЦУ (stairs) ---
+                else if (bType === 'stairs_upper' && (inst.def.blockType === 'floor' || inst.def.blockType === 'roof_flat')) {
+                    const stairEdges = [
+                        { ox: 0, oz: BLOCK_HMOD, rOff: 0 },
+                        { ox: 0, oz: -BLOCK_HMOD, rOff: Math.PI },
+                        { ox: BLOCK_HMOD, oz: 0, rOff: Math.PI / 2 },
+                        { ox: -BLOCK_HMOD, oz: 0, rOff: -Math.PI / 2 }
+                    ];
+                    for (const edge of stairEdges) {
+                        const dEdge = Math.hypot(lx - edge.ox, lz - edge.oz);
+                        if (dEdge < 1.4 && dEdge < bestDist) {
+                            bestDist = dEdge;
+                            snappedX = Math.round((inst.x + edge.ox * c + edge.oz * s) * 100) / 100;
+                            snappedZ = Math.round((inst.z - edge.ox * s + edge.oz * c) * 100) / 100;
+                            snappedY = instY;
+                            snappedR = inst.r + edge.rOff;
+                            found = true;
+                        }
+                    }
+                }
+                else if (bType === 'stairs' && inst.def.blockType === 'door') {
+                    // Крыльцо должно стыковаться с дверным проёмом; выбираем наружную сторону по курсору.
+                    if (d < 2.2 && d < bestDist) {
+                        bestDist = d;
+                        snappedX = inst.x;
+                        snappedZ = inst.z;
+                        snappedY = instY;
+                        snappedR = inst.r + (lz < 0 ? Math.PI : 0);
+                        found = true;
+                    }
+                }
                 else if (bType === 'stairs' && isFloorLike(inst.def.blockType)) {
                     const stairEdges = [
-                        { ox: 0, oz: BLOCK_HMOD + 0.8, rOff: 0 },
-                        { ox: 0, oz: -BLOCK_HMOD - 0.8, rOff: Math.PI },
-                        { ox: BLOCK_HMOD + 0.8, oz: 0, rOff: -Math.PI / 2 },
-                        { ox: -BLOCK_HMOD - 0.8, oz: 0, rOff: Math.PI / 2 }
+                        { ox: 0, oz: BLOCK_HMOD, rOff: 0 },
+                        { ox: 0, oz: -BLOCK_HMOD, rOff: Math.PI },
+                        { ox: BLOCK_HMOD, oz: 0, rOff: -Math.PI / 2 },
+                        { ox: -BLOCK_HMOD, oz: 0, rOff: Math.PI / 2 }
                     ];
                     for (const edge of stairEdges) {
                         const dEdge = Math.hypot(lx - edge.ox, lz - edge.oz);
@@ -2832,18 +2910,26 @@
             // Кровельные блоки и фронтоны: курсор целится строго в горизонтальную плоскость верха стены
             const bType = pl.def.blockType;
             let targetPlaneY = undefined;
-            if (bType === 'roof' || bType === 'roof_flat' || bType === 'roof_ridge' || bType === 'gable' || bType === 'gable_rect' || bType === 'gable_peak') {
-                let sumY = 0, countY = 0;
+            if (bType === 'stairs') {
+                let doorY = Infinity;
                 for (const inst of this.instances) {
-                    if (inst.def.kind === 'block') {
-                        const iy = (inst.fit ? inst.fit.deckY : (inst.y || 0));
-                        sumY = countY ? Math.min(sumY, iy) : iy;
-                        countY++;
-                    }
+                    if (inst.def.blockType === 'door') doorY = Math.min(doorY, inst.fit ? inst.fit.deckY : (inst.y || 0));
                 }
-                const baseY = countY > 0 ? sumY : 0;
-                targetPlaneY = baseY + WALL_H;
+                if (Number.isFinite(doorY)) targetPlaneY = doorY;
+            } else if (bType === 'roof' || bType === 'roof_flat' || bType === 'roof_ridge' || bType === 'gable' || bType === 'gable_rect' || bType === 'gable_peak' || bType === 'stairs_upper') {
+                let targetY = -Infinity;
+                for (const inst of this.instances) {
+                    if (inst.def.kind !== 'block') continue;
+                    const iy = inst.fit ? inst.fit.deckY : (inst.y || 0);
+                    const bt = inst.def.blockType;
+                    if (bt === 'wall' || bt === 'door' || bt === 'window') targetY = Math.max(targetY, iy + WALL_H);
+                    else if (bt === 'floor') targetY = Math.max(targetY, iy + WALL_H);
+                    else if (bt === 'roof_flat' || bt === 'roof') targetY = Math.max(targetY, iy);
+                    else if (bt === 'gable_rect') targetY = Math.max(targetY, iy + 1.0);
+                }
+                if (Number.isFinite(targetY)) targetPlaneY = targetY;
             }
+            pl._targetY = targetPlaneY;
 
             const p = this.groundAt(ndcX, ndcY, targetPlaneY);
             if (!p) return;
@@ -2970,6 +3056,31 @@
         }
 
         // -------------------- ИНТЕРАКТИВНЫЙ РЕЖИМ ПЕРЕМЕЩЕНИЯ --------------------
+        setSelectionBox(box, inst) {
+            if (!box || !inst) return;
+            const F = inst.fp || { hx: 1, hz: 1, ridgeY: 2.0 };
+            const bt = inst.def.blockType;
+            let sx = F.hx * 2 + 0.1;
+            let sy = Math.max(0.6, F.ridgeY || 2.4);
+            let sz = (F.hz + (F.front || 0)) * 2 + 0.1;
+            let ox = 0, oy = sy / 2, oz = (F.front || 0) / 2;
+
+            if (inst.def.kind === 'block') {
+                if (bt === 'floor') { sx = sz = 2.05; sy = 0.35; oy = -0.15; oz = 0; }
+                else if (bt === 'roof_flat') { sx = sz = 2.05; sy = 0.25; oy = -0.1; oz = 0; }
+                else if (bt === 'wall' || bt === 'door' || bt === 'window') { sx = 2.05; sy = WALL_H; sz = 0.24; oy = WALL_H / 2; oz = 0; }
+                else if (bt === 'roof') { sx = 2.05; sy = 1.35; sz = 2.8; oy = 0.5; oz = 0; }
+                else if (bt === 'stairs') { sx = 1.32; sy = 0.62; sz = 1.68; oy = -0.25; oz = 0.8; }
+                else if (bt === 'stairs_upper') { sx = 1.45; sy = WALL_H + 0.18; sz = 4.25; oy = -WALL_H / 2; oz = 2.1; }
+            }
+
+            box.scale.set(sx, sy, sz);
+            const center = this.toWorld(inst.x, inst.z, inst.r || 0, ox, oz);
+            box.position.set(center.x, (inst.fit ? inst.fit.deckY : (inst.y || 0)) + oy, center.z);
+            box.rotation.y = inst.r || 0;
+            box.visible = true;
+        }
+
         startMovingMode() {
             if (!this.canOpen()) return;
             if (!this.canBuildHere()) {
@@ -3026,15 +3137,7 @@
             this.hoveredInst = inst;
 
             const box = this.moveBox;
-            if (box) {
-                const F = inst.fp || { hx: 1, hz: 1, ridgeY: 2.0 };
-                const sx = F.hx * 2 + 0.1, sz = (F.hz + (F.front || 0)) * 2 + 0.1;
-                const sy = Math.max(0.6, F.ridgeY || 2.4);
-                box.scale.set(sx, sy, sz);
-                box.position.set(inst.x, inst.fit ? inst.fit.deckY + sy / 2 : (inst.y || 0) + sy / 2, inst.z);
-                box.rotation.y = inst.r || 0;
-                box.visible = true;
-            }
+            this.setSelectionBox(box, inst);
 
             const st = this.game.gameState;
             const rec = st ? st.buildingsOf(this.location.id).find(b => b.uid === inst.uid) : null;
@@ -3071,15 +3174,7 @@
             this.hoveredInst = hitInst;
             if (hitInst) {
                 const box = this.moveBox;
-                if (box) {
-                    const F = hitInst.fp || { hx: 1, hz: 1, ridgeY: 2.0 };
-                    const sx = F.hx * 2 + 0.1, sz = (F.hz + (F.front || 0)) * 2 + 0.1;
-                    const sy = Math.max(0.6, F.ridgeY || 2.4);
-                    box.scale.set(sx, sy, sz);
-                    box.position.set(hitInst.x, hitInst.fit ? hitInst.fit.deckY + sy / 2 : (hitInst.y || 0) + sy / 2, hitInst.z);
-                    box.rotation.y = hitInst.r || 0;
-                    box.visible = true;
-                }
+                this.setSelectionBox(box, hitInst);
                 UI.els.barTitle.textContent = `Выбор: ${hitInst.def.name} №${hitInst.uid}`;
                 UI.setStatus(true, 'Нажмите для выбора перемещения');
             } else {
@@ -3146,15 +3241,7 @@
             this.hoveredInst = inst;
 
             const box = this.demolishBox;
-            if (box) {
-                const F = inst.fp || { hx: 1, hz: 1, ridgeY: 2.0 };
-                const sx = F.hx * 2 + 0.1, sz = (F.hz + (F.front || 0)) * 2 + 0.1;
-                const sy = Math.max(0.6, F.ridgeY || 2.4);
-                box.scale.set(sx, sy, sz);
-                box.position.set(inst.x, inst.fit ? inst.fit.deckY + sy / 2 : (inst.y || 0) + sy / 2, inst.z);
-                box.rotation.y = inst.r || 0;
-                box.visible = true;
-            }
+            this.setSelectionBox(box, inst);
 
             const Items = window.AveloraItems;
             const returnCost = (inst.def.cost || []).map(c => {
@@ -3228,15 +3315,7 @@
             this.hoveredInst = hitInst;
             if (hitInst) {
                 const box = this.demolishBox;
-                if (box) {
-                    const F = hitInst.fp || { hx: 1, hz: 1, ridgeY: 2.0 };
-                    const sx = F.hx * 2 + 0.1, sz = (F.hz + (F.front || 0)) * 2 + 0.1;
-                    const sy = Math.max(0.6, F.ridgeY || 2.4);
-                    box.scale.set(sx, sy, sz);
-                    box.position.set(hitInst.x, hitInst.fit ? hitInst.fit.deckY + sy / 2 : (hitInst.y || 0) + sy / 2, hitInst.z);
-                    box.rotation.y = hitInst.r || 0;
-                    box.visible = true;
-                }
+                this.setSelectionBox(box, hitInst);
                 const Items = window.AveloraItems;
                 const returnCost = (hitInst.def.cost || []).map(c => {
                     const it = Items ? Items.get(c.item) : null;

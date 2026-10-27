@@ -1239,7 +1239,7 @@ class MedievalCharacter {
 
         // Dead: no movement/turning; lie down procedurally (combat.js respawns)
         if (this.deathT >= 0) {
-            this.position.y = this.terrain.getHeightAt(this.position.x, this.position.z);
+            this.position.y = this.terrain.getHeightAt(this.position.x, this.position.z, this.position.y);
             if (this.mesh) {
                 this.mesh.position.copy(this.position);
                 this.applyDeathPose(delta);
@@ -1308,7 +1308,7 @@ class MedievalCharacter {
         }
 
         // Stick character to terrain surface + procedural step-up over fallen logs and stumps
-        const groundHeight = this.terrain.getHeightAt(this.position.x, this.position.z);
+        const groundHeight = this.terrain.getHeightAt(this.position.x, this.position.z, this.position.y);
         let stepUpTarget = 0;
         const wo = window.game && window.game.worldObjects;
         if (wo && wo.props) {

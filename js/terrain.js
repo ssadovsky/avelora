@@ -148,7 +148,7 @@ class LakesideTerrain {
      * lift the walkable surface over the river; the terrain MESH is built from getRawHeightAt so the
      * channel stays visible under the deck.
      */
-    getHeightAt(x, z) {
+    getHeightAt(x, z, referenceY) {
         const h = this.getRawHeightAt(x, z);
         if (this._rawOnly) return h;
         const br = this.bridges;
@@ -166,6 +166,9 @@ class LakesideTerrain {
         }
         const pl = this.platforms;
         if (pl && pl.length) {
+            const hasReference = Number.isFinite(referenceY);
+            let platformY = h;
+            let bestDelta = Infinity;
             for (let i = 0; i < pl.length; i++) {
                 const p = pl[i];
                 const dx = x - p.x, dz = z - p.z;
@@ -173,17 +176,23 @@ class LakesideTerrain {
                 const lx = dx * p.cos - dz * p.sin;
                 const lz = dx * p.sin + dz * p.cos;
                 const alx = Math.abs(lx);
+                let surfaceY = null;
                 if (p.oct) {   // восьмиугольный настил (беседка): плоская сторона к локальному +Z
                     let m = -1e9;
                     for (let k = 0; k < 8; k++) { const v = lx * OCT_SIN[k] + lz * OCT_COS[k]; if (v > m) m = v; }
-                    if (m <= p.oct) return p.y;
-                } else if (alx <= p.hx && lz >= -p.hz && lz <= p.hz) return p.y;   // deck
-                if (lz > p.hz && lz < p.hz + p.rampLen && alx < p.rampHx + 0.25) {   // ramp down to the ground
+                    if (m <= p.oct) surfaceY = p.y;
+                } else if (alx <= p.hx && lz >= -p.hz && lz <= p.hz) surfaceY = p.y;   // deck
+                if (surfaceY === null && lz > p.hz && lz < p.hz + p.rampLen && alx < p.rampHx + 0.25) {   // ramp down to the ground
                     let plane = p.y + (p.endY - p.y) * ((lz - p.hz) / p.rampLen);
                     if (alx > p.rampHx) plane -= (alx - p.rampHx) * 4;               // soft side edge
-                    return plane > h ? plane : h;
+                    surfaceY = plane > h ? plane : h;
                 }
+                if (surfaceY === null || surfaceY <= h + 1e-4) continue;
+                if (!hasReference) return surfaceY;
+                const delta = Math.abs(surfaceY - referenceY);
+                if (delta < bestDelta) { bestDelta = delta; platformY = surfaceY; }
             }
+            if (bestDelta < Infinity) return platformY;
         }
         const sf = this.surfaces;
         if (sf && sf.length) {   // ходимая поверхность низких камней у подножия скал (prop.json "walkSurface"): герой поднимается по ним как на пень
