@@ -751,7 +751,7 @@
             if (stn) {
                 const sl = document.createElement('div');
                 sl.className = 'crafting-station ' + (stn.near ? 'near' : 'far');
-                sl.textContent = stn.near ? `✓ ${stn.name} рядом` : `Нужна: ${stn.name} — подойдите к ней`;
+                sl.textContent = stn.near ? `✓ ${stn.name} построена` : `Нужна: ${stn.name} — постройте её в домашнем лагере`;
                 infoWrap.appendChild(sl);
             }
 
@@ -868,7 +868,7 @@
 
             const stn = this.stationInfo(rec);
             if (stn && !stn.near) {
-                this.floatText(`Нужна: ${stn.name} рядом`, 'warn');
+                this.floatText(`Нужна: ${stn.name} в домашнем лагере`, 'warn');
                 this.renderCrafting();
                 return;
             }

@@ -803,7 +803,7 @@ class AveloraGame {
         const opts = save ? {
             saveId: slot.saveId,
             locationId: save.locationId,
-            position: { x: save.x, z: save.z, r: save.r },
+            position: { x: save.x, z: save.z, r: save.r, y: save.y },
             under: (typeof save.under === 'string' && !save.relocated) ? save.under : null,
             relocated: !!save.relocated
         } : {
@@ -1117,7 +1117,11 @@ class AveloraGame {
 
         // Auto-rescue: check if character coordinates are stuck inside mountains/cliffs/water/edge (e.g. from an older map save)
         let rescued = false;
-        if (this.pathfinder && !this.pathfinder.isWalkableWorld(spawn.x, spawn.z)) {
+        // Герой сохранился на полу 2 этажа: сетка земли под ним может быть занята (стена внизу) — это не «застрял»
+        // (постройки создаются позже героя, поэтому поверхности 2 этажа ещё нет — судим по сохранённой высоте)
+        const onDeck = Number.isFinite(spawn.y) && this.terrain && this.building && this.building.cfg &&
+            spawn.y > this.terrain.getRawHeightAt(spawn.x, spawn.z) + 1.0;
+        if (this.pathfinder && !onDeck && !this.pathfinder.isWalkableWorld(spawn.x, spawn.z)) {
             console.warn(`[Avelora] Spawn position (${spawn.x.toFixed(1)}, ${spawn.z.toFixed(1)}) is impassable. Rescuing to safe terrain...`);
             const safe = this.pathfinder.findNearestWalkableWorld(spawn.x, spawn.z, 120);
             if (safe) {
@@ -1132,6 +1136,8 @@ class AveloraGame {
             this.character = new MedievalCharacter(this.scene, this.terrain, characterConfig, () => resolve());
         });
         this.character.teleport(spawn.x, spawn.z, spawn.r);
+        this._pendingElevY = (!rescued && Number.isFinite(spawn.y)) ? spawn.y : undefined;   // 2 этаж и т.п.: высота ног из сохранения
+        this.applyPendingElevation();
         if (opts.under && !rescued && this.cellars) { const cel = this.cellars.find(c => c.cfg && c.cfg.id === opts.under); if (cel) cel.restoreHero(this.character); }   // сохранение «внизу»: на пол подвала
         this.cameraTarget.copy(this.character.position);
         this.applyLocationCamera(this.location);
@@ -1205,6 +1211,24 @@ class AveloraGame {
     // Save/progress (per character — see save.js)
     // ---------------------------------------------------------------
     /** Persists the current character's location + exact position. No-op until a character is playing. */
+    /** Постройки спавнятся асинхронно (building.js, после шаблона брёвен): высоту применяем, когда есть и герой, и постройки. */
+    applyPendingElevation() {
+        const y = this._pendingElevY;
+        if (y === undefined || !this.character || !this.building || !this.building._ready) return;
+        this._pendingElevY = undefined;
+        this.restoreSavedElevation(y);
+    }
+
+    /** Загрузка: если герой стоял на возвышении (пол 2 этажа, настил), поднимаем его на ту поверхность, что ближе к сохранённой высоте. */
+    restoreSavedElevation(savedY) {
+        const c = this.character, t = this.terrain;
+        if (!c || !t || !Number.isFinite(savedY)) return;
+        if (savedY < t.getRawHeightAt(c.position.x, c.position.z) + 1.0) return;
+        const h = t.getHeightAt(c.position.x, c.position.z, savedY);
+        if (Number.isFinite(h) && Math.abs(h - savedY) < 0.8) c.position.y = h;
+        if (c.mesh) c.mesh.position.copy(c.position);
+    }
+
     saveProgress() {
         if (!this.currentCharacterConfig || !this.character || !this.location || !window.AveloraSave) return;
         const saveId = this.currentSaveId || this.currentCharacterConfig.id;
@@ -1213,6 +1237,7 @@ class AveloraGame {
             x: this.character.position.x,
             z: this.character.position.z,
             r: this.character.currentRotation,
+            y: this.character.position.y,
             under: (this.cellars && (this.cellars.find(c => c.below) || {}).cfg) ? this.cellars.find(c => c.below).cfg.id : null
         });
     }
@@ -1346,6 +1371,7 @@ class AveloraGame {
         if (this.map) this.map.clearAll();        // close map panel when leaving location
         if (this.creatures) { this.creatures.dispose(); this.creatures = null; }
         if (this.harvest) { this.harvest.dispose(); this.harvest = null; }
+        this._pendingElevY = undefined;
         if (this.building) { this.building.dispose(); this.building = null; }
         if (this.worldObjects) { this.worldObjects.dispose(); this.worldObjects = null; }
         if (this.environment) this.environment.dispose();
@@ -3032,7 +3058,9 @@ class AveloraGame {
             }
             const elevatedSurface = terrain && c.position.y > rawY + 1.0 &&
                 terrain.getHeightAt(x, z, c.position.y) > rawY + 1.0;
-            return !elevatedSurface && !pf.isWalkableWorld(x, z);
+            // На возвышении (2 этаж) сетка земли не действует; препятствия того же этажа — building.blockedAtLevel
+            if (elevatedSurface) return !!(this.building && this.building.blockedAtLevel && this.building.blockedAtLevel(x, z, c.position.y));
+            return !pf.isWalkableWorld(x, z);
         } : null);
     }
 

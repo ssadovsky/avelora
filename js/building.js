@@ -41,6 +41,9 @@
     const BLOCK_MOD = 2.0;             // базовый шаг сетки блоков, м
     const BLOCK_HMOD = 1.0;            // половина модуля
     const WALL_H = 2.4;                // высота стен
+    const ROOF_BLOCK_RECTS = [{ x0: -1.0, x1: 1.0, z0: -1.1, z1: 1.1 }];   // скат: герой на том же этаже его не проходит
+    const RIDGE_BLOCK_RECTS = [{ x0: -1.0, x1: 1.0, z0: -1.0, z1: 1.0 }];
+    const ROOF_CHAIN_BONUS = 0.2;      // приоритет гнёзд «скат к скату» (вбок/ярус вверх) над «верх стены» при равном расстоянии
     const WALL_TH = 0.16;              // толщина стены
 
     // Группы меню
@@ -1587,6 +1590,9 @@
                 const st = game.gameState;
                 if (st) st.buildingsOf(location.id).forEach(b => { try { this.spawn(b); } catch (err) { console.error('[Avelora] building spawn failed', b, err); } });
                 (this.cfg.fixed || []).forEach((b, i) => { try { this.spawn({ uid: -(i + 1), type: b.type, x: b.x, z: b.z, r: b.r || 0, fixed: true }); } catch (err) { console.error('[Avelora] fixed building failed', b, err); } });
+                // Постройки (настилы 2 этажа и т.п.) готовы: можно поставить героя на сохранённую высоту (main.js applyPendingElevation)
+                this._ready = true;
+                if (game.applyPendingElevation) game.applyPendingElevation();
             });
         }
 
@@ -2010,6 +2016,7 @@
             this.game.addCameraBlocker(shell);
             inst.shellOn = true;
             this.instances.push(inst);
+            this.refreshCraftUI();
             this.updateShell(inst, 0, true);
             return inst;
         }
@@ -2029,16 +2036,43 @@
             if (window.AveloraAssets && pdef.modelKey) window.AveloraAssets.ensure(pdef.modelKey).then(run); else run();
         }
 
-        stationNear(stationId, pos) {
-            const p = pos || (this.game.character && this.game.character.position);
-            if (!p) return null;
-            let best = null, bd = Infinity;
+        /** Станция построена в этой локации (стоять рядом не нужно). Менеджер есть только у домашней локации. */
+        stationNear(stationId) {
             for (const inst of this.instances) {
-                if (inst.def.station !== stationId) continue;
-                const d = Math.hypot(p.x - inst.x, p.z - inst.z);
-                if (d <= (inst.def.craftRadius || CRAFT_RADIUS) && d < bd) { bd = d; best = inst; }
+                if (inst.def.station === stationId) return inst;
             }
-            return best;
+            return null;
+        }
+
+        /**
+         * Препятствия верхних этажей. Сетка проходимости 2D и описывает только землю, а герой на возвышении
+         * (main.js driveStep) её не проверяет, поэтому стены/окна/двери и скаты, стоящие на ТОМ ЖЕ полу, что и герой,
+         * проверяются здесь по своим прямоугольникам. y — высота ног героя.
+         */
+        blockedAtLevel(x, z, y) {
+            const R = 0.3;
+            for (let i = 0; i < this.instances.length; i++) {
+                const inst = this.instances[i];
+                const def = inst.def;
+                if (def.kind !== 'block') continue;
+                const bt = def.blockType;
+                let rects = def.rects;
+                if (bt === 'roof') rects = ROOF_BLOCK_RECTS;
+                else if (bt === 'roof_ridge') rects = RIDGE_BLOCK_RECTS;
+                if (!rects || !rects.length) continue;
+                // Блок мешает, если по высоте пересекается с героем (ноги y, рост ~1,8): не ниже его ног и не выше головы
+                const top = inst.y + ((bt === 'roof' || bt === 'roof_ridge') ? 1.0 : WALL_H);
+                if (inst.y > y + 1.5 || top < y + 0.3) continue;
+                const pl = inst.platform;
+                if (!pl) continue;
+                const dx = x - inst.x, dz = z - inst.z;
+                const lx = dx * pl.cos - dz * pl.sin, lz = dx * pl.sin + dz * pl.cos;
+                for (let k = 0; k < rects.length; k++) {
+                    const r = rects[k];
+                    if (lx > r.x0 - R && lx < r.x1 + R && lz > r.z0 - R && lz < r.z1 + R) return true;
+                }
+            }
+            return false;
         }
 
         blockCells(inst) {
@@ -2715,8 +2749,12 @@
                             // Гнёзда в одной точке (конёк-зеркало yOff 0 и ярус yOff 1) различаем по повороту (клавиша R)
                             const rotDiff = Math.abs(Math.atan2(Math.sin(inst.r + sock.rOffs[0] - pl.r), Math.cos(inst.r + sock.rOffs[0] - pl.r)));
                             const dSock = Math.hypot(lx - sock.ox, lz - sock.oz) + (rotDiff > 1.5 ? 0.35 : 0);
-                            if (dSock < 1.6 && dSock < bestDist) {
-                                bestDist = dSock;
+                            // Продолжение уже стоящего ската важнее гнезда «верх стены» в той же точке
+                            // (иначе при равном расстоянии побеждала стена и призрак не поднимался ярусом).
+                            const dScore = dSock - ((sock.yOff || 0) >= 0 ? ROOF_CHAIN_BONUS : 0);
+                            if (dSock < 1.6 && dScore < bestDist) {
+                                bestDist = dScore;
+                                bestHeightDiff = Infinity;
                                 snappedX = Math.round((inst.x + sock.ox * c + sock.oz * s) * 100) / 100;
                                 snappedZ = Math.round((inst.z - sock.ox * s + sock.oz * c) * 100) / 100;
                                 snappedY = instY + (sock.yOff || 0);
@@ -2830,10 +2868,12 @@
                 }
 
                 // --- 7. РАЗМЕЩАЕМ ЛЕСТНИЦУ (stairs) ---
-                else if (bType === 'stairs_upper' && (inst.def.blockType === 'floor' || inst.def.blockType === 'roof_flat')) {
+                else if (bType === 'stairs_upper' && (inst.def.blockType === 'floor' || inst.def.blockType === 'roof_flat' || inst.def.blockType === 'roof')) {
+                    // Скат: края по его габариту 2.0 × 2.2 м (верх лестницы на уровне основания ската)
+                    const eZ = inst.def.blockType === 'roof' ? 1.1 : BLOCK_HMOD;
                     const stairEdges = [
-                        { ox: 0, oz: BLOCK_HMOD, rOff: 0 },
-                        { ox: 0, oz: -BLOCK_HMOD, rOff: Math.PI },
+                        { ox: 0, oz: eZ, rOff: 0 },
+                        { ox: 0, oz: -eZ, rOff: Math.PI },
                         { ox: BLOCK_HMOD, oz: 0, rOff: Math.PI / 2 },
                         { ox: -BLOCK_HMOD, oz: 0, rOff: -Math.PI / 2 }
                     ];
@@ -3378,6 +3418,13 @@
             if (inst.model.meshes.wall && inst.model.meshes.wall.material) inst.model.meshes.wall.material.dispose();
             if (inst.model.meshes.roof && inst.model.meshes.roof.material) inst.model.meshes.roof.material.dispose();
             this.instances = this.instances.filter(i => i !== inst);
+            this.refreshCraftUI();
+        }
+
+        /** Станция построена/снесена — обновить открытую вкладку «Создание» (таймера-опроса нет). */
+        refreshCraftUI() {
+            const ui = this.game.ui;
+            if (ui && ui.currentTab === 'craft' && ui.renderCrafting) ui.renderCrafting();
         }
 
         pickFloor(raycaster) {
@@ -3426,20 +3473,6 @@
             const ft = this._fT, fl = 0.8 + 0.12 * Math.sin(ft * 9.1) + 0.08 * Math.sin(ft * 23.7 + 1.3);
             if (this.mats && this.mats.glow) this.mats.glow.color.setScalar(fl);
             for (let i = 0; i < this.instances.length; i++) { const L = this.instances[i].light; if (L) L.intensity = 1.6 * fl; }
-
-            this._stT = (this._stT || 0) - delta;
-            if (this._stT <= 0) {
-                this._stT = 0.3;
-                const key = Object.keys(TYPES).filter(k => TYPES[k].kind === 'station').map(k => {
-                    const n = this.stationNear(TYPES[k].station);
-                    return n ? n.uid : 0;
-                }).join(',');
-                if (key !== this._stKey) {
-                    this._stKey = key;
-                    const ui = this.game.ui;
-                    if (ui && ui.currentTab === 'craft' && ui.renderCrafting) ui.renderCrafting();
-                }
-            }
 
             const pl = this.placing;
             if (pl) {

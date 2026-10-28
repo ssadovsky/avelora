@@ -77,6 +77,7 @@
             x: progress.x,
             z: progress.z,
             r: progress.r,
+            y: Number.isFinite(progress.y) ? Math.round(progress.y * 100) / 100 : undefined,   // высота ног (2 этаж, настил)
             under: progress.under || null,   // id подвала (cellar.js), если герой был внизу
             savedAt: Date.now()
         };

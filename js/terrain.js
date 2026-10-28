@@ -14,6 +14,7 @@ const TERRAIN_AO_N = 16;
 // Текстура расстояния до троп хранит расстояние до PATH_DIST_MAX м (дальше маски троп всё равно нулевые)
 const PATH_DIST_MAX = 8.0;
 
+const PLATFORM_STEP = 0.5;   // насколько выше ног героя может быть следующая поверхность настила/лестницы, м
 const OCT_SIN = [0, 0.70711, 1, 0.70711, 0, -0.70711, -1, -0.70711], OCT_COS = [1, 0.70711, 0, -0.70711, -1, -0.70711, 0, 0.70711];
 const PATH_DIST_PX_PER_M = 2;
 window.TERRAIN_AO_N = TERRAIN_AO_N;
@@ -182,8 +183,7 @@ class LakesideTerrain {
         const pl = this.platforms;
         if (pl && pl.length) {
             const hasReference = Number.isFinite(referenceY);
-            let platformY = h;
-            let bestDelta = Infinity;
+            let bestAcc = -Infinity;   // самая высокая поверхность, на которую можно шагнуть от referenceY
             for (let i = 0; i < pl.length; i++) {
                 const p = pl[i];
                 const dx = x - p.x, dz = z - p.z;
@@ -204,10 +204,12 @@ class LakesideTerrain {
                 }
                 if (surfaceY === null || surfaceY <= h + 1e-4) continue;
                 if (!hasReference) return surfaceY;
-                const delta = Math.abs(surfaceY - referenceY);
-                if (delta < bestDelta) { bestDelta = delta; platformY = surfaceY; }
+                if (surfaceY <= referenceY + PLATFORM_STEP && surfaceY > bestAcc) bestAcc = surfaceY;
             }
-            if (bestDelta < Infinity) return platformY;
+            // Раньше брали поверхность, ближайшую по высоте: лестница над настилом 1 этажа не давала подняться
+            // (герой оставался на настиле «под» ступенями), а под лестницей герой подпрыгивал на ступени.
+            // Теперь: самая высокая поверхность в пределах шага вверх; нет такой (под настилом/лестницей) — земля.
+            if (hasReference) return bestAcc > -Infinity ? bestAcc : h;
         }
         const sf = this.surfaces;
         if (sf && sf.length) {   // ходимая поверхность низких камней у подножия скал (prop.json "walkSurface"): герой поднимается по ним как на пень
