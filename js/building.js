@@ -41,7 +41,7 @@
     const BLOCK_MOD = 2.0;             // базовый шаг сетки блоков, м
     const BLOCK_HMOD = 1.0;            // половина модуля
     const WALL_H = 2.4;                // высота стен
-    const ROOF_BLOCK_RECTS = [{ x0: -1.0, x1: 1.0, z0: -1.1, z1: 1.1 }];   // скат: герой на том же этаже его не проходит
+    const ROOF_WALK_HZ = 1.2, ROOF_WALK_S0 = 0.56, ROOF_WALK_TAN = 1 / 2.4;   // ходимая поверхность ската: y = s0 − tan·lz (эркер внизу, конёк у −Z)
     const RIDGE_BLOCK_RECTS = [{ x0: -1.0, x1: 1.0, z0: -1.0, z1: 1.0 }];
     const ROOF_CHAIN_BONUS = 0.2;      // приоритет гнёзд «скат к скату» (вбок/ярус вверх) над «верх стены» при равном расстоянии
     const WALL_TH = 0.16;              // толщина стены
@@ -1990,6 +1990,13 @@
                 addBox(shell, 0.5, WALL_H, WALL_TH, 0.75, WALL_H / 2, 0);
                 addBox(shell, 1.0, 0.3, WALL_TH, 0, WALL_H - 0.15, 0);
             } else if (def.blockType === 'roof') {
+                // Скат ходимый (терраса): поверхность по наклону настила, подъём 1,0 м на 2,4 м проекции (tan = 1/2,4)
+                platform = {
+                    id: 'building:' + b.uid, x: b.x, z: b.z, cos: Math.cos(b.r), sin: Math.sin(b.r),
+                    hx: BLOCK_HMOD, hz: ROOF_WALK_HZ, y: f.deckY, rampLen: 0, rampHx: 0, endY: f.deckY,
+                    slope: true, s0: ROOF_WALK_S0, sT: ROOF_WALK_TAN, reach2: 2.0 * 2.0
+                };
+                this.terrain.addPlatform(platform);
                 const ang = 0.3948, slopeLen = 2.60, eaveOverhang = 0.15, totalSlope = slopeLen + eaveOverhang;
                 addBox(shell, 2 * BLOCK_HMOD, 0.14, totalSlope, 0, 0.50 - Math.sin(ang) * (eaveOverhang / 2), Math.cos(ang) * (eaveOverhang / 2), ang, 0, 0);
             } else if (def.blockType === 'roof_ridge') {
@@ -2057,8 +2064,19 @@
                 if (def.kind !== 'block') continue;
                 const bt = def.blockType;
                 let rects = def.rects;
-                if (bt === 'roof') rects = ROOF_BLOCK_RECTS;
-                else if (bt === 'roof_ridge') rects = RIDGE_BLOCK_RECTS;
+                if (bt === 'roof') {
+                    // Скат ходимый: стеной он служит только там, где его поверхность выше шага вверх от ног героя
+                    // (высокий край у конька, если подойти снизу), и пока герой не на самом скате.
+                    const pl = inst.platform;
+                    if (!pl) continue;
+                    const dx = x - inst.x, dz = z - inst.z;
+                    const lx = dx * pl.cos - dz * pl.sin, lz = dx * pl.sin + dz * pl.cos;
+                    if (Math.abs(lx) > BLOCK_HMOD || Math.abs(lz) > ROOF_WALK_HZ) continue;
+                    const sY = inst.y + ROOF_WALK_S0 - lz * ROOF_WALK_TAN;
+                    if (sY > y + 0.5 && sY < y + 2.0) return true;
+                    continue;
+                }
+                if (bt === 'roof_ridge') rects = RIDGE_BLOCK_RECTS;
                 if (!rects || !rects.length) continue;
                 // Блок мешает, если по высоте пересекается с героем (ноги y, рост ~1,8): не ниже его ног и не выше головы
                 const top = inst.y + ((bt === 'roof' || bt === 'roof_ridge') ? 1.0 : WALL_H);

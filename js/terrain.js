@@ -196,6 +196,8 @@ class LakesideTerrain {
                     let m = -1e9;
                     for (let k = 0; k < 8; k++) { const v = lx * OCT_SIN[k] + lz * OCT_COS[k]; if (v > m) m = v; }
                     if (m <= p.oct) surfaceY = p.y;
+                } else if (p.slope) {   // ходимый скат крыши (терраса): высота растёт к коньку (локальный −Z)
+                    if (alx <= p.hx && lz >= -p.hz && lz <= p.hz) surfaceY = p.y + p.s0 - lz * p.sT;
                 } else if (alx <= p.hx && lz >= -p.hz && lz <= p.hz) surfaceY = p.y;   // deck
                 if (surfaceY === null && lz > p.hz && lz < p.hz + p.rampLen && alx < p.rampHx + 0.25) {   // ramp down to the ground
                     let plane = p.y + (p.endY - p.y) * ((lz - p.hz) / p.rampLen);
