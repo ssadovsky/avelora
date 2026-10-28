@@ -478,7 +478,7 @@
                     if (lx >= b.x0 && lx <= b.x1 && lz >= b.z0 && lz <= b.z1) {
                         let ok = (Math.abs(lx) <= hw - 0.35 && lz >= -0.3 && lz <= n.L + 0.2) || this._inRooms(lx, lz, 0.5);
                         if (ok) for (const o of this.underBlocks) {
-                            if (o.rect) { if (lx > o.x0 - 0.7 && lx < o.x1 + 0.7 && lz > o.z0 - 0.7 && lz < o.z1 + 0.7) { ok = false; break; } }
+                            if (o.rect) { if (lx > o.x0 && lx < o.x1 && lz > o.z0 && lz < o.z1) { ok = false; break; } }
                             else if (Math.hypot(lx - o.lx, lz - o.lz) < o.r + 0.35) { ok = false; break; }
                         }
                         U[idx] = ok ? 0 : 1;
@@ -496,6 +496,14 @@
                 }
             }
             pf._gridS = S; pf._gridU = U;
+            // Прямоугольные препятствия (алтарь): сетка (клетка 0.75 м) даёт слишком грубый и несимметричный отступ,
+            // поэтому точный отступ держат круглые препятствия по периметру (непрерывное выталкивание героя), только для подвала
+            if (pf.obstacles) for (const o of this.underBlocks) {
+                if (!o.rect) continue;
+                const R = 0.2, step = 0.25, put = (lx, lz) => { const w = n.toWorld(lx, lz); pf.obstacles.push({ x: w.x, z: w.z, r: R, under: this.cfg.id }); };
+                for (let lx = o.x0; lx <= o.x1 + 1e-6; lx += step) put(lx, o.z0);
+                for (let lz = o.z0; lz <= o.z1 + 1e-6; lz += step) { put(o.x0, lz); put(o.x1, lz); }
+            }
         }
 
         // ---------------------------------------------------------------- каждый кадр: состояние «внизу», свет, огонь
