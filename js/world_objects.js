@@ -325,6 +325,7 @@
             const underCel = p.under && this.game.cellars ? this.game.cellars.find(c => c.cfg && c.cfg.id === p.under) : null;
             const pfGrid0 = this.pathfinder ? this.pathfinder.grid : null;
             if (underCel && this.pathfinder && this.pathfinder._gridU) this.pathfinder.grid = this.pathfinder._gridU;
+            const obsN0 = this.pathfinder && this.pathfinder.obstacles ? this.pathfinder.obstacles.length : 0;   // для пометки круглых препятствий подвала (see below)
             const obstacle = (def.obstacle || 0) * s;
             if (obstacle > 0 && this.pathfinder && !p.noObstacle) {
                 this.pathfinder.addObstacle(p.x, p.z, Math.max(obstacle, MIN_NAV_OBSTACLE));
@@ -363,7 +364,11 @@
                     }
                 });
             }
-            if (underCel && this.pathfinder) this.pathfinder.grid = pfGrid0;
+            if (underCel && this.pathfinder) {
+                this.pathfinder.grid = pfGrid0;
+                // круглые препятствия не зависят от сетки: помечаем, чтобы наверху над подвалом герой не упирался в невидимый портал
+                for (let oi = obsN0; oi < this.pathfinder.obstacles.length; oi++) this.pathfinder.obstacles[oi].under = p.under;
+            }
             if (def.walkSurface && this.terrain.addSurface && !p.noObstacle) {   // низкие камни у основания скалы ходимы (герой поднимается по их поверхности)
                 const w = def.walkSurface, bin = atob(w.data), u8 = new Uint8Array(bin.length);
                 for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);

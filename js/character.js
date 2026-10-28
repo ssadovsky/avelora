@@ -1242,6 +1242,13 @@ class MedievalCharacter {
         this.resolveObstacleCollisions(0.15);
     }
 
+    _belowCellar(id) {
+        const g = this.game || window.game, cs = g && g.cellars;
+        if (!cs) return false;
+        for (let i = 0; i < cs.length; i++) if (cs[i].cfg && cs[i].cfg.id === id) return !!cs[i].below;
+        return false;
+    }
+
     /** Continuous cylinder-cylinder obstacle resolution (smooth slide along rocks, trees, pillars). */
     resolveObstacleCollisions(playerRadius = 0.15) {
         const pf = (this.game && this.game.pathfinder) || (window.game && window.game.pathfinder);
@@ -1250,6 +1257,7 @@ class MedievalCharacter {
         const obs = pf.obstacles;
         for (let i = 0; i < obs.length; i++) {
             const ob = obs[i];
+            if (ob.under && !this._belowCellar(ob.under)) continue;   // препятствие на полу подвала: наверху не действует
             const dx = px - ob.x, dz = pz - ob.z;
             const distSq = dx * dx + dz * dz;
             const minDist = ob.r + playerRadius;

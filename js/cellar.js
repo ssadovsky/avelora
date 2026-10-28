@@ -330,13 +330,12 @@
                 // руническое кольцо на полу
                 this._runeCircle(cx, F + 0.03, R.z0 + d * 0.5, Math.min(w, d) * 0.3);
                 // алтарь на возвышении в дальнем конце
-                const az = R.z1 - 3.2;
+                const az = R.z1 - 1.8;   // вплотную к дальней стене: щель между алтарём и стеной была непроходимой ловушкой
                 this._boxAt(cx - 4, cx + 4, F, F + 0.35, az - 1.8, az + 1.8, this.darkMat, null, 2);
                 this._boxAt(cx - 1.3, cx + 1.3, F + 0.35, F + 1.25, az - 0.6, az + 0.6, this.wallMat, null, 2);
-                this.underBlocks.push({ lx: cx, lz: az, r: 1.9 });
+                this.underBlocks.push({ rect: true, x0: cx - 4, x1: cx + 4, z0: az - 1.8, z1: R.z1 + 0.1 });
                 this._fire(cx - 3.2, F + 0.35 + 0.9, az, 0.55); this._fire(cx + 3.2, F + 0.35 + 0.9, az, 0.55);
                 this._cyl(0.35, 0.3, 0.9, 8, this.ironMat, cx - 3.2, F + 0.8, az); this._cyl(0.35, 0.3, 0.9, 8, this.ironMat, cx + 3.2, F + 0.8, az);
-                this.underBlocks.push({ lx: cx - 3.2, lz: az, r: 0.7 }, { lx: cx + 3.2, lz: az, r: 0.7 });
                 if (R.clutter) {   // упавшая колонна (по умолчанию убрана; включить: clutter: true у комнаты)
                     const fc = this._cyl(0.55, 0.55, 4.4, 10, this.darkMat, cx + 2.0, F + 0.5, R.z0 + 4.5); fc.rotation.z = Math.PI / 2; fc.rotation.y = 0.5;
                     this.underBlocks.push({ lx: cx + 2.0, lz: R.z0 + 4.5, r: 1.6 });
@@ -478,7 +477,10 @@
                     // ПОДВАЛ
                     if (lx >= b.x0 && lx <= b.x1 && lz >= b.z0 && lz <= b.z1) {
                         let ok = (Math.abs(lx) <= hw - 0.35 && lz >= -0.3 && lz <= n.L + 0.2) || this._inRooms(lx, lz, 0.5);
-                        if (ok) for (const o of this.underBlocks) { if (Math.hypot(lx - o.lx, lz - o.lz) < o.r + 0.35) { ok = false; break; } }
+                        if (ok) for (const o of this.underBlocks) {
+                            if (o.rect) { if (lx > o.x0 - 0.7 && lx < o.x1 + 0.7 && lz > o.z0 - 0.7 && lz < o.z1 + 0.7) { ok = false; break; } }
+                            else if (Math.hypot(lx - o.lx, lz - o.lz) < o.r + 0.35) { ok = false; break; }
+                        }
                         U[idx] = ok ? 0 : 1;
                     }
                     // ПОВЕРХНОСТЬ: траншея проходима, парапеты и перемычка — стены
