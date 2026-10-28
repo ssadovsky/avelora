@@ -1138,8 +1138,9 @@ class AveloraGame {
         this.character.teleport(spawn.x, spawn.z, spawn.r);
         this._pendingElevY = (!rescued && Number.isFinite(spawn.y)) ? spawn.y : undefined;   // 2 этаж и т.п.: высота ног из сохранения
         this.applyPendingElevation();
-        if (opts.under && !rescued && this.cellars) { const cel = this.cellars.find(c => c.cfg && c.cfg.id === opts.under); if (cel) cel.restoreHero(this.character); }   // сохранение «внизу»: на пол подвала
-        this.cameraTarget.copy(this.character.position);
+        if (opts.under && !rescued && this.cellars) { const cel = this.cellars.find(c => c.cfg && c.cfg.id === opts.under); if (cel && cel.restoreHero(this.character) && this.mount && this.mount.isMounted) this.mount.update(0); }   // сохранение «внизу»: на пол подвала (верхом — волк сразу на пол)
+        if (this.mount && this.mount.isMounted) this.mount.update(0);   // верхом: волк (корень сцены) помнит высоту прежней локации — переставляем на землю новой, иначе камера (привязана к волку) оказывается под ним
+        this.cameraTarget.copy(this.getCameraAnchor());
         this.applyLocationCamera(this.location);
         this.updateCameraPosition(true);
 
@@ -1485,8 +1486,9 @@ class AveloraGame {
 
         this.character.setTerrain(this.terrain);
         this.character.teleport(spawn.x, spawn.z, spawn.r);
-        if (spawn.under && this.cellars) { const cel = this.cellars.find(c => c.cfg && c.cfg.id === spawn.under); if (cel) cel.restoreHero(this.character); }   // возврат (портал домой) из подвала — обратно на пол подвала
-        this.cameraTarget.copy(this.character.position);
+        if (spawn.under && this.cellars) { const cel = this.cellars.find(c => c.cfg && c.cfg.id === spawn.under); if (cel && cel.restoreHero(this.character) && this.mount && this.mount.isMounted) this.mount.update(0); }   // возврат (портал домой) из подвала — обратно на пол подвала; верхом волк сразу переставляется на пол, иначе его прежняя высота выкидывает героя на поверхность
+        if (this.mount && this.mount.isMounted) this.mount.update(0);   // верхом: волк (корень сцены) помнит высоту прежней локации — переставляем на землю новой, иначе камера (привязана к волку) оказывается под ним
+        this.cameraTarget.copy(this.getCameraAnchor());
         this.applyLocationCamera(this.location);
         this.updateCameraPosition(true);
 
