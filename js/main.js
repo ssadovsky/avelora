@@ -1300,6 +1300,7 @@ class AveloraGame {
         const gridX = Math.round(sizeX / NAV_CELL_SIZE);
         const gridZ = Math.round(sizeZ / NAV_CELL_SIZE);
 
+        if (window.AveloraTown) window.AveloraTown.prepareLocation(loc);   // town.js: ровные площадки под процедурные здания — до рельефа
         if (window.AveloraCellar) window.AveloraCellar.prepareLocation(loc);   // cellar.js: площадка, окно под траншею, чистые зоны — до рельефа
         this.terrain = new LakesideTerrain(this.locationRoot, {}, loc);
         this.pathfinder = new DiabloPathfinder(this.terrain, gridX, gridZ, sizeX, sizeZ);
@@ -1339,6 +1340,7 @@ class AveloraGame {
         this.cellars = (loc.cellars && loc.cellars.length && window.AveloraCellar)   // cellar.js: подвал как нижний этаж этой же локации
             ? loc.cellars.map(c => new AveloraCellar(this, c))
             : [];
+        this.town = (loc.town && window.AveloraTown) ? new AveloraTown(this, loc.town) : null;   // town.js: процедурные здания (серый дом и мраморный храм)
         this.environment = new LakesideEnvironment(this.locationRoot, this.terrain, this.pathfinder, loc, this.pendingSpawn);
         this.worldObjects = window.AveloraWorldObjects ? new AveloraWorldObjects(this, loc) : null;
         this.building = window.AveloraBuilding ? new AveloraBuilding(this, loc) : null;   // building.js: player buildings (home camp)
@@ -1366,6 +1368,7 @@ class AveloraGame {
         this.cameraBlockers = [];
         if (this.dungeon) { this.dungeon.dispose(); this.dungeon = null; }
         if (this.cellars) { this.cellars.forEach(c => c.dispose()); this.cellars = []; }
+        if (this.town) { this.town.dispose(); this.town = null; }
         if (this.skills) this.skills.clearAll(); // no projectile/impact survives into the next location
         if (this.combat) { this.combat.cancel(); this.combat.clearTarget(); }
         if (this.map) this.map.clearAll();        // close map panel when leaving location

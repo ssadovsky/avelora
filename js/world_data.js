@@ -1340,6 +1340,16 @@ window.LOCATIONS = {
             { id: 'toForest', x: 30.0, z: 47.6, radius: 1.5, to: 'forestEdge', spawn: 'fromRuneLands', label: 'Лесная опушка', color: 0x6be3c0, height: 4.6, under: 'oldCellar' }
         ],
 
+        // Процедурные здания (js/town.js): камень и мрамор рисуются кодом, геометрия склеена по материалам.
+        // level — точка, по высоте которой выравнивается земля (край дороги); r — поворот, фасад здания смотрит на (sin r, cos r).
+        town: {
+            level: [7.0, 16.0],
+            buildings: [
+                { id: 'rl_stone_house', type: 'stoneHouse', x: 7.0, z: 8.0, r: 0 },             // серый камень, стиль Штормграда, фасад на дорогу (юг)
+                { id: 'rl_marble_temple', type: 'marbleTemple', x: 7.0, z: 27.0, r: Math.PI }   // белый мрамор, фасад на дорогу (север)
+            ]
+        },
+
         clearings: [],
 
         groups: [],
