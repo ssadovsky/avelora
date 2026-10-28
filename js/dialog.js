@@ -130,7 +130,11 @@
             if (!c) return;
             const price = this.sellPriceOf(c.item);
             if (!price) { this.ui.floatText('Это не продаётся', 'warn'); return; }
-            this.sell(c.item, price, all ? c.count : 1);
+            // продаём именно из этой ячейки (inventory.remove снимает с последнего стека — соседний стек «переезжал» на место проданного)
+            const r = st.inventory.removeCountAt(index, all ? c.count : 1);
+            if (!r || r.count <= 0) return;
+            st.addGold(r.count * price);
+            this.ui.floatText(`+${r.count * price} золота`, 'gain');
         }
 
         // -----------------------------------------------------------
