@@ -119,7 +119,7 @@ class MedievalCharacter {
 
         this.path = [];
         this.currentWaypointIdx = 0;
-        this.moveSpeed = 4.8; // m/s
+        this.moveSpeed = 5.0; // m/s (пешком, любой герой)
         this.isMoving = false;
 
         // Idle "greeting" gesture: after standing still for IDLE_GREETING_DELAY

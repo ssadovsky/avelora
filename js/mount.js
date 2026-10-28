@@ -40,7 +40,7 @@
             this.isMounted = false;
             this.activeMount = null;     // { group, mixer, actions, currentAnim, def, tiltX, tiltZ, tiltY }
             this.templates = {};         // creatureId -> Promise<{ scene, clips }>
-            this.normalSpeed = 4.8;
+            this.normalSpeed = 5.0;
             this.summoning = null;       // { def, t, total }
             this._v1 = new THREE.Vector3();
 
@@ -53,7 +53,7 @@
             // scene root, not in locationRoot, so it survives the rebuild); dungeons are on foot only.
             window.addEventListener('game:location', () => {
                 if (this.summoning) this.cancelSummon();
-                if (this.isMounted && AveloraMountManager.isNoMountLocation(this.game.location)) this.dismount('dungeon');
+                if (this.isMounted && AveloraMountManager.isNoMountLocation(this.game.location)) this.dismount(AveloraMountManager.noMountReason(this.game.location));
             });
         }
 
@@ -62,10 +62,13 @@
             return !!(loc && (loc.isDungeon || loc.dungeon || loc.noMount));
         }
 
+        /** Причина запрета: подземелье или домашний лагерь (текст и сообщение разные). */
+        static noMountReason(loc) { return (loc && (loc.isDungeon || loc.dungeon)) ? 'dungeon' : 'camp'; }
+
         /** main.js changeLocation(): called before the old location is torn down. */
         beforeLocationChange(target) {
             if (this.summoning) this.cancelSummon();
-            if (this.isMounted && AveloraMountManager.isNoMountLocation(target)) this.dismount('dungeon');
+            if (this.isMounted && AveloraMountManager.isNoMountLocation(target)) this.dismount(AveloraMountManager.noMountReason(target));   // спешивание ДО разборки старой локации: камера и бег возвращаются герою
         }
 
         /** Loads and caches the base creature GLB template */
@@ -134,7 +137,7 @@
 
             if (g.combat && g.combat.isDead) return 'unavailable';
             if (AveloraMountManager.isNoMountLocation(g.location)) {
-                if (g.ui && g.ui.floatText) g.ui.floatText('В подземелье верховое животное не призвать', 'warn');
+                if (g.ui && g.ui.floatText) g.ui.floatText(AveloraMountManager.noMountReason(g.location) === 'dungeon' ? 'В подземелье верховое животное не призвать' : 'В лагере верховое животное не призвать', 'warn');
                 return 'unavailable';
             }
 
@@ -234,8 +237,8 @@
                 if (c.fadeToLogical) c.fadeToLogical('idle', 0.2);
                 c.mountRideHeight = skillDef.rideHeight || 0.62;
 
-                // Speed buff: normal 4.8 m/s -> 8.5 m/s (+75% movement speed)
-                const bonus = skillDef.speedBonus !== undefined ? skillDef.speedBonus : 3.7;
+                // Speed buff: normal 5 m/s -> 8.5 m/s (+70% movement speed)
+                const bonus = skillDef.speedBonus !== undefined ? skillDef.speedBonus : 3.5;
                 c.moveSpeed = this.normalSpeed + bonus;
 
                 if (g.ui && g.ui.floatText) {
@@ -288,6 +291,8 @@
                     g.ui.floatText('Спешивание (получен урон)', 'warn');
                 } else if (reason === 'dungeon') {
                     g.ui.floatText('В подземелье — пешком', 'info');
+                } else if (reason === 'camp') {
+                    g.ui.floatText('В лагере — пешком', 'info');
                 } else if (reason === 'manual') {
                     g.ui.floatText('Спешивание', 'info');
                 }

@@ -1195,6 +1195,7 @@ window.LOCATIONS = {
     homeCamp: {
         id: 'homeCamp',
         name: 'Домашний лагерь',
+        noMount: true,   // верхом нельзя (как в подземелье): призыв запрещён, при входе спешивает
 
         terrain: {
             size: 160,
