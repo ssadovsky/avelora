@@ -271,9 +271,9 @@
             const wr = new THREE.Mesh(geo, this.wallMat); wr.position.set(hw + T, 0, 0); this.group.add(wr);
             const wl = new THREE.Mesh(geo, this.wallMat); wl.position.set(-hw, 0, 0); this.group.add(wl);
             // перемычка над входом в туннель + плита потолка туннеля
-            this._boxAt(-hw - T, hw + T, this.ramp(open) + H, y0 + 0.55, open, open + 0.5, this.darkMat);
+            this._boxAt(-hw - T + 0.05, hw + T - 0.05, this.ramp(open) + H, y0 + 0.5, open, open + 0.45, this.darkMat);   // чуть уже и ниже стен: общие плоскости с торцами/верхом стен мерцали
             const len = (L - open) / Math.cos(Math.atan2(D, L)), ang = Math.atan2(D, L), mid = (open + L) / 2;
-            const roof = this._box(hw * 2 + T * 2, 0.4, len, this.darkMat, 3.0);
+            const roof = this._box(hw * 2 + T * 2 - 0.1, 0.4, len, this.darkMat, 3.0);
             roof.position.set(0, this.ramp(mid) + H + 0.2, mid); roof.rotation.x = ang; this.group.add(roof);
             // факелы у входа в туннель
             this._sconce(-hw + 0.1, this.ramp(open) + 1.9, open - 0.35, 1, 0);

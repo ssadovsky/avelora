@@ -1320,9 +1320,8 @@ window.LOCATIONS = {
             stoneTexture: 'pebbleTrailDiff',
             // мощёная улица от портала к входу в подвал и площадь (само мощение — просто дороги рельефа)
             paths: [
-                { type: 'stone', width: 5.0, points: [[0.0, 6.0], [0.0, 16.0]] },
-                { type: 'stone', width: 7.0, points: [[0.0, 16.0], [14.0, 16.0]] },
-                { type: 'stone', width: 13.0, points: [[14.0, 16.0], [30.0, 16.0]] }
+                { type: 'stone', width: 7.0, points: [[-4.0, 16.0], [53.0, 16.0]] },     // от домиков (x≈7) до подвала
+                { type: 'stone', width: 13.0, points: [[53.0, 16.0], [66.0, 16.0]] }     // расширение у входа в подвал (x=65)
             ]
         },
 
@@ -1330,14 +1329,14 @@ window.LOCATIONS = {
         cameraAngle: 0.0,
         
         spawns: {
-            // портал стоит в центре рунического круга в подвале (30, 47.6); выход — на полу подвала перед ним, лицом на север к лестнице
-            default:    { x: 30.0, z: 41.0, r: 0.0, under: 'oldCellar' },
-            fromForest: { x: 30.0, z: 41.0, r: 0.0, under: 'oldCellar' }
+            // портал стоит в центре рунического круга в подвале (102.6, 16); выход — на полу подвала перед ним, лицом на запад к лестнице
+            default:    { x: 96.0, z: 16.0, r: 1.5708, under: 'oldCellar' },
+            fromForest: { x: 96.0, z: 16.0, r: 1.5708, under: 'oldCellar' }
         },
 
         exits: [
             // Рунный портал в центре круга в подвале — назад на Лесную опушку (срабатывает только внизу)
-            { id: 'toForest', x: 30.0, z: 47.6, radius: 1.5, to: 'forestEdge', spawn: 'fromRuneLands', label: 'Лесная опушка', color: 0x6be3c0, height: 4.6, under: 'oldCellar' }
+            { id: 'toForest', x: 102.6, z: 16.0, radius: 1.5, to: 'forestEdge', spawn: 'fromRuneLands', label: 'Лесная опушка', color: 0x6be3c0, height: 4.6, under: 'oldCellar' }
         ],
 
         // Процедурные здания (js/town.js): камень и мрамор рисуются кодом, геометрия склеена по материалам.
@@ -1356,7 +1355,7 @@ window.LOCATIONS = {
 
         props: [
             // под землёй, в центре рунического круга зала; dy опускает основание (земляной диск) под пол, площадка вровень с полом
-            { id: 'runeLands.rune_portal', prop: 'rune_portal', x: 30.0, z: 47.6, r: Math.PI, under: 'oldCellar', dy: -0.62 }
+            { id: 'runeLands.rune_portal', prop: 'rune_portal', x: 102.6, z: 16.0, r: Math.PI * 1.5, under: 'oldCellar', dy: -0.62 }
         ],
 
         creatures: [
@@ -1369,7 +1368,7 @@ window.LOCATIONS = {
         cellars: [
             {
                 id: 'oldCellar', name: 'Старый подвал',
-                x: 30.0, z: 10.0, r: 0.0,
+                x: 65.0, z: 16.0, r: Math.PI / 2,   // вход (верх лестницы) на западе, спуск идёт на восток; зал x≈87..118
                 stair: { width: 5.0, len: 22.0, drop: 9.7, open: 10.0, height: 3.6 },   // open — длина открытой траншеи, дальше туннель; drop ≥ высота зала + 1.7 (потолок под землёй)
                 plaza: { radius: 20, blend: 10 },
                 rooms: [
