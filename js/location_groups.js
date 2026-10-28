@@ -479,6 +479,15 @@
             });
         });
 
+        // 4) Зоны вырезки (location.removeZones: круги {x, z, r, kinds?}): убирают уже сгенерированные деревья/папоротники/цветы/ветки/кусты,
+        //    не сдвигая остальной лес (клиринги меняют последовательность rng группы, а это — пост-фильтр)
+        (location.removeZones || []).forEach(zn => {
+            (zn.kinds || ['trees', 'ferns', 'flowers', 'branches', 'shrubs']).forEach(k => {
+                if (!result[k]) return;
+                result[k] = result[k].filter(o => o.group === null || (o.x - zn.x) * (o.x - zn.x) + (o.z - zn.z) * (o.z - zn.z) > zn.r * zn.r);
+            });
+        });
+
         return result;
     }
 

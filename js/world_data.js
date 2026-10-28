@@ -83,7 +83,7 @@ window.LOCATIONS = {
             // Ровная площадка под порталом (радиус 4.5 м, дальше 5 м плавно возвращается к рельефу)
             rimDip: [{ x: 0.0, k0: 0.85, w: 30.0, cragK: 0.0 }, { side: 'west', axis: 'z', z: 8.0, k0: 0.85, w: 30.0, cragK: 0.0 }],
             rockTint: { x: 0.0, z: 94.0, tintRadius: 26.0, tintStrength: 0.9 },
-            flatSpots: [{ x: -130.0, z: 8.0, radius: 2.2, blend: 2.5, hFrom: [-120.0, 8.0] }, { x: -136.5, z: 8.0, radius: 2.2, blend: 3.0, hFrom: [-120.0, 8.0], dh: 0.0 }, { x: -140.5, z: 8.0, radius: 2.2, blend: 3.5, hFrom: [-120.0, 8.0], dh: 0.22 }, { x: -144.0, z: 8.0, radius: 2.2, blend: 4.0, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: -147.0, z: 8.0, radius: 2.0, blend: 4.5, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: 70.0, z: -15.0, radius: 4.6, blend: 5.0 }, { x: 25.5, z: -20.1, radius: 3.4, blend: 4.0 }, { x: 64.3, z: -12.3, radius: 3.8, blend: 4.0 }, { x: 0.0, z: 86.0, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.07 }, { x: 0.0, z: 89.5, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.1 }, { x: 0.0, z: 93.0, radius: 2.2, blend: 4.5, hFrom: [0.0, 79.0], dh: 0.0 }, { x: 0.0, z: 95.3, radius: 1.6, blend: 6.5, hFrom: [0.0, 79.0], dh: -0.11 }, { x: 47.0, z: 16.0, radius: 4.8, blend: 5.0 }],   // 2-й: под домиком, 3-й: под беседкой, 4-й: под кузней
+            flatSpots: [{ x: -130.0, z: 8.0, radius: 2.2, blend: 2.5, hFrom: [-120.0, 8.0] }, { x: -136.5, z: 8.0, radius: 2.2, blend: 3.0, hFrom: [-120.0, 8.0], dh: 0.0 }, { x: -140.5, z: 8.0, radius: 2.2, blend: 3.5, hFrom: [-120.0, 8.0], dh: 0.22 }, { x: -144.0, z: 8.0, radius: 2.2, blend: 4.0, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: -147.0, z: 8.0, radius: 2.0, blend: 4.5, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: 70.0, z: -15.0, radius: 4.6, blend: 5.0 }, { x: 25.5, z: -20.1, radius: 3.4, blend: 4.0 }, { x: 64.3, z: -12.3, radius: 3.8, blend: 4.0 }, { x: 0.0, z: 86.0, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.07 }, { x: 0.0, z: 89.5, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.1 }, { x: 0.0, z: 93.0, radius: 2.2, blend: 4.5, hFrom: [0.0, 79.0], dh: 0.0 }, { x: 0.0, z: 95.3, radius: 1.6, blend: 6.5, hFrom: [0.0, 79.0], dh: -0.11 }, { x: -80.0, z: 60.0, radius: 4.8, blend: 5.0 }],   // 2-й: под домиком, 3-й: под беседкой, 4-й: под кузней
             // Арочный вырез в восточном горном барьере для грота (севернее водопада)
             caves: [
                 { x: 139.5, z: -18.0, minX: 134.0, maxX: 143.5, radiusZ: 3.5, backLen: 1.0, tintRadius: 26.0, tintStrength: 0.85 }
@@ -131,12 +131,15 @@ window.LOCATIONS = {
         atmosphere: { sky: 0xc6dbe3, skyTop: 0x4a8fc9, fogDensity: 0.0055 },
         cameraAngle: 0.0,           // на старте камера смотрит на север (по тропе к Лираэль)
         // Зоны без папоротников (поляна барсуков): эллипсы {x, z, rx, rz}
-        noFerns: [{ x: 47.0, z: 14.0, rx: 8.0, rz: 8.0 }, { x: 72.0, z: 62.0, rx: 32.0, rz: 28.0 }, { x: 24.5, z: -16.5, rx: 6.5, rz: 8.5 }, { x: 64.3, z: -12.3, rx: 6.5, rz: 6.5 }, { x: 0.0, z: 89.0, rx: 10.0, rz: 10.0 }],   // 2-й: беседка и подход к ней
+        noFerns: [{ x: -80.0, z: 58.0, rx: 8.0, rz: 8.0 }, { x: 72.0, z: 62.0, rx: 32.0, rz: 28.0 }, { x: 24.5, z: -16.5, rx: 6.5, rz: 8.5 }, { x: 64.3, z: -12.3, rx: 6.5, rz: 6.5 }, { x: 0.0, z: 89.0, rx: 10.0, rz: 10.0 }],   // 2-й: беседка и подход к ней
+
+        // Вырезка уже сгенерированного леса (location_groups.js, removeZones): гора у (-135,-7), озеро у (-72,-22), (2,30), одиночные деревья под яблони (135.4,38.3) и (69,-4.1)
+        removeZones: [{ x: -135.0, z: -7.0, r: 19.0 }, { x: -72.0, z: -22.0, r: 20.0 }, { x: 2.0, z: 30.0, r: 11.0 }, { x: 135.4, z: 38.3, r: 0.8, kinds: ['trees'] }, { x: 69.0, z: -4.1, r: 0.8, kinds: ['trees'] }, { x: 54.4, z: -11.4, r: 3.5 }],
 
         spawns: {
             default:   { x: 127.0,  z: 77.5, r: 0.0 },   // новая игра: юго-восток долины, лицом на север к тропе (r: поворот модели = atan2+π, север = 0)
             camp:      { x: 6.0,    z: 12.0 },
-            fromRuneLands: { x: 47.0, z: 8.0, r: 0.0 },   // выход из рунного портала (47, 16): перед ступенями, лицом на север к каменной дороге
+            fromRuneLands: { x: -80.0, z: 52.0, r: 0.0 },   // выход из рунного портала (47, 16): перед ступенями, лицом на север к каменной дороге
             fromSavanna:  { x: -128.0, z: 8.0, r: 4.71 },  // выход из портала: в 14 м от рунного вепря (aggro 9), лицом на восток в долину
             waterfall: { x: 104.0,  z: 6.0, r: 4.71 },  // с видом на восточный каскадный водопад
             fromPrimeval: { x: 0.0, z: 78.5, r: 0.0 },    // выход из горного прохода на юге (лицом на север)
@@ -169,7 +172,7 @@ window.LOCATIONS = {
 
         exits: [
             // Рунный портал (47, 16) в Рунные земли: вход в центре арки (ступени смотрят на север)
-            { id: 'toRuneLands', x: 47.0, z: 16.0, radius: 1.5, to: 'runeLands', spawn: 'fromForest', label: 'Рунные земли', color: 0x6be3c0, height: 4.6, track: true },
+            { id: 'toRuneLands', x: -80.0, z: 60.0, radius: 1.5, to: 'runeLands', spawn: 'fromForest', label: 'Рунные земли', color: 0x6be3c0, height: 4.6, track: true },
             // Проход в Золотую саванну через горный каньон на западе
             { id: 'toLake', x: -146.0, z: 8.0, radius: 2.0, to: 'savanna', spawn: 'fromForest', label: 'Золотая саванна', color: 0xffd285, height: 5.0, track: true, noRing: true, r: -Math.PI / 2, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.25, color: 0xdec08a } },
             // Каменный проход в горах на юге, за лесом: в Долину Забытых Эпох (в конце ущелья — дымка)
@@ -191,13 +194,14 @@ window.LOCATIONS = {
 
             // Тропы и поляны (свободные от плотных деревьев)
         clearings: [
-            { x: 47.0, z: 13.0, radius: 9.0 },   // рунный портал и подход к нему
+            { x: -80.0, z: 58.0, radius: 9.0 },  // рунный портал в юго-западном лесу и подход к нему
             { x: -144.5, z: 8.0, radius: 10.0 },
             { x: -136.5, z: 8.0, radius: 8.0 },
             { x: -122.0, z: 8.0, radius: 8.0 },
             { x: -108.0, z: 8.0, radius: 7.0 },
             { x: -80.0,  z: 8.0, radius: 7.0 },
-            { x: -65.0,  z: 20.0, radius: 16.0 }, // поляна выставки новых деревьев около озера
+            // Просветы в новом лесу (по просьбе): убраны куски леса
+            { x: -10.0, z: 25.0, radius: 11.0 }, { x: -30.0, z: 25.0, radius: 11.0 }, { x: -130.0, z: -10.0, radius: 11.0 },
             { x: -48.0,  z: 8.0, radius: 6.0 },
             { x: -38.0,  z: 7.0, radius: 5.0 },
             { x: -28.0,  z: 6.0, radius: 5.0 },
@@ -209,7 +213,8 @@ window.LOCATIONS = {
             { x: 129.0, z: 19.5, radius: 6.0 },
             { x: 72.0, z: 55.0, radius: 12.0 },  // открытая поляна барсуков
             { x: 30.0, z: 51.0, radius: 18.0 },  // поляна петухов (к западу от барсуков)
-            { x: -78.0, z: 49.0, radius: 28.0 }, // юго-западная поляна синих пауков
+            // Синие пауки: небольшие прогалины среди леса юго-запада (шаг 10 м, чтобы не толпились)
+            { x: -124.0, z: 47.0, radius: 2.6 }, { x: -114.0, z: 47.0, radius: 2.6 }, { x: -104.0, z: 47.0, radius: 2.6 }, { x: -94.0, z: 47.0, radius: 2.6 }, { x: -129.0, z: 56.0, radius: 2.6 }, { x: -119.0, z: 56.0, radius: 2.6 }, { x: -109.0, z: 56.0, radius: 2.6 }, { x: -99.0, z: 56.0, radius: 2.6 }, { x: -124.0, z: 65.0, radius: 2.6 }, { x: -114.0, z: 65.0, radius: 2.6 }, { x: -104.0, z: 65.0, radius: 2.6 }, { x: -129.0, z: 74.0, radius: 2.6 }, { x: -119.0, z: 74.0, radius: 2.6 }, { x: -109.0, z: 74.0, radius: 2.6 }, { x: -99.0, z: 74.0, radius: 2.6 },
             { x: 72.0, z: 72.0, radius: 11.0 }, { x: 55.0, z: 64.0, radius: 8.0 }, { x: 90.0, z: 64.0, radius: 8.0 },
             { x: 107.0, z: 67.5, radius: 6.5 },  // стартовый лагерь: пень с топором, брёвна, камни, посох
             { x: 70.0, z: -14.0, radius: 8.0 },  // домик и наковальня (70, -15)
@@ -226,7 +231,19 @@ window.LOCATIONS = {
             // (восточный горный массив включён в единый северо-восточный бор ниже)
             { id: 'east_south_forest',type: 'forest', x: 116.0,  z: 48.0,  rx: 14.0,  rz: 24.0, count: 18, spacing: 10.0, seed: 16 },
             { id: 'west_north_forest',type: 'forest', x: -115.0, z: -56.0, rx: 24.0,  rz: 31.0, count: 42, seed: 17, types: ['evergreen', 'fir_a', 'evergreen', 'fir_b', 'evergreen', 'fir_c'] },
-            { id: 'west_south_forest',type: 'forest', x: -125.0, z: 62.0,  rx: 16.0,  rz: 28.0, count: 20, seed: 18 },
+            // Юго-запад: обычный лес от (-135,18)–(-65,20) до (-12,60) и до западного и южного краёв
+            // Лес на запад от озера: закрывает поляну до (-30,-30)
+            { id: 'sw_forest_a', type: 'forest', x: -110.0, z: 58.0, rx: 40.0, rz: 34.0, count: 52, spacing: 7.0, seed: 181 },
+            { id: 'sw_forest_b', type: 'forest', x: -62.0,  z: 62.0, rx: 32.0, rz: 28.0, count: 34, spacing: 7.0, seed: 182 },
+            { id: 'sw_forest_c', type: 'forest', x: -92.0,  z: 32.0, rx: 38.0, rz: 14.0, count: 32, spacing: 6.0, seed: 183 },
+            { id: 'sw_forest_d', type: 'forest', x: -34.0,  z: 66.0, rx: 24.0, rz: 22.0, count: 24, spacing: 6.0, seed: 184 },
+            // Лес вокруг западного портала в саванну (скала в лесу, дорога по z=8 свободна — её держат поляны) и вдоль дороги с юга до (6, 50)
+            { id: 'gate_forest_s', type: 'forest', x: -134.0, z: 21.0, rx: 18.0, rz: 13.0, count: 26, spacing: 6.0, seed: 191 },
+            { id: 'road_south_forest', type: 'forest', x: -72.0, z: 27.0, rx: 74.0, rz: 11.0, count: 52, spacing: 6.0, seed: 193 },
+            { id: 'road_south_east', type: 'forest', x: -17.0, z: 30.0, rx: 22.0, rz: 11.0, count: 16, spacing: 6.0, seed: 195 },
+            { id: 'sw_forest_f', type: 'forest', x: -14.0, z: 43.0, rx: 22.0, rz: 8.0, count: 10, spacing: 6.0, seed: 196 },
+            { id: 'lake_nw_forest', type: 'forest', x: -37.0, z: -36.0, rx: 13.0, rz: 10.0, count: 9, spacing: 6.0, seed: 197 },
+            { id: 'sw_forest_e', type: 'forest', x: -8.0,   z: 52.0, rx: 22.0, rz: 12.0, count: 12,  spacing: 7.0, seed: 185 },
 
             // Лесочек вокруг поляны барсуков (без подлеска — папоротники здесь не растут)
             { id: 'badger_wood', type: 'forest', x: 72.0, z: 62.0, rx: 38.0, rz: 30.0, count: 30, seed: 91 },
@@ -393,16 +410,21 @@ window.LOCATIONS = {
             // Оленёнок рядом с друидом
             { id: 'doe_fawn', type: 'spotted_fawn', level: 1, x: 8.0, z: 7.5, r: -2.30 },
             // Синие пауки на юго-западе долины (9 уровень, квест «Синие пауки»)
-            { id: 'blue_spider_1', type: 'blue_spider', level: 9, x: -100.0, z: 40.0, r: 0.00 },
-            { id: 'blue_spider_2', type: 'blue_spider', level: 9, x: -88.0, z: 38.0, r: 1.90 },
-            { id: 'blue_spider_3', type: 'blue_spider', level: 9, x: -76.0, z: 42.0, r: 3.80 },
-            { id: 'blue_spider_4', type: 'blue_spider', level: 9, x: -64.0, z: 40.0, r: 5.70 },
-            { id: 'blue_spider_5', type: 'blue_spider', level: 9, x: -54.0, z: 47.0, r: 1.32 },
-            { id: 'blue_spider_6', type: 'blue_spider', level: 9, x: -96.0, z: 51.0, r: 3.22 },
-            { id: 'blue_spider_7', type: 'blue_spider', level: 9, x: -82.0, z: 52.0, r: 5.12 },
-            { id: 'blue_spider_8', type: 'blue_spider', level: 9, x: -68.0, z: 55.0, r: 0.74 },
-            { id: 'blue_spider_9', type: 'blue_spider', level: 9, x: -57.0, z: 59.0, r: 2.64 },
-            { id: 'blue_spider_10', type: 'blue_spider', level: 9, x: -91.0, z: 60.0, r: 4.54 },
+            { id: 'blue_spider_1', type: 'blue_spider', level: 9, x: -124.0, z: 47.0, r: 1.90 },
+            { id: 'blue_spider_2', type: 'blue_spider', level: 9, x: -114.0, z: 47.0, r: 3.80 },
+            { id: 'blue_spider_3', type: 'blue_spider', level: 9, x: -104.0, z: 47.0, r: 5.70 },
+            { id: 'blue_spider_4', type: 'blue_spider', level: 9, x: -94.0, z: 47.0, r: 1.32 },
+            { id: 'blue_spider_5', type: 'blue_spider', level: 9, x: -129.0, z: 56.0, r: 3.22 },
+            { id: 'blue_spider_6', type: 'blue_spider', level: 9, x: -119.0, z: 56.0, r: 5.12 },
+            { id: 'blue_spider_7', type: 'blue_spider', level: 9, x: -109.0, z: 56.0, r: 0.74 },
+            { id: 'blue_spider_8', type: 'blue_spider', level: 9, x: -99.0, z: 56.0, r: 2.64 },
+            { id: 'blue_spider_9', type: 'blue_spider', level: 9, x: -124.0, z: 65.0, r: 4.54 },
+            { id: 'blue_spider_10', type: 'blue_spider', level: 9, x: -114.0, z: 65.0, r: 0.16 },
+            { id: 'blue_spider_11', type: 'blue_spider', level: 9, x: -104.0, z: 65.0, r: 2.06 },
+            { id: 'blue_spider_12', type: 'blue_spider', level: 9, x: -129.0, z: 74.0, r: 3.96 },
+            { id: 'blue_spider_13', type: 'blue_spider', level: 9, x: -119.0, z: 74.0, r: 5.86 },
+            { id: 'blue_spider_14', type: 'blue_spider', level: 9, x: -109.0, z: 74.0, r: 1.48 },
+            { id: 'blue_spider_15', type: 'blue_spider', level: 9, x: -99.0, z: 74.0, r: 3.38 },
             // Рыжие петухи: поляна к западу от барсучьего луга (3 уровень)
             { id: 'rooster_1', type: 'rooster', level: 5, x: 18.0, z: 44.0, r: 0.00 },
             { id: 'rooster_2', type: 'rooster', level: 5, x: 28.0, z: 41.0, r: 1.70 },
@@ -434,7 +456,7 @@ window.LOCATIONS = {
         props: [
             { id: 'start_stump', prop: 'stump', x: 107.0, z: 68.0, r: 0.4, s: 1.0 },
             // Рунный портал в Рунные земли (ступени смотрят на север, к каменной дороге)
-            { id: 'forestEdge.rune_portal', prop: 'rune_portal', x: 47.0, z: 16.0, r: Math.PI },
+            { id: 'forestEdge.rune_portal', prop: 'rune_portal', x: -80.0, z: 60.0, r: Math.PI, dy: -0.3 },
             // Домик (фасад с дверью смотрит на запад) и наковальня рядом
             { id: 'forestEdge.cottage', prop: 'cottage', x: 70.0, z: -15.0, r: 0.0 },
             { id: 'forestEdge.smithy', prop: 'smithy', x: 64.3, z: -12.3, r: 1.45 },
@@ -484,18 +506,18 @@ window.LOCATIONS = {
 
                 // === ВЫСТАВКА ДЕРЕВЬЕВ У ОЗЕРА (~ -65, 20) ===
                 // Центральное эталонное дерево с пышными листьями
-                { id: 'tree_showcase_leaves', x: -65.0, z: 20.0, s: 1.0, r: 0.0, treeType: 'tree' },
                 // Безлистное дерево (Withered Sentinel, пересобрано из оригинала 14.10)
-                { id: 'tree_showcase_sentinel', x: -72.0, z: 30.0, s: 2.0, r: 2.1, treeType: 'sentinel' },
 
                 // === НОВЫЕ ДЕРЕВЬЯ С ПЫШНЫМИ РОДНЫМИ ЛИСТЬЯМИ (Poly Haven) ===
                 { id: 'tree_showcase_oak_wide', x: -65.0, z: 4.0, s: 1.5, r: 0.5, treeType: 'oak_wide' },
                 { id: 'tree_showcase_oak_tall', x: -58.0, z: 4.0, s: 1.5, r: 1.2, treeType: 'oak_tall' },
                 { id: 'tree_showcase_elm', x: -72.0, z: 4.0, s: 1.0, r: 2.3, treeType: 'elm' },
-                { id: 'tree_showcase_sakura',   x: -75.0, z: -10.0, s: 1.0, r: 0.0, treeType: 'sakura' },
                 { id: 'tree_showcase_poplar',   x: -56.0, z: -10.0, s: 1.5, r: 0.0, treeType: 'poplar' },
                 // Яблоня возле озера (вечнозелёное дерево перенесено в северо-западный ельник)
-                { id: 'tree_showcase_apple',     x: -48.0, z: -6.0, s: 1.0, r: 0.7, treeType: 'apple' }
+                { id: 'tree_showcase_apple',     x: 115.0, z: 20.0, s: 1.0, r: 0.7, treeType: 'apple' },
+                // яблони вместо одиночных деревьев лесных групп (те вырезаны removeZones)
+                { id: 'tree_apple_road', x: 68.0, z: 0.0, s: 1.05, r: 2.1, treeType: 'apple' },
+                { id: 'tree_apple_mountain', x: 135.4, z: 38.3, s: 1.05, r: 0.9, treeType: 'apple' }
             ],
             // Рудные валуны для добычи камня и железа вдоль тропы под восточными горами к водопаду
             ores: [
@@ -1290,8 +1312,6 @@ window.LOCATIONS = {
             landFloor: 0.85,
             mountainRim: { width: 16.0, height: 6.0 },
             mountainPasses: [],
-            // ровная площадка под порталом в центре
-            flatSpots: [{ x: 0.0, z: 0.0, radius: 4.8, blend: 5.0 }],
             waterBody: { type: 'none' },
             hills: { amplitude: 1.2, inclineX: 0.0, inclineZ: 0.0 },
             stoneTexture: 'pebbleTrailDiff',
@@ -1305,33 +1325,29 @@ window.LOCATIONS = {
 
         atmosphere: { sky: 0xc6dbe3, skyTop: 0x4a8fc9, fogDensity: 0.0055 },
         cameraAngle: 0.0,
-        noFerns: [{ x: 0.0, z: -2.0, rx: 8.0, rz: 8.0 }],
-
+        
         spawns: {
-            default:    { x: 0.0, z: -8.0, r: 0.0 },
-            fromForest: { x: 0.0, z: -8.0, r: 0.0 }    // выход из портала: перед ступенями, лицом на север
+            // портал стоит в центре рунического круга в подвале (30, 47.6); выход — на полу подвала перед ним, лицом на север к лестнице
+            default:    { x: 30.0, z: 41.0, r: 0.0, under: 'oldCellar' },
+            fromForest: { x: 30.0, z: 41.0, r: 0.0, under: 'oldCellar' }
         },
 
         exits: [
-            // Рунный портал в центре локации — назад на Лесную опушку
-            { id: 'toForest', x: 0.0, z: 0.0, radius: 1.5, to: 'forestEdge', spawn: 'fromRuneLands', label: 'Лесная опушка', color: 0x6be3c0, height: 4.6, track: true }
+            // Рунный портал в центре круга в подвале — назад на Лесную опушку (срабатывает только внизу)
+            { id: 'toForest', x: 30.0, z: 47.6, radius: 1.5, to: 'forestEdge', spawn: 'fromRuneLands', label: 'Лесная опушка', color: 0x6be3c0, height: 4.6, under: 'oldCellar' }
         ],
 
-        clearings: [
-            { x: 0.0, z: -3.0, radius: 9.0 }
-        ],
+        clearings: [],
 
         groups: [],
 
         props: [
-            { id: 'runeLands.rune_portal', prop: 'rune_portal', x: 0.0, z: 0.0, r: Math.PI }
+            // под землёй, в центре рунического круга зала; dy опускает основание (земляной диск) под пол, площадка вровень с полом
+            { id: 'runeLands.rune_portal', prop: 'rune_portal', x: 30.0, z: 47.6, r: Math.PI, under: 'oldCellar', dy: -0.62 }
         ],
 
         creatures: [
-            // under: 'oldCellar' — моб стоит на полу подвала (нижний этаж); без under — на земле. Этажи не смешиваются: агро/автобой/цели видят только свой этаж.
-            { id: 'cellar_rat_1', type: 'rat', level: 1, x: 24.0, z: 46.0, r: 1.0, under: 'oldCellar', behavior: 'aggressive', aggroRadius: 9.0, leashRadius: 20.0 },
-            { id: 'cellar_rat_2', type: 'rat', level: 1, x: 36.0, z: 52.0, r: 4.0, under: 'oldCellar', behavior: 'aggressive', aggroRadius: 9.0, leashRadius: 20.0 },
-            { id: 'plaza_rat_1', type: 'rat', level: 1, x: 30.0, z: 24.0, r: 2.0, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 18.0 }
+            // крыс нет (убраны); моб на полу подвала задаётся под:'oldCellar' (этажи не смешиваются)
         ],
 
         // Старый подвал — нижний этаж этой же локации (js/cellar.js). Всё привязано к точке {x, z, r}:
@@ -1347,16 +1363,7 @@ window.LOCATIONS = {
                     { id: 'hall', w: 30, d: 30, h: 8.0 }
                     // боковые комнаты убраны; добавить: { id: 'wing', attach: { room: 'hall', side: '+x', c: 0, w: 3.4 }, w: 8, d: 8, h: 4 }
                 ],
-                // небольшой каменный квартал над подвалом (необязательно): lx/lz — от верха лестницы, rot — поворот дома, фасад на +Z дома
-                surface: [
-                    { type: 'house', lx: -11.0, lz: -4.0, rot: Math.PI / 2, w: 7.0, d: 6.0, h: 3.8 },
-                    { type: 'house', lx: -11.0, lz: -12.5, rot: Math.PI / 2, w: 6.5, d: 6.0, h: 4.4 },
-                    { type: 'tower', lx: -11.0, lz: -20.0, rot: Math.PI / 2, w: 4.6, d: 4.6, h: 9.5 },
-                    { type: 'house', lx: 11.0, lz: -4.0, rot: -Math.PI / 2, w: 7.0, d: 6.0, h: 3.8 },
-                    { type: 'house', lx: 11.0, lz: -12.5, rot: -Math.PI / 2, w: 7.5, d: 6.5, h: 4.0 },
-                    { type: 'house', lx: 11.0, lz: -21.0, rot: -Math.PI / 2, w: 6.0, d: 6.0, h: 3.6 },
-                    { type: 'fountain', lx: 0.0, lz: -13.0 }
-                ]
+                surface: []   // строений на поверхности нет (дома/башня/фонтан убраны)
             }
         ]
     },

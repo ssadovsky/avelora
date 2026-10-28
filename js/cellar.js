@@ -402,20 +402,7 @@
         // ---------------------------------------------------------------- поверхность: вход, дома, фонтан (необязательно, cfg.surface)
         _buildSurface() {
             const n = this.n, y0 = this.y0, hw = n.hw;
-            // арка-вход над траншеей: два столба, балка, два знамени
-            const gz = -1.3, px = hw + 1.0;
-            for (const sx of [-1, 1]) {
-                this._boxAt(sx * px - 0.5, sx * px + 0.5, y0 - 0.3, y0 + 4.2, gz - 0.5, gz + 0.5, this.townMat, null, 2.5);
-                this._boxAt(sx * px - 0.65, sx * px + 0.65, y0 + 4.2, y0 + 4.45, gz - 0.65, gz + 0.65, this.darkMat);
-                this.surfBlocks.push({ c: true, lx: sx * px, lz: gz, r: 0.9 });
-                const ban = new THREE.PlaneGeometry(0.95, 2.3); this.geos.push(ban);
-                const b = new THREE.Mesh(ban, this.bannerMat); b.position.set(sx * (hw + 0.4), y0 + 2.5, gz + 0.55); this.group.add(b);
-            }
-            this._boxAt(-px - 0.6, px + 0.6, y0 + 3.7, y0 + 4.4, gz - 0.55, gz + 0.55, this.townMat, null, 2.5);
-            this._boxAt(-px - 0.8, px + 0.8, y0 + 4.4, y0 + 4.65, gz - 0.7, gz + 0.7, this.roofMat, null, 2.5);
-            this._fire(-px - 1.2, y0 + 1.1, gz + 0.9, 0.5); this._fire(px + 1.2, y0 + 1.1, gz + 0.9, 0.5);
-            this._cyl(0.35, 0.28, 0.9, 8, this.ironMat, -px - 1.2, y0 + 0.55, gz + 0.9); this._cyl(0.35, 0.28, 0.9, 8, this.ironMat, px + 1.2, y0 + 0.55, gz + 0.9);
-            this.surfBlocks.push({ c: true, lx: -px - 1.2, lz: gz + 0.9, r: 0.7 }, { c: true, lx: px + 1.2, lz: gz + 0.9, r: 0.7 });
+            // арка-вход, знамёна и жаровни убраны: над подвалом только траншея; дома/фонтан — по необходимости из cfg.surface
             for (const it of (this.cfg.surface || [])) {
                 if (it.type === 'house' || it.type === 'tower') this._house(it);
                 else if (it.type === 'fountain') this._fountain(it);

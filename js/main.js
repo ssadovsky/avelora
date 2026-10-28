@@ -1448,7 +1448,7 @@ class AveloraGame {
         const builtLoc = this.buildLocationSafe(targetId, spawnId, position || null);
         targetId = this.location.id || targetId;
         let spawn = builtLoc.spawn;
-        if (position && !builtLoc.fallback) spawn = { x: position.x, z: position.z, r: position.r || 0 };
+        if (position && !builtLoc.fallback) spawn = { x: position.x, z: position.z, r: position.r || 0, under: position.under || null };
         if (this.pathfinder && !this.pathfinder.isWalkableWorld(spawn.x, spawn.z)) {
             const safe = this.pathfinder.findNearestWalkableWorld(spawn.x, spawn.z, 120);
             if (safe) spawn = { x: safe.x, z: safe.z, r: spawn.r || 0 };
@@ -1456,6 +1456,7 @@ class AveloraGame {
 
         this.character.setTerrain(this.terrain);
         this.character.teleport(spawn.x, spawn.z, spawn.r);
+        if (spawn.under && this.cellars) { const cel = this.cellars.find(c => c.cfg && c.cfg.id === spawn.under); if (cel) cel.restoreHero(this.character); }   // возврат (портал домой) из подвала — обратно на пол подвала
         this.cameraTarget.copy(this.character.position);
         this.applyLocationCamera(this.location);
         this.updateCameraPosition(true);
@@ -1488,7 +1489,8 @@ class AveloraGame {
             const radius = ex.radius || 3;
 
             // Sit the marker directly on the terrain surface or at explicit Y
-            const y = (ex.y !== undefined) ? ex.y : ((this.terrain && this.terrain.getHeightAt) ? this.terrain.getHeightAt(ex.x, ex.z) + 0.04 : 0.04);
+            const exCel = ex.under && this.cellars ? this.cellars.find(c => c.cfg && c.cfg.id === ex.under) : null;   // under: маркер на полу подвала, срабатывает только «внизу»
+            const y = exCel ? exCel.F + 0.04 : (ex.y !== undefined) ? ex.y : ((this.terrain && this.terrain.getHeightAt) ? this.terrain.getHeightAt(ex.x, ex.z) + 0.04 : 0.04);
             const colorHex = (ex.color !== undefined) ? ex.color : 0xffd98a;
             const pHeight = (ex.height !== undefined) ? ex.height : 3.2;
 
@@ -1500,7 +1502,7 @@ class AveloraGame {
             ringGeo.rotateX(-Math.PI / 2);
             // на открытой местности кольцо повторяет рельеф (иначе на неровной земле видна только «подкова»);
             // у порталов с явным Y (грот, подземелье) пол ровный — оставляем плоским
-            const conform = (ex.y === undefined) && !ex.track && this.terrain && this.terrain.getHeightAt;   // track: маркер следует за высотой настила (приподнятый диск портала)
+            const conform = (ex.y === undefined) && !ex.track && !exCel && this.terrain && this.terrain.getHeightAt;   // track: маркер следует за высотой настила (приподнятый диск портала)
             if (conform) {
                 const rp = ringGeo.attributes.position;
                 for (let i = 0; i < rp.count; i++) rp.setY(i, this.terrain.getHeightAt(ex.x + rp.getX(i), ex.z + rp.getZ(i)) + 0.08 - y);
@@ -1670,7 +1672,8 @@ class AveloraGame {
             ex.pillarMat.uniforms.uTime.value = this.gameTime;
             ex.ring.material.opacity = 0.45 + Math.sin(this.gameTime * 2.4) * 0.15;
             if (ex.group.userData.fogPlanes) ex.group.userData.fogPlanes.forEach((pl, k) => { pl.material.opacity = pl.userData.base * (0.9 + 0.1 * Math.sin(this.gameTime * 0.7 + k * 1.7)); });
-            if (ex.data.track && this.terrain && this.terrain.getHeightAt) { ex.y = this.terrain.getHeightAt(ex.data.x, ex.data.z) + 0.06; ex.group.position.y = ex.y; }
+            if (ex.data.under) { const ec = this.cellars && this.cellars.find(c => c.cfg && c.cfg.id === ex.data.under); if (!ec || !ec.below) { ex.armed = false; continue; } }
+            if (ex.data.track && !ex.data.under && this.terrain && this.terrain.getHeightAt) { ex.y = this.terrain.getHeightAt(ex.data.x, ex.data.z) + 0.06; ex.group.position.y = ex.y; }
 
             const dx = p.x - ex.data.x;
             const dz = p.z - ex.data.z;
@@ -3195,6 +3198,8 @@ class AveloraGame {
     constrainCameraOutdoor(cam, head, slide = true) {
         const t = this.terrain;
         if (!t) return cam;
+        const cel0 = this._cellarNear(head.x, head.z);
+        if (cel0) return this._cellarCamera(cel0, cam, head, slide);   // подвал: то же правило, что в подземельях (dungeon.constrainCamera)
         const r0 = this._constrainCameraRay({ x: cam.x, y: cam.y, z: cam.z }, head);
         let best = r0;
         if (slide && r0._byModel && r0._k < 0.85) {
@@ -3302,6 +3307,49 @@ class AveloraGame {
         if (this.grottos) this.grottos.forEach(g => { if (g.model) out.push(g.model); });
         if (this.cameraBlockers) this.cameraBlockers.forEach(o => { if (o) out.push(o); });
         return out;
+    }
+
+    /** Дальность луча от головы без выхода из объёма подвала: шаг 0.2 м, затем деление отрезка пополам (непрерывно, без скачков). */
+    _cellarReach(cel, head, dx, dy, dz, r) {
+        const st = 0.2;
+        let prev = 0;
+        for (let s = st; ; s += st) {
+            const d = Math.min(s, r);
+            if (!cel.camOk(head.x + dx * d, head.y + dy * d, head.z + dz * d)) {
+                let lo = prev, hi = d;
+                for (let i = 0; i < 7; i++) { const m = (lo + hi) / 2; if (cel.camOk(head.x + dx * m, head.y + dy * m, head.z + dz * m)) lo = m; else hi = m; }
+                return lo;
+            }
+            prev = d;
+            if (d >= r) return r;
+        }
+    }
+
+    /** Камера в подвале: как dungeon.constrainCamera — свободный луч без поправок, иначе поворот/подъём вокруг героя с памятью прошлого варианта. */
+    _cellarCamera(cel, cam, head, slide = true) {
+        const vx = cam.x - head.x, vy = cam.y - head.y, vz = cam.z - head.z;
+        const r = Math.hypot(vx, vy, vz) || 1;
+        const direct = this._cellarReach(cel, head, vx / r, vy / r, vz / r, r);
+        if (direct >= r - 0.01) { if (slide) this._lastCelCand = -1; return cam; }
+        if (!slide) {   // второй проход после сглаживания: только подрезка вдоль луча (без выбора нового варианта — иначе дрожь)
+            const k = Math.max(0.9, direct) / r;
+            cam.x = head.x + vx * k; cam.y = head.y + vy * k; cam.z = head.z + vz * k;
+            return cam;
+        }
+        const yaw0 = Math.atan2(vx, vz), pit0 = Math.asin(Math.max(-1, Math.min(1, vy / r)));
+        const dyaws = [0, 0.35, -0.35, 0.7, -0.7, 1.1, -1.1], dpits = [0, 0.14, 0.28, 0.42, 0.56];
+        let bestScore = -1e9, bestD = null, bestIdx = -1, k = 0;
+        for (let yi = 0; yi < dyaws.length; yi++) for (let pi = 0; pi < dpits.length; pi++, k++) {
+            const yaw = yaw0 + dyaws[yi], pit = Math.min(1.25, pit0 + dpits[pi]), cp = Math.cos(pit);
+            const dx = Math.sin(yaw) * cp, dy = Math.sin(pit), dz = Math.cos(yaw) * cp;
+            const reach = this._cellarReach(cel, head, dx, dy, dz, r);
+            const score = reach - 3.0 * Math.abs(dyaws[yi]) - 2.2 * dpits[pi] + (k === this._lastCelCand ? 0.5 : 0);
+            if (score > bestScore) { bestScore = score; bestD = [dx, dy, dz, reach]; bestIdx = k; }
+        }
+        this._lastCelCand = bestIdx;
+        const reach = Math.max(0.9, bestD[3]);
+        cam.x = head.x + bestD[0] * reach; cam.y = head.y + bestD[1] * reach; cam.z = head.z + bestD[2] * reach;
+        return cam;
     }
 
     /** Подвал, рядом с которым сейчас герой (или null): камера проверяется по его объёму, а не по рельефу. */

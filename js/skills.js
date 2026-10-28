@@ -554,7 +554,7 @@
             this.startCooldown(ch.def);
             if (g.character) g.character.stopChannel();
             // Going TO the destination: remember where from, so the same skill can bring us back.
-            if (g.gameState && ch.from && !ch.def.oneWay && ch.from !== ch.def.destination) g.gameState.setReturnTo(ch.from, { x: g.character.position.x, z: g.character.position.z, r: g.character.currentRotation });
+            if (g.gameState && ch.from && !ch.def.oneWay && ch.from !== ch.def.destination) g.gameState.setReturnTo(ch.from, { x: g.character.position.x, z: g.character.position.z, r: g.character.currentRotation, under: (g.cellars && g.cellars.find(c => c.below) ? g.cellars.find(c => c.below).cfg.id : null) });
             // Quest tracking for home_recall
             if (ch.def.id === 'home_recall' && g.gameState) {
                 if (ch.dest === 'homeCamp') {

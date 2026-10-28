@@ -329,7 +329,7 @@
             // Location the player teleported home FROM (skills.js home_recall uses it to go back)
             this.returnTo = (typeof data.returnTo === 'string' && window.LOCATIONS && window.LOCATIONS[data.returnTo]) ? data.returnTo : null;
             const rp = data.returnPos;
-            this.returnPos = (this.returnTo && rp && Number.isFinite(rp.x) && Number.isFinite(rp.z)) ? { x: rp.x, z: rp.z, r: Number.isFinite(rp.r) ? rp.r : 0 } : null;
+            this.returnPos = (this.returnTo && rp && Number.isFinite(rp.x) && Number.isFinite(rp.z)) ? { x: rp.x, z: rp.z, r: Number.isFinite(rp.r) ? rp.r : 0, under: (typeof rp.under === 'string') ? rp.under : null } : null;
             // Experience (hero.js computes the level from it)
             const xv = Math.floor(Number(data.xp));
             this.xp = Number.isFinite(xv) && xv > 0 ? Math.min(xv, 99999999) : 0;
@@ -652,7 +652,7 @@
         /** Remember where "Возвращение домой" should bring the player back to (null = forget). */
         setReturnTo(locationId, pos) {
             this.returnTo = locationId || null;
-            this.returnPos = (locationId && pos) ? { x: pos.x, z: pos.z, r: pos.r || 0 } : null;
+            this.returnPos = (locationId && pos) ? { x: pos.x, z: pos.z, r: pos.r || 0, under: (typeof pos.under === 'string') ? pos.under : null } : null;
             this.save();
         }
 

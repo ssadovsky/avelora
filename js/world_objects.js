@@ -321,6 +321,10 @@
                 if (npcDef && npcDef.modelKey) window.AveloraAssets.markUsed(npcDef.modelKey);
             }
             const s = p.s || 1.0;
+            // p.under: проп стоит на полу подвала (нижний этаж): высота = пол подвала, препятствия — в сетку подвала, платформы нет
+            const underCel = p.under && this.game.cellars ? this.game.cellars.find(c => c.cfg && c.cfg.id === p.under) : null;
+            const pfGrid0 = this.pathfinder ? this.pathfinder.grid : null;
+            if (underCel && this.pathfinder && this.pathfinder._gridU) this.pathfinder.grid = this.pathfinder._gridU;
             const obstacle = (def.obstacle || 0) * s;
             if (obstacle > 0 && this.pathfinder && !p.noObstacle) {
                 this.pathfinder.addObstacle(p.x, p.z, Math.max(obstacle, MIN_NAV_OBSTACLE));
@@ -359,6 +363,7 @@
                     }
                 });
             }
+            if (underCel && this.pathfinder) this.pathfinder.grid = pfGrid0;
             if (def.walkSurface && this.terrain.addSurface && !p.noObstacle) {   // низкие камни у основания скалы ходимы (герой поднимается по их поверхности)
                 const w = def.walkSurface, bin = atob(w.data), u8 = new Uint8Array(bin.length);
                 for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
@@ -373,13 +378,13 @@
                 if (this.disposed) return null;
                 const v = variants[(p.variant || 0) % variants.length];
                 const obj = v.clone();
-                obj.position.set(p.x, (p.yFrom ? this.terrain._getRawHeightBase(p.yFrom[0], p.yFrom[1]) : this.terrain.getHeightAt(p.x, p.z)) - 0.02 + (p.dy || 0), p.z);   // yFrom: высота берётся в другой точке (уровень луга)
+                obj.position.set(p.x, underCel ? underCel.F - 0.02 + (p.dy || 0) : (p.yFrom ? this.terrain._getRawHeightBase(p.yFrom[0], p.yFrom[1]) : this.terrain.getHeightAt(p.x, p.z)) - 0.02 + (p.dy || 0), p.z);   // yFrom: высота берётся в другой точке (уровень луга)
                 obj.rotation.y = p.r || 0;
                 obj.scale.setScalar(s);
                 obj.name = `prop:${p.id || p.prop}`;
                 this.root.add(obj);
                 // ходимая платформа (prop.json "platform": {oct|hx,hz, y, rampLen, rampHx}): герой поднимается на настил по ступенькам
-                if (def.platform && this.terrain.addPlatform) {
+                if (def.platform && this.terrain.addPlatform && !underCel) {
                     const pf = def.platform, c = Math.cos(p.r || 0), sn = Math.sin(p.r || 0);
                     const half = (pf.oct || pf.hz || 2) * s, rl = (pf.rampLen || 0.7) * s;
                     const ex = p.x + sn * (half + rl), ez = p.z + c * (half + rl);   // конец пандуса (локальный +Z)
