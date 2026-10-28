@@ -1081,26 +1081,43 @@
         }
 
         // -----------------------------------------------------------
-        // Health Potion Slot & Auto-Use System
+        // Potion Slot & Auto-Use System (health + mana, one dialog with two tabs)
+        //   autoPotion.hp / autoPotion.mp = { enabled, threshold, itemId }
+        //   Slot icon: the bottles whose auto-use is ON; both ON → split diagonally
+        //   (red bottom-left, blue top-right). Nothing ON → health (or mana) if carried.
         // -----------------------------------------------------------
+        potionKinds() {
+            return {
+                hp: { ids: ['potion_health_small', 'potion_health_large'], unit: 'HP', label: 'Здоровье', verbLow: 'здоровье' },
+                mp: { ids: ['potion_mana_small', 'potion_mana_large'], unit: 'маны', label: 'Мана', verbLow: 'мана' }
+            };
+        }
+
         loadAutoPotionSettings() {
+            const K = this.potionKinds();
+            const fix = (src, kind) => {
+                const out = { enabled: false, threshold: 40, itemId: K[kind].ids[0] };
+                if (src && typeof src === 'object') {
+                    if (typeof src.enabled === 'boolean') out.enabled = src.enabled;
+                    if (typeof src.threshold === 'number' && src.threshold >= 10 && src.threshold <= 90) out.threshold = src.threshold;
+                    if (K[kind].ids.indexOf(src.itemId) >= 0) out.itemId = src.itemId;
+                }
+                return out;
+            };
+            let parsed = null;
             try {
                 const raw = localStorage.getItem('avelora_auto_potion');
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    if (parsed && typeof parsed === 'object') {
-                        if (typeof parsed.enabled === 'boolean') this.autoPotion.enabled = parsed.enabled;
-                        if (typeof parsed.threshold === 'number' && parsed.threshold >= 10 && parsed.threshold <= 90) {
-                            this.autoPotion.threshold = parsed.threshold;
-                        }
-                        if (parsed.itemId === 'potion_health_small' || parsed.itemId === 'potion_health_large') {
-                            this.autoPotion.itemId = parsed.itemId;
-                        }
-                    }
-                }
+                if (raw) parsed = JSON.parse(raw);
             } catch (err) {
                 console.warn('[Avelora] failed to load auto-potion settings', err);
             }
+            // old format {enabled, threshold, itemId} = health only
+            const isOld = parsed && typeof parsed === 'object' && !parsed.hp && !parsed.mp && ('enabled' in parsed || 'itemId' in parsed);
+            this.autoPotion = {
+                hp: fix(isOld ? parsed : parsed && parsed.hp, 'hp'),
+                mp: fix(isOld ? null : parsed && parsed.mp, 'mp')
+            };
+            if (!this.potionTab) this.potionTab = 'hp';
         }
 
         saveAutoPotionSettings() {
@@ -1109,6 +1126,30 @@
             } catch (err) {
                 console.warn('[Avelora] failed to save auto-potion settings', err);
             }
+        }
+
+        /** Mana bar exists for this character (warrior: maxMana 0 → no mana potions). */
+        hasMana() {
+            const h = this.game.hero;
+            return !!(h && h.maxMana > 0);
+        }
+
+        /** Selected potion of a kind; if none of it is carried, the other size of the same kind (remembered). */
+        potionPick(kind) {
+            const cfg = this.autoPotion[kind];
+            const ids = this.potionKinds()[kind].ids;
+            const st = this.state;
+            if (!st) return { id: cfg.itemId, count: 0 };
+            let count = st.inventory.count(cfg.itemId);
+            if (count <= 0) {
+                const alt = ids.find(id => id !== cfg.itemId && st.inventory.count(id) > 0);
+                if (alt) {
+                    cfg.itemId = alt;
+                    this.saveAutoPotionSettings();
+                    count = st.inventory.count(alt);
+                }
+            }
+            return { id: cfg.itemId, count };
         }
 
         setupPotionSlot() {
@@ -1149,29 +1190,38 @@
                     this.updatePotionModal();
                 });
             }
+            this.potionTabs = Array.from(document.querySelectorAll('.potion-tab'));
+            this.potionTabs.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.potionTab = btn.dataset.kind === 'mp' ? 'mp' : 'hp';
+                    this.updatePotionModal();
+                });
+            });
             if (this.potionAutoToggle) {
                 this.potionAutoToggle.addEventListener('change', (e) => {
-                    this.autoPotion.enabled = !!e.target.checked;
+                    const kind = this.potionTab;
+                    if (kind === 'mp' && !this.hasMana()) { e.target.checked = false; return; }
+                    this.autoPotion[kind].enabled = !!e.target.checked;
                     this.saveAutoPotionSettings();
                     this.updatePotionSlot();
+                    this.updatePotionModal();
                 });
             }
+            const setThreshold = (pct) => {
+                this.autoPotion[this.potionTab].threshold = pct;
+                if (this.potionThresholdSlider) this.potionThresholdSlider.value = String(pct);
+                if (this.potionThresholdVal) this.potionThresholdVal.textContent = `${pct}%`;
+                this.saveAutoPotionSettings();
+            };
             if (this.potionThresholdSlider) {
-                this.potionThresholdSlider.addEventListener('input', (e) => {
-                    this.autoPotion.threshold = parseInt(e.target.value, 10);
-                    if (this.potionThresholdVal) this.potionThresholdVal.textContent = `${this.autoPotion.threshold}%`;
-                    this.saveAutoPotionSettings();
-                });
+                this.potionThresholdSlider.addEventListener('input', (e) => setThreshold(parseInt(e.target.value, 10)));
             }
             if (this.potionPresets && this.potionPresets.length) {
                 this.potionPresets.forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        const pct = parseInt(btn.dataset.pct, 10);
-                        this.autoPotion.threshold = pct;
-                        if (this.potionThresholdSlider) this.potionThresholdSlider.value = String(pct);
-                        if (this.potionThresholdVal) this.potionThresholdVal.textContent = `${pct}%`;
-                        this.saveAutoPotionSettings();
+                        setThreshold(parseInt(btn.dataset.pct, 10));
                     });
                 });
             }
@@ -1200,6 +1250,11 @@
             this.potionOpen = true;
             this.setPanelAria(this.potionModal, true);
             if (this.microMenuOpen) this.closeMicroMenu();
+            // open on the tab that matters: the only auto kind that is on, else keep the last one
+            const a = this.autoPotion;
+            if (a.mp.enabled && !a.hp.enabled && this.hasMana()) this.potionTab = 'mp';
+            else if (a.hp.enabled && !a.mp.enabled) this.potionTab = 'hp';
+            if (this.potionTab === 'mp' && !this.hasMana()) this.potionTab = 'hp';
             this.updatePotionModal();
         }
 
@@ -1209,71 +1264,97 @@
         }
 
         updatePotionSlot() {
-            if (!this.potionBtn) return;
-            const st = this.state;
-            const itemId = this.autoPotion.itemId || 'potion_health_small';
-            let count = st ? st.inventory.count(itemId) : 0;
-
-            // If selected potion count is 0, check if character has the other health potion
-            if (count === 0 && st) {
-                const altId = itemId === 'potion_health_small' ? 'potion_health_large' : 'potion_health_small';
-                const altCount = st.inventory.count(altId);
-                if (altCount > 0) {
-                    this.autoPotion.itemId = altId;
-                    this.saveAutoPotionSettings();
-                    count = altCount;
-                }
+            const btn = this.potionBtn;
+            if (!btn) return;
+            const a = this.autoPotion;
+            const mana = this.hasMana();
+            const hp = this.potionPick('hp');
+            const mp = this.potionPick('mp');
+            // which bottles to show on the button
+            let kinds = [];
+            if (a.hp.enabled) kinds.push('hp');
+            if (a.mp.enabled && mana) kinds.push('mp');
+            if (!kinds.length) {
+                if (hp.count > 0) kinds = ['hp'];
+                else if (mana && mp.count > 0) kinds = ['mp'];
             }
+            const picks = { hp, mp };
+            const iconSpan = btn.querySelector('.potion-slot-icon');
+            const countSpan = btn.querySelector('.potion-slot-count');
+            let countMp = btn.querySelector('.potion-slot-count-mp');
+            if (!countMp && countSpan) {
+                countMp = document.createElement('span');
+                countMp.className = 'potion-slot-count-mp';
+                countSpan.after(countMp);
+            }
+            const badgeSpan = btn.querySelector('.potion-auto-badge');
+            const split = kinds.length === 2;
+            btn.classList.toggle('potion-split', split);
+            btn.classList.toggle('potion-mana', kinds.length === 1 && kinds[0] === 'mp');
+            if (iconSpan) iconSpan.innerHTML = '';
+            if (countSpan) countSpan.textContent = '';
+            if (countMp) countMp.textContent = '';
 
-            const activeId = this.autoPotion.itemId;
-            const def = window.AveloraItems ? window.AveloraItems.get(activeId) : null;
-            const iconSpan = this.potionBtn.querySelector('.potion-slot-icon');
-            const countSpan = this.potionBtn.querySelector('.potion-slot-count');
-            const badgeSpan = this.potionBtn.querySelector('.potion-auto-badge');
-
-            if (count > 0 && def) {
-                this.potionBtn.classList.remove('empty-potion');
+            const titles = [];
+            kinds.forEach(kind => {
+                const p = picks[kind];
+                const def = window.AveloraItems ? window.AveloraItems.get(p.id) : null;
+                if (!def) return;
                 if (iconSpan) {
-                    iconSpan.innerHTML = '';
-                    iconSpan.appendChild(makeIcon(def));
+                    const layer = document.createElement('span');
+                    layer.className = `potion-layer potion-layer-${kind}${p.count > 0 ? '' : ' none'}`;
+                    layer.appendChild(makeIcon(def));
+                    iconSpan.appendChild(layer);
                 }
-                if (countSpan) countSpan.textContent = count > 1 ? count : '';
-                this.potionBtn.title = `${def.name} (${count} шт.) — нажмите для настройки`;
-            } else {
-                this.potionBtn.classList.add('empty-potion');
-                if (iconSpan) iconSpan.innerHTML = '';
-                if (countSpan) countSpan.textContent = '';
-                this.potionBtn.title = 'Зелье здоровья (пусто) — нажмите для настройки';
-            }
+                const target = (split && kind === 'mp') || (!split && false) ? countMp : countSpan;
+                if (target && p.count > 0) target.textContent = (split || p.count > 1) ? p.count : '';
+                titles.push(`${def.name}: ${p.count} шт.${a[kind].enabled ? ` (авто ≤ ${a[kind].threshold}%)` : ''}`);
+            });
+            if (split) {
+                // split: red count bottom-left, blue count top-right
+                if (countSpan) countSpan.classList.add('left');
+            } else if (countSpan) countSpan.classList.remove('left');
 
-            if (badgeSpan) {
-                badgeSpan.classList.toggle('hidden', !this.autoPotion.enabled);
-            }
+            const anyShown = kinds.length > 0;
+            btn.classList.toggle('empty-potion', !anyShown);
+            btn.title = anyShown ? `${titles.join('\n')}\nНажмите для настройки` : 'Зелья (пусто) — нажмите для настройки';
+            if (badgeSpan) badgeSpan.classList.toggle('hidden', !(a.hp.enabled || (a.mp.enabled && mana)));
         }
 
         updatePotionModal() {
             const st = this.state;
             const cb = this.game.combat;
+            const hero = this.game.hero;
+            const K = this.potionKinds();
+            const mana = this.hasMana();
+            if (this.potionTab === 'mp' && !mana) this.potionTab = 'hp';
+            const kind = this.potionTab || 'hp';
+            const cfg = this.autoPotion[kind];
 
-            if (this.potionAutoToggle) {
-                this.potionAutoToggle.checked = !!this.autoPotion.enabled;
-            }
-            if (this.potionThresholdSlider) {
-                this.potionThresholdSlider.value = String(this.autoPotion.threshold);
-            }
-            if (this.potionThresholdVal) {
-                this.potionThresholdVal.textContent = `${this.autoPotion.threshold}%`;
-            }
+            (this.potionTabs || []).forEach(t => {
+                const k = t.dataset.kind;
+                t.classList.toggle('active', k === kind);
+                t.classList.toggle('auto-on', !!(this.autoPotion[k] && this.autoPotion[k].enabled && (k !== 'mp' || mana)));
+                t.disabled = k === 'mp' && !mana;
+                t.title = k === 'mp' && !mana ? 'У этого персонажа нет маны' : '';
+            });
+            const title = document.getElementById('potion-modal-title');
+            if (title) title.textContent = 'Зелья';
+            const lbl = document.getElementById('potion-threshold-label');
+            if (lbl) lbl.textContent = kind === 'mp' ? 'Пить, если мана ниже:' : 'Пить, если здоровье ниже:';
+
+            if (this.potionAutoToggle) this.potionAutoToggle.checked = !!cfg.enabled;
+            if (this.potionThresholdSlider) this.potionThresholdSlider.value = String(cfg.threshold);
+            if (this.potionThresholdVal) this.potionThresholdVal.textContent = `${cfg.threshold}%`;
 
             if (this.potionChoiceGrid) {
                 this.potionChoiceGrid.innerHTML = '';
-                const potionIds = ['potion_health_small', 'potion_health_large'];
-                potionIds.forEach(id => {
+                K[kind].ids.forEach(id => {
                     const def = window.AveloraItems ? window.AveloraItems.get(id) : null;
                     if (!def) return;
                     const count = st ? st.inventory.count(id) : 0;
-                    const isSelected = id === this.autoPotion.itemId;
-                    const healAmount = (def.use && def.use.amount) || 50;
+                    const isSelected = id === cfg.itemId;
+                    const amount = (def.use && def.use.amount) || 50;
 
                     const card = document.createElement('div');
                     card.className = `potion-choice-card ${isSelected ? 'selected' : ''}`;
@@ -1287,7 +1368,7 @@
                     infoDiv.className = 'potion-choice-info';
                     infoDiv.innerHTML = `
                         <div class="potion-choice-name">${def.name}</div>
-                        <div class="potion-choice-desc">+${healAmount} HP • ${count > 0 ? `В наличии: ${count} шт.` : '<span style="color:#b38a7a">Нет в сумке</span>'}</div>
+                        <div class="potion-choice-desc">+${amount} ${K[kind].unit} • ${count > 0 ? `В наличии: ${count} шт.` : '<span style="color:#b38a7a">Нет в сумке</span>'}</div>
                     `;
 
                     const countDiv = document.createElement('div');
@@ -1298,7 +1379,7 @@
 
                     card.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        this.autoPotion.itemId = id;
+                        cfg.itemId = id;
                         this.saveAutoPotionSettings();
                         this.updatePotionSlot();
                         this.updatePotionModal();
@@ -1308,11 +1389,11 @@
                 });
             }
 
-            // Drink button state
+            // Drink button state (current tab)
             if (this.potionDrinkBtn) {
-                const count = st ? st.inventory.count(this.autoPotion.itemId) : 0;
+                const count = st ? st.inventory.count(cfg.itemId) : 0;
                 const isDead = cb && cb.isDead;
-                const isFull = cb && cb.hp >= cb.maxHp;
+                const isFull = kind === 'mp' ? !(hero && hero.mana < hero.maxMana) : (cb && cb.hp >= cb.maxHp);
                 const canDrink = count > 0 && !isDead && !isFull;
                 this.potionDrinkBtn.disabled = !canDrink;
                 this.potionDrinkBtn.style.opacity = canDrink ? '1' : '0.5';
@@ -1322,21 +1403,8 @@
 
         drinkSelectedPotion() {
             if (!this.inputAllowed()) return false;
-            const st = this.state;
-            const itemId = this.autoPotion.itemId || 'potion_health_small';
-            let count = st ? st.inventory.count(itemId) : 0;
-            let targetId = itemId;
-
-            if (count <= 0 && st) {
-                const altId = itemId === 'potion_health_small' ? 'potion_health_large' : 'potion_health_small';
-                if (st.inventory.count(altId) > 0) {
-                    targetId = altId;
-                    this.autoPotion.itemId = altId;
-                    this.saveAutoPotionSettings();
-                }
-            }
-
-            const success = this.consumeHeal(targetId);
+            const p = this.potionPick(this.potionTab || 'hp');
+            const success = p.count > 0 && this.consumeHeal(p.id);
             this.updatePotionSlot();
             if (this.potionBtn) {
                 this.flashSlot(this.potionBtn, success ? 'pressed' : 'shake');
@@ -1345,38 +1413,30 @@
         }
 
         updateAutoPotion(delta) {
-            if (this._autoPotionCooldown > 0) this._autoPotionCooldown -= delta;
-            if (!this.autoPotion.enabled || !this.inputAllowed()) return;
-            if (this._autoPotionCooldown > 0) return;
-
+            const cd = this._autoPotionCd || (this._autoPotionCd = { hp: 0, mp: 0 });
+            if (cd.hp > 0) cd.hp -= delta;
+            if (cd.mp > 0) cd.mp -= delta;
+            const a = this.autoPotion;
+            if (!(a.hp.enabled || a.mp.enabled) || !this.inputAllowed()) return;
             const cb = this.game.combat;
-            if (!cb || cb.isDead || cb.maxHp <= 0) return;
+            if (!cb || cb.isDead || !this.state) return;
 
-            const curHp = typeof cb.hp === 'number' ? cb.hp : (typeof cb.currentHp === 'number' ? cb.currentHp : cb.maxHp);
-            const hpPct = (curHp / cb.maxHp) * 100;
-            if (hpPct <= this.autoPotion.threshold) {
-                const st = this.state;
-                if (!st) return;
-
-                let itemId = this.autoPotion.itemId || 'potion_health_small';
-                if (st.inventory.count(itemId) <= 0) {
-                    const altId = itemId === 'potion_health_small' ? 'potion_health_large' : 'potion_health_small';
-                    if (st.inventory.count(altId) > 0) {
-                        itemId = altId;
-                        this.autoPotion.itemId = altId;
-                        this.saveAutoPotionSettings();
-                    }
+            const tryKind = (kind, pct) => {
+                if (!a[kind].enabled || cd[kind] > 0 || pct > a[kind].threshold) return;
+                const p = this.potionPick(kind);
+                if (p.count <= 0) return;
+                if (this.consumeHeal(p.id)) {
+                    cd[kind] = 2.0; // 2 seconds between auto drinks of the same kind
+                    this.updatePotionSlot();
+                    if (this.potionBtn) this.flashSlot(this.potionBtn, 'pressed');
                 }
-
-                if (st.inventory.count(itemId) > 0) {
-                    const drank = this.consumeHeal(itemId);
-                    if (drank) {
-                        this._autoPotionCooldown = 2.0; // 2 seconds cooldown between auto heals
-                        this.updatePotionSlot();
-                        if (this.potionBtn) this.flashSlot(this.potionBtn, 'pressed');
-                    }
-                }
+            };
+            if (cb.maxHp > 0) {
+                const curHp = typeof cb.hp === 'number' ? cb.hp : cb.maxHp;
+                tryKind('hp', (curHp / cb.maxHp) * 100);
             }
+            const hero = this.game.hero;
+            if (hero && hero.maxMana > 0) tryKind('mp', (hero.mana / hero.maxMana) * 100);
         }
 
         // -----------------------------------------------------------
@@ -1922,7 +1982,7 @@
             if (def.use && def.use.type === 'equip') {
                 this.toggleEquip(e.id);
                 if (slot) this.flashSlot(slot, 'pressed');
-            } else if (def.use && def.use.type === 'heal') {
+            } else if (def.use && (def.use.type === 'heal' || def.use.type === 'mana')) {
                 if (this.consumeHeal(e.id)) {
                     if (slot) this.flashSlot(slot, 'pressed');
                 } else {
@@ -1945,11 +2005,29 @@
             const def = window.AveloraItems.get(itemId);
             if (!st || !def || !this.game.combat) return false;
             if (st.inventory.count(itemId) <= 0) {
-                this.floatText('Зелье закончилось', 'warn');
+                this.floatText(def.use && def.use.food ? `Закончилось: ${def.name}` : 'Зелье закончилось', 'warn');
                 return false;
             }
             const cb = this.game.combat;
             if (cb.isDead) return false;
+
+            // use.type 'mana': зелья маны и фиалка — восстанавливают ману (hero.mana)
+            if (def.use && def.use.type === 'mana') {
+                const hero = this.game.hero;
+                if (!hero || !(hero.maxMana > 0)) { this.floatText('Нет маны', 'warn'); return false; }
+                if (hero.mana >= hero.maxMana) { this.floatText('Мана уже полна', 'warn'); return false; }
+                const amt = def.use.amount || 50;
+                const got = Math.round(Math.min(amt, hero.maxMana - hero.mana));
+                hero.mana = Math.min(hero.maxMana, hero.mana + amt);
+                if (hero.renderBars) hero.renderBars(true);
+                st.inventory.remove(itemId, 1);
+                this.floatText(`+${got} Мана`, 'mana');
+                const c = this.game.character;
+                if (c) this.floatAt(`+${got}`, 'mana', c.position.x, c.position.y + 1.8, c.position.z);
+                this.renderInventory();
+                this.renderHotbar();
+                return true;
+            }
 
             const trialQuestActive = st.questStatus('potion_trial') === 'active' && !st.getQuestFlag('potion_health_small_drank');
             if (cb.hp >= cb.maxHp && !trialQuestActive) {
@@ -1967,7 +2045,7 @@
                     this.floatAt(`+${healed}`, 'heal', c.position.x, c.position.y + 1.8, c.position.z);
                 }
             } else {
-                this.floatText('Зелье выпито', 'heal');
+                this.floatText(def.use && def.use.food ? `Съедено: ${def.name}` : 'Зелье выпито', 'heal');
             }
 
             if (itemId === 'potion_health_small' || itemId === 'potion_health_large') {
@@ -2246,7 +2324,7 @@
                 if (def) {
                     const n = this.state ? this.state.inventory.count(id) : 0;
                     const countStr = (count !== undefined && count > 1) ? `Количество: ${count}` : (count === undefined && n > 1 ? `В сумке: ${n}` : '');
-                    const typeStr = def.use ? (def.use.type === 'equip' ? (isDoll ? 'снаряжение (надето)' : 'снаряжение') : 'действие') : 'материал';
+                    const typeStr = def.use ? (def.use.type === 'equip' ? (isDoll ? 'снаряжение (надето)' : 'снаряжение') : (def.use.food ? 'еда' : 'действие')) : 'материал';
                     meta = countStr ? `${countStr} · ${typeStr}` : typeStr;
                 }
             }
@@ -2384,7 +2462,7 @@
             const d = document.createElement('div');
             d.className = 'tt-desc';
             d.textContent = def.description || '';
-            const typeStr = def.use ? (def.use.type === 'equip' ? 'снаряжение' : 'действие') : 'материал';
+            const typeStr = def.use ? (def.use.type === 'equip' ? 'снаряжение' : (def.use.food ? 'еда' : 'действие')) : 'материал';
             const m = document.createElement('div');
             m.className = 'tt-meta';
             m.textContent = src.count > 1 ? `Количество: ${src.count} · ${typeStr}` : typeStr;
@@ -2425,10 +2503,10 @@
                 actions.appendChild(btnEquip);
             }
 
-            if (def.use && def.use.type === 'heal') {
+            if (def.use && (def.use.type === 'heal' || def.use.type === 'mana')) {
                 const btnDrink = document.createElement('button');
                 btnDrink.className = 'tt-btn primary';
-                btnDrink.textContent = 'Выпить';
+                btnDrink.textContent = def.use.verb || (def.use.food ? 'Съесть' : 'Выпить');
                 btnDrink.addEventListener('click', (e) => {
                     e.stopPropagation();
                     this.hideTooltip();
@@ -3035,7 +3113,7 @@
                             this.hideTooltip();
                             if (def.use.type === 'equip') {
                                 this.equip(c.item);
-                            } else if (def.use.type === 'heal') {
+                            } else if (def.use.type === 'heal' || def.use.type === 'mana') {
                                 this.consumeHeal(c.item);
                             }
                         }
@@ -3250,7 +3328,7 @@
                                 if (def.use.type === 'equip') {
                                     this.equip(c.item);
                                     return;
-                                } else if (def.use.type === 'heal') {
+                                } else if (def.use.type === 'heal' || def.use.type === 'mana') {
                                     this.consumeHeal(c.item);
                                     return;
                                 }

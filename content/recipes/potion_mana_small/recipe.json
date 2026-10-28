@@ -1,0 +1,18 @@
+{
+  "id": "potion_mana_small",
+  "name": "Малое зелье маны",
+  "description": "Отвар из лепестков фиалки. Восстанавливает 50 единиц маны.",
+  "category": "alchemy",
+  "ingredients": [
+    {
+      "item": "violet",
+      "count": 5
+    }
+  ],
+  "result": {
+    "item": "potion_mana_small",
+    "count": 1
+  },
+  "price": 5,
+  "requiresLevel": 1
+}

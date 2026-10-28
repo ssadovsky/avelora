@@ -15,7 +15,7 @@
 const ENV_CHUNK_SIZE = 20; // meters
 // V0.3: множители радиуса куллинга чанков (GFX.grassRadius * mul)
 const CULL_INNER_MUL = { dandelions_lod: 0.45 };
-const CULL_RADIUS_MUL = { grass: 1.0, dandelions: 0.45, dandelions_lod: 1.0, flowers: 1.2, branches: 1.0, ferns: 1.3, reeds: 1.5, shrubs: 2.4 };
+const CULL_RADIUS_MUL = { grass: 1.0, dandelions: 0.45, dandelions_lod: 1.0, flowers: 1.2, branches: 1.0, ferns: 1.3, flowerbeds: 2.4, reeds: 1.5, shrubs: 2.4 };
 const CULL_CHUNK_HALF_DIAG = ENV_CHUNK_SIZE * 0.7071; // расстояние от центра до угла чанка
 
 // Decoded GLB buffers are cached between locations (atob of multi-MB strings is slow)
@@ -28,12 +28,17 @@ const GLB_BUFFER_CACHE = {};
 // (not small ground filler), placed sparsely enough to be a real object.
 const KIND_LABELS = {
     trees: 'Дерево', boulders: 'Камень', shrubs: 'Куст', reeds: 'Камыш',
-    ferns: 'Папоротник', dandelions: 'Одуванчик', grass: 'Трава',
+    ferns: 'Папоротник', flowerbeds: 'Фиалки', dandelions: 'Одуванчик', grass: 'Трава',
     ores: 'Валун'
 };
 // Кусты, камыш и декоративные камни являются фоновыми декорациями (без всплывающих подсказок и перехвата кликов)
-const HOVER_KINDS = new Set(['trees', 'boulders', 'ferns', 'ores']);
-const PROXY_HOVER_KINDS = new Set(['trees', 'ferns', 'ores']);
+const HOVER_KINDS = new Set(['trees', 'boulders', 'ferns', 'flowerbeds', 'ores']);
+const PROXY_HOVER_KINDS = new Set(['trees', 'ferns', 'flowerbeds', 'ores']);
+// Плодовые деревья: не лес (нет лесной подстилки), свои подписи, часть модели с плодами (по имени материала GLB),
+// которую harvest.js прячет у сорванного дерева. Яблоки у tree_apple(.glb/_far.glb) — материал Material_2.
+const FRUIT_TREE_TYPES = {
+    apple: { label: 'Яблоня', fruitMaterials: ['Material_2'] }
+};
 
 // object.visible stays true so the raycaster tests it; material.visible=false
 // keeps it out of the render list. Sizes are in local/unscaled units — the
@@ -41,6 +46,7 @@ const PROXY_HOVER_KINDS = new Set(['trees', 'ferns', 'ores']);
 const HOVER_PROXY_SIZE = {
     trees: { radiusBottom: 0.7, radiusTop: 1.35, height: 3.4 },
     ferns: { radiusBottom: 0.45, radiusTop: 0.4, height: 0.55 },
+    flowerbeds: { radiusBottom: 0.75, radiusTop: 0.75, height: 1.2 },   // модель грядки ~1.1 × 1.1 м при s = 1
     ores:  { radiusBottom: 0.42, radiusTop: 0.36, height: 0.48 } // базовый компактный хитбокс, масштабируется на p.s
 };
 
@@ -266,7 +272,7 @@ class LakesideEnvironment {
                     box.expandByPoint(sphere.center.clone().subScalar(sphere.radius));
 
                     mesh.userData.instanceIds.push(item.id);
-                    this.registerPart(kind, item, mesh, i, m);
+                    this.registerPart(kind, item, mesh, i, m, !!part.fruit);
                 });
 
                 geo.boundingSphere = box.getBoundingSphere(new THREE.Sphere());
@@ -347,7 +353,7 @@ class LakesideEnvironment {
         return geo;
     }
 
-    registerPart(kind, item, mesh, index, matrix) {
+    registerPart(kind, item, mesh, index, matrix, fruit) {
         let entry = this.objects.get(item.id);
         if (!entry) {
             entry = {
@@ -356,10 +362,11 @@ class LakesideEnvironment {
                 label: KIND_LABELS[kind] || kind,
                 visible: true, parts: []
             };
+            if (kind === 'trees' && item.treeType) entry.treeType = item.treeType;
             this.objects.set(item.id, entry);
         }
-        entry.parts.push({ mesh, index, matrix: matrix.clone() });
-        if (!entry.visible) {
+        entry.parts.push({ mesh, index, matrix: matrix.clone(), fruit: !!fruit });
+        if (!entry.visible || (fruit && entry.fruitHidden)) {
             mesh.setMatrixAt(index, new THREE.Matrix4().makeScale(0, 0, 0));
             mesh.instanceMatrix.needsUpdate = true;
         }
@@ -371,10 +378,31 @@ class LakesideEnvironment {
         if (!entry || entry.visible === visible) return;
         const zero = new THREE.Matrix4().makeScale(0, 0, 0);
         entry.parts.forEach(p => {
-            p.mesh.setMatrixAt(p.index, visible ? p.matrix : zero);
+            p.mesh.setMatrixAt(p.index, (visible && !(p.fruit && entry.fruitHidden)) ? p.matrix : zero);
             p.mesh.instanceMatrix.needsUpdate = true;
         });
         entry.visible = visible;
+        this.version++;
+    }
+
+    /**
+     * Fruit tree (apple): hide/show only the fruit part of one tree (the apples), the tree itself stays.
+     * entry.fruitHidden = true → nothing to pick (harvest.js isHarvestable). Far LOD shares the instanceMatrix.
+     */
+    setObjectFruitVisible(id, visible) {
+        const entry = this.objects.get(id);
+        if (!entry || !entry.parts.some(p => p.fruit)) return;
+        const hidden = !visible;
+        if (!!entry.fruitHidden === hidden) return;
+        entry.fruitHidden = hidden;
+        if (entry.visible) {
+            const zero = new THREE.Matrix4().makeScale(0, 0, 0);
+            entry.parts.forEach(p => {
+                if (!p.fruit) return;
+                p.mesh.setMatrixAt(p.index, hidden ? zero : p.matrix);
+                p.mesh.instanceMatrix.needsUpdate = true;
+            });
+        }
         this.version++;
     }
 
@@ -390,6 +418,7 @@ class LakesideEnvironment {
         if (!entry || !entry.visible) return;
         const m = LakesideEnvironment._m1, t = LakesideEnvironment._m2;
         entry.parts.forEach(p => {
+            if (p.fruit && entry.fruitHidden) return;   // picked apples stay hidden while the tree shakes
             if (!worldPre) {
                 p.mesh.setMatrixAt(p.index, p.matrix);
             } else {
@@ -420,6 +449,7 @@ class LakesideEnvironment {
         this.loadShrubs();
         this.loadBranches();
         this.loadFerns();
+        this.loadFlowerbeds();
         this.loadFlowers();
         this.loadGrass();
         this.createAlphaCutoutReeds();
@@ -427,7 +457,8 @@ class LakesideEnvironment {
 
     loadRealisticTrees() {
         const treePositions = this.getDecorations('trees');
-        if (this.terrain && this.terrain.setForestMask) this.terrain.setForestMask(treePositions); // маска леса для groundSet 'baseForest'
+        // маска леса для groundSet 'baseForest'. Плодовые деревья (яблоня) лесом не считаются: под ними остаётся та земля, что есть
+        if (this.terrain && this.terrain.setForestMask) this.terrain.setForestMask(treePositions.filter(p => !FRUIT_TREE_TYPES[p.treeType]));
         if (treePositions.length === 0) return;
 
         // Group placements by treeType: 'tree', 'fir'..., 'birch', 'willow', 'sentinel', etc.
@@ -494,8 +525,8 @@ class LakesideEnvironment {
                 if (p.id && !this.objects.has(p.id)) {
                     this.objects.set(p.id, {
                         id: p.id, kind: 'trees', group: p.group || null,
-                        x: p.x, z: p.z, s: p.s, r: p.r,
-                        label: KIND_LABELS.trees || 'trees',
+                        x: p.x, z: p.z, s: p.s, r: p.r, treeType: typeKey,
+                        label: (FRUIT_TREE_TYPES[typeKey] && FRUIT_TREE_TYPES[typeKey].label) || KIND_LABELS.trees || 'trees',
                         visible: true, parts: []
                     });
                 }
@@ -525,7 +556,9 @@ class LakesideEnvironment {
                             c.material.depthWrite = true;
                         }
                     }
-                    parts.push({ geometry: c.geometry, material: c.material, nodeMatrix: c.matrixWorld.clone() });
+                    const fruitMats = FRUIT_TREE_TYPES[typeKey] && FRUIT_TREE_TYPES[typeKey].fruitMaterials;
+                    const fruit = !!(fruitMats && c.material && fruitMats.indexOf(c.material.name) >= 0);
+                    parts.push({ geometry: c.geometry, material: c.material, nodeMatrix: c.matrixWorld.clone(), fruit });
                 });
                 return parts;
             };
@@ -783,6 +816,27 @@ class LakesideEnvironment {
                     d.rotation.set(0, (p.r !== undefined) ? p.r : 0, 0);
                     d.scale.set(scale, scale, scale);
                 }, { castShadow: false, reflect: false });
+        });
+    }
+
+    /** Грядки цветов (фиалки): собираемое растение (content/nodes/violet_bed), модель — проп violet_flowerbed. */
+    loadFlowerbeds() {
+        const list = this.getDecorations('flowerbeds');
+        if (list.length === 0) return;
+        this.loadModel('props/violet_flowerbed', (gltf) => {
+            gltf.scene.updateMatrixWorld(true);
+            const parts = [];
+            gltf.scene.traverse(c => {
+                if (c.isMesh) parts.push({ geometry: c.geometry, material: c.material, nodeMatrix: c.matrixWorld.clone() });
+            });
+            if (!parts.length) return;
+            this.buildInstanced('flowerbeds', parts, list, (p, idx, d) => {
+                const gy = this.terrain.getHeightAt(p.x, p.z);
+                const scale = p.s || 0.5;
+                d.position.set(p.x, gy - 0.02, p.z);
+                d.rotation.set(0, (p.r !== undefined) ? p.r : 0, 0);
+                d.scale.set(scale, scale, scale);
+            }, { reflect: false });   // тень как у прежнего пропа (непрозрачный материал, 6 штук — дёшево)
         });
     }
 

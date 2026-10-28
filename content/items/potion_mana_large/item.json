@@ -1,0 +1,17 @@
+{
+  "id": "potion_mana_large",
+  "name": "Большое зелье маны",
+  "description": "Концентрированный эликсир из отборных фиалок. Восстанавливает 100 единиц маны при употреблении.",
+  "category": "consumable",
+  "stackMax": 20,
+  "ground": {
+    "variants": 1,
+    "scale": 0.9,
+    "pile": "single"
+  },
+  "use": {
+    "type": "mana",
+    "amount": 100
+  },
+  "value": 40
+}

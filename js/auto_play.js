@@ -264,7 +264,7 @@
                     el.addEventListener('change', () => {
                         this.gatherConfig[key] = el.checked;
                         this.saveGatherConfig();
-                        const labels = { herb: 'Трава', wood: 'Дерево', ore: 'Камень', loot: 'Добыча' };
+                        const labels = { herb: 'Растения', wood: 'Дерево', ore: 'Камень', loot: 'Добыча' };
                         if (this.game.ui && this.game.ui.floatText) {
                             this.game.ui.floatText(`${labels[key] || key}: ${el.checked ? 'ВКЛ' : 'ВЫКЛ'}`, el.checked ? 'good' : 'info');
                         }
@@ -371,6 +371,12 @@
                 if (stateSpan) stateSpan.textContent = this.gatherEnabled ? 'ВКЛ' : 'ВЫКЛ';
             }
             if (this.gatherEnabled) {
+                // автосбор и автоквест не работают вместе: иначе квест (например, на камни) перетягивает цели
+                if (this.questEnabled) this.toggleQuest(false);
+                // свежий старт: забыть прошлую цель и временно «недостижимые» объекты
+                this._currentGatherTarget = null;
+                if (this._unreachableObjects) this._unreachableObjects.clear();
+                this._gatherTimer = 0;
                 if (c && c.position) {
                     this.gatherAnchor = { x: c.position.x, z: c.position.z };
                 }
@@ -440,6 +446,9 @@
             this.questEnabled = enabling;
 
             if (enabling) {
+                if (this.gatherEnabled) this.toggleGather(false);   // автоквест сам собирает нужное: автосбор выключаем
+                if (this._unreachableObjects) this._unreachableObjects.clear();
+                this._currentGatherTarget = null;
                 this._manualMovePauseUntil = 0;
                 this._lastManualAt = 0;
                 this._currentQuestMob = null;
@@ -1028,10 +1037,10 @@
 
             if (env && env.objects && harvest) {
                 for (const [objId, entry] of env.objects.entries()) {
-                    if (!entry || entry.visible === false) continue;
+                    if (!entry || entry.visible === false || entry.fruitHidden) continue;
                     if (this._unreachableObjects.has(objId)) continue;
 
-                    const node = harvest.nodeFor(entry.kind);
+                    const node = harvest.nodeFor(entry);
                     if (!node) continue;
 
                     // Must be within gather radius from the starting anchor
@@ -1042,15 +1051,16 @@
                     let reach = 1.8;
                     let canHarvestThis = false;
 
-                    // 1. Herbs / Ferns
+                    // 1. Plants: herbs / ferns / fruit trees (apple) — the "Растения" checkbox
                     if (node.tool === 'gather' || entry.kind === 'ferns') {
                         if (!this.gatherConfig.herb) continue;
                         anyNodeInRadius = true;
-                        if (!hasEmptyCells && inv && inv.spaceFor('fern') <= 0) {
+                        const dropItem = (node.drops && node.drops[0] && node.drops[0].item) || 'fern';
+                        if (!hasEmptyCells && inv && inv.spaceFor(dropItem) <= 0) {
                             bagBlockedNodes++;
                             continue;
                         }
-                        reach = Math.max(1.3, 0.45 * s + 0.6);
+                        reach = entry.kind === 'trees' ? Math.max(1.6, 0.8 * s + 0.95 - 0.3 * s) : Math.max(1.3, 0.45 * s + 0.6);
                         canHarvestThis = true;
                     }
                     // 2. Ore / Stone
@@ -1689,9 +1699,9 @@
             const nodeCandidates = [];
             if (neededItems.size > 0 && env && env.objects && harvest) {
                 for (const [objId, entry] of env.objects.entries()) {
-                    if (!entry || entry.visible === false) continue;
+                    if (!entry || entry.visible === false || entry.fruitHidden) continue;
                     if (this._unreachableObjects && this._unreachableObjects.has(objId)) continue;
-                    const node = harvest.nodeFor(entry.kind);
+                    const node = harvest.nodeFor(entry);
                     if (!node) continue;
 
                     const drops = node.drops || [];
@@ -1700,7 +1710,8 @@
 
                     const s = entry.s || 1;
                     let reach = 1.8;
-                    if (node.tool === 'gather' || entry.kind === 'ferns') reach = Math.max(1.3, 0.45 * s + 0.6);
+                    if (node.tool === 'gather' && entry.kind === 'trees') reach = Math.max(1.6, 0.8 * s + 0.95 - 0.3 * s);
+                    else if (node.tool === 'gather' || entry.kind === 'ferns') reach = Math.max(1.3, 0.45 * s + 0.6);
                     else if (node.tool === 'mine' || entry.kind === 'ores') reach = Math.max(1.3, 0.6 * s + 0.9);
                     else if (node.tool === 'chop' || entry.kind === 'trees') reach = Math.max(1.6, 0.8 * s + 0.95 - 0.3 * s);
 

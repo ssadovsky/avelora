@@ -1,0 +1,18 @@
+{
+  "id": "potion_mana_large",
+  "name": "Большое зелье маны",
+  "description": "Концентрированный эликсир из 10 фиалок. Восстанавливает 100 единиц маны.",
+  "category": "alchemy",
+  "ingredients": [
+    {
+      "item": "violet",
+      "count": 10
+    }
+  ],
+  "result": {
+    "item": "potion_mana_large",
+    "count": 1
+  },
+  "price": 20,
+  "requiresLevel": 5
+}

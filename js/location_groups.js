@@ -19,11 +19,11 @@
 (function () {
     'use strict';
 
-    const KINDS = ['trees', 'ores', 'boulders', 'shrubs', 'branches', 'ferns', 'flowers', 'grass', 'reeds'];
+    const KINDS = ['trees', 'ores', 'boulders', 'shrubs', 'branches', 'ferns', 'flowerbeds', 'flowers', 'grass', 'reeds'];
     const SINGULAR = {
         trees: 'tree',
         ores: 'ore', boulders: 'boulder', shrubs: 'shrub', branches: 'branch', ferns: 'fern',
-        flowers: 'flower', grass: 'grass', reeds: 'reed'
+        flowerbeds: 'flowerbed', flowers: 'flower', grass: 'grass', reeds: 'reed'
     };
 
     // Поверхности по высоте рельефа (плоскость воды на Y = 0)
@@ -72,6 +72,8 @@
         (location.clearings || []).forEach(c => reserved.push({ x: c.x, z: c.z, r: c.radius || 4 }));
         (location.pickups || []).forEach(p => reserved.push({ x: p.x, z: p.z, r: 1.0 }));
         (location.props || []).forEach(p => reserved.push({ x: p.x, z: p.z, r: 1.3 * (p.s || 1) }));
+        // грядки цветов (фиалки) — собираемые растения, раньше были props: та же свободная зона вокруг
+        ((location.decorations && location.decorations.flowerbeds) || []).forEach(p => reserved.push({ x: p.x, z: p.z, r: 1.3 * (p.s || 1) }));
 
         // Расчёт точного расстояния от точки (x, z) до ближайшего края полотна дороги
         const paths = (t.paths || location.paths || []);

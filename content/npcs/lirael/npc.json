@@ -52,6 +52,12 @@
         "item": "potion_health_large"
       },
       {
+        "item": "potion_mana_small"
+      },
+      {
+        "item": "potion_mana_large"
+      },
+      {
         "item": "plank"
       },
       {

@@ -3071,8 +3071,24 @@ class AveloraGame {
         if (m) m.visible = this.viewMode !== 'first';
     }
 
+    /**
+     * Точка, за которой следит камера. Верхом — корень маунта (земля + сглаженный наклон)
+     * + высота седла: дыхание/галоп волка двигают модель героя, но не камеру.
+     * x/z — героя (без рывка при посадке). Пешком (после любого спешивания) — сам герой.
+     */
+    getCameraAnchor() {
+        const c = this.character;
+        const mm = this.mount;
+        const m = mm && mm.isMounted ? mm.activeMount : null;
+        if (!m || !m.group || !c.isMounted) return c.position;
+        if (!this._camAnchor) this._camAnchor = new THREE.Vector3();
+        const rideH = (m.def && m.def.rideHeight) || c.mountRideHeight || 0.65;
+        return this._camAnchor.set(c.position.x, m.group.position.y + rideH, c.position.z);
+    }
+
     updateCameraPosition(instant = false, delta = 0.016) {
         if (!this.character || !this.character.position) return;
+        const anchor = this.getCameraAnchor();
 
         // Smoothly interpolate camera rotation towards target angle (e.g. on compass click)
         if (!instant && this.targetCameraAngle !== undefined) {
@@ -3091,7 +3107,7 @@ class AveloraGame {
         }
         this.applyBodyVisibility();
         if (fp) {
-            const p = this.character.position;
+            const p = anchor;
             this.cameraTarget.copy(p);
             const yaw = this.cameraAngle, pit = this.fpPitch, cp = Math.cos(pit);
             const ex = p.x - Math.sin(yaw) * 0.12, ey = p.y + this.fpEyeHeight, ez = p.z - Math.cos(yaw) * 0.12;
@@ -3103,9 +3119,9 @@ class AveloraGame {
         if (fp) {
             // (camera already placed above)
         } else if (instant) {
-            this.cameraTarget.copy(this.character.position);
+            this.cameraTarget.copy(anchor);
         } else {
-            this.cameraTarget.lerp(this.character.position, 0.08);
+            this.cameraTarget.lerp(anchor, 0.08);
         }
 
         // Camera pitch eases with zoom: flatter/lower angle when zoomed in

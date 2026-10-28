@@ -272,6 +272,11 @@
                 c.riderPose = null;
                 if (c.mesh) c.mesh.rotation.set(0, c.currentRotation + (c.facingOffset || 0), 0);
                 c.moveSpeed = this.normalSpeed;
+                // Верхом бег героя подменён на Idle (fadeToLogical). После спешивания на ходу
+                // сразу вернуть бег, иначе он «скользит» стоя до конца пути. Каст/атаку не перебиваем.
+                if (c.fadeToLogical && !c.isCasting && !c.isAttacking && !c.isChanneling && !(c.deathT >= 0)) {
+                    c.fadeToLogical(c.isMoving ? 'run' : 'idle', 0.2);
+                }
                 // Instantly snap back to ground height
                 const groundY = g.terrain ? g.terrain.getHeightAt(c.position.x, c.position.z) : c.position.y;
                 c.position.y = groundY + (c._stepUpY || 0);

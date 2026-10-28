@@ -1,0 +1,19 @@
+{
+  "id": "violet",
+  "name": "Фиалка",
+  "description": "Душистый лесной цветок с лиловыми лепестками. Используется в алхимии для зелий маны. Можно съесть — восстанавливает 5 единиц маны.",
+  "category": "material",
+  "stackMax": 50,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "mana",
+    "amount": 5,
+    "food": true,
+    "verb": "Съесть"
+  },
+  "value": 1
+}

@@ -437,6 +437,26 @@ Full player-facing guide: `docs/world_data_help.txt`. Summary for future coding 
   Partial hits are not persisted. Debug: `game.debugAddPlayTime(sec)`;
   test `temp_work/tests/chop_smoke.py`.
 
+- **Яблоня (2026-10-28)**: не дерево для игры — узел `content/nodes/apple_tree/node.json` (`kind: 'trees'`, `treeType: 'apple'`,
+  `tool: 'gather'`, `keepStanding: true`, `action: 'собрать яблоки'`, 2–3 `apple`, `regrowMinutes: 10`). `harvest.nodeFor(entry)`
+  (передавать entry, не kind!) сначала ищет узел с совпадающим `treeType`, обычный `tree` к таким деревьям не применяется.
+  Сбор прячет только плоды (`environment.setObjectFruitVisible`, части модели с материалом из `FRUIT_TREE_TYPES` —
+  у tree_apple это `Material_2`), `entry.fruitHidden` → нет действия, подпись «Яблоня». Время — в `felled` по реальным часам.
+  Яблоня не входит в маску леса (`setForestMask`) — подстилки под ней нет. Автосбор: категория `herb`, подпись «Растения».
+  Еда: `use: {type:'heal', amount, food:true, verb:'Съесть'}` (яблоко +10, стак 20; папоротник +5).
+- **Фиалки и зелья маны (2026-10-28)**: грядки фиалок — не props, а `decorations.flowerbeds` (kind `flowerbeds`,
+  `environment.loadFlowerbeds`, модель `props/violet_flowerbed`, hover-прокси, свободная зона в location_groups как у пропа).
+  Узел `content/nodes/violet_bed` (gather, 1–2 `violet`, `regrowMinutes: 5`) — исчезает и вырастает, как папоротник.
+  `use.type: 'mana'` (ui_hotbar `consumeHeal` → `hero.mana`, всплывающий текст `.float-text.mana`): фиалка +5 (еда),
+  `potion_mana_small` +50 / `potion_mana_large` +100 (рецепты alchemy у Лираэль: 5 / 10 фиалок, ур. 1 / 5; есть в её лавке).
+- **Автозелья (2026-10-28)**: одно окно «Зелья» (вкладки Здоровье / Мана), `autoPotion = {hp:{enabled,threshold,itemId}, mp:{…}}`
+  (`localStorage 'avelora_auto_potion'`, старый формат {enabled,threshold,itemId} читается как hp). Кнопка показывает бутылочки
+  включённых видов; оба включены → `.potion-split` (диагональ: красная снизу-слева, синяя сверху-справа, числа в своих углах).
+  Мана-вкладка недоступна персонажу без маны. Авто — раздельный откат 2 с на вид.
+- **Посох/лук и сбор (2026-10-28)**: проверка прямой видимости в `combat.updateEngagement` — только для `e.kind === 'creature'`
+  (раньше с посохом/луком в руке сбор с дерева не срабатывал: ствол «загораживал» сам себя).
+- **Автосбор и автоквест взаимоисключающие**: включение одного выключает другое, при включении чистятся `_unreachableObjects` и текущая цель.
+
 ## 7e. Creatures (`creatures.js`, `content/creatures/<id>/creature.json`)
 - Spawns: `world_data.js` location `creatures: [{id, type, x, z, r?}]` (currently 4 rats in
   forestEdge). Model parsed once per type per location, cloned per spawn with a skinned clone

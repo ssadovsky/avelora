@@ -383,7 +383,8 @@
             const d = this.edgeDistance(e);
             const now = g.gameTime;
             const isRanged = w.style === 'bow' || w.style === 'staff';
-            const hasLoS = (!isRanged || !g.skills) ? true : g.skills.hasLineOfSight(c.position, { x: e.x(), y: 0, z: e.z(), height: 1.0 });
+            // прямая видимость нужна только для выстрела по существу; дерево/куст/камень (сбор, рубка) сами себя «загораживают»
+            const hasLoS = (!isRanged || !g.skills || e.kind !== 'creature') ? true : g.skills.hasLineOfSight(c.position, { x: e.x(), y: 0, z: e.z(), height: 1.0 });
             const sameLvl = !(e.rec && g.creatures && g.creatures.sameLevel) || g.creatures.sameLevel(e.rec);   // цель на другом этаже (подвал): сначала дойти по лестнице
 
             if (d > reach || !hasLoS || !sameLvl) {

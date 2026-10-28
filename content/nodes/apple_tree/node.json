@@ -1,0 +1,14 @@
+{
+  "id": "apple_tree",
+  "name": "Яблоня",
+  "kind": "trees",
+  "treeType": "apple",
+  "tool": "gather",
+  "action": "собрать яблоки",
+  "keepStanding": true,
+  "hits": 1,
+  "drops": [
+    { "item": "apple", "min": 2, "max": 3 }
+  ],
+  "regrowMinutes": 10
+}

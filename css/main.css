@@ -1482,6 +1482,62 @@
         .potion-auto-badge.hidden {
             display: none;
         }
+        /* Слот зелий: здоровье и/или мана. Оба на авто → кнопка делится по диагонали (красная снизу-слева, синяя сверху-справа) */
+        .potion-slot-icon { position: relative; }
+        .potion-slot-icon .potion-layer {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .potion-slot-icon .potion-layer img { width: 100%; height: 100%; object-fit: contain; }
+        .potion-slot-icon .potion-layer.none { opacity: 0.35; filter: grayscale(0.6); }
+        .skill-slot.potion-slot.potion-split .potion-layer-hp { clip-path: polygon(0 0, 100% 100%, 0 100%); }
+        .skill-slot.potion-slot.potion-split .potion-layer-mp { clip-path: polygon(0 0, 100% 0, 100% 100%); }
+        .skill-slot.potion-slot.potion-split .potion-layer-hp img { transform: translate(-21%, 21%) scale(0.6); }
+        .skill-slot.potion-slot.potion-split .potion-layer-mp img { transform: translate(21%, -21%) scale(0.6); }
+        .skill-slot.potion-slot.potion-split .potion-slot-icon::after {
+            content: '';
+            position: absolute;
+            inset: -6%;
+            background: linear-gradient(45deg, transparent calc(50% - 1px), rgba(239, 207, 122, 0.75) calc(50% - 1px), rgba(239, 207, 122, 0.75) calc(50% + 1px), transparent calc(50% + 1px));
+            pointer-events: none;
+        }
+        .potion-slot-count.left { right: auto; left: 3px; }
+        .potion-slot-count-mp {
+            position: absolute;
+            right: 2px;
+            top: 1px;
+            font-size: 0.65rem;   /* на телефоне — как .potion-slot-count (7px), см. body.touch-ui ниже */
+            font-weight: 700;
+            color: #cfe0ff;
+            text-shadow: 0 1px 2px #000, 0 0 4px #000;
+            pointer-events: none;
+        }
+        .skill-slot.potion-slot.empty-potion .potion-slot-count-mp { display: none; }
+        .potion-tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-shrink: 0; }
+        .potion-tab {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px 4px;
+            font: inherit;
+            font-size: 0.8rem;
+            color: #c9bba0;
+            background: rgba(22, 28, 30, 0.85);
+            border: 1px solid rgba(195, 160, 95, 0.35);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .potion-tab:hover { border-color: #efcf7a; }
+        .potion-tab.active { color: #f1e2c8; background: rgba(212, 175, 55, 0.22); border-color: #efcf7a; }
+        .potion-tab:disabled { opacity: 0.4; cursor: not-allowed; }
+        .potion-tab-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(140, 130, 110, 0.5); }
+        .potion-tab.hp.auto-on .potion-tab-dot { background: #ef4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.8); }
+        .potion-tab.mp.auto-on .potion-tab-dot { background: #3b82f6; box-shadow: 0 0 6px rgba(59, 130, 246, 0.8); }
 
         /* ---------------------------------------------------------------
            Hero Micro-Menu (slide-up dock bar)
@@ -2325,7 +2381,7 @@
             top: 50%;
             transform: translate(-50%, -50%);
             width: 350px;
-            height: min(420px, calc(100vh - 40px));
+            height: min(470px, calc(100vh - 40px));
             max-width: calc(100% - 24px);
             background: rgba(12, 16, 18, 0.96);
             border: 1.5px solid rgba(212, 175, 55, 0.65);
@@ -3912,6 +3968,7 @@
         .float-text.gain { color: #b8f0a0; }
         .float-text.loot { color: #b8f0a0; font-size: 1.05rem; }
         .float-text.heal { color: #69f0ae; font-size: 1.05rem; text-shadow: 0 0 10px rgba(105, 240, 174, 0.6), 0 2px 4px #000; }
+        .float-text.mana { color: #6fa8ff; font-size: 1.05rem; text-shadow: 0 0 10px rgba(111, 168, 255, 0.6), 0 2px 4px #000; }
         .float-text.warn { color: #ff9ea5; }
         .float-text.info { color: #efcf7a; font-size: 0.9rem; }
         .float-text.xp   { color: #ffd24d; font-size: 0.85rem; opacity: 0.9; }
@@ -4978,6 +5035,14 @@
                 width: 72% !important;
                 height: 72% !important;
             }
+            .skill-bar #potion-btn.potion-mana {
+                background: radial-gradient(circle at 35% 35%, rgba(59, 130, 246, 0.3) 0%, rgba(14, 18, 20, 0.95) 75%) !important;
+                box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7), 0 0 10px rgba(59, 130, 246, 0.4) !important;
+            }
+            .skill-bar #potion-btn.potion-split {
+                background: linear-gradient(45deg, rgba(220, 38, 38, 0.3) 0%, rgba(14, 18, 20, 0.95) 50%, rgba(59, 130, 246, 0.3) 100%) !important;
+                box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7), -3px 3px 10px rgba(239, 68, 68, 0.3), 3px -3px 10px rgba(59, 130, 246, 0.35) !important;
+            }
 
             /* Utility Non-Combat Slots 5 & 6 (Portal recall, buffs, etc.) to the left of potion button */
             .skill-bar .skill-slot[data-slot="5"] {
@@ -5125,6 +5190,11 @@
                 font-size: 7px;
                 right: 1px;
                 bottom: 0;
+            }
+            .potion-slot-count-mp {
+                font-size: 7px;
+                right: 1px;
+                top: 0;
             }
             .potion-auto-badge {
                 font-size: 5px;
@@ -5362,7 +5432,7 @@
             }
             #potion-modal {
                 width: min(360px, calc(100% - 20px)) !important;
-                height: min(400px, calc(100vh - 24px)) !important;
+                height: min(450px, calc(100vh - 24px)) !important;
             }
         }
 

@@ -1,0 +1,11 @@
+{
+  "id": "violet_bed",
+  "name": "Фиалки",
+  "kind": "flowerbeds",
+  "tool": "gather",
+  "hits": 1,
+  "drops": [
+    { "item": "violet", "min": 1, "max": 2 }
+  ],
+  "regrowMinutes": 5
+}

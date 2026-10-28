@@ -1,0 +1,20 @@
+{
+  "id": "apple",
+  "name": "Яблоко",
+  "description": "Спелое яблоко с яблони. Можно съесть — восстанавливает 10 единиц здоровья.",
+  "category": "consumable",
+  "stackMax": 20,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "heap"
+  },
+  "use": {
+    "type": "heal",
+    "amount": 10,
+    "food": true,
+    "verb": "Съесть"
+  },
+  "value": 1,
+  "sellPrice": 1
+}

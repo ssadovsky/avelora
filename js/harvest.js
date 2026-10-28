@@ -186,15 +186,33 @@
         get state() { return this.game.gameState; }
         get playTime() { return this.state ? this.state.playTime : 0; }
 
-        /** node.json for an environment object kind ('trees'), or null. */
-        nodeFor(kind) {
+        /**
+         * node.json for an environment object (entry) or a kind string ('trees'), or null.
+         * A node with `treeType` (e.g. apple_tree → 'apple') applies only to trees of that type and
+         * takes priority; plain kind nodes (tree) never apply to such typed trees.
+         */
+        nodeFor(k) {
             const defs = (window.GAME_CONTENT && window.GAME_CONTENT.nodes) || {};
+            const entry = (k && typeof k === 'object') ? k : null;
+            const kind = entry ? entry.kind : k;
             const ids = Object.keys(defs);
-            for (let i = 0; i < ids.length; i++) if (defs[ids[i]].kind === kind) return defs[ids[i]];
+            if (entry && entry.treeType) {
+                for (let i = 0; i < ids.length; i++) {
+                    const d = defs[ids[i]];
+                    if (d.kind === kind && d.treeType === entry.treeType) return d;
+                }
+            }
+            for (let i = 0; i < ids.length; i++) {
+                const d = defs[ids[i]];
+                if (d.kind === kind && !d.treeType) return d;
+            }
             return null;
         }
 
-        isHarvestable(entry) { return !!(entry && entry.visible !== false && this.nodeFor(entry.kind)); }
+        /** keepStanding nodes (apple tree): the object stays, only its fruit is picked. */
+        isPicked(entry) { return !!(entry && entry.fruitHidden); }
+
+        isHarvestable(entry) { return !!(entry && entry.visible !== false && !entry.fruitHidden && this.nodeFor(entry)); }
 
         /** Does the right hand hold the tool this node needs? */
         hasTool(node) {
@@ -250,10 +268,10 @@
 
         /** Hover text for a harvestable object. */
         labelFor(entry) {
-            const node = this.nodeFor(entry.kind);
+            const node = this.nodeFor(entry);
             if (!node) return entry.label;
             if (node.tool === 'gather' || !node.tool) {
-                return `${node.name || entry.label} — сорвать`;
+                return `${node.name || entry.label} — ${node.action || 'сорвать'}`;
             }
             if (node.tool === 'chop') {
                 if (!this.hasTool(node)) return this.findToolInBag('chop') ? `${node.name || entry.label} — рубить (возьмёт топор из сумки)` : `${node.name || entry.label} — нужен топор`;
@@ -277,8 +295,8 @@
         request(entry) {
             const g = this.game;
             const c = g.character;
-            const node = this.nodeFor(entry.kind);
-            if (!c || !node || entry.visible === false) return false;
+            const node = this.nodeFor(entry);
+            if (!c || !node || entry.visible === false || entry.fruitHidden) return false;
             if (!this.hasTool(node) && !this.autoEquipTool(node)) {
                 if (g.combat) g.combat.cancel();
                 const warnText = node.tool === 'mine' ? 'Нужна кирка (в сумке или в руке)' : 'Нужен топор (в сумке или в руке)';
@@ -288,11 +306,12 @@
 
             if (node.tool === 'gather') {
                 const s = entry.s || 1;
-                const r = 0.35 * s;
-                const reach = Math.max(1.3, 0.45 * s + 0.6);
+                const isTree = entry.kind === 'trees';   // apple tree: stand at the trunk like for chopping
+                const r = isTree ? TRUNK_RADIUS * s : 0.35 * s;
+                const reach = isTree ? Math.max(CHOP_REACH, 0.8 * s + 0.95 - r) : Math.max(1.3, 0.45 * s + 0.6);
                 g.combat.engage({
                     kind: 'gather', id: entry.id, label: node.name,
-                    isValid: () => entry.visible !== false && this.game.harvest === this && !this.disposed,
+                    isValid: () => entry.visible !== false && !entry.fruitHidden && this.game.harvest === this && !this.disposed,
                     x: () => entry.x, z: () => entry.z,
                     radius: r,
                     range: () => reach,
@@ -329,11 +348,15 @@
             const g = this.game;
             const c = g.character;
             const st = this.state;
-            if (!c || entry.visible === false) return;
+            if (!c || entry.visible === false || entry.fruitHidden) return;
             if (g.combat) g.combat.cancel();
             if (c.isMoving) c.stopMovement();
 
-            if (this.env) this.env.setObjectVisible(entry.id, false);
+            const keep = !!node.keepStanding;   // apple tree: stays, only the fruit disappears
+            if (this.env) {
+                if (keep) this.env.setObjectFruitVisible(entry.id, false);
+                else this.env.setObjectVisible(entry.id, false);
+            }
             if (g.hideObjectTooltip) g.hideObjectTooltip();
             if (st) st.setFelled(this.location.id, entry.id, Math.floor(Date.now() / 1000));
 
@@ -365,10 +388,23 @@
             // Burst a soft puff of green foliage particles at gathering spot
             const by = this.terrain ? this.terrain.getHeightAt(entry.x, entry.z) : 0;
             const fx = this.ensureFx();
-            for (let i = 0; i < 8; i++) {
-                fx.dust.add(entry.x + (Math.random() - 0.5) * 0.4, by + 0.35, entry.z + (Math.random() - 0.5) * 0.4,
-                    (Math.random() - 0.5) * 0.6, 0.4 + Math.random() * 0.3, (Math.random() - 0.5) * 0.6,
-                    0.8 + Math.random() * 0.4, 0.22, 1.2, 0, 0.25, 0.65, 0.28, 0.6);
+            if (keep && entry.kind === 'trees') {
+                // leaves from the crown + a short shake of the tree
+                const s = entry.s || 1;
+                let dx = c.position.x - entry.x, dz = c.position.z - entry.z;
+                const dl = Math.hypot(dx, dz) || 1; dx /= dl; dz /= dl;
+                for (let i = 0; i < 12; i++) {
+                    fx.dust.add(entry.x + (Math.random() - 0.5) * 2.2 * s, by + (1.8 + Math.random() * 1.4) * s, entry.z + (Math.random() - 0.5) * 2.2 * s,
+                        (Math.random() - 0.5) * 0.5, -0.2 - Math.random() * 0.3, (Math.random() - 0.5) * 0.5,
+                        1.0 + Math.random() * 0.5, 0.2, 1.0, 0, 0.3, 0.55, 0.22, 0.55);
+                }
+                this.shakes.set(entry.id, { t: 0, ax: dz, az: -dx, entry });
+            } else {
+                for (let i = 0; i < 8; i++) {
+                    fx.dust.add(entry.x + (Math.random() - 0.5) * 0.4, by + 0.35, entry.z + (Math.random() - 0.5) * 0.4,
+                        (Math.random() - 0.5) * 0.6, 0.4 + Math.random() * 0.3, (Math.random() - 0.5) * 0.6,
+                        0.8 + Math.random() * 0.4, 0.22, 1.2, 0, 0.25, 0.65, 0.28, 0.6);
+                }
             }
 
             window.dispatchEvent(new CustomEvent('game:nodeGathered', { detail: { id: entry.id } }));
@@ -528,13 +564,14 @@
             const now = Math.floor(Date.now() / 1000);
             Object.keys(m).forEach(id => {
                 const entry = this.env.objects.get(id);
-                const node = entry ? this.nodeFor(entry.kind) : null;
+                const node = entry ? this.nodeFor(entry) : null;
                 if (!entry || !node) { st.clearFelled(this.location.id, id); return; } // tree no longer exists
                 const fellTime = (m[id] < 1e9) ? (now - Math.max(0, this.playTime - m[id])) : m[id];
                 if (now - fellTime >= this.regrowSeconds(node)) {
                     st.clearFelled(this.location.id, id);
                     return;
                 }
+                if (node.keepStanding) { this.env.setObjectFruitVisible(id, false); return; }
                 this.env.setObjectVisible(id, false);
                 if (entry.kind !== 'ores') {
                     this.addStump(entry, node);
@@ -550,10 +587,16 @@
             const now = Math.floor(Date.now() / 1000);
             Object.keys(m).forEach(id => {
                 const entry = this.env.objects.get(id);
-                const node = entry ? this.nodeFor(entry.kind) : null;
+                const node = entry ? this.nodeFor(entry) : null;
                 if (!entry || !node) { st.clearFelled(this.location.id, id); return; }
                 const fellTime = (m[id] < 1e9) ? (now - Math.max(0, this.playTime - m[id])) : m[id];
                 if (now - fellTime < this.regrowSeconds(node)) return;
+                if (node.keepStanding) {   // apple tree: the fruit is back, the tree never left
+                    st.clearFelled(this.location.id, id);
+                    this.env.setObjectFruitVisible(id, true);
+                    window.dispatchEvent(new CustomEvent('game:nodeRegrown', { detail: { id } }));
+                    return;
+                }
                 // Still falling on screen? wait for it
                 if (this.falling.some(f => f.entry === entry)) return;
                 st.clearFelled(this.location.id, id);

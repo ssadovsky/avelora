@@ -235,6 +235,24 @@
                 geo = new THREE.CylinderGeometry(0.1, 0.1, 1.2, 10);
                 geo.rotateZ(Math.PI / 2); // logs lie along X
                 geo.translate(0, 0.1, 0);
+            } else if (id === 'violet') {
+                geo = new THREE.IcosahedronGeometry(0.08, 1);
+                geo.scale(1.3, 0.5, 1.3);
+                geo.translate(0, 0.04, 0);
+                mat.color.setHex(0x7a46b0);
+            } else if (id === 'potion_mana_small' || id === 'potion_mana_large') {
+                const big = id === 'potion_mana_large';
+                geo = big ? new THREE.CylinderGeometry(0.06, 0.11, 0.26, 8) : new THREE.CylinderGeometry(0.04, 0.045, 0.22, 8);
+                geo.translate(0, big ? 0.13 : 0.11, 0);
+                mat.color.setHex(0x2a5bd7);
+                mat.roughness = 0.2;
+                mat.metalness = 0.1;
+            } else if (id === 'apple') {
+                geo = new THREE.SphereGeometry(0.06, 12, 9);
+                geo.scale(1.0, 0.9, 1.0);
+                geo.translate(0, 0.055, 0);
+                mat.color.setHex(0xb8282c);
+                mat.roughness = 0.45;
             } else if (id === 'fern') {
                 geo = new THREE.IcosahedronGeometry(0.18, 1);
                 geo.scale(1.2, 0.45, 1.2);

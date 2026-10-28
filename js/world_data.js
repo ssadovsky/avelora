@@ -464,13 +464,7 @@ window.LOCATIONS = {
             // Каменный проход в Долину Забытых Эпох: ущелье встроено в южный горный пояс (вход с севера)
             { id: 'forestEdge.stone_pass', prop: 'stone_pass', x: 0.0, z: 93.0, r: Math.PI, dy: 0.26 },
             { id: 'forestEdge.twinstone_pass', prop: 'twinstone_pass', x: -145.0, z: 8.0, r: Math.PI / 2, yFrom: [-120.0, 8.0], dy: 0.10 },
-            // фиалки и пучки травы на пчелиной поляне
-            { id: 'forestEdge.violets_1', prop: 'violet_flowerbed', x: 79, z: 19, r: 0.4, s: 0.5 },
-            { id: 'forestEdge.violets_2', prop: 'violet_flowerbed', x: 84, z: 20.5, r: 1.9, s: 0.6 },
-            { id: 'forestEdge.violets_3', prop: 'violet_flowerbed', x: 90, z: 18, r: 3.1, s: 0.45 },
-            { id: 'forestEdge.violets_4', prop: 'violet_flowerbed', x: 95, z: 27, r: 5.0, s: 0.55 },
-            { id: 'forestEdge.violets_5', prop: 'violet_flowerbed', x: 88, z: 29, r: 2.4, s: 0.5 },
-            { id: 'forestEdge.violets_6', prop: 'violet_flowerbed', x: 100, z: 16.5, r: 0.9, s: 0.575 },
+            // пучки травы (грядки фиалок — в decorations.flowerbeds, их можно собирать) на пчелиной поляне
             { id: 'forestEdge.tuft_1', prop: 'grass_tuft', x: 81.5, z: 24, r: 0.2, s: 1.0 },
             { id: 'forestEdge.tuft_2', prop: 'grass_tuft', x: 87, z: 22.5, r: 1.5, s: 1.2 },
             { id: 'forestEdge.tuft_3', prop: 'grass_tuft', x: 92.5, z: 20.5, r: 2.9, s: 0.9 },
@@ -500,6 +494,15 @@ window.LOCATIONS = {
         ],
 
         decorations: {
+            // грядки фиалок на пчелиной поляне: собираемое растение (узел violet_bed → фиалки), исчезают и вырастают заново
+            flowerbeds: [
+                { id: 'forestEdge.violets_1', x: 79, z: 19, r: 0.4, s: 0.5 },
+                { id: 'forestEdge.violets_2', x: 84, z: 20.5, r: 1.9, s: 0.6 },
+                { id: 'forestEdge.violets_3', x: 90, z: 18, r: 3.1, s: 0.45 },
+                { id: 'forestEdge.violets_4', x: 95, z: 27, r: 5.0, s: 0.55 },
+                { id: 'forestEdge.violets_5', x: 88, z: 29, r: 2.4, s: 0.5 },
+                { id: 'forestEdge.violets_6', x: 100, z: 16.5, r: 0.9, s: 0.575 }
+            ],
             // Одинокое большое дерево на поляне (ставится вручную)
             trees: [
                 { x: 14.0, z: 8.5, s: 1.6, r: 0.3 },

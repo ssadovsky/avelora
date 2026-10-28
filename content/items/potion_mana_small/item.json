@@ -1,0 +1,17 @@
+{
+  "id": "potion_mana_small",
+  "name": "Малое зелье маны",
+  "description": "Отвар из лепестков фиалки. Восстанавливает 50 единиц маны при употреблении.",
+  "category": "consumable",
+  "stackMax": 20,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "mana",
+    "amount": 50
+  },
+  "value": 10
+}
