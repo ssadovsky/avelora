@@ -220,7 +220,7 @@
             // Build sorted candidate list (alive, in front, in range)
             const candidates = cr.list
                 .filter(rec => {
-                    if (!cr.isAlive(rec)) return false;
+                    if (!cr.isAlive(rec) || !cr.sameLevel(rec)) return false;
                     const dx = rec.x - p.x, dz = rec.z - p.z;
                     const dist = Math.sqrt(dx * dx + dz * dz);
                     if (dist > MAX_TAB_DIST) return false;
@@ -262,7 +262,7 @@
 
             const candidates = (cr.list || [])
                 .filter(rec => {
-                    if (!cr.isAlive(rec)) return false;
+                    if (!cr.isAlive(rec) || !cr.sameLevel(rec)) return false;
                     const dx = rec.x - p.x, dz = rec.z - p.z;
                     const dist = Math.hypot(dx, dz);
                     if (dist > maxRange) return false;
@@ -384,8 +384,9 @@
             const now = g.gameTime;
             const isRanged = w.style === 'bow' || w.style === 'staff';
             const hasLoS = (!isRanged || !g.skills) ? true : g.skills.hasLineOfSight(c.position, { x: e.x(), y: 0, z: e.z(), height: 1.0 });
+            const sameLvl = !(e.rec && g.creatures && g.creatures.sameLevel) || g.creatures.sameLevel(e.rec);   // цель на другом этаже (подвал): сначала дойти по лестнице
 
-            if (d > reach || !hasLoS) {
+            if (d > reach || !hasLoS || !sameLvl) {
                 // Walk toward it; re-path when it moved or the path ran out
                 const moved = Math.hypot(e.x() - e.lastGoalX, e.z() - e.lastGoalZ);
                 const stopped = !c.isMoving && now - e.lastPathAt > 0.15;
@@ -396,7 +397,7 @@
                     e.lastPathAt = now;
                     e.lastGoalX = e.x(); e.lastGoalZ = e.z();
                     this._target.set(e.x(), 0, e.z());
-                    const path = g.pathfinder ? g.pathfinder.findPath(c.position, this._target) : [];
+                    const path = g.pathfinder ? ((window.AveloraCellar && g.cellars && g.cellars.length) ? window.AveloraCellar.route(g, c.position, e.x(), e.z(), e.rec ? e.rec.under : null) : g.pathfinder.findPath(c.position, this._target)) : [];
                     if (path && path.length) {
                         c.setPath(path);
                     } else if (++e.pathFails >= MAX_PATH_FAILS) {
@@ -593,7 +594,7 @@
                     this._ringX = currentSel.x;
                     this._ringZ = currentSel.z;
                     this._ringR = r;
-                    const gy = (g.terrain && g.terrain.getHeightAt) ? g.terrain.getHeightAt(currentSel.x, currentSel.z) : currentSel.y;
+                    const gy = (g.terrain && g.terrain.getHeightAt) ? g.terrain.getHeightAt(currentSel.x, currentSel.z, currentSel.y) : currentSel.y;
                     ring.position.set(currentSel.x, gy, currentSel.z);
                     ring.scale.set(1, 1, 1);
 
@@ -605,7 +606,7 @@
                         for (let i = 0; i < count; i++) {
                             const bx = base.getX(i) * r;
                             const bz = base.getZ(i) * r;
-                            const wy = hasTerrain ? (g.terrain.getHeightAt(currentSel.x + bx, currentSel.z + bz) + 0.05) : (gy + 0.05);
+                            const wy = hasTerrain ? (g.terrain.getHeightAt(currentSel.x + bx, currentSel.z + bz, currentSel.y) + 0.05) : (gy + 0.05);
                             pos.setXYZ(i, bx, wy - gy, bz);
                         }
                         pos.needsUpdate = true;

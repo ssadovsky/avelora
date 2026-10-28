@@ -448,6 +448,7 @@
                     return 'out_of_range';
                 }
 
+                if (cr.sameLevel && !cr.sameLevel(tgt)) return 'no_los';   // другой этаж: молча (автобой сам подойдёт по лестнице)
                 if (!this.hasLineOfSight(c.position, tgt)) {
                     if (g.ui && g.ui.floatText) g.ui.floatText('Цель вне зоны видимости', 'warn');
                     return 'no_los';
@@ -799,7 +800,8 @@
             if (lp && lp.type === 'mouse' && lp.valid && !lp.overUI && g.terrain && g.terrain.mesh) {
                 this._mouse.set((lp.x / window.innerWidth) * 2 - 1, -(lp.y / window.innerHeight) * 2 + 1);
                 g.raycaster.setFromCamera(this._mouse, g.camera);
-                const hit = g.raycaster.intersectObject(g.terrain.mesh)[0];
+                let hit = g.raycaster.intersectObject(g.terrain.mesh)[0];
+                if (g.cellars) for (let ci = 0; ci < g.cellars.length; ci++) { const cf = g.cellars[ci].pickFloor(g.raycaster, hit); if (cf) { hit = cf; break; } }   // подвал: целимся по полу, а не по земле над ним
                 if (hit) {
                     const dx = hit.point.x - p.x, dz = hit.point.z - p.z;
                     const d = Math.hypot(dx, dz);

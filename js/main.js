@@ -804,6 +804,7 @@ class AveloraGame {
             saveId: slot.saveId,
             locationId: save.locationId,
             position: { x: save.x, z: save.z, r: save.r },
+            under: (typeof save.under === 'string' && !save.relocated) ? save.under : null,
             relocated: !!save.relocated
         } : {
             saveId: slot.saveId
@@ -1131,6 +1132,7 @@ class AveloraGame {
             this.character = new MedievalCharacter(this.scene, this.terrain, characterConfig, () => resolve());
         });
         this.character.teleport(spawn.x, spawn.z, spawn.r);
+        if (opts.under && !rescued && this.cellars) { const cel = this.cellars.find(c => c.cfg && c.cfg.id === opts.under); if (cel) cel.restoreHero(this.character); }   // сохранение «внизу»: на пол подвала
         this.cameraTarget.copy(this.character.position);
         this.applyLocationCamera(this.location);
         this.updateCameraPosition(true);
@@ -1210,7 +1212,8 @@ class AveloraGame {
             locationId: this.location.id,
             x: this.character.position.x,
             z: this.character.position.z,
-            r: this.character.currentRotation
+            r: this.character.currentRotation,
+            under: (this.cellars && (this.cellars.find(c => c.below) || {}).cfg) ? this.cellars.find(c => c.below).cfg.id : null
         });
     }
 
@@ -1272,6 +1275,7 @@ class AveloraGame {
         const gridX = Math.round(sizeX / NAV_CELL_SIZE);
         const gridZ = Math.round(sizeZ / NAV_CELL_SIZE);
 
+        if (window.AveloraCellar) window.AveloraCellar.prepareLocation(loc);   // cellar.js: площадка, окно под траншею, чистые зоны — до рельефа
         this.terrain = new LakesideTerrain(this.locationRoot, {}, loc);
         this.pathfinder = new DiabloPathfinder(this.terrain, gridX, gridZ, sizeX, sizeZ);
         this.water.setLocation(loc);
@@ -1307,6 +1311,9 @@ class AveloraGame {
         this.dungeon = (loc.dungeon && window.AveloraDungeon)
             ? new AveloraDungeon(this.locationRoot, loc.dungeon, this.terrain, this.pathfinder)
             : null;
+        this.cellars = (loc.cellars && loc.cellars.length && window.AveloraCellar)   // cellar.js: подвал как нижний этаж этой же локации
+            ? loc.cellars.map(c => new AveloraCellar(this, c))
+            : [];
         this.environment = new LakesideEnvironment(this.locationRoot, this.terrain, this.pathfinder, loc, this.pendingSpawn);
         this.worldObjects = window.AveloraWorldObjects ? new AveloraWorldObjects(this, loc) : null;
         this.building = window.AveloraBuilding ? new AveloraBuilding(this, loc) : null;   // building.js: player buildings (home camp)
@@ -1333,6 +1340,7 @@ class AveloraGame {
         if (this.grottos) { this.grottos.forEach(g => g.dispose()); this.grottos = []; }
         this.cameraBlockers = [];
         if (this.dungeon) { this.dungeon.dispose(); this.dungeon = null; }
+        if (this.cellars) { this.cellars.forEach(c => c.dispose()); this.cellars = []; }
         if (this.skills) this.skills.clearAll(); // no projectile/impact survives into the next location
         if (this.combat) { this.combat.cancel(); this.combat.clearTarget(); }
         if (this.map) this.map.clearAll();        // close map panel when leaving location
@@ -2682,6 +2690,11 @@ class AveloraGame {
         // walking on a plank deck: the floor of a building is hit before the ground under it
         const floorHit = this.building ? this.building.pickFloor(this.raycaster) : null;
         if (floorHit && (!intersects.length || floorHit.distance < intersects[0].distance)) intersects = [floorHit];
+        let cellFloor = false;
+        if (this.cellars) for (let i = 0; i < this.cellars.length; i++) {   // ступени и полы подвала: луч считается по ним, а не по земле над ними
+            const cf = this.cellars[i].pickFloor(this.raycaster, intersects[0]);
+            if (cf) { intersects = [cf]; cellFloor = true; break; }
+        }
 
         if (intersects.length > 0) {
             const hitPoint = intersects[0].point;
@@ -2691,7 +2704,9 @@ class AveloraGame {
 
             // Pathfinding to hit point
             if (this.character && this.pathfinder) {
-                const path = this.pathfinder.findPath(this.character.position, hitPoint);
+                let dest = hitPoint;
+                if (this.cellars) for (let i = 0; i < this.cellars.length; i++) { const w = this.cellars[i].routeClick(hitPoint, cellFloor); if (w) dest = new THREE.Vector3(w.x, hitPoint.y, w.z); }   // этажи: сначала к лестнице
+                const path = this.pathfinder.findPath(this.character.position, dest);
                 if (path && path.length > 0) {
                     this.character.setPath(path);
                     if (this.autoPlay && this.autoPlay.hasAnyActive && this.autoPlay.hasAnyActive()) {
@@ -3229,20 +3244,22 @@ class AveloraGame {
 
         const kBounds = k;
 
-        // 2. Рельеф: камера не уходит в склон между героем и собой
+        // 2. Рельеф: камера не уходит в склон между героем и собой (рядом с подвалом — аналитический объём подвала вместо рельефа)
+        const cel = this._cellarNear(head.x, head.z);
         const N = 14;
         for (let i = 1; i <= N; i++) {
             const s = (i / N) * k;
             const py = head.y + dy * s;
             const gh = t.getHeightAt(head.x + dx * s, head.z + dz * s);
-            if (py < gh + 0.5) { k = Math.min(k, Math.max(0, ((i - 1) / N) * k)); break; }
+            if (cel ? !cel.camOk(head.x + dx * s, py, head.z + dz * s) : py < gh + 0.5) { k = Math.min(k, Math.max(0, ((i - 1) / N) * k)); break; }
         }
 
         // 3. Крупные скальные модели (грот): луч от головы к камере
         // не прижимаем камеру вплотную к герою (рельеф); скалы — отдельно, ниже
-        const kmin = Math.min(1, 2.5 / dist);
+        const kmin = Math.min(1, (cel ? 0.5 : 2.5) / dist);
         if (k < 1) k = Math.min(kBounds, Math.max(k, kmin));
 
+        if (cel && k < 0.85) cam._byModel = true;
         const blockers = this._cameraBlockerModels();
         const dir = { x: dx / dist, y: dy / dist, z: dz / dist };
         // «Толстый» луч: ближняя плоскость камеры 0.5 м и поле зрения широкое, поэтому одного луча мало —
@@ -3271,7 +3288,7 @@ class AveloraGame {
         }
         cam.x = head.x + dx * k; cam.y = head.y + dy * k; cam.z = head.z + dz * k;
         const g = t.getHeightAt(cam.x, cam.z) + 0.6;
-        if (cam.y < g) cam.y = g;
+        if (!cel && cam.y < g) cam.y = g;
         cam._k = k;
         return cam;
     }
@@ -3285,6 +3302,14 @@ class AveloraGame {
         if (this.grottos) this.grottos.forEach(g => { if (g.model) out.push(g.model); });
         if (this.cameraBlockers) this.cameraBlockers.forEach(o => { if (o) out.push(o); });
         return out;
+    }
+
+    /** Подвал, рядом с которым сейчас герой (или null): камера проверяется по его объёму, а не по рельефу. */
+    _cellarNear(x, z) {
+        const cs = this.cellars;
+        if (!cs) return null;
+        for (let i = 0; i < cs.length; i++) if (cs[i].near(x, z)) return cs[i];
+        return null;
     }
 
     // Регистрация любого другого крупного объекта как препятствия камеры (деревья/кусты не регистрируем).
@@ -3617,6 +3642,9 @@ class AveloraGame {
         }
         if (this.dungeon) {
             this.dungeon.update(delta, this.gameTime, this.character ? this.character.position : null);
+        }
+        if (this.cellars && this.cellars.length && this.character) {
+            for (let i = 0; i < this.cellars.length; i++) this.cellars[i].update(delta, this.character.position);
         }
         if (this.environment) {
             this.environment.update(delta, this.character ? this.character.position : null);

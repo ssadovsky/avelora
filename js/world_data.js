@@ -1293,7 +1293,14 @@ window.LOCATIONS = {
             // ровная площадка под порталом в центре
             flatSpots: [{ x: 0.0, z: 0.0, radius: 4.8, blend: 5.0 }],
             waterBody: { type: 'none' },
-            hills: { amplitude: 1.2, inclineX: 0.0, inclineZ: 0.0 }
+            hills: { amplitude: 1.2, inclineX: 0.0, inclineZ: 0.0 },
+            stoneTexture: 'pebbleTrailDiff',
+            // мощёная улица от портала к входу в подвал и площадь (само мощение — просто дороги рельефа)
+            paths: [
+                { type: 'stone', width: 5.0, points: [[0.0, 6.0], [0.0, 16.0]] },
+                { type: 'stone', width: 7.0, points: [[0.0, 16.0], [14.0, 16.0]] },
+                { type: 'stone', width: 13.0, points: [[14.0, 16.0], [30.0, 16.0]] }
+            ]
         },
 
         atmosphere: { sky: 0xc6dbe3, skyTop: 0x4a8fc9, fogDensity: 0.0055 },
@@ -1320,7 +1327,38 @@ window.LOCATIONS = {
             { id: 'runeLands.rune_portal', prop: 'rune_portal', x: 0.0, z: 0.0, r: Math.PI }
         ],
 
-        creatures: []
+        creatures: [
+            // under: 'oldCellar' — моб стоит на полу подвала (нижний этаж); без under — на земле. Этажи не смешиваются: агро/автобой/цели видят только свой этаж.
+            { id: 'cellar_rat_1', type: 'rat', level: 1, x: 24.0, z: 46.0, r: 1.0, under: 'oldCellar', behavior: 'aggressive', aggroRadius: 9.0, leashRadius: 20.0 },
+            { id: 'cellar_rat_2', type: 'rat', level: 1, x: 36.0, z: 52.0, r: 4.0, under: 'oldCellar', behavior: 'aggressive', aggroRadius: 9.0, leashRadius: 20.0 },
+            { id: 'plaza_rat_1', type: 'rat', level: 1, x: 30.0, z: 24.0, r: 2.0, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 18.0 }
+        ],
+
+        // Старый подвал — нижний этаж этой же локации (js/cellar.js). Всё привязано к точке {x, z, r}:
+        // x, z — верх лестницы, r — поворот (0: спуск идёт на +Z, т.е. на юг). Сдвинуть подвал вместе с кварталом = поменять x/z/r.
+        // Расширить = добавить комнату в rooms (attach — к стене другой комнаты, c — смещение двери вдоль стены).
+        cellars: [
+            {
+                id: 'oldCellar', name: 'Старый подвал',
+                x: 30.0, z: 10.0, r: 0.0,
+                stair: { width: 5.0, len: 22.0, drop: 9.7, open: 10.0, height: 3.6 },   // open — длина открытой траншеи, дальше туннель; drop ≥ высота зала + 1.7 (потолок под землёй)
+                plaza: { radius: 20, blend: 10 },
+                rooms: [
+                    { id: 'hall', w: 30, d: 30, h: 8.0 }
+                    // боковые комнаты убраны; добавить: { id: 'wing', attach: { room: 'hall', side: '+x', c: 0, w: 3.4 }, w: 8, d: 8, h: 4 }
+                ],
+                // небольшой каменный квартал над подвалом (необязательно): lx/lz — от верха лестницы, rot — поворот дома, фасад на +Z дома
+                surface: [
+                    { type: 'house', lx: -11.0, lz: -4.0, rot: Math.PI / 2, w: 7.0, d: 6.0, h: 3.8 },
+                    { type: 'house', lx: -11.0, lz: -12.5, rot: Math.PI / 2, w: 6.5, d: 6.0, h: 4.4 },
+                    { type: 'tower', lx: -11.0, lz: -20.0, rot: Math.PI / 2, w: 4.6, d: 4.6, h: 9.5 },
+                    { type: 'house', lx: 11.0, lz: -4.0, rot: -Math.PI / 2, w: 7.0, d: 6.0, h: 3.8 },
+                    { type: 'house', lx: 11.0, lz: -12.5, rot: -Math.PI / 2, w: 7.5, d: 6.5, h: 4.0 },
+                    { type: 'house', lx: 11.0, lz: -21.0, rot: -Math.PI / 2, w: 6.0, d: 6.0, h: 3.6 },
+                    { type: 'fountain', lx: 0.0, lz: -13.0 }
+                ]
+            }
+        ]
     },
 
     // -------------------------------------------------------------

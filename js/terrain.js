@@ -149,6 +149,21 @@ class LakesideTerrain {
      * channel stays visible under the deck.
      */
     getHeightAt(x, z, referenceY) {
+        // referenceY === null — строго земля (поверхностные мобы); undefined — опорная высота по умолчанию (defaultRef: герой внизу, cellar.js)
+        if (referenceY === null) return this._baseHeightAt(x, z);
+        if (referenceY === undefined) referenceY = this.defaultRef;
+        const h = this._baseHeightAt(x, z, referenceY);
+        const lv = this.levels;   // нижние этажи (cellar.js): уровень сам решает, какая высота пола в этой точке
+        if (!lv || !lv.length || this._rawOnly) return h;
+        for (let i = 0; i < lv.length; i++) { const y = lv[i].floorAt(x, z, referenceY, h); if (y === y) return y; }
+        return h;
+    }
+
+    /** Нижние этажи: level = { floorAt(x, z, refY, groundY) → высота пола или NaN }. */
+    addLevel(l) { if (!this.levels) this.levels = []; this.levels.push(l); }
+    removeLevel(l) { if (this.levels) this.levels = this.levels.filter(q => q !== l); }
+
+    _baseHeightAt(x, z, referenceY) {
         const h = this.getRawHeightAt(x, z);
         if (this._rawOnly) return h;
         const br = this.bridges;
@@ -752,6 +767,12 @@ class LakesideTerrain {
         grassNor.repeat.set(20 * meshSizeX / 120, 20 * meshSizeZ / 120);
 
         // Standard Material with smooth PBR blending
+        // Вырезы в земле (locTerrain.holes: [{x, z, r, hx, hz}] — прямоугольник в системе пропа): фрагменты не рисуются (спуск в подвал, cellar.js)
+        const _holes = (this.locTerrain && this.locTerrain.holes) || [];
+        const holeGLSL = _holes.map(hh => { const c = Math.cos(hh.r || 0), sn = Math.sin(hh.r || 0), f = v => Number(v).toFixed(4);
+            return `{ vec2 hd = vWorldPosition.xz - vec2(${f(hh.x)}, ${f(hh.z)}); float hlx = hd.x * ${f(c)} - hd.y * ${f(sn)}; float hlz = hd.x * ${f(sn)} + hd.y * ${f(c)}; if (abs(hlx) < ${f(hh.hx)} && abs(hlz) < ${f(hh.hz)}) discard; }`; }).join('\n');
+        const holeSig = _holes.length ? '_h' + _holes.map(hh => [hh.x, hh.z, hh.r || 0, hh.hx, hh.hz].map(v => Math.round(v * 100)).join('.')).join('_') : '';
+
         this.material = new THREE.MeshStandardMaterial({
             roughness: 0.86,
             metalness: 0.04,
@@ -762,7 +783,7 @@ class LakesideTerrain {
 
         // КРИТИЧНО для Three.js: без customProgramCacheKey движок повторно использует
         // скомпилированный шейдер первой локации для всех последующих!
-        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v45_${this.groundSet}_mix${mixGround ? groundMode : 0}`;
+        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v46_${this.groundSet}_mix${mixGround ? groundMode : 0}${holeSig}`;
 
         const biomeId = (this.biome === 'goldshire') ? 1.0 : ((this.biome === 'volcanic') ? 2.0 : 0.0);
         const waterTypeId = (curWType === 'coast') ? 1.0 : ((curWType === 'river') ? 2.0 : 0.0);
@@ -885,6 +906,7 @@ class LakesideTerrain {
             shader.fragmentShader = shader.fragmentShader.replace(
                 '#include <map_fragment>',
                 `
+                ${holeGLSL}
                 vec2 uvShore      = vWorldPosition.xz * 0.12;
                 vec2 uvGrass      = vWorldPosition.xz * 0.16;
                 vec2 uvDirtTrail  = vWorldPosition.xz * 0.18;

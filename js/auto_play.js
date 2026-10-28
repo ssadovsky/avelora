@@ -703,7 +703,7 @@
                         if (huntTypes && huntTypes.size > 0) {
                             const huntCandidates = (cr.list || []).filter(rec => cr.isAlive(rec) && huntTypes.has(rec.type));
                             if (huntCandidates.length > 0) {
-                                huntCandidates.sort((a, b) => Math.hypot(a.x - c.position.x, a.z - c.position.z) - Math.hypot(b.x - c.position.x, b.z - c.position.z));
+                                huntCandidates.sort((a, b) => (cr.sameLevel(b) - cr.sameLevel(a)) || Math.hypot(a.x - c.position.x, a.z - c.position.z) - Math.hypot(b.x - c.position.x, b.z - c.position.z));
                                 tgt = huntCandidates[0];
                                 combat.selectTarget(tgt);
                             }
@@ -725,6 +725,7 @@
                         });
                         if (hostiles.length > 0) {
                             hostiles.sort((a, b) => {
+                                if (cr.sameLevel(a) !== cr.sameLevel(b)) return cr.sameLevel(a) ? -1 : 1;   // сначала мобы своего этажа
                                 const losA = skills ? skills.hasLineOfSight(c.position, a) : true;
                                 const losB = skills ? skills.hasLineOfSight(c.position, b) : true;
                                 if (losA !== losB) return losA ? -1 : 1;
@@ -780,7 +781,8 @@
             const hasLoS = skills ? skills.hasLineOfSight(c.position, tgt) : true;
 
             // If target is farther than effective attack distance OR line of sight is obstructed (walls, logs, boulders):
-            if (dist > effectiveAttackRange || !hasLoS) {
+            const otherFloor = !!(g.creatures && g.creatures.sameLevel && !g.creatures.sameLevel(tgt));   // моб на другом этаже (подвал): идём к лестнице
+            if (dist > effectiveAttackRange || !hasLoS || otherFloor) {
                 // In quest mode (or when customTarget is provided), never restrict by combatRadius/anchor!
                 const isQuestCombat = this.questEnabled || !!customTarget;
                 if (!isQuestCombat) {
@@ -800,7 +802,7 @@
                 }
 
                 // Move towards target until within attack distance!
-                this.navigateTowards(tgt.x, tgt.z);
+                this.navigateTowards(tgt.x, tgt.z, tgt);
                 return;
             }
 
@@ -1923,7 +1925,7 @@
         // ---------------------------------------------------------------------
         // 3. NAVIGATION & DATA LOOKUPS
         // ---------------------------------------------------------------------
-        navigateTowards(tx, tz) {
+        navigateTowards(tx, tz, rec) {
             const g = this.game;
             const c = g.character;
             if (!c || !g.pathfinder) return;
@@ -1935,7 +1937,9 @@
             this._nextPathTime = now + 1200;
             this._lastNavPoint = { x: tx, z: tz };
 
-            const path = g.pathfinder.findPath(c.position, { x: tx, z: tz });
+            const path = (rec && window.AveloraCellar && g.cellars && g.cellars.length)
+                ? window.AveloraCellar.route(g, c.position, tx, tz, rec.under)
+                : g.pathfinder.findPath(c.position, { x: tx, z: tz });
             if (path && path.length > 0) {
                 c.setPath(path);
             }

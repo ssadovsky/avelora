@@ -282,6 +282,8 @@
                 scaledDamage: [dmgMin, dmgMax],
                 scaledGold: scaledGold,
                 home: { x: sp.x, z: sp.z },
+                under: sp.under || null,   // id подвала (cellar.js): моб стоит на полу нижнего этажа
+
                 state: 'gone',       // idle | wander | chase | attack | return | dead | gone
                 hp: scaledHp, maxHp: scaledHp,
                 x: sp.x, z: sp.z, y: 0, yaw: sp.r || 0,
@@ -425,7 +427,7 @@
                 rec.height = tpl.height;
                 rec.hp = rec.maxHp;
                 rec.x = rec.home.x; rec.z = rec.home.z; rec.yaw = rec.spawn.r || 0;
-                const baseGroundY = this.terrain.getHeightAt(rec.x, rec.z);
+                const baseGroundY = this._gy(rec);
                 rec.y = baseGroundY + (def.flyHeight || 0);
                 rec.hoverT = Math.random() * Math.PI * 2;
                 rec.state = 'idle';
@@ -500,7 +502,7 @@
         /** Водоплавающие (def.swimmer): 0..1 — насколько существо «в воде» (у самого берега плавно, дно ниже ~0.05 м). */
         swimK(rec) {
             if (!rec.def.swimmer || !this.terrain || !this.terrain.getHeightAt) return 0;
-            const wy = this.terrain.getHeightAt(rec.x, rec.z);
+            const wy = this._gy(rec);
             const t = Math.min(1, Math.max(0, (0.05 - wy) / 0.1));
             return t * t * (3 - 2 * t);
         }
@@ -599,13 +601,13 @@
             if (rec.def.swimmer && rec.state !== 'dead') {
                 const k = this.swimK(rec);
                 if (k > 0) {
-                    const wy = this.terrain.getHeightAt(rec.x, rec.z);
+                    const wy = this._gy(rec);
                     py += k * (Math.max(0, -wy) - (rec.def.swimSink || 0.13));
                 }
             }
             // земноводные (waterSink, м): на мелководье тело садится глубже — торчит над водой примерно наполовину
             if (rec.def.waterSink && rec.state !== 'dead' && this.terrain && this.terrain.getHeightAt) {
-                const wy = this.terrain.getHeightAt(rec.x, rec.z);
+                const wy = this._gy(rec);
                 if (wy < 0) py -= rec.def.waterSink * Math.min(1, -wy / 0.4);
             }
             m.position.set(0, py, pz);
@@ -775,7 +777,7 @@
                     if (rec._groundY === undefined || Math.abs(rec.x - rec._groundX) + Math.abs(rec.z - rec._groundZ) > 0.02) {
                         rec._groundX = rec.x;
                         rec._groundZ = rec.z;
-                        rec._groundY = this.terrain.getHeightAt(rec.x, rec.z);
+                        rec._groundY = this._gy(rec);
                     }
                     const groundY = rec._groundY;
                     if (rec.state === 'dead') {
@@ -818,6 +820,8 @@
             if (rec.slowT > 0) { rec.slowT = Math.max(0, rec.slowT - dt); dt *= rec.slowF; }
             if (rec.staggerT > 0) rec.staggerT = Math.max(0, rec.staggerT - dt);
             if (rec.kbT > 0) { this.stepKnockback(rec, dt); return; }   // being pushed back: no AI until it ends
+            // герой и моб на разных этажах (над/под подвалом): агро сбрасывается, моб возвращается домой — сквозь землю и потолок не нападает
+            if (rec.aggro && rec.state !== 'return' && !this.sameLevel(rec)) { rec.attackT = -1; this.startReturn(rec); rec.lastPath = -99; return; }
 
             // Minotaur boss: special shockwave cast logic
             if (rec.minotaurCasting) {
@@ -831,7 +835,7 @@
                 if (p) this.turnTowards(rec, p.x, p.z, dt);
                 if (!rec.attackHitDone && rec.attackT >= rec.hitAt) {
                     rec.attackHitDone = true;
-                    if (playerAlive && distP <= reach + 0.5 && this.game.combat) {
+                    if (playerAlive && distP <= reach + 0.5 && this.game.combat && this.sameLevel(rec)) {
                         const d = rec.scaledDamage || def.damage || [1, 2];
                         const amount = Math.round(d[0] + Math.random() * ((d[1] || d[0]) - d[0]));
                         this.game.combat.damagePlayer(amount, rec);
@@ -846,13 +850,13 @@
 
             // Aggro acquisition (aggressive only; retaliate is set in damage())
             const isDungeonBoss = Boolean(this.location && this.location.dungeon && this.location.dungeon.bossId === rec.id);
-            if (def.behavior === 'aggressive' && !rec.aggro && playerAlive && rec.state !== 'return'
+            if (def.behavior === 'aggressive' && !rec.aggro && playerAlive && rec.state !== 'return' && this.sameLevel(rec)
                 && distP < (def.aggroRadius || 0) && Math.hypot(p.x - rec.home.x, p.z - rec.home.z) < leash) {
                 rec.aggro = true;
             }
             // Босс подземелья держит бой на всей арене зала (не сбрасывается и не регенится, пока игрок внутри зала)
             const playerInBossArena = isDungeonBoss && p && p.z >= 17.0;
-            if (rec.aggro && (!playerAlive || (distHome > leash && !playerInBossArena))) {
+            if (rec.aggro && (!playerAlive || !this.sameLevel(rec) || (distHome > leash && !playerInBossArena))) {
                 this.startReturn(rec);
             }
             if (rec.aggro && rec.state !== 'chase' && rec.state !== 'attack' && rec.state !== 'return') {
@@ -929,7 +933,7 @@
                     const push = sep - sd;
                     rec.x += (sdx / sd) * push;
                     rec.z += (sdz / sd) * push;
-                    rec.y = this.terrain.getHeightAt(rec.x, rec.z);
+                    rec.y = this._gy(rec);
                 }
             }
         }
@@ -945,7 +949,8 @@
                 y0 = rec._tY0;
             } else {
                 const sy = Math.sin(rec.yaw), cy = Math.cos(rec.yaw);
-                const H = (fz, rx) => th.getHeightAt(rec.x + sy * fz + cy * rx, rec.z + cy * fz - sy * rx);
+                const uref = this._underRef(rec);
+                const H = (fz, rx) => th.getHeightAt(rec.x + sy * fz + cy * rx, rec.z + cy * fz - sy * rx, uref);
                 // the four feet (hind pair at T[0], front pair at T[1]); fit a plane, then lift so no foot is below ground
                 const hHL = H(T[0], -T[2]), hHR = H(T[0], T[2]), hFL = H(T[1], -T[2]), hFR = H(T[1], T[2]);
                 const span = T[1] - T[0];
@@ -1005,7 +1010,7 @@
             for (let k = 0; k < 6; k++) {
                 const a = Math.random() * Math.PI * 2, d = wr * (0.35 + 0.65 * Math.sqrt(Math.random()));
                 const x = rec.home.x + Math.cos(a) * d, z = rec.home.z + Math.sin(a) * d;
-                if (this.isWalkable(x, z)) {
+                if (this.isWalkable(x, z, rec)) {
                     rec.goal.x = x; rec.goal.z = z;
                     rec.state = 'wander';
                     rec.lastPath = -99;
@@ -1017,11 +1022,47 @@
 
         // Сетка прямоугольная (halfWorldX/Z, cellWidth/Height): переводим через worldToGrid самой сетки.
         // (Раньше здесь читались несуществующие pf.halfWorld / pf.cellSize -> NaN -> «всегда непроходимо»: мобы не блуждали.)
-        isWalkable(x, z) {
+        isWalkable(x, z, rec) {
             const pf = this.pathfinder;
             if (!pf) return true;
             const g = pf.worldToGrid(x, z);
+            // два этажа (cellar.js): моб подвала ходит по сетке подвала, остальные — по сетке поверхности, независимо от того, где герой
+            if (pf._gridS && pf._gridU) {
+                const want = (rec && rec.under) ? pf._gridU : pf._gridS;
+                if (pf.grid !== want) { const keep = pf.grid; pf.grid = want; const r = pf.isWalkable(g.x, g.z); pf.grid = keep; return r; }
+            }
             return pf.isWalkable(g.x, g.z);
+        }
+
+        // ---- этажи: высота пола под мобом, опорная высота, совпадение этажа с героем
+        _cellarOf(id) { const l = this.game && this.game.cellars; if (!l) return null; for (let i = 0; i < l.length; i++) if (l[i].cfg && l[i].cfg.id === id) return l[i]; return null; }
+        /** Опорная высота для getHeightAt: где моб стоял в прошлый раз (так он сам «выбирает» этаж: пол зала / лестница / земля). До первого шага — этаж из спавна. */
+        _underRef(rec) {
+            if (Number.isFinite(rec._lastY)) return rec._lastY;
+            if (!rec.under) return null;
+            const c = this._cellarOf(rec.under); return c ? c.F : null;
+        }
+        _gy(rec) {
+            const y = this.terrain.getHeightAt(rec.x, rec.z, this._underRef(rec));
+            rec._lastY = y;
+            const l = this.game && this.game.cellars;
+            if (l && l.length) {   // этаж моба — по его высоте внутри подвала: сидит глубже земли → «внизу» (для сетки, агро, атаки)
+                let u = null;
+                for (let i = 0; i < l.length; i++) {
+                    const cl = l[i], q = cl.n.toLocal(rec.x, rec.z);
+                    if (((Math.abs(q.lx) <= cl.n.hw + 0.2 && q.lz >= 0 && q.lz <= cl.n.L + 0.5) || cl._inRooms(q.lx, q.lz, 0)) && y < cl.y0 - 0.6) { u = cl.cfg.id; break; }
+                }
+                rec.under = u;
+            }
+            return y;
+        }
+        /** Моб и герой на одном этаже? (подвал — cellar.below; нет подвалов — всегда да) */
+        sameLevel(rec) {
+            const l = this.game && this.game.cellars;
+            if (!l || !l.length) return true;
+            let heroIn = null;
+            for (let i = 0; i < l.length; i++) if (l[i].below) { heroIn = l[i].cfg && l[i].cfg.id; break; }
+            return (rec.under || null) === (heroIn || null);
         }
 
         losTo(rec, x, z) {
@@ -1068,7 +1109,7 @@
                 const step = Math.min(d, speed * dt);
                 const nx = rec.x + (dx / d) * step, nz = rec.z + (dz / d) * step;
                 // Never step into water / blocked cells (e.g. while steering directly)
-                if (this.isWalkable(nx, nz) || !this.isWalkable(rec.x, rec.z)) {
+                if (this.isWalkable(nx, nz, rec) || !this.isWalkable(rec.x, rec.z, rec)) {
                     rec.x = nx; rec.z = nz;
                     rec.speed = speed;
                 } else {
@@ -1076,7 +1117,7 @@
                 }
                 this.turnTowards(rec, sx, sz, dt);
             }
-            rec.y = this.terrain.getHeightAt(rec.x, rec.z);
+            rec.y = this._gy(rec);
             this.play(rec, speed > (rec.def.walkSpeed || 1) * 1.2 && this.hasClip(rec, 'Run') ? 'Run' : (this.hasClip(rec, 'Walk') ? 'Walk' : 'Run'));
             return false;
         }
@@ -1104,7 +1145,7 @@
             rec.speed = 0;
             if (rec.deadT > CORPSE_TIME) {
                 const t = (rec.deadT - CORPSE_TIME) / SINK_TIME;
-                rec.y = this.terrain.getHeightAt(rec.x, rec.z) - t * (rec.height + 0.3);
+                rec.y = this._gy(rec) - t * (rec.height + 0.3);
                 if (t >= 1) {
                     this.despawn(rec);
                     rec.state = 'gone';
@@ -1301,11 +1342,11 @@
             rec.kbT = Math.max(0, t0 - dt);
             const step = rec.kbV0 * ((t0 + rec.kbT) * 0.5 / rec.kbDur) * Math.min(dt, t0);   // trapezoid: exact total distance
             const nx = rec.x + rec.kbDx * step, nz = rec.z + rec.kbDz * step;
-            if (this.isWalkable(nx, nz) || !this.isWalkable(rec.x, rec.z)) { rec.x = nx; rec.z = nz; }   // standing on a blocked nav cell (tree margin): do not get stuck
-            else if (this.isWalkable(nx, rec.z)) rec.x = nx;      // slide along a wall
-            else if (this.isWalkable(rec.x, nz)) rec.z = nz;
+            if (this.isWalkable(nx, nz, rec) || !this.isWalkable(rec.x, rec.z, rec)) { rec.x = nx; rec.z = nz; }   // standing on a blocked nav cell (tree margin): do not get stuck
+            else if (this.isWalkable(nx, rec.z, rec)) rec.x = nx;      // slide along a wall
+            else if (this.isWalkable(rec.x, nz, rec)) rec.z = nz;
             else rec.kbT = 0;                                     // blocked
-            rec.y = this.terrain.getHeightAt(rec.x, rec.z);
+            rec.y = this._gy(rec);
         }
 
         /** Spark impact hook (window 'game:skillImpact'): damage every creature whose body is within the radius. */
@@ -1407,7 +1448,7 @@
                 rec.stunOn = false;
                 rec.hp = rec.maxHp;
                 rec.x = rec.home.x; rec.z = rec.home.z;
-                rec.y = this.terrain.getHeightAt(rec.x, rec.z);
+                rec.y = this._gy(rec);
                 rec.state = 'idle';
                 rec.timer = 1 + Math.random() * 2;
                 rec.path = null;

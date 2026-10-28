@@ -77,6 +77,7 @@
             x: progress.x,
             z: progress.z,
             r: progress.r,
+            under: progress.under || null,   // id подвала (cellar.js), если герой был внизу
             savedAt: Date.now()
         };
         try {
