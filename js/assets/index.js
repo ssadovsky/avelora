@@ -17,6 +17,7 @@ window.AVELORA_ASSET_INDEX = {
   "creatures/fawn": ["m/creatures__fawn.js", "2a44d7d70f"],
   "creatures/fire_elemental": ["m/creatures__fire_elemental.js", "21e8f84910"],
   "creatures/fire_fox": ["m/creatures__fire_fox.js", "8f2279239c"],
+  "creatures/forest_dancer": ["m/creatures__forest_dancer.js", "843efd438e"],
   "creatures/forest_doe": ["m/creatures__forest_doe.js", "f16acd1e89"],
   "creatures/hyena": ["m/creatures__hyena.js", "b3752b54be"],
   "creatures/jaekelopterus": ["m/creatures__jaekelopterus.js", "751a4378e1"],
