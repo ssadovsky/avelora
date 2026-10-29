@@ -1258,6 +1258,7 @@ class MedievalCharacter {
         for (let i = 0; i < obs.length; i++) {
             const ob = obs[i];
             if (ob.under && !this._belowCellar(ob.under)) continue;   // препятствие на полу подвала: наверху не действует
+            if (ob.over && this._belowCellar(ob.over)) continue;      // препятствие здания над подвалом: внизу не действует
             const dx = px - ob.x, dz = pz - ob.z;
             const distSq = dx * dx + dz * dz;
             const minDist = ob.r + playerRadius;

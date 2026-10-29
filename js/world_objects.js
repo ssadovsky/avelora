@@ -369,6 +369,7 @@
                 // круглые препятствия не зависят от сетки: помечаем, чтобы наверху над подвалом герой не упирался в невидимый портал
                 for (let oi = obsN0; oi < this.pathfinder.obstacles.length; oi++) this.pathfinder.obstacles[oi].under = p.under;
             }
+            if (p.over && this.pathfinder) for (let oi = obsN0; oi < this.pathfinder.obstacles.length; oi++) this.pathfinder.obstacles[oi].over = p.over;   // здание над подвалом: препятствия действуют только наверху
             if (def.walkSurface && this.terrain.addSurface && !p.noObstacle) {   // низкие камни у основания скалы ходимы (герой поднимается по их поверхности)
                 const w = def.walkSurface, bin = atob(w.data), u8 = new Uint8Array(bin.length);
                 for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);

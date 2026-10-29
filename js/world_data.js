@@ -1348,7 +1348,8 @@ window.LOCATIONS = {
                 { id: 'rl_tavern', type: 'tavern', x: 24.0, z: 0.2, r: 0 },
                 // «Рунные врата»: тёмная часовня-привратница с колокольней над входом в старый подвал (cellars[0]); фасад на запад, к дороге.
                 // Центр нефа = верх лестницы + 4 м по спуску (x 65 → 69); внутри — траншея, лестница и туннель к порталу работают как раньше
-                { id: 'rl_rune_gate', type: 'runeGate', x: 69.0, z: 16.0, r: -Math.PI / 2 }
+                // процедурные врата (type 'runeGate') заменены моделью props rune_chapel; для отката — вернуть строку:
+                // { id: 'rl_rune_gate', type: 'runeGate', x: 69.0, z: 16.0, r: -Math.PI / 2 }
             ]
         },
 
@@ -1357,6 +1358,13 @@ window.LOCATIONS = {
         groups: [],
 
         props: [
+            // «Рунные врата»: Meshy-часовня над входом в старый подвал (cellars[0], x65 z16); дверь на запад, неф — над траншеей, колокольня в глубине
+            { id: 'runeLands.rune_chapel', prop: 'rune_chapel', x: 65.0, z: 16.0, r: -Math.PI / 2, over: 'oldCellar' },
+            // оригинал часовни (без правок, только металличность 0) — на газоне рядом, для сравнения; потом убрать
+            { id: 'runeLands.rune_chapel_orig', prop: 'rune_chapel_orig', x: 66.0, z: 0.0, r: -Math.PI / 2 },
+            // столб, отрезанный от часовни, — парой у входа
+            { id: 'runeLands.rune_pillar_n', prop: 'rune_pillar', x: 55.5, z: 7.5, r: 0.4 },
+            { id: 'runeLands.rune_pillar_s', prop: 'rune_pillar', x: 55.5, z: 24.5, r: 3.5 },
             // под землёй, в центре рунического круга зала; dy опускает основание (земляной диск) под пол, площадка вровень с полом
             { id: 'runeLands.rune_portal', prop: 'rune_portal', x: 102.6, z: 16.0, r: Math.PI * 1.5, under: 'oldCellar', dy: -0.62 }
         ],
@@ -1377,7 +1385,7 @@ window.LOCATIONS = {
             {
                 id: 'oldCellar', name: 'Старый подвал',
                 x: 65.0, z: 16.0, r: Math.PI / 2,   // вход (верх лестницы) на западе, спуск идёт на восток; зал x≈87..118
-                stair: { width: 5.0, len: 22.0, drop: 9.7, open: 10.0, height: 3.6 },   // open — длина открытой траншеи, дальше туннель; drop ≥ высота зала + 1.7 (потолок под землёй)
+                stair: { width: 5.6, len: 22.0, drop: 11.0, open: 9.4, height: 3.6 },   // open — длина открытой траншеи, дальше туннель; drop ≥ высота зала + 1.7 (потолок под землёй)
                 plaza: { radius: 20, blend: 10 },
                 rooms: [
                     { id: 'hall', w: 30, d: 30, h: 8.0 }
@@ -1385,7 +1393,7 @@ window.LOCATIONS = {
                 ],
                 // здание «Рунные врата» (town.js, runeGate) над траншеей — для камеры (cellar.camOk): lz0…lz1 — нава (от фасада до задней стены),
                 // hw — просвет нефа, top — потолок (под балками), wx/roof — габарит стен и крыши, tw/tz0/tz1/tower — колокольня, pillars — обелиски (lx, lz)
-                gate: { lz0: -3.0, lz1: 11.0, hw: 2.85, top: 4.4, wx: 4.9, roof: 9.6, tw: 3.3, tz0: 10.8, tz1: 16.9, tower: 19.8, pillars: [[-4.9, -4.3], [4.9, -4.3]] },
+                gate: { lz0: -2.1, lz1: 10.0, hw: 2.65, top: 3.4, wx: 3.9, roof: 7.1, tw: 2.0, tcx: -1.55, tz0: 5.7, tz1: 10.0, tower: 13.3 },
                 surface: []   // строений на поверхности нет (дома/башня/фонтан убраны)
             }
         ]

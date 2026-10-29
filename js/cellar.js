@@ -262,7 +262,7 @@
             }
             // боковые стены траншеи и туннеля: призма (lz, y) выдавлена по x
             const slabTop = lz => this.ramp(lz) + H + 0.4;
-            const pts = [[0, y0 - 0.5], [L, this.F - 0.5], [L, slabTop(L)], [open + 0.5, slabTop(open + 0.5)], [open + 0.5, y0 + 0.55], [0, y0 + 0.55]];
+            const pts = [[0, y0 - 0.5], [L, this.F - 0.5], [L, slabTop(L)], [open + 0.5, slabTop(open + 0.5)], [open + 0.5, y0 - 0.06], [0, y0 - 0.06]];   // стены траншеи вровень с землёй (бордюров над землёй нет)
             const sh = new THREE.Shape(); sh.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) sh.lineTo(pts[i][0], pts[i][1]);
             const geo = new THREE.ExtrudeGeometry(sh, { depth: T, bevelEnabled: false });
             geo.rotateY(-Math.PI / 2);   // (lz→z, выдавливание → -x)
@@ -271,7 +271,7 @@
             const wr = new THREE.Mesh(geo, this.wallMat); wr.position.set(hw + T, 0, 0); this.group.add(wr);
             const wl = new THREE.Mesh(geo, this.wallMat); wl.position.set(-hw, 0, 0); this.group.add(wl);
             // перемычка над входом в туннель + плита потолка туннеля
-            this._boxAt(-hw - T + 0.05, hw + T - 0.05, this.ramp(open) + H, y0 + 0.5, open, open + 0.45, this.darkMat);   // чуть уже и ниже стен: общие плоскости с торцами/верхом стен мерцали
+            this._boxAt(-hw - T + 0.05, hw + T - 0.05, this.ramp(open) + H, y0 - 0.1, open, open + 0.45, this.darkMat);   // чуть уже и ниже стен: общие плоскости с торцами/верхом стен мерцали
             const len = (L - open) / Math.cos(Math.atan2(D, L)), ang = Math.atan2(D, L), mid = (open + L) / 2;
             const roof = this._box(hw * 2 + T * 2 - 0.1, 0.4, len, this.darkMat, 3.0);
             roof.position.set(0, this.ramp(mid) + H + 0.2, mid); roof.rotation.x = ang; this.group.add(roof);
@@ -566,7 +566,7 @@
                 const y0 = this.y0;
                 if (Math.abs(lx) <= G.hw && lz >= G.lz0 + 0.2 && lz <= G.lz1 - 0.2 && y >= y0 + 0.3 && y <= y0 + G.top) return true;   // внутри нефа
                 if (Math.abs(lx) <= G.wx && lz >= G.lz0 - 0.2 && lz <= G.lz1 + 0.2 && y <= y0 + G.roof) return false;                  // стены, контрфорсы, крыша
-                if (Math.abs(lx) <= G.tw && lz >= G.tz0 && lz <= G.tz1 && y <= y0 + G.tower) return false;                               // колокольня
+                if (Math.abs(lx - (G.tcx || 0)) <= G.tw && lz >= G.tz0 && lz <= G.tz1 && y <= y0 + G.tower) return false;                               // колокольня
                 for (const o of (G.pillars || [])) if (Math.abs(lx - o[0]) <= 0.9 && Math.abs(lz - o[1]) <= 0.9 && y <= y0 + 5.5) return false;   // обелиски
             }
             return y >= this.terrain._baseHeightAt(x, z) + 0.5;

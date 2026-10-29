@@ -1592,6 +1592,110 @@ window.GAME_CONTENT = {
    "obstacle": 0.7,
    "npc": "lizard_hermit"
   },
+  "rune_chapel": {
+   "id": "rune_chapel",
+   "name": "Часовня Рунных врат",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": -3.55,
+     "cz": -3.9,
+     "hx": 0.4,
+     "hz": 5.8,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 3.55,
+     "cz": -3.9,
+     "hx": 0.4,
+     "hz": 5.8,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 0,
+     "cz": -9.9,
+     "hx": 3.5,
+     "hz": 0.2,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -2.38,
+     "cz": 1.5,
+     "hx": 0.78,
+     "hz": 0.5,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 2.48,
+     "cz": 1.5,
+     "hx": 0.68,
+     "hz": 0.5,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -1.65,
+     "cz": 1.2,
+     "hx": 0.05,
+     "hz": 0.05,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 1.65,
+     "cz": 1.2,
+     "hx": 0.05,
+     "hz": 0.05,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "cameraBlock": false,
+   "modelKey": "props/rune_chapel"
+  },
+  "rune_chapel_orig": {
+   "id": "rune_chapel_orig",
+   "name": "Часовня (оригинал для сравнения)",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": 0,
+     "cz": -3.9,
+     "hx": 4.0,
+     "hz": 5.9,
+     "r": 0.4,
+     "step": 0.6,
+     "exact": true
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/rune_chapel_orig"
+  },
+  "rune_pillar": {
+   "id": "rune_pillar",
+   "name": "Рунный столб",
+   "obstacle": 1.0,
+   "modelKey": "props/rune_pillar"
+  },
   "rune_portal": {
    "id": "rune_portal",
    "name": "Рунный портал",
