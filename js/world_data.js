@@ -1288,10 +1288,7 @@ window.LOCATIONS = {
             { id: 'homeCamp.chest1', prop: 'chest', x: -18.5, z: -9.5, r: 0.5 }
         ],
 
-        // Элиара Полуночная: танцует у лагеря (элита 20 ур., не агрессивна; пока здесь, позже решим)
-        creatures: [
-            { id: 'homeCamp.dancer', type: 'midnight_dancer', level: 20, rank: 'elite', x: -9.0, z: -6.0, r: 1.57 }
-        ]
+        creatures: []   // Элиара переехала на сцену таверны в Рунных землях
     },
 
     // -------------------------------------------------------------
@@ -1366,6 +1363,10 @@ window.LOCATIONS = {
 
         creatures: [
             // крыс нет (убраны); моб на полу подвала задаётся под:'oldCellar' (этажи не смешиваются)
+            // Танцовщицы таверны «Рунный Кубок» (таверна x24 z0.2: сцена x26…32, z0.2…4.2, пол +0.85; танцпол x24.5…33.1, z5.3…9.1, пол +0.4). Элиты 20 ур., в бою — бокс
+            { id: 'runeLands.dancer1', type: 'midnight_dancer',  level: 20, rank: 'elite', x: 27.6, z: 2.4, r: 0, floorDy: 0.85 },   // Элиара
+            { id: 'runeLands.dancer2', type: 'midnight_dancer2', level: 20, rank: 'elite', x: 30.4, z: 2.4, r: 0, floorDy: 0.85 },   // Мирабель
+            { id: 'runeLands.dancer3', type: 'midnight_dancer3', level: 20, rank: 'elite', x: 28.8, z: 7.2, r: 0, floorDy: 0.4 }     // Лилия, на клетчатом танцполе перед сценой
         ],
 
         // Старый подвал — нижний этаж этой же локации (js/cellar.js). Всё привязано к точке {x, z, r}:

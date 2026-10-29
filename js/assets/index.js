@@ -25,6 +25,8 @@ window.AVELORA_ASSET_INDEX = {
   "creatures/lizard": ["m/creatures__lizard.js", "9881798d80"],
   "creatures/lizard_soldier": ["m/creatures__lizard_soldier.js", "e966008e58"],
   "creatures/midnight_dancer": ["m/creatures__midnight_dancer.js", "7f94dc44b4"],
+  "creatures/midnight_dancer2": ["m/creatures__midnight_dancer2.js", "3d9a824ed3"],
+  "creatures/midnight_dancer3": ["m/creatures__midnight_dancer3.js", "9284ca1991"],
   "creatures/minotaur": ["m/creatures__minotaur.js", "723acf4ca9"],
   "creatures/pterodactyl": ["m/creatures__pterodactyl.js", "949c1ee0c7"],
   "creatures/rat": ["m/creatures__rat.js", "8e358ca198"],

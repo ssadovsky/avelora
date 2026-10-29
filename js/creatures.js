@@ -1039,6 +1039,7 @@
         /** Опорная высота для getHeightAt: где моб стоял в прошлый раз (так он сам «выбирает» этаж: пол зала / лестница / земля). До первого шага — этаж из спавна. */
         _underRef(rec) {
             if (Number.isFinite(rec._lastY)) return rec._lastY;
+            if (rec.spawn && Number.isFinite(rec.spawn.floorDy)) return this.terrain.getRawHeightAt(rec.x, rec.z) + rec.spawn.floorDy;   // стоит на настиле (сцена, терраса): floorDy — высота настила над землёй
             if (!rec.under) return null;
             const c = this._cellarOf(rec.under); return c ? c.F : null;
         }
