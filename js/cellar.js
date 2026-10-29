@@ -552,7 +552,8 @@
         /** Допустима ли точка камеры: внутри объёма подвала/траншеи или над землёй. */
         camOk(x, y, z) {
             const n = this.n, q = n.toLocal(x, z), lx = q.lx, lz = q.lz;
-            if (Math.abs(lx) <= n.hw - 0.15 && lz >= 0 && lz <= n.open && y >= this.ramp(lz) + 0.3) return true;   // траншея открыта сверху
+            const G = n.cfg.gate;   // здание над траншеей (town.js runeGate): под крышей камера в пределах нефа, снаружи — не внутри его стен/крыши/башни
+            if (Math.abs(lx) <= n.hw - 0.15 && lz >= 0 && lz <= n.open && y >= this.ramp(lz) + 0.3) return !(G && lz >= G.lz0 && lz <= G.lz1 && y > this.y0 + G.top);   // траншея открыта сверху
             if (Math.abs(lx) <= n.hw - 0.15 && lz > n.open && lz <= n.L) { const r = this.ramp(lz); if (y >= r + 0.25 && y <= r + n.H - 0.25) return true; }
             for (const R of n.rooms) {
                 if (lx >= R.x0 + 0.3 && lx <= R.x1 - 0.3 && lz >= R.z0 + 0.3 && lz <= R.z1 - 0.3 && y >= this.F + 0.3 && y <= this.F + R.h - 0.3) return true;
@@ -560,6 +561,13 @@
                     const dq = doorRect(R, d);
                     if (lx >= dq.x0 && lx <= dq.x1 && lz >= dq.z0 && lz <= dq.z1 && y >= this.F + 0.3 && y <= this.F + d.h - 0.25) return true;
                 }
+            }
+            if (G) {
+                const y0 = this.y0;
+                if (Math.abs(lx) <= G.hw && lz >= G.lz0 + 0.2 && lz <= G.lz1 - 0.2 && y >= y0 + 0.3 && y <= y0 + G.top) return true;   // внутри нефа
+                if (Math.abs(lx) <= G.wx && lz >= G.lz0 - 0.2 && lz <= G.lz1 + 0.2 && y <= y0 + G.roof) return false;                  // стены, контрфорсы, крыша
+                if (Math.abs(lx) <= G.tw && lz >= G.tz0 && lz <= G.tz1 && y <= y0 + G.tower) return false;                               // колокольня
+                for (const o of (G.pillars || [])) if (Math.abs(lx - o[0]) <= 0.9 && Math.abs(lz - o[1]) <= 0.9 && y <= y0 + 5.5) return false;   // обелиски
             }
             return y >= this.terrain._baseHeightAt(x, z) + 0.5;
         }

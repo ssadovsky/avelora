@@ -7,7 +7,7 @@
  *
  * Конфиг локации (world_data.js):
  *   town: { level: [x, z],              // точка, по высоте которой выравнивается земля под зданиями (обычно край дороги)
- *           buildings: [ { id, type: 'stoneHouse' | 'marbleTemple' | 'tavern', x, z, r, ...параметры } ] }
+ *           buildings: [ { id, type: 'stoneHouse' | 'marbleTemple' | 'tavern' | 'runeGate', x, z, r, ...параметры } ] }
  * Система координат здания: локальный +Z — фасад (вход), r — поворот вокруг Y как у mesh.rotation.y
  * (фасад смотрит в мире на (sin r, cos r)).
  *
@@ -895,8 +895,142 @@
         return { rects, platforms, platform: null, w: 2 * DX + 0.8, d: ZF - ZB + 0.8, h: yR + 1.5 };
     }
 
-    const TYPES = { stoneHouse: buildStoneHouse, marbleTemple: buildMarbleTemple, tavern: buildTavern };
-    const CAMERA_BLOCK = { stoneHouse: ['stone', 'slate', 'wood'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood'] };
+    // ------------------------------------------------------------------ «Рунные врата»: тёмная часовня-привратница над входом в подвал
+    // Нава (дом над траншеей) с готической аркой на фасаде, контрфорсами, светящимися рунными окнами и колокольной башней сзади.
+    // Начало координат — центр нефа: фасад (+Z) смотрит на дорогу, спуск подвала идёт от z=+4 (верх лестницы) к -z, туннель — под башней.
+    function buildRuneGate(B, cfg) {
+        const HO = 3.8, HI = 3.0, ZF = 7.0, YB = -0.4, YE = 5.0, TZ = -9.7;
+        const rect = (x0, x1, z0, z1) => ({ x0, x1, z0, z1 });
+        const DK = [0.56, 0.58, 0.67], ST = [0.66, 0.68, 0.77], LT = [0.82, 0.84, 0.93];
+        const rn = (k) => ({ t: [0.42 * k, 0.9 * k, 0.78 * k] });
+        const rects = [rect(HI, HO + 0.75, -ZF - 0.15, ZF + 0.15), rect(-HO - 0.75, -HI, -ZF - 0.15, ZF + 0.15),
+                       rect(2.75, HI, 6.2, 7.1), rect(-HI, -2.75, 6.2, 7.1), rect(-HI, HI, -7.1, -6.2), rect(-3.2, 3.2, -12.9, -6.5)];
+        const pyr = (mat, cx, y, cz, s, h, o) => {
+            const L = Math.hypot(s, h), a = s / L, b = h / L;
+            B.poly(mat, [[cx - s, y, cz + s], [cx + s, y, cz + s], [cx, y + h, cz]], [0, a, b], o);
+            B.poly(mat, [[cx - s, y, cz - s], [cx + s, y, cz - s], [cx, y + h, cz]], [0, a, -b], o);
+            B.poly(mat, [[cx + s, y, cz - s], [cx + s, y, cz + s], [cx, y + h, cz]], [b, a, 0], o);
+            B.poly(mat, [[cx - s, y, cz - s], [cx - s, y, cz + s], [cx, y + h, cz]], [-b, a, 0], o);
+        };
+
+        // боковые стены с цоколем и карнизом (между ними — траншея подвала, её парапет упирается в стены изнутри)
+        for (const s of [-1, 1]) {
+            B.box('stone', s * 3.4, (YB + YE) / 2, 0, 0.8, YE - YB, 2 * ZF, { t: DK });
+            B.box('stone', s * 3.95, 0.05, 0, 0.5, 1.0, 2 * ZF + 0.3, { t: ST });
+            B.box('stone', s * 3.575, YE + 0.12, 0, 1.15, 0.26, 2 * ZF + 0.5, { t: LT });
+        }
+        // фасадная и задняя стены (чуть утоплены относительно торцов боковых — без совпадающих плоскостей)
+        const fz = ZF - 0.35;                       // центр толщины 0.7
+        const wallTop = YE + 0.3;
+        for (const s of [-1, 1]) B.box('stone', s * 3.0, (YB + wallTop) / 2, fz - 0.02, 0.4, wallTop - YB, 0.7, { t: DK });   // пилястры проёма (x 2.8…3.2)
+        B.box('stone', 0, (4.3 + wallTop) / 2, fz - 0.02, 6.4, wallTop - 4.3, 0.7, { t: DK });                             // над проёмом
+        B.box('stone', 0, (YB + wallTop) / 2, -fz + 0.02, 6.4, wallTop - YB, 0.7, { t: DK });                              // задняя стена
+        // двускатная крыша с коньком вдоль Z, зелёно-синий сланец
+        const a = 0.72, tan = Math.tan(a), ovh = 0.6, yW = YE + 0.25, run = HO + ovh;
+        const yE = yW + 0.05 - ovh * tan, yR = yW + 0.05 + HO * tan, len = run / Math.cos(a) + 0.12, wr = 2 * ZF + 1.1;
+        const xc = run / 2, yc = (yE + yR) / 2 + 0.11, sl = { rz: 0, bottom: true, uv: 1.0, t: [0.72, 0.95, 0.92] };
+        B.box('slate', xc, yc, 0, len, 0.2, wr, Object.assign({}, sl, { rz: -a }));
+        B.box('slate', -xc, yc, 0, len, 0.2, wr, Object.assign({}, sl, { rz: a }));
+        B.box('wood', 0, yR + 0.17, 0, 0.42, 0.16, wr + 0.08, { t: 0.7 });
+        for (const z of [fz - 0.02, -fz + 0.02]) B.prism('stone', 'z', z, yW - 0.02, HO, HO * tan + 0.02, 0.7, { t: DK });
+        // стропильные балки и подвесные рунные лампы под крышей
+        for (const z of [5.3, 1.9, -1.5, -4.9]) {
+            B.box('wood', 0, YE - 0.15, z, 2 * HI + 0.4, 0.3, 0.34, { t: 0.75 });
+            B.box('dark', 0, YE - 0.75, z, 0.04, 0.9, 0.04, {});
+            B.box('rune', 0, YE - 1.35, z, 0.3, 0.3, 0.3, Object.assign({ rx: 0.785, rz: 0.785 }, rn(1)));
+        }
+
+        // готическая арка на фасаде: ряд клиньев + пилястры, руны в замках, сигил в тимпане
+        const AR = 3.075, N = 13, zf = ZF + 0.08;
+        for (let i = 0; i < N; i++) {
+            const th = Math.PI * (i + 0.5) / N, cx = AR * Math.cos(th), cy = 4.3 + AR * Math.sin(th);
+            B.box('stone', cx, cy, zf, 0.58, 0.8, 0.28, { rz: th - Math.PI / 2, t: i % 2 ? LT : ST });
+            if (i % 2) B.box('rune', cx * 0.93, 4.3 + (AR - 0.08) * Math.sin(th), zf + 0.15, 0.1, 0.34, 0.03, Object.assign({ rz: th - Math.PI / 2 }, rn(1)));
+        }
+        B.box('gold', 0, 4.3 + AR + 0.55, zf + 0.04, 0.34, 0.34, 0.12, { rz: Math.PI / 4 });
+        for (const s of [-1, 1]) {
+            B.box('stone', s * AR, 1.95, zf, 0.58, 4.7, 0.28, { t: ST });
+            B.box('stone', s * AR, -0.1, zf + 0.05, 0.78, 0.4, 0.4, { t: DK });
+            B.box('stone', s * AR, 4.3, zf + 0.05, 0.74, 0.16, 0.36, { t: LT });
+        }
+        for (let i = 0; i < 8; i++) {       // рунное кольцо в тимпане
+            const th = Math.PI * 2 * i / 8;
+            B.box('rune', Math.cos(th) * 1.0, 6.0 + Math.sin(th) * 1.0, ZF - 0.03, 0.1, 0.46, 0.05, Object.assign({ rz: th - Math.PI / 2 }, rn(1)));
+        }
+        B.box('gold', 0, 6.0, ZF - 0.02, 0.5, 0.5, 0.07, { rz: Math.PI / 4 });
+        B.box('rune', 0, 6.0, ZF - 0.03, 0.08, 1.7, 0.05, rn(0.8)); B.box('rune', 0, 6.0, ZF - 0.03, 1.7, 0.08, 0.05, rn(0.8));
+        for (const s of [-1, 1]) {          // фонари в проёме
+            B.box('dark', s * 2.35, 4.1, ZF + 0.05, 0.04, 0.4, 0.04, {});
+            B.box('dark', s * 2.35, 3.52, ZF + 0.05, 0.3, 0.06, 0.3, {});
+            B.box('flame', s * 2.35, 3.72, ZF + 0.05, 0.17, 0.3, 0.17, {});
+            B.box('dark', s * 2.35, 3.92, ZF + 0.05, 0.32, 0.06, 0.32, {});
+        }
+        // бра с огнём на внутренних стенах (над парапетом траншеи)
+        for (const z of [5.4, 2.2, -1.0, -4.2]) for (const s of [-1, 1]) {
+            B.box('dark', s * 2.88, 2.35, z, 0.24, 0.1, 0.24, {});
+            B.box('flame', s * 2.88, 2.55, z, 0.15, 0.28, 0.15, {});
+        }
+
+        // высокие рунные окна между контрфорсами
+        const win = (fr) => B.frame(fr, () => {
+            B.box('stone', 0, 1.2, 0.2, 1.3, 0.16, 0.4, { t: LT });
+            B.box('stone', 0, 4.62, 0.14, 1.45, 0.24, 0.3, { t: LT });
+            for (const sx of [-1, 1]) B.box('stone', sx * 0.58, 2.9, 0.13, 0.2, 3.3, 0.28, { t: LT });
+            B.box('rune', 0, 2.9, 0.06, 0.8, 3.1, 0.08, rn(0.78));
+            B.box('dark', 0, 2.9, 0.12, 0.07, 3.1, 0.05, {}); B.box('dark', 0, 2.0, 0.12, 0.8, 0.06, 0.05, {}); B.box('dark', 0, 3.8, 0.12, 0.8, 0.06, 0.05, {});
+        });
+        for (const z of [4.4, 0.4, -3.6]) { win({ x: HO, z, yaw: Math.PI / 2 }); win({ x: -HO, z, yaw: -Math.PI / 2 }); }
+        // контрфорсы
+        for (const z of [6.45, 2.4, -1.6, -5.6]) for (const s of [-1, 1]) {
+            B.box('stone', s * 4.15, 1.85, z, 0.7, 4.5, 0.8, { t: ST });
+            B.box('stone', s * 4.1, 4.3, z, 0.55, 0.5, 0.66, { t: LT });
+            B.box('stone', s * 3.98, 4.7, z, 0.34, 0.3, 0.5, { t: LT });
+        }
+
+        // колокольня: основание, рунный пояс, бойницы, звонница с колоколом, шпиль
+        B.box('stone', 0, 0.05, TZ - 0.05, 6.3, 1.0, 6.3, { t: ST });
+        B.box('stone', 0, (YB + 9.4) / 2, TZ, 5.8, 9.8, 5.8, { t: DK });
+        B.box('stone', 0, 6.6, TZ, 6.2, 0.3, 6.2, { t: LT });
+        B.box('stone', 0, 9.55, TZ, 6.3, 0.3, 6.3, { t: LT });
+        for (const s of [-1, 1]) {
+            B.box('rune', s * 2.9, 8.1, TZ, 0.1, 0.2, 5.0, rn(1));
+            for (const y of [3.4, 5.3]) {
+                B.box('stone', s * 2.93, y, TZ, 0.12, 1.8, 0.62, { t: LT });
+                B.box('rune', s * 3.0, y, TZ, 0.1, 1.45, 0.34, rn(0.8));
+            }
+        }
+        B.box('rune', 0, 8.1, TZ - 2.9, 5.0, 0.2, 0.1, rn(1));
+        for (const x of [-1.2, 1.2]) { B.box('stone', x, 4.4, TZ - 2.93, 0.62, 1.8, 0.12, { t: LT }); B.box('rune', x, 4.4, TZ - 3.0, 0.34, 1.45, 0.1, rn(0.8)); }
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) B.box('stone', sx * 2.5, 11.2, TZ + sz * 2.5, 0.7, 3.0, 0.7, { t: ST });
+        for (const s of [-1, 1]) {
+            B.box('stone', s * 2.5, 10.15, TZ, 0.5, 0.9, 4.3, { t: DK });
+            B.box('stone', 0, 10.15, TZ + s * 2.5, 4.3, 0.9, 0.5, { t: DK });
+        }
+        B.box('stone', 0, 12.9, TZ, 6.3, 0.4, 6.3, { t: LT });
+        B.box('wood', 0, 12.45, TZ, 0.3, 0.3, 5.0, { t: 0.7 });
+        B.cyl('gold', 0, 11.2, TZ, 0.72, 0.3, 1.2, 12, {});
+        B.box('dark', 0, 11.1, TZ, 0.1, 0.5, 0.1, {});
+        pyr('slate', 0, 13.1, TZ, 3.15, 4.8, { t: [0.72, 0.95, 0.92], uv: 1.0 });
+        B.poly('wood', [[-3.1, 13.09, TZ - 3.1], [3.1, 13.09, TZ - 3.1], [3.1, 13.09, TZ + 3.1], [-3.1, 13.09, TZ + 3.1]], [0, -1, 0], { t: 0.7 });
+        B.box('gold', 0, 18.3, TZ, 0.18, 0.9, 0.18, {});
+        B.box('rune', 0, 19.0, TZ, 0.3, 0.3, 0.3, Object.assign({ rx: 0.785, rz: 0.785 }, rn(1)));
+
+        // рунные обелиски по сторонам подъезда
+        for (const s of [-1, 1]) {
+            const ox = s * 4.9, oz = 8.3;
+            B.box('stone', ox, 0.35, oz, 1.1, 1.1, 1.1, { t: DK });
+            B.box('stone', ox, 2.5, oz, 0.7, 3.3, 0.7, { t: ST });
+            pyr('stone', ox, 4.15, oz, 0.35, 0.7, { t: LT });
+            B.box('rune', ox, 2.5, oz + 0.37, 0.14, 2.2, 0.04, rn(1));
+            B.box('rune', ox - s * 0.37, 2.5, oz, 0.04, 2.2, 0.14, rn(1));
+            B.box('gold', ox, 5.1, oz, 0.16, 0.16, 0.16, { rx: 0.785, rz: 0.785 });
+            rects.push(rect(ox - 0.8, ox + 0.8, oz - 0.8, oz + 0.8));
+        }
+        return { rects, platform: null, w: 2 * HO + 2, d: 2 * ZF + 6, h: 19.5 };
+    }
+
+    const TYPES = { stoneHouse: buildStoneHouse, marbleTemple: buildMarbleTemple, tavern: buildTavern, runeGate: buildRuneGate };
+    const CAMERA_BLOCK = { stoneHouse: ['stone', 'slate', 'wood'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood'], runeGate: ['stone', 'slate', 'wood'] };
 
     // ------------------------------------------------------------------ менеджер локации
     class AveloraTown {
@@ -922,9 +1056,12 @@
                 let dims, cx = b.x, cz = b.z;
                 if (b.type === 'tavern') { dims = 13.6; cx += 0.7 * Math.sin(b.r || 0); cz += 0.7 * Math.cos(b.r || 0); }   // терраса смещена вперёд от начала здания
                 else dims = b.type === 'marbleTemple' ? Math.hypot((b.HX || 3.9) + 0.8, (b.HZ || 5.0) + 0.8) : Math.hypot((b.W || 8.2) / 2 + 1, (b.D || 6.2) / 2 + 1);
-                const fs = { x: cx, z: cz, radius: dims + 0.5, blend: 5.0 };
-                if (cfg.level) fs.hFrom = cfg.level;
-                t.flatSpots.push(fs);
+                if (b.type === 'runeGate') dims = 12;     // площадку выравнивает плаза подвала (cellar.js), здесь только чистим траву
+                else {
+                    const fs = { x: cx, z: cz, radius: dims + 0.5, blend: 5.0 };
+                    if (cfg.level) fs.hFrom = cfg.level;
+                    t.flatSpots.push(fs);
+                }
                 loc.clearings.push({ x: cx, z: cz, radius: dims + 1.5 });
                 loc.noFerns.push({ x: cx, z: cz, rx: dims + 2, rz: dims + 2 });
             }
@@ -995,6 +1132,6 @@
     }
 
     // для headless-теста без игры
-    AveloraTown._internals = { Builder, TYPES, sharedMaterials, buildStoneHouse, buildMarbleTemple, buildTavern };
+    AveloraTown._internals = { Builder, TYPES, sharedMaterials, buildStoneHouse, buildMarbleTemple, buildTavern, buildRuneGate };
     window.AveloraTown = AveloraTown;
 })();
