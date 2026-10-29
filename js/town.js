@@ -7,7 +7,7 @@
  *
  * Конфиг локации (world_data.js):
  *   town: { level: [x, z],              // точка, по высоте которой выравнивается земля под зданиями (обычно край дороги)
- *           buildings: [ { id, type: 'stoneHouse' | 'marbleTemple', x, z, r, ...параметры } ] }
+ *           buildings: [ { id, type: 'stoneHouse' | 'marbleTemple' | 'tavern', x, z, r, ...параметры } ] }
  * Система координат здания: локальный +Z — фасад (вход), r — поворот вокруг Y как у mesh.rotation.y
  * (фасад смотрит в мире на (sin r, cos r)).
  *
@@ -166,10 +166,60 @@
         return { map: toTexture(c, true), bump: toTexture(bc, false) };
     }
 
+    /** Светлая штукатурка (второй этаж таверны): тёплая кость, лёгкая неровность. */
+    function makePlasterTex() {
+        const f = makeFbm(900), rnd = mulberry32(901), c = newCanvas(), g = c.getContext('2d');
+        g.fillStyle = '#d9ceb4'; g.fillRect(0, 0, TS, TS);
+        pixelPass(c, (px, py, r, gg, b) => { const k = 0.88 + 0.22 * f(px / TS, py / TS), s = (rnd() - 0.5) * 9; return [r * k + s, gg * k + s, b * k + s - 1]; });
+        return { map: toTexture(c, true), bump: null };
+    }
+
+    /** Тёплые доски настила: горизонтальные ряды по 0.25 м со стыками внахлёст. */
+    function makeDeckTex() {
+        const rnd = mulberry32(321), fbm = makeFbm(330), c = newCanvas(), g = c.getContext('2d');
+        const rows = 8, rh = TS / rows;
+        g.fillStyle = '#2b1d12'; g.fillRect(0, 0, TS, TS);
+        for (let r = 0; r < rows; r++) {
+            let x = -rnd() * 200;
+            while (x < TS) {
+                const w = 170 + rnd() * 230, v = 118 + rnd() * 44;
+                for (const off of [0, TS]) {
+                    g.fillStyle = `rgb(${Math.round(v + 44)},${Math.round(v * 0.74 + 20)},${Math.round(v * 0.42 + 6)})`;
+                    g.fillRect(x - off + 2, r * rh + 2, w - 4, rh - 4);
+                    g.fillStyle = 'rgba(0,0,0,0.45)'; g.fillRect(x - off, r * rh, 2, rh);
+                }
+                x += w;
+            }
+            g.fillStyle = 'rgba(0,0,0,0.5)'; g.fillRect(0, r * rh, TS, 2);
+        }
+        pixelPass(c, (px, py, r, gg, b) => { const kk = 0.78 + 0.45 * fbm(px / TS, ((py * 8) % TS) / TS); return [r * kk, gg * kk, b * kk]; });
+        return { map: toTexture(c, true), bump: null };
+    }
+
+    /** Вывеска таверны: тёмная доска, золотая рамка, надпись. Рисуется в canvas 512×192. */
+    function makeSignTex() {
+        const c = document.createElement('canvas'); c.width = 512; c.height = 192;
+        const g = c.getContext('2d');
+        const gr = g.createLinearGradient(0, 0, 0, 192); gr.addColorStop(0, '#4b2f1a'); gr.addColorStop(1, '#2f1c0f');
+        g.fillStyle = gr; g.fillRect(0, 0, 512, 192);
+        for (let i = 0; i < 6; i++) { g.fillStyle = 'rgba(0,0,0,0.25)'; g.fillRect(0, 32 * i + 31, 512, 2); }
+        g.strokeStyle = '#d9ad45'; g.lineWidth = 7; g.strokeRect(10, 10, 492, 172);
+        g.strokeStyle = 'rgba(217,173,69,0.55)'; g.lineWidth = 2; g.strokeRect(22, 22, 468, 148);
+        g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.fillStyle = '#e8c76a'; g.font = 'bold 34px Georgia, "Times New Roman", serif'; g.fillText('✦  ТАВЕРНА  ✦', 256, 52);
+        g.fillStyle = '#f3dc92'; g.font = 'bold 66px Georgia, "Times New Roman", serif'; g.shadowColor = 'rgba(0,0,0,0.7)'; g.shadowBlur = 6;
+        g.fillText('Рунный Кубок', 256, 116);
+        const t = new THREE.CanvasTexture(c);
+        if (THREE.SRGBColorSpace !== undefined && 'colorSpace' in t) t.colorSpace = THREE.SRGBColorSpace;
+        else if (THREE.sRGBEncoding !== undefined) t.encoding = THREE.sRGBEncoding;
+        t.anisotropy = 4;
+        return { map: t, bump: null };
+    }
+
     let SHARED = null;
     function sharedMaterials() {
         if (SHARED) { SHARED.refs++; return SHARED; }
-        const T = { stone: makeStoneTex(), marble: makeMarbleTex(), wood: makeWoodTex(), slate: makeSlateTex() };
+        const T = { stone: makeStoneTex(), marble: makeMarbleTex(), wood: makeWoodTex(), slate: makeSlateTex(), plaster: makePlasterTex(), deck: makeDeckTex(), sign: makeSignTex() };
         const std = (map, bump, o) => new THREE.MeshStandardMaterial(Object.assign({ map, bumpMap: bump || null, bumpScale: bump ? 2.2 : 0, roughness: 0.92, metalness: 0, vertexColors: true }, o || {}));
         SHARED = {
             refs: 1, tex: T,
@@ -181,7 +231,12 @@
                 glass: new THREE.MeshStandardMaterial({ color: 0x24384c, roughness: 0.15, metalness: 0, emissive: 0x0b1622, vertexColors: true }),
                 gold: new THREE.MeshStandardMaterial({ color: 0xe0b84a, roughness: 0.45, metalness: 0, emissive: 0x3a2a05, vertexColors: true }),
                 dark: new THREE.MeshStandardMaterial({ color: 0x4a4f57, roughness: 0.9, metalness: 0, vertexColors: true }),
-                flame: new THREE.MeshBasicMaterial({ color: 0xffc064, vertexColors: true })
+                flame: new THREE.MeshBasicMaterial({ color: 0xffc064, vertexColors: true }),
+                plaster: std(T.plaster.map, null, { roughness: 0.95 }),
+                deck: std(T.deck.map, null, { roughness: 0.85 }),
+                cloth: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0, vertexColors: true, side: THREE.DoubleSide }),
+                rune: new THREE.MeshBasicMaterial({ color: 0x6be3c0, vertexColors: true }),
+                sign: new THREE.MeshStandardMaterial({ map: T.sign.map, roughness: 0.8, metalness: 0, vertexColors: true })
             }
         };
         return SHARED;
@@ -312,6 +367,16 @@
                 this.poly(mat, [[-hb, y0, B], [-hb, y0, A], [0, y0 + h, A], [0, y0 + h, B]], [-h / L, hb / L, 0], o);
                 this.poly(mat, [[hb, y0, B], [hb, y0, A], [0, y0 + h, A], [0, y0 + h, B]], [h / L, hb / L, 0], o);
             }
+        }
+
+        /** Плоская табличка (текстура на всю поверхность, uv 0–1), лицом на +Z текущей рамки. */
+        sign(mat, cx, cy, cz, w, h) {
+            const b = this.buf(mat), Nn = this.N(0, 0, 1), hx = w / 2, hy = h / 2, idx = [];
+            for (const [sx, sy, u, v] of [[-1, -1, 0, 0], [1, -1, 1, 0], [1, 1, 1, 1], [-1, 1, 0, 1]]) {
+                const P = this.T(cx + sx * hx, cy + sy * hy, cz);
+                idx.push(b.vert(P[0], P[1], P[2], Nn[0], Nn[1], Nn[2], u, v, 1, 1, 1));
+            }
+            b.i.push(idx[0], idx[1], idx[2], idx[0], idx[2], idx[3]);
         }
 
         /** Вертикальный усечённый цилиндр; o.rings — колец по высоте, o.flute — желобки (колонна), o.ent — энтазис. */
@@ -467,8 +532,371 @@
         return { rects, platform: stylo, w: 2 * HX + 1.6, d: 2 * HZ + 1.6, h: yRg + 0.5 };
     }
 
-    const TYPES = { stoneHouse: buildStoneHouse, marbleTemple: buildMarbleTemple };
-    const CAMERA_BLOCK = { stoneHouse: ['stone', 'slate', 'wood'], marbleTemple: ['marble'] };
+    // ------------------------------------------------------------------ большая таверна «Рунный Кубок» (летняя терраса, сцена, танцпол)
+    // Локальные координаты: начало — середина передней стены зала, +Z — фасад и терраса, дорога впереди. Высоты — от земли.
+    // Зал 16×8 (x ±8, z −8…0) с настоящим входом; второй этаж — фахверк на штукатурке; терраса 19×17.4 с перилами,
+    // столиками под зонтами, сценой (на ступень выше) и шахматным танцполом с руническим кругом.
+    function buildTavern(B, cfg) {
+        const HW = 8, y0 = 0.4, Y1 = 4.0, Y2 = 7.2, XD = -2.5, DG = 1.35, DX = 9.5, ZF = 9.4, ZB = -8, WT = 0.5;
+        const SX0 = 2.0, SX1 = 8.0, SZ0 = 0.0, SZ1 = 4.0, SY = 0.85;       // сцена
+        const DF = { x0: 0.5, x1: 9.1, z0: 5.1, z1: 8.9 };                  // танцпол
+        const TAU = Math.PI * 2, rects = [];
+        const rect = (x0, x1, z0, z1) => rects.push({ x0, x1, z0, z1 });
+        const pick = (a) => a[Math.floor(B.rnd() * a.length) % a.length];
+        const disc = (mat, cx, y, cz, r, segs, o) => {
+            const pts = [];
+            for (let i = 0; i < segs; i++) { const a = i / segs * TAU; pts.push([cx + Math.cos(a) * r, y, cz + Math.sin(a) * r]); }
+            B.poly(mat, pts, [0, 1, 0], o);
+        };
+        // двускатная крыша с коньком вдоль Z (крыльцо, слуховые окна): yr — высота линии ската на оси, hs — полуширина с вылетом
+        const gableZ = (mat, cx, yr, hs, a, z0, z1) => {
+            const tan = Math.tan(a), len = hs / Math.cos(a) + 0.1, zc = (z0 + z1) / 2, zl = Math.abs(z1 - z0);
+            for (const sx of [-1, 1]) B.box(mat, cx + sx * hs / 2, yr - (hs / 2) * tan + 0.1, zc, len, 0.14, zl, { rz: -sx * a, bottom: true, uv: 1.0 });
+        };
+        // отрезок «проволоки» между двумя точками
+        const wire = (ax, ay, az, bx, by, bz, th) => {
+            const dx = bx - ax, dy = by - ay, dz = bz - az, hd = Math.hypot(dx, dz), L = Math.hypot(hd, dy);
+            B.box('dark', (ax + bx) / 2, (ay + by) / 2, (az + bz) / 2, th, th, L, { rx: -Math.atan2(dy, hd), ry: Math.atan2(dx, dz), t: 0.6 });
+        };
+        const bulbs = (xa, za, xb, zb, yTop, sag) => {
+            const n = Math.max(2, Math.round(Math.hypot(xb - xa, zb - za) / 0.5));
+            let px = xa, py = yTop, pz = za;
+            for (let i = 1; i <= n; i++) {
+                const t = i / n, x = xa + (xb - xa) * t, z = za + (zb - za) * t, y = yTop - sag * 4 * t * (1 - t);
+                wire(px, py, pz, x, y, z, 0.025); px = x; py = y; pz = z;
+                if (i < n) B.box('flame', x, y - 0.1, z, 0.13, 0.17, 0.13, {});
+            }
+        };
+
+        // ---------------------------------------------------------------- основание и настил
+        B.box('stone', 0, -0.15, (ZF + ZB) / 2, 2 * DX + 0.8, 0.9, ZF - ZB + 0.8, { t: [0.74, 0.74, 0.76] });     // цоколь: от −0.6 до 0.3
+        B.box('deck', 0, 0.35, (ZF + ZB) / 2, 2 * DX + 0.4, 0.1, ZF - ZB + 0.4, { uv: 1.0 });                    // настил: верх на y0
+        // ступени у входа
+        const sx0 = XD - 1.6, sx1 = XD + 1.6;
+        B.box('stone', XD, 0.04, ZF + 0.225, sx1 - sx0, 0.46, 0.9, { t: [0.86, 0.86, 0.9] });
+        B.box('stone', XD, -0.04, ZF + 0.675 + 0.225, sx1 - sx0, 0.3, 0.9, { t: [0.82, 0.82, 0.86] });
+
+        // ---------------------------------------------------------------- стены зала (первый этаж, камень)
+        const yb = -0.3, ym = (yb + Y1) / 2, hh = Y1 - yb;
+        B.box('stone', 0, ym, ZB + WT / 2, 2 * HW, hh, WT, { t: [0.97, 0.97, 1.0] });
+        for (const sx of [-1, 1]) B.box('stone', sx * (HW - WT / 2), ym, ZB / 2, WT, hh, -ZB - 2 * WT, { t: [0.97, 0.97, 1.0], ou: sx * 0.3 });   // между задней и передней стенами: углы не перекрываются (иначе мерцание)
+        const xl = XD - DG, xr = XD + DG;
+        B.box('stone', (-HW + xl) / 2, ym, -WT / 2, xl + HW, hh, WT, { t: [0.97, 0.97, 1.0] });
+        B.box('stone', (xr + HW) / 2, ym, -WT / 2, HW - xr, hh, WT, { t: [0.97, 0.97, 1.0] });
+        B.box('stone', XD, (y0 + 2.95 + Y1) / 2, -WT / 2, 2 * DG, Y1 - y0 - 2.95, WT, { t: [0.9, 0.9, 0.94] });
+        // вход: косяки, перемычка, лампы
+        for (const sx of [-1, 1]) B.box('wood', XD + sx * (DG - 0.08), y0 + 1.5, 0.05, 0.22, 3.0, 0.2, { t: 0.85 });
+        B.box('wood', XD, y0 + 2.92, 0.06, 2 * DG + 0.1, 0.26, 0.22, { t: 0.8 });
+        B.box('stone', XD, y0 + 3.2, 0.08, 2 * DG + 0.5, 0.18, 0.28, { t: [0.8, 0.8, 0.84] });
+        for (const sx of [-1, 1]) {
+            B.box('dark', XD + sx * (DG + 0.55), y0 + 2.45, 0.2, 0.24, 0.05, 0.24, {});
+            B.box('flame', XD + sx * (DG + 0.55), y0 + 2.27, 0.2, 0.16, 0.3, 0.16, {});
+        }
+
+        // ---------------------------------------------------------------- второй этаж: штукатурка, пояс, фахверк
+        B.box('wood', 0, Y1 - 0.12, -4, 2 * HW + 0.5, 0.3, 8.5, { t: 0.8, bottom: true });
+        B.box('plaster', 0, (Y1 + Y2) / 2, -4, 2 * HW + 0.3, Y2 - Y1, 8.3, { uv: 1.0 });
+        B.box('wood', 0, Y2 + 0.05, -4, 2 * HW + 0.5, 0.3, 8.5, { t: 0.8, bottom: true });
+        // потолок зала и балки
+        B.box('wood', 0, Y1 - 0.05, -3.75, 2 * HW - 0.5, 0.1, 7.5, { t: 0.55, bottom: true, uv: 1.0 });
+        for (const z of [-1.4, -3.4, -5.4, -7.1]) B.box('wood', 0, Y1 - 0.26, z, 2 * HW - 0.5, 0.3, 0.3, { t: 0.7, bottom: true });
+        B.box('wood', 0, Y1 - 0.26, -4, 0.3, 0.3, 7.5, { t: 0.7, bottom: true });
+        // внутренняя облицовка стен: светлее и теплее (в зале нет источников света — имитация тепла ламп и камина)
+        {
+            const LT = [1.75, 1.6, 1.4], zi = ZB + WT + 0.02, hl = Y1 - y0 - 0.1, yl = (y0 + Y1) / 2, xi = HW - WT - 0.04;
+            B.box('stone', 0, yl, zi, 2 * xi, hl, 0.04, { t: LT });
+            for (const sx of [-1, 1]) B.box('stone', sx * (HW - WT - 0.02), yl, -4.02, 0.04, hl, 6.96, { t: LT });
+            B.box('stone', (-xi + xl) / 2, yl, -WT - 0.02, xl + xi, hl, 0.04, { t: LT });
+            B.box('stone', (xr + xi) / 2, yl, -WT - 0.02, xi - xr, hl, 0.04, { t: LT });
+        }
+
+        const win = (fr, y, th, shut) => B.frame(fr, () => {
+            B.box('stone', 0, y - 0.8, 0.16, 1.55, 0.15, 0.42, { t: [0.84, 0.84, 0.88] });
+            B.box('stone', 0, y + 0.8, 0.12, 1.6, 0.24, 0.34, { t: [0.82, 0.82, 0.86] });
+            for (const sx of [-1, 1]) B.box('wood', sx * 0.58, y, 0.07, 0.1, 1.46, 0.14, { t: 0.8 });
+            for (const sy of [-1, 1]) B.box('wood', 0, y + sy * 0.68, 0.07, 1.26, 0.1, 0.14, { t: 0.8 });
+            B.box('glass', 0, y, -(th + 0.02) / 2, 1.06, 1.26, th + 0.1, {});
+            B.box('wood', 0, y, 0.08, 0.05, 1.26, 0.06, { t: 0.7 });
+            B.box('wood', 0, y, 0.08, 1.06, 0.05, 0.06, { t: 0.7 });
+            if (th > 0.2) {      // внутренний наличник
+                for (const sx of [-1, 1]) B.box('wood', sx * 0.58, y, -th - 0.02, 0.1, 1.46, 0.1, { t: 0.8 });
+                for (const sy of [-1, 1]) B.box('wood', 0, y + sy * 0.68, -th - 0.02, 1.26, 0.1, 0.1, { t: 0.8 });
+                B.box('wood', 0, y - 0.74, -th + 0.06, 1.4, 0.07, 0.24, { t: 0.7 });
+            }
+            if (shut) for (const sx of [-1, 1]) B.box('wood', sx * 0.93, y, 0.06, 0.44, 1.34, 0.07, { t: [0.55, 0.64, 0.78], ou: sx * 0.3 });
+        });
+        // положение рамки на стене: off — выступ наружу, lx — смещение вдоль стены (по локальному x рамки)
+        const WALLS = {
+            front: { fx: 0, fz: 0, yaw: 0, len: 2 * HW },
+            right: { fx: HW, fz: -4, yaw: Math.PI / 2, len: 8 },
+            back: { fx: 0, fz: ZB, yaw: Math.PI, len: 2 * HW },
+            left: { fx: -HW, fz: -4, yaw: -Math.PI / 2, len: 8 }
+        };
+        const wf = (k, off, lx) => {
+            const W = WALLS[k], c = Math.cos(W.yaw), s = Math.sin(W.yaw);
+            return { x: W.fx + lx * c + off * s, z: W.fz - lx * s + off * c, yaw: W.yaw };
+        };
+        const WIN1 = { front: [-6.0, 0.6], right: [-2.5, 2.5], left: [-2.5, 2.5], back: [1.5, -6.5] };
+        const WIN2 = { front: [-6.2, 0.5, 3.7, 6.6], right: [-2.5, 2.5], left: [-2.5, 2.5], back: [-5.5, -1.8, 1.8, 5.5] };
+        for (const k of Object.keys(WALLS)) {
+            for (const x of WIN1[k]) win(wf(k, 0, x), y0 + 1.95, WT, true);
+            for (const x of WIN2[k]) win(wf(k, 0.15, x), 5.9, 0, true);
+        }
+        // фахверк второго этажа: стойки, раскосы, обвязка
+        const ymid = (Y1 + Y2) / 2, hF = Y2 - Y1 - 0.5;
+        for (const k of Object.keys(WALLS)) {
+            const L = WALLS[k].len, n = Math.round(L / 2.0), cell = L / n, wins = WIN2[k];
+            B.frame(wf(k, 0.15, 0), () => {
+                for (let i = 0; i <= n; i++) {
+                    const px = -L / 2 + i * cell;
+                    if (i > 0 && i < n && wins.some(w => Math.abs(w - px) < 1.2)) continue;
+                    B.box('wood', px, ymid, 0.05, (i === 0 || i === n) ? 0.34 : 0.2, hF, 0.1, { t: 0.75 });
+                }
+                for (let i = 0; i < n; i++) {
+                    const cx = -L / 2 + (i + 0.5) * cell;
+                    if (wins.some(w => Math.abs(w - cx) < 1.6) || !(i === 0 || i === n - 1 || i % 3 === 1)) continue;
+                    const ang = Math.atan2(cell - 0.2, hF), len = Math.hypot(cell - 0.2, hF);
+                    B.box('wood', cx, ymid, 0.04, 0.14, len, 0.08, { rz: (i % 2 ? 1 : -1) * ang, t: 0.75 });
+                }
+            });
+        }
+        // вывеска над крыльцом
+        B.frame({ x: 0, z: 0, yaw: 0 }, () => {
+            B.sign('sign', XD, 5.75, 0.16, 3.5, 1.31);
+            for (const sy of [-1, 1]) B.box('wood', XD, 5.75 + sy * 0.69, 0.17, 3.7, 0.1, 0.12, { t: 0.8 });
+            for (const sx of [-1, 1]) B.box('wood', XD + sx * 1.8, 5.75, 0.17, 0.1, 1.3, 0.12, { t: 0.8 });
+        });
+
+        // ---------------------------------------------------------------- крыша зала (сланец, как у соседнего дома), фронтоны, дымоход, слуховые окна
+        const ra = 0.62, rt = Math.tan(ra), ovh = 0.65, yW = Y2 + 0.2, hbR = 4.15;
+        const runR = hbR + ovh, yE = yW + 0.05 - ovh * rt, yR = yW + 0.05 + hbR * rt, lenR = runR / Math.cos(ra) + 0.12, zcR = runR / 2, ycR = (yE + yR) / 2 + 0.11, wr = 2 * HW + 1.5;
+        B.frame({ x: 0, z: -4, yaw: 0 }, () => {
+            B.box('slate', 0, ycR, zcR, wr, 0.2, lenR, { rx: ra, bottom: true });
+            B.box('slate', 0, ycR, -zcR, wr, 0.2, lenR, { rx: -ra, bottom: true });
+            B.box('wood', 0, yR + 0.17, 0, wr + 0.08, 0.16, 0.42, { t: 0.7 });
+        });
+        B.frame({ x: 0, z: -4, yaw: 0 }, () => {
+            for (const sx of [-1, 1]) B.prism('plaster', 'x', sx * HW, Y2 + 0.15, hbR, hbR * rt + 0.02, 0.34, { uv: 1.0 });   // фронтоны по торцам зала
+        });
+        for (const sx of [1, -1]) {     // фахверк фронтона
+            B.frame({ x: sx * (HW + 0.17), z: -4, yaw: sx * Math.PI / 2 }, () => {
+                B.box('wood', 0, Y2 + 0.15 + 1.3, 0.04, 0.18, 2.6, 0.1, { t: 0.75 });
+                B.box('wood', 0, Y2 + 0.15 + 1.1, 0.04, 5.4, 0.14, 0.1, { t: 0.75 });
+                for (const px of [-2.4, 2.4]) B.box('wood', px, Y2 + 0.15 + 0.6, 0.04, 0.16, 1.2, 0.1, { t: 0.75 });
+                for (const sg of [-1, 1]) B.box('wood', sg * 1.3, Y2 + 0.15 + 0.55, 0.04, 0.13, 1.4, 0.08, { rz: sg * 0.78, t: 0.75 });
+            });
+        }
+        // дымоход у задней стены над камином
+        {
+            const cx = 4.0, top = yR + 1.1;
+            B.box('stone', cx, (yb + top) / 2, ZB - 0.45, 2.0, top - yb, 0.9, { t: [0.82, 0.82, 0.85], uv: 1.0 });
+            B.box('stone', cx, top + 0.1, ZB - 0.45, 2.3, 0.2, 1.2, { t: [0.7, 0.7, 0.72] });
+            B.box('dark', cx - 0.45, top + 0.24, ZB - 0.45, 0.6, 0.08, 0.6, {});
+            B.box('dark', cx + 0.45, top + 0.24, ZB - 0.45, 0.6, 0.08, 0.6, {});
+            rect(cx - 1.1, cx + 1.1, ZB - 0.95, ZB);
+        }
+        // слуховые окна: 2 спереди, 2 сзади
+        const dormer = (dx, zw, yaw) => B.frame({ x: dx, z: zw, yaw }, () => {
+            const zf = -1.0, zr = -3.15, w = 1.7, yb2 = 7.9, yt = 9.15, a2 = 0.62, t2 = Math.tan(a2), hs = w / 2 + 0.22;
+            B.box('plaster', 0, (yb2 + yt) / 2, (zf + zr) / 2, w, yt - yb2, zf - zr, { uv: 1.0 });
+            B.box('glass', 0, 8.72, zf + 0.02, 0.62, 0.58, 0.04, {});
+            for (const sx of [-1, 1]) B.box('wood', sx * 0.36, 8.72, zf + 0.04, 0.09, 0.72, 0.1, { t: 0.8 });
+            for (const sy of [-1, 1]) B.box('wood', 0, 8.72 + sy * 0.33, zf + 0.04, 0.8, 0.09, 0.1, { t: 0.8 });
+            B.box('wood', 0, 8.72, zf + 0.06, 0.05, 0.6, 0.06, { t: 0.7 });
+            B.prism('plaster', 'z', zf - 0.02, yt, w / 2, (w / 2) * t2 + 0.02, 0.14, { uv: 1.0 });
+            gableZ('slate', 0, yt + (w / 2) * t2, hs, a2, zf + 0.3, zr);
+            B.box('wood', 0, yt + (w / 2) * t2 + 0.15, (zf + 0.3 + zr) / 2, 0.16, 0.12, zf + 0.3 - zr, { t: 0.7 });
+        });
+        dormer(-5.5, 0, 0); dormer(5.5, 0, 0); dormer(-5.5, ZB, Math.PI); dormer(5.5, ZB, Math.PI);
+
+        // ---------------------------------------------------------------- крыльцо над входом
+        {
+            const pa = 0.55, ptn = Math.tan(pa), hbP = 2.1, ovp = 0.45, yPl = 3.7;
+            const yrP = yPl + hbP * ptn;
+            for (const sx of [-1, 1]) {
+                B.box('stone', XD + sx * 1.9, y0 + 0.18, 3.1, 0.55, 0.36, 0.55, { t: [0.8, 0.8, 0.84] });
+                B.box('wood', XD + sx * 1.9, 2.13, 3.1, 0.3, 2.74, 0.3, { t: 0.8 });
+                B.box('wood', XD + sx * 1.9, 3.45, 1.55, 0.22, 0.24, 3.2, { t: 0.75 });
+                B.box('wood', XD + sx * 1.35, y0 + 2.6, 3.1, 0.08, 0.5, 0.08, { rz: sx * 0.9, t: 0.8 });
+                rect(XD + sx * 1.9 - 0.25, XD + sx * 1.9 + 0.25, 2.85, 3.35);
+            }
+            B.box('wood', XD, 3.45, 3.1, 4.1, 0.26, 0.26, { t: 0.75 });
+            gableZ('slate', XD, yrP + 0.05, hbP + ovp, pa, 0.05, 3.6);
+            B.box('wood', XD, yrP + 0.2, 1.85, 0.2, 0.12, 3.6, { t: 0.7 });
+            B.frame({ x: XD, z: 0, yaw: 0 }, () => B.prism('wood', 'z', 3.4, yPl - 0.1, hbP - 0.05, (hbP - 0.05) * ptn, 0.12, { t: 0.7 }));
+            B.box('dark', XD, 3.1, 3.1, 0.1, 0.5, 0.1, {});      // подвес лампы
+            B.box('dark', XD, 2.8, 3.1, 0.3, 0.05, 0.3, {});
+            B.box('flame', XD, 2.65, 3.1, 0.2, 0.32, 0.2, {});
+        }
+
+        // ---------------------------------------------------------------- сцена (пустая, вплотную к стене; под танцовщиц)
+        {
+            const cxs = (SX0 + SX1) / 2, wS = SX1 - SX0, dS = SZ1 - SZ0, czs = (SZ0 + SZ1) / 2;
+            B.box('wood', cxs, (0.3 + SY - 0.05) / 2, czs, wS, SY - 0.05 - 0.3, dS, { t: 0.62 });
+            B.box('deck', cxs, SY - 0.025, czs, wS, 0.05, dS, { t: [1.12, 1.1, 1.05], uv: 1.0 });
+            B.box('wood', cxs, 0.48, SZ1 + 0.225, wS, 0.36, 0.45, { t: 0.7 });          // ступени сцены (верх 0.66 и 0.52)
+            B.box('wood', cxs, 0.41, SZ1 + 0.675, wS, 0.22, 0.45, { t: 0.78 });
+            // навес и колонны
+            const ya = 4.95, yf = 4.5, zA = 0.2, zFd = 4.65, sl = Math.atan2(ya - yf, zFd - zA);
+            B.box('slate', cxs, (ya + yf) / 2 + 0.1, (zA + zFd) / 2, wS + 0.9, 0.14, Math.hypot(zFd - zA, ya - yf) + 0.1, { rx: sl, bottom: true });
+            B.box('wood', cxs, yf - 0.03, zFd - 0.03, wS + 0.9, 0.26, 0.12, { t: 0.7 });
+            for (const sx of [SX0 + 0.15, SX1 - 0.15]) {
+                B.cyl('wood', sx, SY, 3.7, 0.22, 0.2, 3.45, 10, { rings: 1, t: 0.8 });
+                B.box('wood', sx, SY + 0.1, 3.7, 0.5, 0.2, 0.5, { t: 0.7 });
+                B.box('wood', sx, 4.3, 3.7, 0.5, 0.18, 0.5, { t: 0.7 });
+                rect(sx - 0.28, sx + 0.28, 3.42, 3.98);
+            }
+            B.box('wood', cxs, 4.35, 3.7, wS + 0.1, 0.3, 0.3, { t: 0.7 });
+            for (const sx of [-1, 1]) B.box('wood', cxs + sx * (wS / 2 - 0.9), 4.0, 3.7, 0.12, 0.8, 0.12, { rz: sx * 0.75, t: 0.7 });   // подкосы
+        }
+
+        // ---------------------------------------------------------------- танцпол и рунический круг
+        {
+            const w = DF.x1 - DF.x0, d = DF.z1 - DF.z0, cx = (DF.x0 + DF.x1) / 2, cz = (DF.z0 + DF.z1) / 2;
+            B.box('marble', cx, y0 + 0.006, cz, w, 0.012, d, { t: 0.92 });
+            const nx = 10, nz = 4, tw = w / nx, td = d / nz;
+            for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) if ((i + j) % 2 === 0)
+                B.box('dark', DF.x0 + (i + 0.5) * tw, y0 + 0.011, DF.z0 + (j + 0.5) * td, tw - 0.03, 0.022, td - 0.03, { t: 0.55 });
+            const rc = [cx, cz];
+            disc('rune', rc[0], y0 + 0.03, rc[1], 1.6, 40);
+            disc('dark', rc[0], y0 + 0.034, rc[1], 1.5, 40, { t: 0.4 });
+            disc('rune', rc[0], y0 + 0.038, rc[1], 1.1, 40);
+            disc('dark', rc[0], y0 + 0.042, rc[1], 1.0, 40, { t: 0.4 });
+            disc('rune', rc[0], y0 + 0.046, rc[1], 0.28, 20);
+            for (let k = 0; k < 8; k++) {      // руны между кольцами: ромбики
+                const a = k / 8 * TAU, px = rc[0] + Math.cos(a) * 1.3, pz = rc[1] + Math.sin(a) * 1.3, c = Math.cos(a), s = Math.sin(a);
+                B.poly('rune', [[px + c * 0.14, y0 + 0.05, pz + s * 0.14], [px - s * 0.06, y0 + 0.05, pz + c * 0.06], [px - c * 0.14, y0 + 0.05, pz - s * 0.14], [px + s * 0.06, y0 + 0.05, pz - c * 0.06]], [0, 1, 0], {});
+            }
+        }
+
+        // ---------------------------------------------------------------- перила, фонарные столбы, гирлянды
+        const rail = (x0, z0, x1, z1) => {
+            const alongX = Math.abs(z1 - z0) < 1e-6, len = alongX ? Math.abs(x1 - x0) : Math.abs(z1 - z0), n = Math.max(1, Math.round(len / 3));
+            const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+            B.box('wood_p', cx, y0 + 1.0, cz, alongX ? len : 0.16, 0.1, alongX ? 0.16 : len, { t: 0.95 });
+            B.box('wood_p', cx, y0 + 0.42, cz, alongX ? len : 0.08, 0.07, alongX ? 0.08 : len, { t: 0.85 });
+            const nb = Math.max(2, Math.round(len / 0.55));
+            for (let i = 1; i < nb; i++) { const t = i / nb; B.box('wood_p', x0 + (x1 - x0) * t, y0 + 0.48, z0 + (z1 - z0) * t, 0.06, 0.95, 0.06, { t: 0.9 }); }
+            for (let i = 0; i <= n; i++) {
+                const t = i / n, px = x0 + (x1 - x0) * t, pz = z0 + (z1 - z0) * t;
+                B.box('wood_p', px, y0 + 0.57, pz, 0.18, 1.14, 0.18, { t: 0.75 });
+                B.box('wood_p', px, y0 + 1.17, pz, 0.26, 0.06, 0.26, { t: 0.7 });
+            }
+        };
+        const RX = DX - 0.2, RF = ZF - 0.2, RB = ZB + 0.2;
+        rail(RX, RB, RX, RF); rail(-RX, RB, -RX, RF);
+        rail(-RX, RF, XD - 1.6, RF); rail(XD + 1.6, RF, RX, RF);
+        rail(HW + 0.3, RB, RX, RB); rail(-RX, RB, -HW - 0.3, RB);
+        rect(DX - 0.45, DX, ZB, ZF); rect(-DX, -DX + 0.45, ZB, ZF);
+        rect(-DX, XD - 1.6, ZF - 0.45, ZF); rect(XD + 1.6, DX, ZF - 0.45, ZF);
+        rect(HW, DX, ZB, ZB + 0.45); rect(-DX, -HW, ZB, ZB + 0.45);
+
+        const lamp = (x, z) => {
+            B.box('wood_p', x, y0 + 1.7, z, 0.2, 3.4, 0.2, { t: 0.7 });
+            B.box('wood_p', x, y0 + 3.45, z, 0.32, 0.1, 0.32, { t: 0.7 });
+            B.box('dark', x, y0 + 3.22, z + 0.0, 0.34, 0.05, 0.34, {});
+            B.box('flame', x, y0 + 3.0, z, 0.22, 0.34, 0.22, {});
+            rect(x - 0.25, x + 0.25, z - 0.25, z + 0.25);
+        };
+        const lampPts = [[-RX, RF], [RX, RF], [-RX, 1.8], [RX, 1.8], [-RX, 5.0], [RX, 5.0]];
+        for (const [x, z] of lampPts) lamp(x, z);
+        const yLine = y0 + 3.15;
+        bulbs(-RX, RF, RX, RF, yLine, 0.55);
+        bulbs(-RX, RF, -RX, 1.8, yLine, 0.4);
+        bulbs(RX, RF, RX, 1.8, yLine, 0.4);
+        bulbs(-RX, 1.8, -HW + 0.3, 0.5, yLine, 0.2);
+        // гирлянда через танцпол — между столбами по краям
+        bulbs(-RX, 5.0, RX, 5.0, y0 + 3.25, 0.65);
+
+        // ---------------------------------------------------------------- мебель террасы
+        const table = (x, z, r, n, a0) => {
+            B.cyl('wood_p', x, y0 + 0.72, z, r, r, 0.08, 16, { t: 1.0 });
+            disc('wood_p', x, y0 + 0.8, z, r, 16, { t: 1.05 });
+            B.cyl('wood_p', x, y0, z, 0.14, 0.1, 0.72, 8, { t: 0.8 });
+            B.box('wood_p', x, y0 + 0.04, z, 0.7, 0.08, 0.7, { t: 0.8 });
+            for (let i = 0; i < n; i++) {
+                const a = a0 + i / n * TAU, sx = x + Math.cos(a) * (r + 0.4), sz = z + Math.sin(a) * (r + 0.4);
+                B.cyl('wood_p', sx, y0, sz, 0.25, 0.22, 0.5, 8, { t: 0.85 });
+                disc('wood_p', sx, y0 + 0.5, sz, 0.22, 8, { t: 0.9 });
+            }
+            rect(x - 1.25, x + 1.25, z - 1.25, z + 1.25);
+        };
+        const parasol = (x, z, col) => {
+            B.cyl('wood_p', x, y0, z, 0.05, 0.05, 2.75, 6, { t: 0.9 });
+            B.cyl('cloth', x, y0 + 2.3, z, 2.0, 0.05, 0.7, 12, { t: col });
+            B.cyl('cloth', x, y0 + 2.18, z, 2.06, 2.0, 0.12, 12, { t: [col[0] * 0.78, col[1] * 0.78, col[2] * 0.78] });
+            B.box('gold', x, y0 + 3.04, z, 0.08, 0.14, 0.08, {});
+        };
+        const TT = [[-7.9, 2.4, [0.82, 0.2, 0.17]], [-7.9, 6.0, [0.9, 0.78, 0.5]], [-5.35, 4.2, [0.15, 0.3, 0.62]], [-5.35, 7.6, [0.82, 0.2, 0.17]]];
+        for (const [x, z, col] of TT) { table(x, z, 0.8, 4, (x + z) * 0.3); parasol(x, z, col); }
+        const barrel = (x, z, h, r) => {
+            B.cyl('wood_p', x, y0, z, r, r, h, 12, { rings: 4, ent: 0.12, t: 0.9 });
+            disc('wood_p', x, y0 + h, z, r, 12, { t: 0.8 });
+            for (const t of [0.18, 0.5, 0.82]) { const rr = r * (1 + 0.12 * Math.sin(Math.PI * t)) + 0.015; B.cyl('dark', x, y0 + t * h - 0.03, z, rr, rr, 0.06, 12, { t: 0.7 }); }
+        };
+        const crate = (x, z, s, ry) => B.box('wood_p', x, y0 + s / 2, z, s, s, s, { ry, t: 0.95 });
+        barrel(-8.7, 0.8, 0.95, 0.42); barrel(-8.7, 1.7, 0.95, 0.42);
+        // цветочные ящики под передними окнами
+        for (const x of WIN1.front) {
+            B.box('wood_p', x, y0 + 0.7, 0.28, 1.5, 0.28, 0.32, { t: 0.9 });
+            B.box('cloth_p', x, y0 + 0.91, 0.28, 1.4, 0.18, 0.28, { t: [0.18, 0.4, 0.14] });
+            for (let i = 0; i < 7; i++) B.box('cloth_p', x - 0.6 + i * 0.2, y0 + 1.05 + (i % 2) * 0.05, 0.28 + ((i * 7) % 3 - 1) * 0.05, 0.11, 0.1, 0.11, { t: pick([[0.95, 0.35, 0.55], [0.98, 0.85, 0.3], [0.7, 0.45, 0.95], [0.95, 0.95, 0.95]]) });
+        }
+
+        // ---------------------------------------------------------------- интерьер зала
+        {
+            // стойка и полки
+            B.box('wood_p', -5.2, y0 + 0.55, -4.3, 4.4, 1.1, 0.9, { t: 0.85 });
+            B.box('wood_p', -5.2, y0 + 1.13, -4.3, 4.7, 0.1, 1.2, { t: 0.6 });
+            for (const x of [-6.7, -5.4, -4.1]) { B.cyl('wood_p', x, y0, -3.35, 0.24, 0.21, 0.72, 8, { t: 0.8 }); disc('wood_p', x, y0 + 0.72, -3.35, 0.24, 8, { t: 0.8 }); }
+            const cols = [[0.75, 0.2, 0.15], [0.2, 0.55, 0.25], [0.2, 0.35, 0.7], [0.85, 0.7, 0.25], [0.5, 0.2, 0.55]];
+            for (let k = 0; k < 3; k++) {
+                const y = y0 + 1.15 + k * 0.78;
+                B.box('wood_p', -5.4, y, -7.28, 4.3, 0.07, 0.38, { t: 0.8 });
+                for (let i = 0; i < 10; i++) B.box('cloth_p', -7.1 + i * 0.42 + (k % 2) * 0.1, y + 0.18, -7.28, 0.12, 0.3, 0.12, { t: pick(cols) });
+            }
+            for (const x of [-7.55 + 0.25, -3.25]) B.box('wood_p', x, y0 + 1.7, -7.28, 0.1, 2.3, 0.4, { t: 0.7 });
+            barrel(-7.1, -5.6, 1.0, 0.45); barrel(-7.1, -6.5, 1.0, 0.45);
+            rect(-7.5, -3.0, -7.5, -6.8); rect(-7.5, -2.95, -4.95, -3.1);
+            // камин
+            B.box('stone', 4.0, (y0 + Y1) / 2, -7.2, 3.0, Y1 - y0, 0.6, { t: [0.78, 0.78, 0.82], uv: 1.0 });
+            B.box('dark', 4.0, y0 + 0.62, -6.88, 1.5, 1.05, 0.06, { t: 0.35 });
+            B.box('flame', 4.0, y0 + 0.36, -6.84, 0.9, 0.4, 0.05, {});
+            B.box('flame', 3.75, y0 + 0.72, -6.84, 0.4, 0.5, 0.05, {});
+            B.box('wood', 4.0, y0 + 1.5, -6.78, 3.3, 0.14, 0.34, { t: 0.7 });
+            B.box('cloth_p', 4.0, y0 + 0.016, -5.9, 2.4, 0.032, 1.4, { t: [0.5, 0.13, 0.1] });
+            rect(2.4, 5.6, -7.5, -6.45);
+            // столы в зале
+            table(1.2, -3.3, 0.8, 4, 0.2); table(5.2, -3.7, 0.8, 4, 0.9); table(0.9, -6.2, 0.8, 3, 1.5);
+            // колёса-люстры
+            for (const [x, z] of [[-0.2, -3.4], [5.0, -5.2], [-4.6, -2.2]]) {
+                const yw = Y1 - 1.35;
+                B.box('dark', x, (Y1 + yw) / 2 - 0.1, z, 0.04, Y1 - yw - 0.1, 0.04, { t: 0.6 });
+                for (let k = 0; k < 4; k++) B.box('wood_p', x, yw, z, 1.9, 0.08, 0.1, { ry: k * Math.PI / 4, t: 0.7 });
+                for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; B.box('flame', x + Math.cos(a) * 0.93, yw + 0.14, z - Math.sin(a) * 0.93, 0.07, 0.17, 0.07, {}); }
+            }
+            // знамёна и бочки у входа
+            B.box('cloth_p', HW - 0.28, y0 + 2.1, -3.5, 0.06, 1.9, 1.0, { t: [0.12, 0.25, 0.6] });
+            B.box('gold', HW - 0.31, y0 + 2.1, -3.5, 0.03, 0.4, 0.4, { ry: 0, rx: 0.78 });
+            B.box('cloth_p', -HW + 0.28, y0 + 2.1, -3.5, 0.06, 1.9, 1.0, { t: [0.12, 0.25, 0.6] });
+            barrel(7.0, -1.0, 0.95, 0.42); barrel(7.0, -1.9, 0.95, 0.42); rect(6.4, 7.6, -2.4, -0.5);
+        }
+
+        // ---------------------------------------------------------------- стены в коллизии
+        rect(-HW - 0.1, HW + 0.1, ZB, ZB + WT + 0.05);
+        rect(-HW - 0.1, -HW + WT + 0.05, ZB, 0.1); rect(HW - WT - 0.05, HW + 0.1, ZB, 0.1);
+        rect(-HW - 0.1, XD - DG, -WT - 0.05, 0.1); rect(XD + DG, HW + 0.1, -WT - 0.05, 0.1);
+
+        const platforms = [
+            { cx: 0, cz: (ZF + ZB) / 2, hx: DX, hz: (ZF - ZB) / 2, y: y0, rampLen: 0.02, rampHx: 0, endY: 0 },                       // настил
+            { cx: XD, cz: ZF - 0.25, hx: 1.6, hz: 0.25, y: y0, rampLen: 0.9, rampHx: 1.6, endY: 0 },                                 // ступени у входа
+            { cx: (SX0 + SX1) / 2, cz: (SZ0 + SZ1) / 2, hx: (SX1 - SX0) / 2, hz: (SZ1 - SZ0) / 2, y: SY, rampLen: 0.9, rampHx: (SX1 - SX0) / 2, endY: y0 }   // сцена
+        ];
+        return { rects, platforms, platform: null, w: 2 * DX + 0.8, d: ZF - ZB + 0.8, h: yR + 1.5 };
+    }
+
+    const TYPES = { stoneHouse: buildStoneHouse, marbleTemple: buildMarbleTemple, tavern: buildTavern };
+    const CAMERA_BLOCK = { stoneHouse: ['stone', 'slate', 'wood'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood'] };
 
     // ------------------------------------------------------------------ менеджер локации
     class AveloraTown {
@@ -491,12 +919,14 @@
             const t = loc.terrain = loc.terrain || {};
             t.flatSpots = t.flatSpots || []; loc.clearings = loc.clearings || []; loc.noFerns = loc.noFerns || [];
             for (const b of (cfg.buildings || [])) {
-                const dims = b.type === 'marbleTemple' ? Math.hypot((b.HX || 3.9) + 0.8, (b.HZ || 5.0) + 0.8) : Math.hypot((b.W || 8.2) / 2 + 1, (b.D || 6.2) / 2 + 1);
-                const fs = { x: b.x, z: b.z, radius: dims + 0.5, blend: 5.0 };
+                let dims, cx = b.x, cz = b.z;
+                if (b.type === 'tavern') { dims = 13.6; cx += 0.7 * Math.sin(b.r || 0); cz += 0.7 * Math.cos(b.r || 0); }   // терраса смещена вперёд от начала здания
+                else dims = b.type === 'marbleTemple' ? Math.hypot((b.HX || 3.9) + 0.8, (b.HZ || 5.0) + 0.8) : Math.hypot((b.W || 8.2) / 2 + 1, (b.D || 6.2) / 2 + 1);
+                const fs = { x: cx, z: cz, radius: dims + 0.5, blend: 5.0 };
                 if (cfg.level) fs.hFrom = cfg.level;
                 t.flatSpots.push(fs);
-                loc.clearings.push({ x: b.x, z: b.z, radius: dims + 1.5 });
-                loc.noFerns.push({ x: b.x, z: b.z, rx: dims + 2, rz: dims + 2 });
+                loc.clearings.push({ x: cx, z: cz, radius: dims + 1.5 });
+                loc.noFerns.push({ x: cx, z: cz, rx: dims + 2, rz: dims + 2 });
             }
         }
 
@@ -511,8 +941,10 @@
             for (const name of Object.keys(B.bufs)) {
                 const buf = B.bufs[name];
                 if (!buf.i.length) continue;
-                const m = buf.mesh(this.shared.mats[name]);
+                const m = buf.mesh(this.shared.mats[name] || this.shared.mats[name.split('_')[0]]);
                 m.name = name; group.add(m); meshes.push(m);
+                if (name.startsWith('cloth')) m.receiveShadow = false;       // тонкая ткань: муар от теневой карты не нужен
+                if (name === 'flame' || name === 'rune') m.castShadow = false;
                 this.stats.triangles += buf.tris();
             }
             this.root.add(group);
@@ -520,6 +952,13 @@
             if (game.addCameraBlocker) for (const m of meshes) if (blockers.includes(m.name)) game.addCameraBlocker(m);
 
             const rec = { id: b.id, x: b.x, z: b.z, r, y: gy, cos: Math.cos(r), sin: Math.sin(r), group, meshes, info };
+            if (info.platforms) {      // несколько настилов со смещением от начала здания (таверна: терраса, ступени, сцена)
+                info.platforms.forEach((p, i) => {
+                    const id = 'town:' + (b.id || b.type) + ':' + i;
+                    terrain.addPlatform({ id, x: b.x + p.cx * rec.cos + p.cz * rec.sin, z: b.z - p.cx * rec.sin + p.cz * rec.cos, cos: rec.cos, sin: rec.sin, hx: p.hx, hz: p.hz, y: gy + p.y, rampLen: p.rampLen, rampHx: p.rampHx, endY: gy + p.endY, reach2: Math.pow(Math.hypot(p.hx, p.hz) + p.rampLen + 1.5, 2) });
+                    this.platformIds.push(id);
+                });
+            }
             if (info.platform) {
                 const p = info.platform, id = 'town:' + (b.id || b.type);
                 const plat = { id, x: b.x, z: b.z, cos: rec.cos, sin: rec.sin, hx: p.hx, hz: p.hz, y: gy + p.y, rampLen: p.rampLen, rampHx: p.hx, endY: gy, reach2: Math.pow(Math.hypot(p.hx, p.hz) + p.rampLen + 1.5, 2) };
@@ -556,6 +995,6 @@
     }
 
     // для headless-теста без игры
-    AveloraTown._internals = { Builder, TYPES, sharedMaterials, buildStoneHouse, buildMarbleTemple };
+    AveloraTown._internals = { Builder, TYPES, sharedMaterials, buildStoneHouse, buildMarbleTemple, buildTavern };
     window.AveloraTown = AveloraTown;
 })();

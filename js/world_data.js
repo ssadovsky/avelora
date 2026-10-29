@@ -1345,8 +1345,10 @@ window.LOCATIONS = {
         town: {
             level: [7.0, 16.0],
             buildings: [
-                { id: 'rl_stone_house', type: 'stoneHouse', x: 7.0, z: 8.0, r: 0 },             // серый камень, стиль Штормграда, фасад на дорогу (юг)
-                { id: 'rl_marble_temple', type: 'marbleTemple', x: 7.0, z: 27.0, r: Math.PI }   // белый мрамор, фасад на дорогу (север)
+                { id: 'rl_stone_house', type: 'stoneHouse', x: 7.0, z: 6.3, r: 0 },             // серый камень, стиль Штормграда, фасад на дорогу (юг)
+                { id: 'rl_marble_temple', type: 'marbleTemple', x: 7.0, z: 27.0, r: Math.PI },  // белый мрамор, фасад на дорогу (север)
+                // большая таверна «Рунный Кубок»: зал 16×8 с входом, терраса 19×17 с перилами, сцена и танцпол; начало — середина передней стены, фасад на дорогу (юг)
+                { id: 'rl_tavern', type: 'tavern', x: 24.0, z: 0.2, r: 0 }
             ]
         },
 
