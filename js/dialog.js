@@ -1325,6 +1325,18 @@
                 e.stopPropagation();
                 if (enabled && typeof fn === 'function') fn();
             });
+            // Tooltip on hover (buy/sell rows)
+            const ui = this.ui;
+            if (ui && ui.showCompareTooltip && def) {
+                row.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'touch') ui.showCompareTooltip(row, def.id); });
+                row.addEventListener('pointerleave', () => ui.hideTooltip());
+                row.addEventListener('click', (e) => {
+                    if (e.target.closest('button')) return;
+                    ui.showCompareTooltip(row, def.id);
+                    clearTimeout(ui.tooltipTimer);
+                    ui.tooltipTimer = setTimeout(() => ui.hideTooltip(), 5000);
+                });
+            }
             list.appendChild(row);
         }
 

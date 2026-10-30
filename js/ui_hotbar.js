@@ -2356,6 +2356,34 @@
                     unequipDiv.style.fontSize = '12px';
                     unequipDiv.textContent = 'Нажмите, чтобы снять (уйдёт в сумку)';
                     this.tooltip.appendChild(unequipDiv);
+                } else if (!isDoll && window.AveloraItems.isEquippable(id) && this.state) {
+                    // Сравнение с тем, что надето в этом слоте
+                    const mk2 = (cls, txt, color) => { const d = document.createElement('div'); d.className = cls; d.textContent = txt; if (color) d.style.color = color; this.tooltip.appendChild(d); return d; };
+                    const slot = window.AveloraItems.equipSlot(id);
+                    const SLOT_RU = { right: 'правая рука', head: 'голова', neck: 'амулет', cloak: 'плащ', body: 'тело', hands: 'руки', ring: 'кольцо', legs: 'ноги', feet: 'ступни' };
+                    if (slot === 'ring') {
+                        const r1 = this.state.equipped.ring, r2 = this.state.equipped.ring2;
+                        if (r1 === id || r2 === id) {
+                            mk2('tt-cmp-head', 'Сейчас надето', '#d4af37');
+                        } else if (!r1 || !r2) {
+                            mk2('tt-cmp-head', 'Слот свободен', '#7fd19a');
+                        } else {
+                            const cur = window.AveloraItems.get(r1);
+                            mk2('tt-cmp-head', 'Надето: ' + (cur ? cur.name : r1), '#c0a060');
+                            if (cur) this.compareRows(def, cur).forEach(r => mk2('tt-cmp ' + r.cls, r.text));
+                        }
+                    } else {
+                        const curId = this.state.equipped[slot];
+                        if (curId === id) {
+                            mk2('tt-cmp-head', 'Сейчас надето', '#d4af37');
+                        } else if (!curId) {
+                            mk2('tt-cmp-head', 'Слот свободен (' + (SLOT_RU[slot] || slot) + ')', '#7fd19a');
+                        } else {
+                            const cur = window.AveloraItems.get(curId);
+                            mk2('tt-cmp-head', 'Надето: ' + (cur ? cur.name : curId), '#c0a060');
+                            if (cur) this.compareRows(def, cur).forEach(r => mk2('tt-cmp ' + r.cls, r.text));
+                        }
+                    }
                 } else if (this.chestInv && el && el.closest) {
                     const isInv = !!el.closest('.inventory-cell');
                     const isChest = !!el.closest('.chest-cell');
