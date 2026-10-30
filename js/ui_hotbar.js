@@ -1626,7 +1626,7 @@
             const grid = document.getElementById('doll-grid');
             if (!grid) return;
             const st = this.state;
-            const SLOT_NAMES = { head: 'Голова', neck: 'Амулет', cloak: 'Плащ', body: 'Тело', hands: 'Перчатки', ring: 'Кольцо', ring2: 'Кольцо', weapon: 'Оружие', feet: 'Сапоги' };
+            const SLOT_NAMES = { head: 'Голова', neck: 'Амулет', cloak: 'Плащ', body: 'Тело', hands: 'Перчатки', ring: 'Кольцо', ring2: 'Кольцо', weapon: 'Оружие', legs: 'Штаны', feet: 'Сапоги' };
             grid.querySelectorAll('.doll-slot').forEach(el => {
                 const slot = el.dataset.slot;
                 const key = slot === 'weapon' ? 'right' : slot;
@@ -2078,7 +2078,7 @@
             return this.equip(itemId);
         }
 
-        /** Hero-panel slot id (data-slot) an item belongs to: 'weapon' for the hand, else head/cloak/body/hands/ring/feet. */
+        /** Hero-panel slot id (data-slot) an item belongs to: 'weapon' for the hand, else head/cloak/body/hands/ring/legs/feet. */
         dollSlotOf(itemId) {
             const s = window.AveloraItems.equipSlot(itemId);
             return s === 'right' ? 'weapon' : s;
@@ -2188,7 +2188,7 @@
             t.innerHTML = '';
             t.classList.remove('warn', 'interactive');
             const mk = (cls, txt, color) => { const d = document.createElement('div'); d.className = cls; d.textContent = txt; if (color) d.style.color = color; t.appendChild(d); return d; };
-            const SLOT = { right: 'правая рука', head: 'голова', neck: 'амулет', cloak: 'плащ', body: 'тело', hands: 'руки', ring: 'кольцо', feet: 'ноги' };
+            const SLOT = { right: 'правая рука', head: 'голова', neck: 'амулет', cloak: 'плащ', body: 'тело', hands: 'руки', ring: 'кольцо', legs: 'ноги', feet: 'ступни' };
             const equippable = Items.isEquippable(itemId);
             mk('tt-name', def.name);
             mk('tt-desc', def.description || '');

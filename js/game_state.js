@@ -11,7 +11,7 @@
  *     inventory: Array(32) of {item, count} | null,
  *     hotbar:    Array(10) of {type: 'skill'|'item', id} | null,
  *     pickupsTaken: { <locationId>: { <pickupId>: takenCount } },
- *     equipped:  { right: itemId | null },
+ *     equipped:  { right: itemId | null, head, neck, cloak, body, hands, ring, ring2, legs, feet },
  *     // --- optional since the combat/harvest milestone (still version 1: a
  *     // --- state without them loads as "nothing dropped/killed/felled, 0 s") ---
  *     ground:   { <locationId>: [{ uid, item, count, x, z, r }] },  // dynamic piles
@@ -303,8 +303,8 @@
             this.hotbar = sanitizeHotbar(data.hotbar, this.classId, this.learnedSkills);
             this.pickupsTaken = sanitizeTaken(data.pickupsTaken);
             const eq = (data.equipped && typeof data.equipped === 'object') ? data.equipped : {};
-            this.equipped = { right: null, head: null, neck: null, cloak: null, body: null, hands: null, ring: null, ring2: null, feet: null };
-            ['head', 'neck', 'cloak', 'body', 'hands', 'ring', 'ring2', 'feet'].forEach(slot => {
+            this.equipped = { right: null, head: null, neck: null, cloak: null, body: null, hands: null, ring: null, ring2: null, legs: null, feet: null };
+            ['head', 'neck', 'cloak', 'body', 'hands', 'ring', 'ring2', 'legs', 'feet'].forEach(slot => {
                 const reqSlot = (slot === 'ring2') ? 'ring' : slot; if (window.AveloraItems.isEquippable(eq[slot]) && window.AveloraItems.equipSlot(eq[slot]) === reqSlot) this.equipped[slot] = eq[slot];
             });
             // An item in the hand (state.equipped) does NOT occupy a bag cell. Saves from before

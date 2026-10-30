@@ -258,6 +258,9 @@ window.GAME_CONTENT = {
       "item": "leather_boots"
      },
      {
+      "item": "leather_pants"
+     },
+     {
       "item": "copper_ring"
      }
     ],
@@ -935,6 +938,31 @@ window.GAME_CONTENT = {
    },
    "value": 45,
    "iconData": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAACOUlEQVR4nO2arXbCQBCFh556dGrBgsXUxNfUYmrQPAw6pia2ptVrarDVYCqK5gmoGs6wbMhkd2ZPOJnPtWyyuXdn9mcSAMMwDMMwDMMwhsgod4efu9Oprc3LdJTtuR5zdUSpvo+Nv62exxmfBOAha289JEsE/Oz+zmH/27H9fPqkmg6qBlAhlI+38YH+/fp+LNruoWWEmgG++NmkOAAAzBjXOucAAKAsy4v7aZigYgAVj8Ipt0ac4huhYYL4JIjinXMX4jdVXWyquvjaA0s8xTl3NqMprWIRdRMfzhdO20zKZet99q5u/A2jQSoSxAzgiJdC0gSRFKBhj2iJp/1IpEOyg6EJjyN+u91e/W+xWLD7pStESiSIGcAVHxLuwzVCIhWSlsEuIegLr6vN1UMvV+sTbcs1ImV5TIoA7uhT8SHhPmgEQLsJqVGQ9TDEEd+lnQTRBoRm/hA4+l1FYfu2OSN1RUiOgPVqyZ75+4hqCsSOPsKNghQGXxAZvAHJx+F7zX1k8BGgagBuYujGpgt4XZczQlcsAmIvxK0nPZWFiI0C7ujf1VaYa0JsysQgchgC4G+JkVunQYQ7+gDxESBWD2gzAOlbPUC0IsQ1AaA/FaHkjdB8+jSKOYlJLW2phVGRSZC7IkjRu6owQD4TpN8LiC6D2iZIiwdQ+kIkdmJsQmrCC6FWe/Mnxhgj/EjSeDusWnwMrQ4cI0IppPV9QJbqa8orLO0vRLJ/JcYxQ1u0YRiGYRiGYRjG4PkHCr8jo7tGj1QAAAAASUVORK5CYII="
+  },
+  "leather_pants": {
+   "id": "leather_pants",
+   "name": "Кожаные штаны",
+   "description": "Крепкие штаны из выделанной кожи. Защищают ноги в пути.",
+   "category": "armor",
+   "stackMax": 1,
+   "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+   },
+   "use": {
+    "type": "equip",
+    "slot": "legs"
+   },
+   "armor": 2,
+   "stats": {
+    "dex": 1
+   },
+   "requires": {
+    "level": 1
+   },
+   "value": 20,
+   "iconData": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAACkElEQVR42u3dIWzUYBiA4btmWcgEZ87MLEExM43GzIAAMYUAgUYhphCoCRQaAQI1AQLMDBo9A4pkZubMEIRghuqluSzZXfvn9vXr86iR0Mv+r++1V0bX0QgAAAAAyG9c6oW+vNm/NM71evjypPP+q+z8/iox93Gpb+Ld8Q97ZM2eH+x2PhJUdn5/1XPvciSo7PxhR1AZ4bAJQAAM2UbWhX36uF/8NR8/ORFAn5yelvuAure36xSAAHAK6LdXR2fX/p3XhzuOAAgAASAABIAAcBmYw5Au8RwBEAADPgVk/QGOAJaQ8Ue3TgEIgOCngEf3t8Ms7vO38/nXZ7PfK2+/M70dfl1ddboxpPlfwyMN6KqBtQ0g+rq63hxS5M6g2exi/ucPX3+FGdDTB3fmX789/rny9i8O7oZf13Q66XRnUOdTQL3zIw1ocac1B9b2NaKuq/nmW/sR4P3hvcuoQ1p08effyttMtjbDr6uO+9nR91b70lWAy8D87/7M6vnX+8MRgJv9d4Cm7emt1tuez/6GHVqmdVURh1Rie+u6wQBKLTLasDKuq4o6pGjDyrouHwJdBiIABIAAEAACQAAIAAEgAASAABAAAkAACAABIAAEgAAQAAJAAAgAASAABIAAEAACQAAIgOAG88ygydbmUr9UcWi//s4RwCkAASAABIAAEAACQAAIAAEgAASAABAAAkAA1yr9VKwoT9nKuq4q8rCiPWIt47qqqMOK+tzAbOva6MM7JlsEPgQiAASAABAAAkAACIBeBVDfYFnfcBndMjeGZl6XIwDlA+jLu2XVd0nWdV1lXOIbqe+pH41i3Vff3IFthpR1XcUDWBxWNF2GlHVdxQOIOLASA8q+LgAAAAAAILf/SsrkHL3BvpQAAAAASUVORK5CYII="
   },
   "leather_boots": {
    "id": "leather_boots",
