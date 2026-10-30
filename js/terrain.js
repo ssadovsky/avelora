@@ -990,8 +990,8 @@ class LakesideTerrain {
                     if (uStoneCount > 0 && stonePathD < uStoneWidth * 0.5 + 2.0) {
                         float stoneEdgeNoise = avNoise(vWorldPosition.xz * 1.4) * 0.42 + sin(vWorldPosition.x * 0.85 + vWorldPosition.z * 0.65) * 0.24;
                         float stoneHalfW = (uStoneWidth * 0.5) + stoneEdgeNoise;
-                        stoneMask = 1.0 - smoothstep(stoneHalfW * 0.55, stoneHalfW + 0.35, stonePathD);
-                        shoulderMask = 1.0 - smoothstep(stoneHalfW + 0.25, stoneHalfW + 1.25, stonePathD);
+                        stoneMask = 1.0 - smoothstep(stoneHalfW * 0.55, stoneHalfW, stonePathD);              // камень — до полуширины (width)
+                        shoulderMask = 1.0 - smoothstep(stoneHalfW - 0.1, stoneHalfW + 1.0, stonePathD);      // кайма (песок) — 1 м с каждой стороны
                     }
 
                     // Центр — старинная каменная мостовая Poly Haven (читаем текстуру только на тропе)
