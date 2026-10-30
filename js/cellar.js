@@ -39,7 +39,7 @@
     function norm(cfg) {
         if (cfg._n) return cfg._n;
         const st = Object.assign({ width: 4.0, len: 14.0, drop: 6.2, open: 8.0, height: 2.9 }, cfg.stair || {});
-        const n = { cfg, x: cfg.x || 0, z: cfg.z || 0, r: cfg.r || 0, hw: st.width / 2, L: st.len, D: st.drop, open: st.open, H: st.height };
+        const n = { cfg, x: cfg.x || 0, z: cfg.z || 0, r: cfg.r || 0, hw: st.width / 2, L: st.len, D: st.drop, open: st.open, H: st.height, sw: st.wall || T };   // sw — толщина стенок траншеи/туннеля
         n.cos = Math.cos(n.r); n.sin = Math.sin(n.r);
         const rooms = [], by = {};
         const defs = (cfg.rooms && cfg.rooms.length) ? cfg.rooms : [{ id: 'hall', w: 30, d: 30, h: 8 }];
@@ -96,7 +96,7 @@
                 t.flatSpots.push({ x: c.x, z: c.z, radius: plaza.radius || 20, blend: plaza.blend || 10 });
                 const hc = n.toWorld(0, (n.open + 0.25) / 2);
                 t.holes = t.holes || [];
-                t.holes.push({ x: hc.x, z: hc.z, r: n.r, hx: n.hw + 0.3, hz: (n.open + 0.25) / 2 });
+                t.holes.push({ x: hc.x, z: hc.z, r: n.r, hx: n.hw + Math.min(0.3, n.sw), hz: (n.open + 0.25) / 2 });
                 // зал(ы) под землёй: ровная земля над ними на той же высоте, что и площадь (hFrom), чтобы потолок нигде не вылез из земли
                 for (const R of n.rooms) {
                     const rc = n.toWorld((R.x0 + R.x1) / 2, (R.z0 + R.z1) / 2), rad = Math.hypot(R.x1 - R.x0, R.z1 - R.z0) / 2 + T + 1.5;
@@ -252,7 +252,7 @@
 
         // ---------------------------------------------------------------- лестница, траншея, туннель
         _buildStair() {
-            const n = this.n, y0 = this.y0, hw = n.hw, L = n.L, D = n.D, H = n.H, open = n.open;
+            const n = this.n, y0 = this.y0, hw = n.hw, L = n.L, D = n.D, H = n.H, open = n.open, T = n.sw;   // T здесь — толщина стенок лестницы (stair.wall)
             // ступени: видимые, герой идёт по плавной линии ramp (разница ≤ 0.12 м)
             const steps = Math.round(L / 0.56), run = L / steps;
             for (let i = 0; i < steps; i++) {
@@ -262,7 +262,7 @@
             }
             // боковые стены траншеи и туннеля: призма (lz, y) выдавлена по x
             const slabTop = lz => this.ramp(lz) + H + 0.4;
-            const pts = [[0, y0 - 0.5], [L, this.F - 0.5], [L, slabTop(L)], [open + 0.5, slabTop(open + 0.5)], [open + 0.5, y0 - 0.06], [0, y0 - 0.06]];   // стены траншеи вровень с землёй (бордюров над землёй нет)
+            const pts = [[0, y0 - 0.5], [L, this.F - 0.5], [L, slabTop(L)], [open + 0.5, slabTop(open + 0.5)], [open + 0.5, y0 - 0.004], [0, y0 - 0.004]];   // верх стенок вровень с землёй (окно в земле = ширина стенок)   // стены траншеи вровень с землёй (бордюров над землёй нет)
             const sh = new THREE.Shape(); sh.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) sh.lineTo(pts[i][0], pts[i][1]);
             const geo = new THREE.ExtrudeGeometry(sh, { depth: T, bevelEnabled: false });
             geo.rotateY(-Math.PI / 2);   // (lz→z, выдавливание → -x)
@@ -270,6 +270,8 @@
             this.geos.push(geo);
             const wr = new THREE.Mesh(geo, this.wallMat); wr.position.set(hw + T, 0, 0); this.group.add(wr);
             const wl = new THREE.Mesh(geo, this.wallMat); wl.position.set(-hw, 0, 0); this.group.add(wl);
+            // торец у верхней ступени: закрывает просвет между краем земли и первой ступенью
+            this._boxAt(-hw - T, hw + T, y0 - 1.0, y0 - 0.03, -0.3, 0.0, this.wallMat);
             // перемычка над входом в туннель + плита потолка туннеля
             this._boxAt(-hw - T + 0.05, hw + T - 0.05, this.ramp(open) + H, y0 - 0.1, open, open + 0.45, this.darkMat);   // чуть уже и ниже стен: общие плоскости с торцами/верхом стен мерцали
             const len = (L - open) / Math.cos(Math.atan2(D, L)), ang = Math.atan2(D, L), mid = (open + L) / 2;
@@ -639,7 +641,7 @@
             if (!terrainHit) return f;
             if (f.distance < terrainHit.distance) return f;
             const q = this.n.toLocal(terrainHit.point.x, terrainHit.point.z);
-            if (Math.abs(q.lx) <= this.n.hw + 0.3 && q.lz >= -0.2 && q.lz <= this.n.open + 0.3) return f;   // окно в земле
+            if (Math.abs(q.lx) <= this.n.hw + Math.min(0.3, this.n.sw) && q.lz >= -0.2 && q.lz <= this.n.open + 0.3) return f;   // окно в земле
             return null;
         }
 

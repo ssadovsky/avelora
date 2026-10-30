@@ -1359,12 +1359,9 @@ window.LOCATIONS = {
 
         props: [
             // «Рунные врата»: Meshy-часовня над входом в старый подвал (cellars[0], x65 z16); дверь на запад, неф — над траншеей, колокольня в глубине
-            { id: 'runeLands.rune_chapel', prop: 'rune_chapel', x: 65.0, z: 16.0, r: -Math.PI / 2, over: 'oldCellar' },
+            { id: 'runeLands.rune_chapel', prop: 'rune_chapel', x: 65.0, z: 16.0, r: -Math.PI / 2, dy: -0.08, over: 'oldCellar' },
             // оригинал часовни (без правок, только металличность 0) — на газоне рядом, для сравнения; потом убрать
             { id: 'runeLands.rune_chapel_orig', prop: 'rune_chapel_orig', x: 66.0, z: 0.0, r: -Math.PI / 2 },
-            // столб, отрезанный от часовни, — парой у входа
-            { id: 'runeLands.rune_pillar_n', prop: 'rune_pillar', x: 55.5, z: 7.5, r: 0.4 },
-            { id: 'runeLands.rune_pillar_s', prop: 'rune_pillar', x: 55.5, z: 24.5, r: 3.5 },
             // под землёй, в центре рунического круга зала; dy опускает основание (земляной диск) под пол, площадка вровень с полом
             { id: 'runeLands.rune_portal', prop: 'rune_portal', x: 102.6, z: 16.0, r: Math.PI * 1.5, under: 'oldCellar', dy: -0.62 }
         ],
@@ -1385,7 +1382,7 @@ window.LOCATIONS = {
             {
                 id: 'oldCellar', name: 'Старый подвал',
                 x: 65.0, z: 16.0, r: Math.PI / 2,   // вход (верх лестницы) на западе, спуск идёт на восток; зал x≈87..118
-                stair: { width: 5.6, len: 22.0, drop: 11.0, open: 9.4, height: 3.6 },   // open — длина открытой траншеи, дальше туннель; drop ≥ высота зала + 1.7 (потолок под землёй)
+                stair: { width: 5.5, len: 22.0, drop: 11.0, open: 9.35, height: 3.6, wall: 0.1 },   // open — длина открытой траншеи, дальше туннель; drop ≥ высота зала + 1.7 (потолок под землёй)
                 plaza: { radius: 20, blend: 10 },
                 rooms: [
                     { id: 'hall', w: 30, d: 30, h: 8.0 }

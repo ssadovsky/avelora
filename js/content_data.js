@@ -1690,12 +1690,6 @@ window.GAME_CONTENT = {
    "cameraBlock": true,
    "modelKey": "props/rune_chapel_orig"
   },
-  "rune_pillar": {
-   "id": "rune_pillar",
-   "name": "Рунный столб",
-   "obstacle": 1.0,
-   "modelKey": "props/rune_pillar"
-  },
   "rune_portal": {
    "id": "rune_portal",
    "name": "Рунный портал",
