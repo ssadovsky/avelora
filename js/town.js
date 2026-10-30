@@ -668,7 +668,8 @@
             return { x: W.fx + lx * c + off * s, z: W.fz - lx * s + off * c, yaw: W.yaw };
         };
         const WIN1 = { front: [-6.0, 0.6], right: [-2.5, 2.5], left: [-2.5, 2.5], back: [1.5, -6.5] };
-        const WIN2 = { front: [-6.2, 0.5, 3.7, 6.6], right: [-2.5, 2.5], left: [-2.5, 2.5], back: [-5.5, -1.8, 1.8, 5.5] };
+        const SIGNX = 5.0;   // вывеска на стене над навесом сцены (x 3.25…6.75); на её прежнем месте (XD) — окно
+        const WIN2 = { front: [-6.2, XD, 0.5], right: [-2.5, 2.5], left: [-2.5, 2.5], back: [-5.5, -1.8, 1.8, 5.5] };
         for (const k of Object.keys(WALLS)) {
             for (const x of WIN1[k]) win(wf(k, 0, x), y0 + 1.95, WT, true);
             for (const x of WIN2[k]) win(wf(k, 0.15, x), 5.9, 0, true);
@@ -676,7 +677,7 @@
         // фахверк второго этажа: стойки, раскосы, обвязка
         const ymid = (Y1 + Y2) / 2, hF = Y2 - Y1 - 0.5;
         for (const k of Object.keys(WALLS)) {
-            const L = WALLS[k].len, n = Math.round(L / 2.0), cell = L / n, wins = WIN2[k];
+            const L = WALLS[k].len, n = Math.round(L / 2.0), cell = L / n, wins = k === 'front' ? WIN2[k].concat([SIGNX - 0.8, SIGNX + 0.8]) : WIN2[k];   // у вывески стоек и раскосов нет
             B.frame(wf(k, 0.15, 0), () => {
                 for (let i = 0; i <= n; i++) {
                     const px = -L / 2 + i * cell;
@@ -691,11 +692,11 @@
                 }
             });
         }
-        // вывеска над крыльцом
+        // вывеска на стене над навесом сцены
         B.frame({ x: 0, z: 0, yaw: 0 }, () => {
-            B.sign('sign', XD, 5.75, 0.16, 3.5, 1.31);
-            for (const sy of [-1, 1]) B.box('wood', XD, 5.75 + sy * 0.69, 0.17, 3.7, 0.1, 0.12, { t: 0.8 });
-            for (const sx of [-1, 1]) B.box('wood', XD + sx * 1.8, 5.75, 0.17, 0.1, 1.3, 0.12, { t: 0.8 });
+            B.sign('sign', SIGNX, 5.85, 0.16, 3.5, 1.31);
+            for (const sy of [-1, 1]) B.box('wood', SIGNX, 5.85 + sy * 0.69, 0.17, 3.7, 0.1, 0.12, { t: 0.8 });
+            for (const sx of [-1, 1]) B.box('wood', SIGNX + sx * 1.8, 5.85, 0.17, 0.1, 1.3, 0.12, { t: 0.8 });
         });
 
         // ---------------------------------------------------------------- крыша зала (сланец, как у соседнего дома), фронтоны, дымоход, слуховые окна
@@ -859,7 +860,7 @@
             B.box('gold', x, y0 + 3.04, z, 0.08, 0.14, 0.08, {});
         };
         const TT = [[-7.9, 2.4, [0.82, 0.2, 0.17]], [-7.9, 6.0, [0.9, 0.78, 0.5]], [-5.35, 4.2, [0.15, 0.3, 0.62]], [-5.35, 7.6, [0.82, 0.2, 0.17]]];
-        for (const [x, z, col] of TT) { table(x, z, 0.8, 4, (x + z) * 0.3); parasol(x, z, col); }
+        for (const [x, z] of TT) table(x, z, 0.8, 4, (x + z) * 0.3);   // зонтики убраны
         const barrel = (x, z, h, r) => {
             B.cyl('wood_p', x, y0, z, r, r, h, 12, { rings: 4, ent: 0.12, t: 0.9 });
             disc('wood_p', x, y0 + h, z, r, 12, { t: 0.8 });
