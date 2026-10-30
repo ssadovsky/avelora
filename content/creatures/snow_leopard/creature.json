@@ -1,6 +1,6 @@
 {
     "id": "snow_leopard",
-    "name": "Снежный леопард",
+    "name": "Снежный саблезуб",
     "hp": 320,
     "damage": [
         14,
@@ -8,8 +8,8 @@
     ],
     "attackRange": 1.8,
     "attackCooldown": 1.6,
-    "walkSpeed": 0.55,
-    "runSpeed": 2.9,
+    "walkSpeed": 0.6,
+    "runSpeed": 2.6,
     "behavior": "retaliate",
     "aggroRadius": 0,
     "leashRadius": 8,
