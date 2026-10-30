@@ -564,6 +564,7 @@
                     if (lx >= dq.x0 && lx <= dq.x1 && lz >= dq.z0 && lz <= dq.z1 && y >= this.F + 0.3 && y <= this.F + d.h - 0.25) return true;
                 }
             }
+            for (const b of (n.cfg.camBoxes || [])) if (Math.abs(x - b.x) <= b.hx && Math.abs(z - b.z) <= b.hz && y <= this.y0 + b.h) return false;   // дома на поверхности рядом (мировые оси)
             if (G) {
                 const y0 = this.y0;
                 const nz0 = G.nz0 !== undefined ? G.nz0 : G.lz0 + 0.2, nz1 = G.nz1 !== undefined ? G.nz1 : G.lz1 - 0.2;

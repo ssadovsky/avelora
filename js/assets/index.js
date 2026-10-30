@@ -79,6 +79,7 @@ window.AVELORA_ASSET_INDEX = {
   "props/fallen_log": ["m/props__fallen_log.js", "d36e53cf49"],
   "props/gazebo": ["m/props__gazebo.js", "9a7cde23d4"],
   "props/grass_tuft": ["m/props__grass_tuft.js", "d743ad1bf1"],
+  "props/hearth_cottage": ["m/props__hearth_cottage.js", "9a995999ae"],
   "props/rune_chapel": ["m/props__rune_chapel.js", "423702f72d"],
   "props/rune_portal": ["m/props__rune_portal.js", "e51a1d387f"],
   "props/smithy": ["m/props__smithy.js", "0155832e1f"],

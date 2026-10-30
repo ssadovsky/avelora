@@ -1506,6 +1506,55 @@ window.GAME_CONTENT = {
    "obstacle": 0,
    "modelKey": "props/grass_tuft"
   },
+  "hearth_cottage": {
+   "id": "hearth_cottage",
+   "name": "Старинный дом с синими крышами",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": -6.5,
+     "cz": -0.15,
+     "hx": 2.5,
+     "hz": 5.0,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 2.5,
+     "cz": -1.35,
+     "hx": 6.5,
+     "hz": 3.75,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -2.1,
+     "cz": 2.6,
+     "hx": 1.5,
+     "hz": 0.3,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 2.0,
+     "cz": 3.6,
+     "hx": 1.6,
+     "hz": 0.9,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/hearth_cottage"
+  },
   "hermit_hut": {
    "id": "hermit_hut",
    "name": "Хижина отшельника",
