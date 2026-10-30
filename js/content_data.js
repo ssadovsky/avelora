@@ -1671,25 +1671,6 @@ window.GAME_CONTENT = {
    "cameraBlock": false,
    "modelKey": "props/rune_chapel"
   },
-  "rune_chapel_orig": {
-   "id": "rune_chapel_orig",
-   "name": "Часовня (оригинал для сравнения)",
-   "obstacle": 0,
-   "obstacleShapes": [
-    {
-     "type": "box",
-     "cx": 0,
-     "cz": -3.9,
-     "hx": 4.0,
-     "hz": 5.9,
-     "r": 0.4,
-     "step": 0.6,
-     "exact": true
-    }
-   ],
-   "cameraBlock": true,
-   "modelKey": "props/rune_chapel_orig"
-  },
   "rune_portal": {
    "id": "rune_portal",
    "name": "Рунный портал",

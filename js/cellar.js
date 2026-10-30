@@ -273,7 +273,7 @@
             // торец у верхней ступени: закрывает просвет между краем земли и первой ступенью
             this._boxAt(-hw - T, hw + T, y0 - 1.0, y0 - 0.03, -0.3, 0.0, this.wallMat);
             // перемычка над входом в туннель + плита потолка туннеля
-            this._boxAt(-hw - T + 0.05, hw + T - 0.05, this.ramp(open) + H, y0 - 0.1, open, open + 0.45, this.darkMat);   // чуть уже и ниже стен: общие плоскости с торцами/верхом стен мерцали
+            this._boxAt(-hw, hw, this.ramp(open) + H, y0 - 0.004, open, open + 0.24, this.darkMat);   // вровень со стенками (между ними, без общих плоскостей), до края окна в земле   // чуть уже и ниже стен: общие плоскости с торцами/верхом стен мерцали
             const len = (L - open) / Math.cos(Math.atan2(D, L)), ang = Math.atan2(D, L), mid = (open + L) / 2;
             const roof = this._box(hw * 2 + T * 2 - 0.1, 0.4, len, this.darkMat, 3.0);
             roof.position.set(0, this.ramp(mid) + H + 0.2, mid); roof.rotation.x = ang; this.group.add(roof);
@@ -555,7 +555,7 @@
         camOk(x, y, z) {
             const n = this.n, q = n.toLocal(x, z), lx = q.lx, lz = q.lz;
             const G = n.cfg.gate;   // здание над траншеей (town.js runeGate): под крышей камера в пределах нефа, снаружи — не внутри его стен/крыши/башни
-            if (Math.abs(lx) <= n.hw - 0.15 && lz >= 0 && lz <= n.open && y >= this.ramp(lz) + 0.3) return !(G && lz >= G.lz0 && lz <= G.lz1 && y > this.y0 + G.top);   // траншея открыта сверху
+            if (Math.abs(lx) <= n.hw - 0.15 && lz >= 0 && lz <= n.open && y >= this.ramp(lz) + 0.3) return !(G && lz >= G.lz0 && lz <= G.lz1 && (y > this.y0 + G.top || (y > this.y0 - 0.3 && (Math.abs(lx) > G.hw || lz > (G.nz1 !== undefined ? G.nz1 : G.lz1)))));   // под зданием: не ближе hw к его стенам и nz1 к задней стене   // траншея открыта сверху
             if (Math.abs(lx) <= n.hw - 0.15 && lz > n.open && lz <= n.L) { const r = this.ramp(lz); if (y >= r + 0.25 && y <= r + n.H - 0.25) return true; }
             for (const R of n.rooms) {
                 if (lx >= R.x0 + 0.3 && lx <= R.x1 - 0.3 && lz >= R.z0 + 0.3 && lz <= R.z1 - 0.3 && y >= this.F + 0.3 && y <= this.F + R.h - 0.3) return true;
@@ -566,7 +566,9 @@
             }
             if (G) {
                 const y0 = this.y0;
-                if (Math.abs(lx) <= G.hw && lz >= G.lz0 + 0.2 && lz <= G.lz1 - 0.2 && y >= y0 + 0.3 && y <= y0 + G.top) return true;   // внутри нефа
+                const nz0 = G.nz0 !== undefined ? G.nz0 : G.lz0 + 0.2, nz1 = G.nz1 !== undefined ? G.nz1 : G.lz1 - 0.2;
+                if (Math.abs(lx) <= G.hw && lz >= nz0 && lz <= nz1 && y >= y0 + 0.3 && y <= y0 + G.top) return true;   // внутри нефа
+                if (G.door && Math.abs(lx) <= G.door[0] && lz >= G.lz0 - 0.3 && lz <= nz0 + 0.1 && y >= y0 + 0.3 && y <= y0 + G.door[1]) return true;   // дверной проём
                 if (Math.abs(lx) <= G.wx && lz >= G.lz0 - 0.2 && lz <= G.lz1 + 0.2 && y <= y0 + G.roof) return false;                  // стены, контрфорсы, крыша
                 if (Math.abs(lx - (G.tcx || 0)) <= G.tw && lz >= G.tz0 && lz <= G.tz1 && y <= y0 + G.tower) return false;                               // колокольня
                 for (const o of (G.pillars || [])) if (Math.abs(lx - o[0]) <= 0.9 && Math.abs(lz - o[1]) <= 0.9 && y <= y0 + 5.5) return false;   // обелиски
