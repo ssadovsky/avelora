@@ -1,0 +1,17 @@
+{
+  "id": "mount_snowfang",
+  "name": "Призыв снежного саблезуба",
+  "description": "Призывает снежного саблезуба в сапфировой броне, увеличивая скорость бега до 9.5 м/с. Получение урона или использование боевых способностей спешивают вас.",
+  "type": "mount",
+  "category": "mounts",
+  "mountCreature": "snow_leopard",
+  "mountScale": 1.57,
+  "rideHeight": 0.48,
+  "seatForward": -0.15,
+  "speedBonus": 4.7,
+  "runAnimSpeed": 1.75,
+  "cooldown": 2,
+  "castTime": 1.2,
+  "requiresLevel": 1,
+  "price": 500
+}

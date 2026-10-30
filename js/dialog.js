@@ -1086,7 +1086,8 @@
             const ids = ((window.AveloraState && cfg) ? window.AveloraState.skillCatalog(cfg.id) : []).slice()
                 .filter(id => {
                     const def = this.game.skills ? this.game.skills.get(id) : null;
-                    return def && def.category === 'mounts';
+                    const only = this.npc && this.npc.teach && this.npc.teach.only;   // teach.only: какие навыки учит этот NPC
+                    return def && def.category === 'mounts' && (!only || only.includes(id));
                 })
                 .sort((a, b) => lvlOf(a) - lvlOf(b));
 

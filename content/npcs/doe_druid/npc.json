@@ -42,7 +42,10 @@
     }
   },
   "teach": {
-    "price": 25
+    "price": 25,
+    "only": [
+      "mount_wolf"
+    ]
   },
   "quests": [
     "rooster_hunt",
