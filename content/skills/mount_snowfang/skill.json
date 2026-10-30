@@ -9,9 +9,11 @@
   "rideHeight": 0.48,
   "seatForward": -0.15,
   "speedBonus": 4.7,
-  "runAnimSpeed": 1.75,
+  "runAnimSpeed": 1.2,
   "cooldown": 2,
   "castTime": 1.2,
   "requiresLevel": 1,
-  "price": 500
+  "price": 500,
+  "riderFollow": 0.55,
+  "seatSmooth": 8
 }

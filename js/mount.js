@@ -437,6 +437,12 @@
             const p0 = st.a.bone.localToWorld(st._p0.copy(st.a.local));
             const p1 = st.b.bone.localToWorld(st._p1.copy(st.b.local));
             p0.lerp(p1, st.w);
+            // seatSmooth (skill JSON): сглаживание вертикальных толчков седла относительно корпуса маунта (без отставания при подъёмах — меряем от m.group)
+            if (m.def.seatSmooth) {
+                const rel = p0.y - m.group.position.y, k = 1 - Math.exp(-(delta || 0.016) * m.def.seatSmooth);
+                st.yRel = st.yRel === undefined ? rel : st.yRel + (rel - st.yRel) * k;
+                p0.y = m.group.position.y + st.yRel;
+            }
 
             // rotation of that piece of spine relative to its rest pose (world): D = Q_now * (G * Q_rel)^-1
             const dOf = (s, out) => {

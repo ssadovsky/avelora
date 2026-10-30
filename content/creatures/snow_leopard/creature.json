@@ -9,7 +9,7 @@
     "attackRange": 1.8,
     "attackCooldown": 1.6,
     "walkSpeed": 0.6,
-    "runSpeed": 5.2,
+    "runSpeed": 7.5,
     "behavior": "retaliate",
     "aggroRadius": 0,
     "leashRadius": 8,
