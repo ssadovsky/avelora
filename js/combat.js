@@ -558,10 +558,8 @@
 
             // Auto-clear target:
             // 1) Agro mob broke off combat and is returning home (leash reset)
-            // 2) Player moved extremely far away (beyond 90m view distance)
             if (sel && cr && char && char.position) {
-                const distToTarget = Math.hypot(sel.x - char.position.x, sel.z - char.position.z);
-                if (sel.state === 'return' || distToTarget > 90.0) {
+                if (sel.state === 'return') {
                     this.clearTarget();
                 }
             }
