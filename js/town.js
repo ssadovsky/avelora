@@ -270,12 +270,31 @@
                 sign: new THREE.MeshStandardMaterial({ map: T.sign.map, roughness: 0.8, metalness: 0, vertexColors: true })
             }
         };
+        // текстуры из Meshy-коттеджа (build_assets: townMeshStone/Plinth/Window) для домов с meshTex: true; без них — обычный камень
+        const A = (window.GAME_ASSETS && window.GAME_ASSETS.textures) || {}, M = SHARED.mats;
+        const imgTex = (key, ry, clampV) => {
+            if (!A[key]) return null;
+            const t = new THREE.TextureLoader().load(A[key]);
+            t.wrapS = THREE.RepeatWrapping; t.wrapT = clampV ? THREE.ClampToEdgeWrapping : THREE.RepeatWrapping;
+            if (ry) t.repeat.set(1, ry);
+            if (THREE.SRGBColorSpace !== undefined && 'colorSpace' in t) t.colorSpace = THREE.SRGBColorSpace;
+            else if (THREE.sRGBEncoding !== undefined) t.encoding = THREE.sRGBEncoding;
+            t.anisotropy = 4; T['img_' + key] = { map: t };
+            return t;
+        };
+        const ms = imgTex('townMeshStone'), mp = imgTex('townMeshPlinth', 6.29), mw = imgTex('townMeshWindow', 0, true), md = imgTex('townMeshDoor', 0, true), mb = imgTex('townMeshBeam', 6.125);
+        M.mstone = ms ? std(ms, null, { roughness: 0.92 }) : M.stone;
+        M.mplinth = mp ? std(mp, null, { roughness: 0.9 }) : M.stone;
+        M.mbeam = mb ? std(mb, null, { roughness: 0.85 }) : M.wood;
+        M.mdoor = md ? new THREE.MeshStandardMaterial({ map: md, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x2a1806, emissiveMap: md, emissiveIntensity: 0.25 }) : M.wood;
+        M.mwin = mw ? new THREE.MeshStandardMaterial({ map: mw, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x3a2508, emissiveMap: mw, emissiveIntensity: 0.35 }) : M.glass;
+        return SHARED;
         return SHARED;
     }
     function releaseMaterials() {
         if (!SHARED) return;
         if (--SHARED.refs > 0) return;
-        Object.values(SHARED.mats).forEach(m => m.dispose());
+        new Set(Object.values(SHARED.mats)).forEach(m => m.dispose());
         Object.values(SHARED.tex).forEach(t => { if (t.map) t.map.dispose(); if (t.bump) t.bump.dispose(); });
         SHARED = null;
     }
@@ -438,42 +457,55 @@
     function buildStoneHouse(B, cfg) {
         const W = cfg.W || 8.2, D = cfg.D || 6.2, H = cfg.H || 3.5, FR = D / 2;
         const rect = (x0, x1, z0, z1) => ({ x0, x1, z0, z1 });
-        const rects = [rect(-W / 2 - 0.3, W / 2 + 0.3, -D / 2 - 0.3, D / 2 + 0.3), rect(-1.15, 1.15, FR, FR + 1.05)];
+        const MT = !!cfg.meshTex, ST = MT ? 'mstone' : 'stone', PL = MT ? 'mplinth' : 'stone';   // meshTex: камень/цоколь/окна из Meshy-коттеджа
+        const rects = [rect(-W / 2 - 0.3, W / 2 + 0.3, -D / 2 - 0.3, D / 2 + 0.3), cfg.meshTex ? rect(-1.05, 1.05, FR, FR + 0.75) : rect(-1.15, 1.15, FR, FR + 1.05)];
 
         // цоколь и тело
-        B.box('stone', 0, -0.025, 0, W + 0.4, 1.15, D + 0.4, { t: [0.74, 0.74, 0.76], jit: 0.0 });          // от -0.6 до 0.55
-        B.box('stone', 0, (0.55 + H) / 2, 0, W, H - 0.55, D, { t: [1.0, 1.0, 1.03] });
+        B.box(PL, 0, -0.025, 0, W + 0.4, 1.15, D + 0.4, MT ? { uv: 0.303 } : { t: [0.74, 0.74, 0.76], jit: 0.0 });          // от -0.6 до 0.55
+        B.box(ST, 0, (0.55 + H) / 2, 0, W, H - 0.55, D, MT ? { uv: 0.851 } : { t: [1.0, 1.0, 1.03] });
         // тёмный деревянный пояс и каменный карниз
-        B.box('wood', 0, H - 0.2, 0, W + 0.14, 0.24, D + 0.14, { t: [0.8, 0.8, 0.8] });
-        B.box('stone', 0, H + 0.12, 0, W + 0.5, 0.26, D + 0.5, { t: [0.84, 0.84, 0.88] });
+        if (MT) B.box('mbeam', 0, H - 0.2, 0, W + 0.14, 0.24, D + 0.14, { uv: 1.36, ov: -(H - 0.32) * 0.68, bottom: true });   // брус из Meshy-коттеджа (как перемычки окон/двери), с низом
+        else B.box('wood', 0, H - 0.2, 0, W + 0.14, 0.24, D + 0.14, { t: [0.8, 0.8, 0.8] });
+        if (MT) B.box(PL, 0, H + 0.08, 0, W + 0.5, 0.18, D + 0.14, { uv: 0.303, bottom: true });   // карниз ниже ската: по фасаду не выступает сквозь тонкую крышу (была серая полоса)
+        else B.box('stone', 0, H + 0.12, 0, W + 0.5, 0.26, D + 0.5, { t: [0.84, 0.84, 0.88] });
         // двускатная сланцевая крыша, конёк вдоль X
         const a = 0.64, tan = Math.tan(a), ovh = 0.55, yW = H + 0.25, run = D / 2 + ovh;
         const yE = yW + 0.05 - ovh * tan, yR = yW + 0.05 + (D / 2) * tan, len = run / Math.cos(a) + 0.12, wr = W + 1.1;
-        const zc = run / 2, yc = (yE + yR) / 2 + 0.11;
-        B.box('slate', 0, yc, zc, wr, 0.2, len, { rx: a, bottom: true, uv: 1.0 });
-        B.box('slate', 0, yc, -zc, wr, 0.2, len, { rx: -a, bottom: true, uv: 1.0 });
-        B.box('wood', 0, yR + 0.17, 0, wr + 0.08, 0.16, 0.42, { t: [0.7, 0.7, 0.7] });                       // коньковый брус
+        const RT = MT ? 0.1 : 0.2, zc = run / 2, yc = (yE + yR) / 2 + (MT ? -0.01 : 0.11);   // meshTex: тонкая крыша, низ ровно на карнизе и фронтонах
+        B.box('slate', 0, yc, zc, wr, RT, len, { rx: a, bottom: true, uv: 1.0 });
+        B.box('slate', 0, yc, -zc, wr, RT, len, { rx: -a, bottom: true, uv: 1.0 });
+        B.box('wood', 0, yR + (MT ? 0.06 : 0.17), 0, wr + 0.08, 0.16, 0.42, { t: [0.7, 0.7, 0.7] });                       // коньковый брус
         // фронтоны (торцы) из камня
-        for (const sx of [-1, 1]) B.prism('stone', 'x', sx * (W / 2 - 0.25), yW - 0.02, D / 2, (D / 2) * tan + 0.02, 0.5, { t: [0.95, 0.95, 0.98] });
+        for (const sx of [-1, 1]) B.prism(ST, 'x', sx * (W / 2 - 0.25), yW - 0.02, D / 2, (D / 2) * tan + 0.02, 0.5, MT ? { uv: 0.851 } : { t: [0.95, 0.95, 0.98] });
+        if (MT) B.prism(PL, 'x', 0, H + 0.2, D / 2 + 0.03, (D / 2 + 0.03) * tan, W - 0.1, { uv: 0.303 });   // сплошной чердак под крышей: щели под скатами нет, внутренности не видны
         // дымоход
         const chX = -W / 2 + 1.5, chZ = -D / 2 + 1.25, chTop = yR + 0.7;
-        B.box('stone', chX, (H - 0.3 + chTop) / 2, chZ, 0.95, chTop - H + 0.3, 0.95, { t: [0.82, 0.82, 0.85], uv: 1.0 });
-        B.box('stone', chX, chTop + 0.1, chZ, 1.2, 0.2, 1.2, { t: [0.7, 0.7, 0.72] });
-        B.box('dark', chX, chTop + 0.22, chZ, 0.72, 0.06, 0.72, {});
-        rects.push(rect(chX - 0.5, chX + 0.5, chZ - 0.5, chZ + 0.5));
+        if (!MT) {   // meshTex: без печной трубы
+            B.box('stone', chX, (H - 0.3 + chTop) / 2, chZ, 0.95, chTop - H + 0.3, 0.95, { t: [0.82, 0.82, 0.85], uv: 1.0 });
+            B.box('stone', chX, chTop + 0.1, chZ, 1.2, 0.2, 1.2, { t: [0.7, 0.7, 0.72] });
+            B.box('dark', chX, chTop + 0.22, chZ, 0.72, 0.06, 0.72, {});
+            rects.push(rect(chX - 0.5, chX + 0.5, chZ - 0.5, chZ + 0.5));
+        }
 
         // дверь у фасада: крыльцо, косяк, перемычка с замковым камнем, створка с полосами и ручками
         const dy = 0.55;
-        B.box('stone', 0, 0.25, FR + 0.55, 2.2, 0.5, 0.9, { t: [0.86, 0.86, 0.9] });
-        for (const sx of [-1, 1]) B.box('stone', sx * 0.98, dy + 1.3, FR + 0.1, 0.36, 2.6, 0.4, { t: [0.82, 0.82, 0.86], ou: 0.4 });
-        B.box('stone', 0, dy + 2.62, FR + 0.1, 2.5, 0.38, 0.46, { t: [0.8, 0.8, 0.84] });
-        B.box('stone', 0, dy + 2.62, FR + 0.36, 0.5, 0.42, 0.06, { t: [0.98, 0.98, 1.0] });
-        B.box('wood', 0, dy + 1.15, FR + 0.03, 1.5, 2.3, 0.14, { uv: 1.0 });
-        for (const yy of [0.5, 1.8]) B.box('dark', 0, dy + yy, FR + 0.11, 1.52, 0.09, 0.03, {});
-        for (const sx of [-1, 1]) B.box('gold', sx * 0.16, dy + 1.1, FR + 0.12, 0.07, 0.07, 0.05, {});
+        if (MT) {   // meshTex: дверь-картинка из Meshy-коттеджа (рама, створка, фонарь) и две каменные ступени
+            B.sign('mdoor', 0, dy + 1.13, FR + 0.02, 1.98, 2.27);
+            B.box(PL, 0, dy / 2, FR + 0.17, 2.0, dy, 0.34, { uv: 0.303 });
+            B.box(PL, 0, dy / 4, FR + 0.52, 2.0, dy / 2, 0.36, { uv: 0.303 });
+        } else {
+            B.box(PL, 0, 0.25, FR + 0.55, 2.2, 0.5, 0.9, MT ? { uv: 0.303 } : { t: [0.86, 0.86, 0.9] });
+            for (const sx of [-1, 1]) B.box(PL, sx * 0.98, dy + 1.3, FR + 0.1, 0.36, 2.6, 0.4, MT ? { uv: 0.303, ou: 0.4 } : { t: [0.82, 0.82, 0.86], ou: 0.4 });
+            B.box(PL, 0, dy + 2.62, FR + 0.1, 2.5, 0.38, 0.46, MT ? { uv: 0.303 } : { t: [0.8, 0.8, 0.84] });
+            B.box('stone', 0, dy + 2.62, FR + 0.36, 0.5, 0.42, 0.06, { t: [0.98, 0.98, 1.0] });
+            B.box('wood', 0, dy + 1.15, FR + 0.03, 1.5, 2.3, 0.14, { uv: 1.0 });
+            for (const yy of [0.5, 1.8]) B.box('dark', 0, dy + yy, FR + 0.11, 1.52, 0.09, 0.03, {});
+            for (const sx of [-1, 1]) B.box('gold', sx * 0.16, dy + 1.1, FR + 0.12, 0.07, 0.07, 0.05, {});
+        }
 
         // окна: подоконник, перемычка, рама, стекло, переплёт, ставни
         const win = (fr, y) => B.frame(fr, () => {
+            if (MT) { B.sign('mwin', 0, y - 0.05, 0.02, 2.3, 1.87); return; }   // окно-картинка из Meshy-коттеджа (рама, ставни, цветочный ящик)
             B.box('stone', 0, y - 0.8, 0.16, 1.55, 0.15, 0.42, { t: [0.84, 0.84, 0.88] });
             B.box('stone', 0, y + 0.8, 0.12, 1.6, 0.24, 0.34, { t: [0.82, 0.82, 0.86] });
             for (const sx of [-1, 1]) B.box('wood', sx * 0.58, y, 0.07, 0.1, 1.46, 0.14, { t: 0.8 });
@@ -488,9 +520,11 @@
         win({ x: -1.8, z: -FR, yaw: Math.PI }, 2.05); win({ x: 1.8, z: -FR, yaw: Math.PI }, 2.05);
 
         // фонарь над дверью, бочка и ящики
-        B.box('wood', 1.55, 3.0, FR + 0.22, 0.09, 0.09, 0.46, { t: 0.7 });
-        B.box('dark', 1.55, 3.28, FR + 0.43, 0.24, 0.05, 0.24, {});
-        B.box('flame', 1.55, 3.08, FR + 0.43, 0.17, 0.3, 0.17, {});
+        if (!MT) {
+            B.box('wood', 1.55, 3.0, FR + 0.22, 0.09, 0.09, 0.46, { t: 0.7 });
+            B.box('dark', 1.55, 3.28, FR + 0.43, 0.24, 0.05, 0.24, {});
+            B.box('flame', 1.55, 3.08, FR + 0.43, 0.17, 0.3, 0.17, {});
+        }
         return { rects, platform: null, w: W, d: D, h: yR + 1.2 };
     }
 
@@ -1062,7 +1096,7 @@
     }
 
     const TYPES = { stoneHouse: buildStoneHouse, marbleTemple: buildMarbleTemple, tavern: buildTavern, runeGate: buildRuneGate, corral: buildCorral };
-    const CAMERA_BLOCK = { stoneHouse: ['stone', 'slate', 'wood'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood'], runeGate: ['stone', 'slate', 'wood'], corral: [] };
+    const CAMERA_BLOCK = { stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood'], runeGate: ['stone', 'slate', 'wood'], corral: [] };
 
     // ------------------------------------------------------------------ менеджер локации
     class AveloraTown {

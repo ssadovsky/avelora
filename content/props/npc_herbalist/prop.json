@@ -1,0 +1,6 @@
+{
+  "id": "npc_herbalist",
+  "name": "Мирена",
+  "obstacle": 0.5,
+  "npc": "herbalist"
+}
