@@ -217,6 +217,37 @@
     }
 
     let SHARED = null;
+    // ------------------------------------------------------------------ загон (конюшня): жердевая ограда с открытым проходом
+    // W — вдоль x, D — вдоль z; проход шириной G в передней стороне (+z), без ворот. Стиль — тёмное тёсаное дерево, как у Meshy-построек.
+    function buildCorral(B, cfg) {
+        const W = cfg.W || 14, D = cfg.D || 11, G = cfg.gate || 3.6, STEP = cfg.step || 2.4, H = 1.45;
+        const rects = [], WT = [1.0, 0.78, 0.58], WD = [0.82, 0.62, 0.45];
+        const post = (x, z, h, s) => {
+            const lean = (B.rnd() - 0.5) * 0.05;
+            B.box('wood', x, h / 2 - 0.15, z, s, h + 0.3, s, { t: WD, jit: 0.15, rz: lean, rx: (B.rnd() - 0.5) * 0.04 });
+            B.box('wood', x, h + 0.06, z, s + 0.08, 0.1, s + 0.08, { t: WT, jit: 0.1 });        // шапка столба
+        };
+        // одна сторона ограды от (x0,z0) до (x1,z1): столбы через ~STEP, три жерди с лёгким прогибом
+        const side = (x0, z0, x1, z1) => {
+            const L = Math.hypot(x1 - x0, z1 - z0), n = Math.max(1, Math.round(L / STEP)), ang = Math.atan2(z1 - z0, x1 - x0);
+            for (let i = 0; i <= n; i++) post(x0 + (x1 - x0) * i / n, z0 + (z1 - z0) * i / n, H, 0.22);
+            for (let i = 0; i < n; i++) {
+                const ax = x0 + (x1 - x0) * i / n, az = z0 + (z1 - z0) * i / n, bx = x0 + (x1 - x0) * (i + 1) / n, bz = z0 + (z1 - z0) * (i + 1) / n;
+                for (const y of [0.42, 0.82, 1.22]) {
+                    const sag = (B.rnd() - 0.5) * 0.06;
+                    B.box('wood', (ax + bx) / 2, y + sag, (az + bz) / 2, L / n + 0.12, 0.13, 0.1, { t: WT, jit: 0.18, ry: -ang, rz: (B.rnd() - 0.5) * 0.03 });
+                }
+            }
+            const th = 0.25;   // непроходимая полоса вдоль ограды
+            rects.push({ x0: Math.min(x0, x1) - th, x1: Math.max(x0, x1) + th, z0: Math.min(z0, z1) - th, z1: Math.max(z0, z1) + th });
+        };
+        const hw = W / 2, hd = D / 2, g = G / 2;
+        side(-hw, -hd, hw, -hd);                 // задняя
+        side(-hw, -hd, -hw, hd); side(hw, -hd, hw, hd);   // боковые
+        side(-hw, hd, -g, hd); side(g, hd, hw, hd);         // передняя с проходом
+        return { rects, platform: null, w: W, d: D, h: 1.6 };
+    }
+
     function sharedMaterials() {
         if (SHARED) { SHARED.refs++; return SHARED; }
         const T = { stone: makeStoneTex(), marble: makeMarbleTex(), wood: makeWoodTex(), slate: makeSlateTex(), plaster: makePlasterTex(), deck: makeDeckTex(), sign: makeSignTex() };
@@ -1029,8 +1060,8 @@
         return { rects, platform: null, w: 2 * HO + 2, d: 2 * ZF + 6, h: 19.5 };
     }
 
-    const TYPES = { stoneHouse: buildStoneHouse, marbleTemple: buildMarbleTemple, tavern: buildTavern, runeGate: buildRuneGate };
-    const CAMERA_BLOCK = { stoneHouse: ['stone', 'slate', 'wood'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood'], runeGate: ['stone', 'slate', 'wood'] };
+    const TYPES = { stoneHouse: buildStoneHouse, marbleTemple: buildMarbleTemple, tavern: buildTavern, runeGate: buildRuneGate, corral: buildCorral };
+    const CAMERA_BLOCK = { stoneHouse: ['stone', 'slate', 'wood'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood'], runeGate: ['stone', 'slate', 'wood'], corral: [] };
 
     // ------------------------------------------------------------------ менеджер локации
     class AveloraTown {
@@ -1056,6 +1087,7 @@
                 let dims, cx = b.x, cz = b.z;
                 if (b.type === 'tavern') { dims = 13.6; cx += 0.7 * Math.sin(b.r || 0); cz += 0.7 * Math.cos(b.r || 0); }   // терраса смещена вперёд от начала здания
                 else dims = b.type === 'marbleTemple' ? Math.hypot((b.HX || 3.9) + 0.8, (b.HZ || 5.0) + 0.8) : Math.hypot((b.W || 8.2) / 2 + 1, (b.D || 6.2) / 2 + 1);
+                if (b.type === 'corral') dims = Math.hypot((b.W || 14) / 2 + 1, (b.D || 11) / 2 + 1);
                 if (b.type === 'runeGate') dims = 12;     // площадку выравнивает плаза подвала (cellar.js), здесь только чистим траву
                 else {
                     const fs = { x: cx, z: cz, radius: dims + 0.5, blend: 5.0 };

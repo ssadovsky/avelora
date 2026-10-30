@@ -1,0 +1,11 @@
+{
+  "id": "blue_horseshoe_stable",
+  "name": "Конюшня «Синяя подкова»",
+  "obstacle": 0,
+  "obstacleShapes": [
+    { "type": "box", "cx": -6.0, "cz": -0.2, "hx": 3.0, "hz": 4.9, "r": 0.4, "step": 0.5, "exact": true },
+    { "type": "box", "cx": 3.0, "cz": -1.8, "hx": 6.0, "hz": 3.6, "r": 0.4, "step": 0.5, "exact": true },
+    { "type": "box", "cx": 0.25, "cz": 2.45, "hx": 3.25, "hz": 1.0, "r": 0.4, "step": 0.5, "exact": true }
+  ],
+  "cameraBlock": true
+}

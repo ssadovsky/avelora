@@ -1333,6 +1333,45 @@ window.GAME_CONTENT = {
    "obstacle": 0.55,
    "modelKey": "props/anvil"
   },
+  "blue_horseshoe_stable": {
+   "id": "blue_horseshoe_stable",
+   "name": "Конюшня «Синяя подкова»",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": -6.0,
+     "cz": -0.2,
+     "hx": 3.0,
+     "hz": 4.9,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 3.0,
+     "cz": -1.8,
+     "hx": 6.0,
+     "hz": 3.6,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 0.25,
+     "cz": 2.45,
+     "hx": 3.25,
+     "hz": 1.0,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/blue_horseshoe_stable"
+  },
   "bone_pile": {
    "id": "bone_pile",
    "name": "Груда костей",
@@ -1470,6 +1509,45 @@ window.GAME_CONTENT = {
     ],
     "color": "#6b6762"
    }
+  },
+  "ember_forge": {
+   "id": "ember_forge",
+   "name": "Кузница «Синее пламя»",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": -3.5,
+     "cz": -0.55,
+     "hx": 5.0,
+     "hz": 6.05,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -1.5,
+     "cz": 6.9,
+     "hx": 2.0,
+     "hz": 0.45,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 4.95,
+     "cz": -1.25,
+     "hx": 3.45,
+     "hz": 6.15,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/ember_forge"
   },
   "fallen_log": {
    "id": "fallen_log",
@@ -1616,6 +1694,84 @@ window.GAME_CONTENT = {
     ],
     "color": "#6a4e34"
    }
+  },
+  "moonleaf_apothecary": {
+   "id": "moonleaf_apothecary",
+   "name": "Лавка алхимика «Лунный лист»",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": -3.5,
+     "cz": 0.05,
+     "hx": 5.5,
+     "hz": 6.15,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 5.5,
+     "cz": -1.45,
+     "hx": 3.5,
+     "hz": 4.75,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/moonleaf_apothecary"
+  },
+  "moonlit_tailor": {
+   "id": "moonlit_tailor",
+   "name": "Лавка портного «Лунная нить»",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": -1.57,
+     "cz": 0.24,
+     "hx": 4.72,
+     "hz": 4.17,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 4.72,
+     "cz": -1.65,
+     "hx": 1.57,
+     "hz": 3.6,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -2.97,
+     "cz": 4.62,
+     "hx": 3.32,
+     "hz": 0.21,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 3.85,
+     "cz": 2.69,
+     "hx": 0.7,
+     "hz": 0.77,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/moonlit_tailor"
   },
   "npc_blacksmith": {
    "id": "npc_blacksmith",
