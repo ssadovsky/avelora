@@ -828,7 +828,8 @@
                 this.mode = 'teach_craft';
                 this.render();
             } else if (o.action === 'shop') {
-                this.mode = 'buy';
+                const sh = this.npc.shop || {};
+                this.mode = (!(sh.buy && sh.buy.length) && sh.sell) ? 'sell' : 'buy';   // скупщик без товаров — сразу «Продать»
                 this.game.setInventoryOpen(true);
                 this.render();
             } else if (o.next) {
@@ -1236,6 +1237,7 @@
             tabs.className = 'dlg-tabs';
             [['buy', 'Купить'], ['sell', 'Продать']].forEach(([m, label]) => {
                 if (m === 'sell' && !shop.sell) return;
+                if (m === 'buy' && !(shop.buy && shop.buy.length) && shop.sell) return;   // нечего покупать — вкладки «Купить» нет
                 const b = document.createElement('button');
                 b.type = 'button';
                 b.className = 'dlg-tab' + (this.mode === m ? ' active' : '');

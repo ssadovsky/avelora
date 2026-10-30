@@ -1,0 +1,6 @@
+{
+  "id": "npc_forest_wanderer",
+  "name": "Лесная странница",
+  "obstacle": 0.5,
+  "npc": "forest_wanderer"
+}

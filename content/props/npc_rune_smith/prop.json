@@ -1,0 +1,6 @@
+{
+  "id": "npc_rune_smith",
+  "name": "Бранд",
+  "obstacle": 0.5,
+  "npc": "rune_smith"
+}

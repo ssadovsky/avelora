@@ -538,7 +538,7 @@
                 // creature-style rig (e.g. the doe druid): looping 'Idle', one 'Greeting' when the dialog opens
                 const idle = rec.actions && rec.actions.Idle;
                 if (!idle) return;
-                const greet = rec.actions.Greeting;
+                const greet = rec.actions.Greeting || (rec.npc && rec.npc.greetClip && rec.actions[rec.npc.greetClip]);   // greetClip: клип модели-существа вместо 'Greeting'
                 if (!rec.playing) { idle.reset().play(); rec.playing = true; rec.cur = 'Idle'; }
                 const talk = name === 'Talk';
                 if (talk && !rec.talkWas && greet && rec.cur !== 'Greeting') {
@@ -577,7 +577,7 @@
                 if (!rec.baseQ) { rec.baseQ = {}; Object.keys(b).forEach(k => { rec.baseQ[k] = b[k].quaternion.clone(); }); }
                 const sway = (name, ex, ey, ez) => {
                     const bone = b[name];
-                    if (!bone || !rec.baseQ[name]) return;
+                    if (!act || !bone || !rec.baseQ[name]) return;   // только для замороженной позы 'Talk'; у живых клипов (Idle существа) кости пишет анимация — иначе тело перекашивает
                     bone.quaternion.copy(rec.baseQ[name]).multiply(NPC_TMP_Q.setFromEuler(NPC_TMP_E.set(ex, ey, ez)));
                 };
                 sway('mixamorigSpine1', Math.sin(rec.t * 1.5) * 0.012, 0, 0);

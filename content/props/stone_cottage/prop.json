@@ -1,0 +1,10 @@
+{
+  "id": "stone_cottage",
+  "name": "Каменный коттедж",
+  "obstacle": 0,
+  "obstacleShapes": [
+    { "type": "box", "cx": 0.0, "cz": -0.2, "hx": 6.0, "hz": 3.55, "r": 0.4, "step": 0.5, "exact": true },
+    { "type": "box", "cx": 0.1, "cz": 3.85, "hx": 1.6, "hz": 0.3, "r": 0.4, "step": 0.5, "exact": true }
+  ],
+  "cameraBlock": true
+}

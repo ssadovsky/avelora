@@ -1,0 +1,6 @@
+{
+  "id": "npc_seamstress",
+  "name": "Ивелина",
+  "obstacle": 0.5,
+  "npc": "seamstress"
+}
