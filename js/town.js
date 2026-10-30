@@ -289,7 +289,6 @@
         M.mdoor = md ? new THREE.MeshStandardMaterial({ map: md, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x2a1806, emissiveMap: md, emissiveIntensity: 0.25 }) : M.wood;
         M.mwin = mw ? new THREE.MeshStandardMaterial({ map: mw, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x3a2508, emissiveMap: mw, emissiveIntensity: 0.35 }) : M.glass;
         return SHARED;
-        return SHARED;
     }
     function releaseMaterials() {
         if (!SHARED) return;
@@ -607,6 +606,7 @@
         const DF = { x0: 0.5, x1: 9.1, z0: 5.1, z1: 8.9 };                  // танцпол
         const TAU = Math.PI * 2, rects = [];
         const rect = (x0, x1, z0, z1) => rects.push({ x0, x1, z0, z1 });
+        const MT = !!cfg.meshTex, ST = MT ? 'mstone' : 'stone', PL = MT ? 'mplinth' : 'stone';   // meshTex: камень/цоколь/окна из Meshy-коттеджа
         const pick = (a) => a[Math.floor(B.rnd() * a.length) % a.length];
         const disc = (mat, cx, y, cz, r, segs, o) => {
             const pts = [];
@@ -634,48 +634,60 @@
         };
 
         // ---------------------------------------------------------------- основание и настил
-        B.box('stone', 0, -0.15, (ZF + ZB) / 2, 2 * DX + 0.8, 0.9, ZF - ZB + 0.8, { t: [0.74, 0.74, 0.76] });     // цоколь: от −0.6 до 0.3
+        B.box(PL, 0, -0.15, (ZF + ZB) / 2, 2 * DX + 0.8, 0.9, ZF - ZB + 0.8, MT ? { uv: 0.303 } : { t: [0.74, 0.74, 0.76] });     // цоколь: от −0.6 до 0.3
         B.box('deck', 0, 0.35, (ZF + ZB) / 2, 2 * DX + 0.4, 0.1, ZF - ZB + 0.4, { uv: 1.0 });                    // настил: верх на y0
         // ступени у входа
         const sx0 = XD - 1.6, sx1 = XD + 1.6;
-        B.box('stone', XD, 0.04, ZF + 0.225, sx1 - sx0, 0.46, 0.9, { t: [0.86, 0.86, 0.9] });
-        B.box('stone', XD, -0.04, ZF + 0.675 + 0.225, sx1 - sx0, 0.3, 0.9, { t: [0.82, 0.82, 0.86] });
+        B.box(PL, XD, 0.04, ZF + 0.225, sx1 - sx0, 0.46, 0.9, MT ? { uv: 0.303 } : { t: [0.86, 0.86, 0.9] });
+        B.box(PL, XD, -0.04, ZF + 0.675 + 0.225, sx1 - sx0, 0.3, 0.9, MT ? { uv: 0.303 } : { t: [0.82, 0.82, 0.86] });
 
         // ---------------------------------------------------------------- стены зала (первый этаж, камень)
         const yb = -0.3, ym = (yb + Y1) / 2, hh = Y1 - yb;
-        B.box('stone', 0, ym, ZB + WT / 2, 2 * HW, hh, WT, { t: [0.97, 0.97, 1.0] });
-        for (const sx of [-1, 1]) B.box('stone', sx * (HW - WT / 2), ym, ZB / 2, WT, hh, -ZB - 2 * WT, { t: [0.97, 0.97, 1.0], ou: sx * 0.3 });   // между задней и передней стенами: углы не перекрываются (иначе мерцание)
+        B.box(ST, 0, ym, ZB + WT / 2, 2 * HW, hh, WT, MT ? { uv: 0.851 } : { t: [0.97, 0.97, 1.0] });
+        for (const sx of [-1, 1]) B.box(ST, sx * (HW - WT / 2), ym, ZB / 2, WT, hh, -ZB - 2 * WT, MT ? { uv: 0.851, ou: sx * 0.3 } : { t: [0.97, 0.97, 1.0], ou: sx * 0.3 });   // между задней и передней стенами: углы не перекрываются (иначе мерцание)
         const xl = XD - DG, xr = XD + DG;
-        B.box('stone', (-HW + xl) / 2, ym, -WT / 2, xl + HW, hh, WT, { t: [0.97, 0.97, 1.0] });
-        B.box('stone', (xr + HW) / 2, ym, -WT / 2, HW - xr, hh, WT, { t: [0.97, 0.97, 1.0] });
-        B.box('stone', XD, (y0 + 2.95 + Y1) / 2, -WT / 2, 2 * DG, Y1 - y0 - 2.95, WT, { t: [0.9, 0.9, 0.94] });
+        B.box(ST, (-HW + xl) / 2, ym, -WT / 2, xl + HW, hh, WT, MT ? { uv: 0.851 } : { t: [0.97, 0.97, 1.0] });
+        B.box(ST, (xr + HW) / 2, ym, -WT / 2, HW - xr, hh, WT, MT ? { uv: 0.851 } : { t: [0.97, 0.97, 1.0] });
+        B.box(ST, XD, (y0 + 2.95 + Y1) / 2, -WT / 2, 2 * DG, Y1 - y0 - 2.95, WT, MT ? { uv: 0.851 } : { t: [0.9, 0.9, 0.94] });
         // вход: косяки, перемычка, лампы
-        for (const sx of [-1, 1]) B.box('wood', XD + sx * (DG - 0.08), y0 + 1.5, 0.05, 0.22, 3.0, 0.2, { t: 0.85 });
-        B.box('wood', XD, y0 + 2.92, 0.06, 2 * DG + 0.1, 0.26, 0.22, { t: 0.8 });
-        B.box('stone', XD, y0 + 3.2, 0.08, 2 * DG + 0.5, 0.18, 0.28, { t: [0.8, 0.8, 0.84] });
+        for (const sx of [-1, 1]) B.box(MT ? 'mbeam' : 'wood', XD + sx * (DG - 0.08), y0 + 1.5, 0.05, 0.22, 3.0, 0.2, MT ? { uv: 1.36 } : { t: 0.85 });
+        B.box(MT ? 'mbeam' : 'wood', XD, y0 + 2.92, 0.06, 2 * DG + 0.1, 0.26, 0.22, MT ? { uv: 1.36 } : { t: 0.8 });
+        B.box(MT ? 'mbeam' : 'stone', XD, y0 + 3.2, 0.08, 2 * DG + 0.5, 0.18, 0.28, MT ? { uv: 1.36 } : { t: [0.8, 0.8, 0.84] });
         for (const sx of [-1, 1]) {
             B.box('dark', XD + sx * (DG + 0.55), y0 + 2.45, 0.2, 0.24, 0.05, 0.24, {});
             B.box('flame', XD + sx * (DG + 0.55), y0 + 2.27, 0.2, 0.16, 0.3, 0.16, {});
         }
 
         // ---------------------------------------------------------------- второй этаж: штукатурка, пояс, фахверк
-        B.box('wood', 0, Y1 - 0.12, -4, 2 * HW + 0.5, 0.3, 8.5, { t: 0.8, bottom: true });
+        if (MT) B.box('mbeam', 0, Y1 - 0.12, -4, 2 * HW + 0.5, 0.3, 8.5, { uv: 1.36, bottom: true });
+        else B.box('wood', 0, Y1 - 0.12, -4, 2 * HW + 0.5, 0.3, 8.5, { t: 0.8, bottom: true });
         B.box('plaster', 0, (Y1 + Y2) / 2, -4, 2 * HW + 0.3, Y2 - Y1, 8.3, { uv: 1.0 });
-        B.box('wood', 0, Y2 + 0.05, -4, 2 * HW + 0.5, 0.3, 8.5, { t: 0.8, bottom: true });
+        if (MT) B.box('mbeam', 0, Y2 + 0.05, -4, 2 * HW + 0.5, 0.3, 8.5, { uv: 1.36, bottom: true });
+        else B.box('wood', 0, Y2 + 0.05, -4, 2 * HW + 0.5, 0.3, 8.5, { t: 0.8, bottom: true });
         // потолок зала и балки
         B.box('wood', 0, Y1 - 0.05, -3.75, 2 * HW - 0.5, 0.1, 7.5, { t: 0.55, bottom: true, uv: 1.0 });
-        for (const z of [-1.4, -3.4, -5.4, -7.1]) B.box('wood', 0, Y1 - 0.26, z, 2 * HW - 0.5, 0.3, 0.3, { t: 0.7, bottom: true });
-        B.box('wood', 0, Y1 - 0.26, -4, 0.3, 0.3, 7.5, { t: 0.7, bottom: true });
+        for (const z of [-1.4, -3.4, -5.4, -7.1]) B.box(MT ? 'mbeam' : 'wood', 0, Y1 - 0.26, z, 2 * HW - 0.5, 0.3, 0.3, MT ? { uv: 1.36, bottom: true } : { t: 0.7, bottom: true });
+        B.box(MT ? 'mbeam' : 'wood', 0, Y1 - 0.26, -4, 0.3, 0.3, 7.5, MT ? { uv: 1.36, bottom: true } : { t: 0.7, bottom: true });
         // внутренняя облицовка стен: светлее и теплее (в зале нет источников света — имитация тепла ламп и камина)
         {
             const LT = [1.75, 1.6, 1.4], zi = ZB + WT + 0.02, hl = Y1 - y0 - 0.1, yl = (y0 + Y1) / 2, xi = HW - WT - 0.04;
-            B.box('stone', 0, yl, zi, 2 * xi, hl, 0.04, { t: LT });
-            for (const sx of [-1, 1]) B.box('stone', sx * (HW - WT - 0.02), yl, -4.02, 0.04, hl, 6.96, { t: LT });
-            B.box('stone', (-xi + xl) / 2, yl, -WT - 0.02, xl + xi, hl, 0.04, { t: LT });
-            B.box('stone', (xr + xi) / 2, yl, -WT - 0.02, xi - xr, hl, 0.04, { t: LT });
+            B.box(ST, 0, yl, zi, 2 * xi, hl, 0.04, MT ? { uv: 0.851, t: LT } : { t: LT });
+            for (const sx of [-1, 1]) B.box(ST, sx * (HW - WT - 0.02), yl, -4.02, 0.04, hl, 6.96, MT ? { uv: 0.851, t: LT } : { t: LT });
+            B.box(ST, (-xi + xl) / 2, yl, -WT - 0.02, xl + xi, hl, 0.04, MT ? { uv: 0.851, t: LT } : { t: LT });
+            B.box(ST, (xr + xi) / 2, yl, -WT - 0.02, xi - xr, hl, 0.04, MT ? { uv: 0.851, t: LT } : { t: LT });
         }
 
         const win = (fr, y, th, shut) => B.frame(fr, () => {
+            if (MT) {
+                B.sign('mwin', 0, y - 0.05, 0.02, 2.3, 1.87);
+                if (th > 0.2) {      // внутренний наличник
+                    for (const sx of [-1, 1]) B.box('mbeam', sx * 0.58, y, -th - 0.02, 0.1, 1.46, 0.1, { uv: 1.36 });
+                    for (const sy of [-1, 1]) B.box('mbeam', 0, y + sy * 0.68, -th - 0.02, 1.26, 0.1, 0.1, { uv: 1.36 });
+                    B.box('mbeam', 0, y - 0.74, -th + 0.06, 1.4, 0.07, 0.24, { uv: 1.36 });
+                    B.box('glass', 0, y, -(th + 0.02) / 2, 1.06, 1.26, 0.04, {});
+                }
+                return;
+            }
             B.box('stone', 0, y - 0.8, 0.16, 1.55, 0.15, 0.42, { t: [0.84, 0.84, 0.88] });
             B.box('stone', 0, y + 0.8, 0.12, 1.6, 0.24, 0.34, { t: [0.82, 0.82, 0.86] });
             for (const sx of [-1, 1]) B.box('wood', sx * 0.58, y, 0.07, 0.1, 1.46, 0.14, { t: 0.8 });
@@ -755,8 +767,8 @@
         // дымоход у задней стены над камином
         {
             const cx = 4.0, top = yR + 1.1;
-            B.box('stone', cx, (yb + top) / 2, ZB - 0.45, 2.0, top - yb, 0.9, { t: [0.82, 0.82, 0.85], uv: 1.0 });
-            B.box('stone', cx, top + 0.1, ZB - 0.45, 2.3, 0.2, 1.2, { t: [0.7, 0.7, 0.72] });
+            B.box(ST, cx, (yb + top) / 2, ZB - 0.45, 2.0, top - yb, 0.9, MT ? { uv: 0.851 } : { t: [0.82, 0.82, 0.85], uv: 1.0 });
+            B.box(PL, cx, top + 0.1, ZB - 0.45, 2.3, 0.2, 1.2, MT ? { uv: 0.303 } : { t: [0.7, 0.7, 0.72] });
             B.box('dark', cx - 0.45, top + 0.24, ZB - 0.45, 0.6, 0.08, 0.6, {});
             B.box('dark', cx + 0.45, top + 0.24, ZB - 0.45, 0.6, 0.08, 0.6, {});
             rect(cx - 1.1, cx + 1.1, ZB - 0.95, ZB);
@@ -780,7 +792,7 @@
             const pa = 0.55, ptn = Math.tan(pa), hbP = 2.1, ovp = 0.45, yPl = 3.7;
             const yrP = yPl + hbP * ptn;
             for (const sx of [-1, 1]) {
-                B.box('stone', XD + sx * 1.9, y0 + 0.18, 3.1, 0.55, 0.36, 0.55, { t: [0.8, 0.8, 0.84] });
+                B.box(PL, XD + sx * 1.9, y0 + 0.18, 3.1, 0.55, 0.36, 0.55, MT ? { uv: 0.303 } : { t: [0.8, 0.8, 0.84] });
                 B.box('wood', XD + sx * 1.9, 2.13, 3.1, 0.3, 2.74, 0.3, { t: 0.8 });
                 B.box('wood', XD + sx * 1.9, 3.45, 1.55, 0.22, 0.24, 3.2, { t: 0.75 });
                 B.box('wood', XD + sx * 1.35, y0 + 2.6, 3.1, 0.08, 0.5, 0.08, { rz: sx * 0.9, t: 0.8 });
@@ -902,8 +914,8 @@
         };
         const crate = (x, z, s, ry) => B.box('wood_p', x, y0 + s / 2, z, s, s, s, { ry, t: 0.95 });
         barrel(-8.7, 0.8, 0.95, 0.42); barrel(-8.7, 1.7, 0.95, 0.42);
-        // цветочные ящики под передними окнами
-        for (const x of WIN1.front) {
+        // цветочные ящики под передними окнами (при meshTex они уже есть на текстуре mwin)
+        if (!MT) for (const x of WIN1.front) {
             B.box('wood_p', x, y0 + 0.7, 0.28, 1.5, 0.28, 0.32, { t: 0.9 });
             B.box('cloth_p', x, y0 + 0.91, 0.28, 1.4, 0.18, 0.28, { t: [0.18, 0.4, 0.14] });
             for (let i = 0; i < 7; i++) B.box('cloth_p', x - 0.6 + i * 0.2, y0 + 1.05 + (i % 2) * 0.05, 0.28 + ((i * 7) % 3 - 1) * 0.05, 0.11, 0.1, 0.11, { t: pick([[0.95, 0.35, 0.55], [0.98, 0.85, 0.3], [0.7, 0.45, 0.95], [0.95, 0.95, 0.95]]) });
@@ -925,7 +937,7 @@
             barrel(-7.1, -5.6, 1.0, 0.45); barrel(-7.1, -6.5, 1.0, 0.45);
             rect(-7.5, -3.0, -7.5, -6.8); rect(-7.5, -2.95, -4.95, -3.1);
             // камин
-            B.box('stone', 4.0, (y0 + Y1) / 2, -7.2, 3.0, Y1 - y0, 0.6, { t: [0.78, 0.78, 0.82], uv: 1.0 });
+            B.box(ST, 4.0, (y0 + Y1) / 2, -7.2, 3.0, Y1 - y0, 0.6, MT ? { uv: 0.851 } : { t: [0.78, 0.78, 0.82], uv: 1.0 });
             B.box('dark', 4.0, y0 + 0.62, -6.88, 1.5, 1.05, 0.06, { t: 0.35 });
             B.box('flame', 4.0, y0 + 0.36, -6.84, 0.9, 0.4, 0.05, {});
             B.box('flame', 3.75, y0 + 0.72, -6.84, 0.4, 0.5, 0.05, {});
@@ -1096,7 +1108,7 @@
     }
 
     const TYPES = { stoneHouse: buildStoneHouse, marbleTemple: buildMarbleTemple, tavern: buildTavern, runeGate: buildRuneGate, corral: buildCorral };
-    const CAMERA_BLOCK = { stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood'], runeGate: ['stone', 'slate', 'wood'], corral: [] };
+    const CAMERA_BLOCK = { stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], corral: [] };
 
     // ------------------------------------------------------------------ менеджер локации
     class AveloraTown {
