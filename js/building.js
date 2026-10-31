@@ -2048,6 +2048,10 @@
             for (const inst of this.instances) {
                 if (inst.def.station === stationId) return inst;
             }
+            if (this.game && this.game.location && this.game.location.props) {
+                const hasStatic = this.game.location.props.some(p => p.prop === stationId || (stationId === 'sawmill' && p.prop === 'woodshed'));
+                if (hasStatic) return true;
+            }
             return null;
         }
 

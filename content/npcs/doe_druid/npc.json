@@ -14,10 +14,6 @@
           "action": "teach_mounts"
         },
         {
-          "text": "Научи меня ремеслу",
-          "action": "teach_craft"
-        },
-        {
           "text": "Расскажи о себе",
           "next": "lore"
         },
@@ -54,7 +50,6 @@
     "wolf_hunt",
     "bear_pack",
     "bear_hunt",
-    "plank_craft_learning",
     "dragonfly_hunt",
     "spider_hunt",
     "portal_boar"

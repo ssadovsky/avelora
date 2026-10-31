@@ -1,0 +1,39 @@
+{
+  "id": "sawmill",
+  "name": "Пильня",
+  "modelKey": "props/woodshed",
+  "obstacle": 0,
+  "obstacleShapes": [
+    {
+      "type": "box",
+      "cx": 0,
+      "cz": -1.2,
+      "hx": 2.2,
+      "hz": 0.8,
+      "r": 0.4,
+      "step": 0.5,
+      "exact": true
+    },
+    {
+      "type": "box",
+      "cx": 1.7,
+      "cz": 0.75,
+      "hx": 0.6,
+      "hz": 1.15,
+      "r": 0.4,
+      "step": 0.5,
+      "exact": true
+    },
+    {
+      "type": "box",
+      "cx": -1.12,
+      "cz": 0.65,
+      "hx": 0.58,
+      "hz": 0.55,
+      "r": 0.4,
+      "step": 0.5,
+      "exact": true
+    }
+  ],
+  "cameraBlock": true
+}

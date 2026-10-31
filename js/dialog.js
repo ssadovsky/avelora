@@ -1168,9 +1168,11 @@
             list.className = 'dlg-list';
             const heroLevel = this.game.hero ? this.game.hero.level : 1;
             const allRecipes = (window.GAME_CONTENT && window.GAME_CONTENT.recipes) || {};
+            const only = this.npc && this.npc.teach && this.npc.teach.only;
             const rids = Object.keys(allRecipes).filter(id => {
                 const r = allRecipes[id];
                 if (!r) return false;
+                if (only && !only.includes(id)) return false;
                 const cat = r.category || 'other';
                 return categories.includes(cat);
             }).sort((a, b) => {
