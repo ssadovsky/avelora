@@ -1486,6 +1486,18 @@
         .potion-auto-badge.hidden {
             display: none;
         }
+        .potion-auto-badge.auto-off {
+            color: #c3c8cd;
+            background: rgba(29, 34, 39, 0.96);
+            border-color: rgba(158, 166, 174, 0.65);
+            box-shadow: none;
+        }
+        .potion-auto-badge.auto-partial {
+            color: #ffe08a;
+            background: rgba(42, 32, 12, 0.96);
+            border-color: rgba(239, 207, 122, 0.72);
+            box-shadow: 0 0 5px rgba(239, 207, 122, 0.32);
+        }
         /* Слот зелий: здоровье и/или мана. Оба на авто → кнопка делится по диагонали (красная снизу-слева, синяя сверху-справа) */
         .potion-slot-icon { position: relative; }
         .potion-slot-icon .potion-layer {
@@ -1497,6 +1509,7 @@
         }
         .potion-slot-icon .potion-layer img { width: 100%; height: 100%; object-fit: contain; }
         .potion-slot-icon .potion-layer.none { opacity: 0.35; filter: grayscale(0.6); }
+        .potion-slot-icon .potion-layer.auto-disabled:not(.none) { opacity: 0.72; filter: grayscale(0.28); }
         .skill-slot.potion-slot.potion-split .potion-layer-hp { clip-path: polygon(0 0, 100% 100%, 0 100%); }
         .skill-slot.potion-slot.potion-split .potion-layer-mp { clip-path: polygon(0 0, 100% 0, 100% 100%); }
         .skill-slot.potion-slot.potion-split .potion-layer-hp img { transform: translate(-21%, 21%) scale(0.6); }
@@ -3590,6 +3603,7 @@
         .tt-desc:empty { display: none; }
         .tt-meta { font-size: 0.7rem; color: #8f9c9b; margin-top: 4px; font-style: italic; }
         .tt-meta:empty { display: none; }
+        #item-tooltip.potion-tooltip .tt-desc { white-space: pre-line; }
 
         /* Tooltip action card buttons (for mobile tap / desktop click) */
         .tt-actions {
@@ -5268,10 +5282,10 @@
                 top: 0;
             }
             .potion-auto-badge {
-                font-size: 5px;
+                font-size: 4px;
                 top: -3px;
                 left: -3px;
-                padding: 0 1px;
+                padding: 1px 2px;
             }
             .micromenu-item {
                 width: 120px;

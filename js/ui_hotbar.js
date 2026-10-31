@@ -1084,8 +1084,8 @@
         // -----------------------------------------------------------
         // Potion Slot & Auto-Use System (health + mana, one dialog with two tabs)
         //   autoPotion.hp / autoPotion.mp = { enabled, threshold, itemId }
-        //   Slot icon: the bottles whose auto-use is ON; both ON → split diagonally
-        //   (red bottom-left, blue top-right). Nothing ON → health (or mana) if carried.
+        //   Slot icon always shows health/mana bottles split diagonally. Grey bottles
+        //   mean none are carried; the badge shows whether auto-use is on.
         // -----------------------------------------------------------
         potionKinds() {
             return {
@@ -1164,9 +1164,16 @@
 
                 this.potionBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    this.hideTooltip();
                     if (this.inputAllowed()) {
                         this.togglePotionModal();
                     }
+                });
+                this.potionBtn.addEventListener('pointerenter', (e) => {
+                    if (e.pointerType === 'mouse') this.showPotionTooltip();
+                });
+                this.potionBtn.addEventListener('pointerleave', (e) => {
+                    if (e.pointerType === 'mouse' && this.tooltip && this.tooltip.classList.contains('potion-tooltip')) this.hideTooltip();
                 });
             }
         }
@@ -1271,14 +1278,8 @@
             const mana = this.hasMana();
             const hp = this.potionPick('hp');
             const mp = this.potionPick('mp');
-            // which bottles to show on the button
-            let kinds = [];
-            if (a.hp.enabled) kinds.push('hp');
-            if (a.mp.enabled && mana) kinds.push('mp');
-            if (!kinds.length) {
-                if (hp.count > 0) kinds = ['hp'];
-                else if (mana && mp.count > 0) kinds = ['mp'];
-            }
+            // Keep both bottle types visible; inventory and enabled state affect styling only.
+            const kinds = mana ? ['hp', 'mp'] : ['hp'];
             const picks = { hp, mp };
             const iconSpan = btn.querySelector('.potion-slot-icon');
             const countSpan = btn.querySelector('.potion-slot-count');
@@ -1289,37 +1290,67 @@
                 countSpan.after(countMp);
             }
             const badgeSpan = btn.querySelector('.potion-auto-badge');
-            const split = kinds.length === 2;
+            const split = mana;
             btn.classList.toggle('potion-split', split);
-            btn.classList.toggle('potion-mana', kinds.length === 1 && kinds[0] === 'mp');
+            btn.classList.remove('potion-mana');
             if (iconSpan) iconSpan.innerHTML = '';
             if (countSpan) countSpan.textContent = '';
             if (countMp) countMp.textContent = '';
 
-            const titles = [];
             kinds.forEach(kind => {
                 const p = picks[kind];
                 const def = window.AveloraItems ? window.AveloraItems.get(p.id) : null;
                 if (!def) return;
                 if (iconSpan) {
                     const layer = document.createElement('span');
-                    layer.className = `potion-layer potion-layer-${kind}${p.count > 0 ? '' : ' none'}`;
+                    layer.className = `potion-layer potion-layer-${kind}${p.count > 0 ? '' : ' none'}${a[kind].enabled ? ' auto-enabled' : ' auto-disabled'}`;
                     layer.appendChild(makeIcon(def));
                     iconSpan.appendChild(layer);
                 }
-                const target = (split && kind === 'mp') || (!split && false) ? countMp : countSpan;
+                const target = split && kind === 'mp' ? countMp : countSpan;
                 if (target && p.count > 0) target.textContent = (split || p.count > 1) ? p.count : '';
-                titles.push(`${def.name}: ${p.count} шт.${a[kind].enabled ? ` (авто ≤ ${a[kind].threshold}%)` : ''}`);
             });
-            if (split) {
-                // split: red count bottom-left, blue count top-right
-                if (countSpan) countSpan.classList.add('left');
-            } else if (countSpan) countSpan.classList.remove('left');
+            if (countSpan) countSpan.classList.toggle('left', split);
 
-            const anyShown = kinds.length > 0;
-            btn.classList.toggle('empty-potion', !anyShown);
-            btn.title = anyShown ? `${titles.join('\n')}\nНажмите для настройки` : 'Зелья (пусто) — нажмите для настройки';
-            if (badgeSpan) badgeSpan.classList.toggle('hidden', !(a.hp.enabled || (a.mp.enabled && mana)));
+            btn.classList.remove('empty-potion');
+            const enabledCount = kinds.filter(kind => a[kind].enabled).length;
+            const autoState = enabledCount === 0 ? 'off' : enabledCount === kinds.length ? 'on' : 'partial';
+            const badgeText = autoState === 'off' ? 'ВЫКЛ' : autoState === 'on' ? 'AUTO' : `${enabledCount}/${kinds.length}`;
+            const stateLabel = autoState === 'off' ? 'выключено' : autoState === 'on' ? 'включено' : `включено для ${enabledCount} из ${kinds.length} типов`;
+            btn.setAttribute('aria-label', `Автоиспользование зелий ${stateLabel}. Нажмите для настройки.`);
+            if (badgeSpan) {
+                badgeSpan.textContent = badgeText;
+                badgeSpan.classList.remove('hidden', 'auto-off', 'auto-partial');
+                if (autoState !== 'on') badgeSpan.classList.add(autoState === 'off' ? 'auto-off' : 'auto-partial');
+            }
+        }
+
+        showPotionTooltip() {
+            if (!this.tooltip || !this.potionBtn) return;
+            const mana = this.hasMana();
+            const kinds = mana ? ['hp', 'mp'] : ['hp'];
+            const labels = this.potionKinds();
+            const rows = kinds.map(kind => {
+                const cfg = this.autoPotion[kind];
+                const potion = this.potionPick(kind);
+                const bottle = window.AveloraItems ? window.AveloraItems.get(potion.id) : null;
+                const state = cfg.enabled ? `включено, порог ${cfg.threshold}%` : 'выключено';
+                return `${labels[kind].label}: ${bottle ? bottle.name : 'зелье'} ×${potion.count} · авто ${state}`;
+            });
+            this.tooltip.innerHTML = '';
+            this.tooltip.classList.remove('warn');
+            this.tooltip.classList.add('potion-tooltip');
+            const name = document.createElement('div');
+            name.className = 'tt-name';
+            name.textContent = 'Автоиспользование зелий';
+            const desc = document.createElement('div');
+            desc.className = 'tt-desc';
+            desc.textContent = rows.join('\n');
+            const meta = document.createElement('div');
+            meta.className = 'tt-meta';
+            meta.textContent = 'Нажмите, чтобы открыть настройки. Зелье не выпивается нажатием.';
+            this.tooltip.append(name, desc, meta);
+            this.placeTooltip(this.potionBtn);
         }
 
         updatePotionModal() {
@@ -2317,6 +2348,7 @@
         // -----------------------------------------------------------
         showTooltipFor(el, kind, id, count, isDoll) {
             if (!this.tooltip) return;
+            this.tooltip.classList.remove('potion-tooltip');
             let def = null, meta = '';
             if (kind === 'skill') {
                 def = this.game.skills.get(id);
@@ -2416,6 +2448,7 @@
 
         showMessageAt(el, text) {
             if (!this.tooltip) return;
+            this.tooltip.classList.remove('potion-tooltip');
             this.tooltip.innerHTML = '';
             this.tooltip.classList.add('warn');
             const n = document.createElement('div'); n.className = 'tt-name'; n.textContent = text;
@@ -2450,7 +2483,7 @@
         hideTooltip() {
             if (this.tooltip) {
                 this.tooltip.classList.add('hidden');
-                this.tooltip.classList.remove('interactive');
+                this.tooltip.classList.remove('interactive', 'potion-tooltip');
             }
         }
 
