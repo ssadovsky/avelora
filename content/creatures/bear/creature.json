@@ -1,10 +1,10 @@
 {
     "id": "bear",
     "name": "Чёрный медведь",
-    "hp": 160,
+    "hp": 140,
     "damage": [
-        10,
-        16
+        9,
+        14
     ],
     "attackRange": 1.9,
     "attackCooldown": 1.7,
@@ -27,8 +27,8 @@
             "count": 1
         }
     ],
-    "xp": 120,
+    "xp": 100,
     "level": 7,
-    "rank": "elite",
-    "statMultiplier": 1.2
+    "rank": "normal",
+    "statMultiplier": 1.0
 }

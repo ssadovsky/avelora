@@ -48,7 +48,7 @@
 
     const CREATURE_ICONS = {
         'spider': '🕷️', 'blue_spider': '🕷️', 'rat': '🐀', 'grey_rat': '🐀',
-        'bear': '🐻', 'wolf': '🐺', 'alpha_wolf': '🐺', 'boar': '🐗', 'rune_boar': '🐗',
+        'bear': '🐻', 'alpha_bear': '🐻', 'wolf': '🐺', 'alpha_wolf': '🐺', 'boar': '🐗', 'rune_boar': '🐗',
         'badger': '🦡', 'bee': '🐝', 'dragonfly': '🦗', 'fawn': '🦌',
         'spotted_fawn': '🦌', 'forest_doe': '🦌', 'rooster': '🐓', 'fire_fox': '🦊',
         'red_panda': '🐼', 'hyena': '🐕', 'cave_lion': '🦁', 'komodo': '🦎',

@@ -1,0 +1,39 @@
+{
+    "id": "alpha_bear",
+    "name": "Медведь-великан",
+    "hp": 200,
+    "damage": [
+        13,
+        20
+    ],
+    "attackRange": 2.1,
+    "attackCooldown": 1.8,
+    "walkSpeed": 1.1,
+    "runSpeed": 5.4,
+    "behavior": "aggressive",
+    "aggroRadius": 10,
+    "leashRadius": 20,
+    "wanderRadius": 5,
+    "respawnMinutes": 6,
+    "hitRadius": 1.7,
+    "scale": 1.4,
+    "modelKey": "creatures/bear",
+    "drops": [
+        {
+            "item": "meat",
+            "count": 8
+        },
+        {
+            "item": "bear_hide",
+            "count": 2
+        }
+    ],
+    "gold": [
+        5,
+        10
+    ],
+    "xp": 150,
+    "level": 7,
+    "rank": "elite",
+    "statMultiplier": 1.3
+}

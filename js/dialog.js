@@ -352,6 +352,10 @@
         questAvailable(q) {
             const st = this.state;
             if (!st) return false;
+            if (q.minLevel) {
+                const heroLevel = this.game.hero ? this.game.hero.level : 1;
+                if (heroLevel < q.minLevel) return false;
+            }
             if (!q.requires) return true;
             const isDone = (req) => {
                 if (st.questStatus(req) === 'done') return true;

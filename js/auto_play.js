@@ -2050,6 +2050,10 @@
         }
 
         _checkRequires(q, st) {
+            if (q.minLevel) {
+                const heroLevel = (this.game && this.game.hero) ? this.game.hero.level : 1;
+                if (heroLevel < q.minLevel) return false;
+            }
             if (!q.requires) return true;
             if (Array.isArray(q.requires)) {
                 return q.requires.every(req => st.questStatus(req) === 'done');
