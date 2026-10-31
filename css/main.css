@@ -5116,7 +5116,7 @@
 
             /* Utility Non-Combat Slots 5 & 6 (Portal recall, buffs, etc.) to the left of potion button */
             .skill-bar .skill-slot[data-slot="5"] {
-                right: 224px !important;
+                right: 172px !important;
                 bottom: 3px !important;
                 width: 42px !important;
                 height: 42px !important;
@@ -5126,7 +5126,7 @@
                 overflow: visible !important;
             }
             .skill-bar .skill-slot[data-slot="6"] {
-                right: 274px !important;
+                right: 222px !important;
                 bottom: 3px !important;
                 width: 42px !important;
                 height: 42px !important;
@@ -5135,6 +5135,21 @@
                 z-index: 104 !important;
                 overflow: visible !important;
             }
+            /* Three additional mobile skill slots extend the hotbar leftward. */
+            .skill-bar .skill-slot[data-slot="7"],
+            .skill-bar .skill-slot[data-slot="8"],
+            .skill-bar .skill-slot[data-slot="9"] {
+                bottom: 3px !important;
+                width: 42px !important;
+                height: 42px !important;
+                border: none !important;
+                background: radial-gradient(circle, rgba(20, 24, 28, 0.92) 0%, rgba(8, 12, 14, 0.96) 100%) !important;
+                z-index: 104 !important;
+                overflow: visible !important;
+            }
+            .skill-bar .skill-slot[data-slot="7"] { right: 272px !important; }
+            .skill-bar .skill-slot[data-slot="8"] { right: 322px !important; }
+            .skill-bar .skill-slot[data-slot="9"] { right: 372px !important; }
 
             /* Mobile auto actions: second row below the system buttons, in combat/gather/quest order. */
             body.touch-ui #auto-actions-dock {
@@ -5314,10 +5329,7 @@
             filter: none !important;
         }
 
-            /* Hide desktop slots 7..9 and PC xp-bar on mobile screens */
-            .skill-bar .skill-slot[data-slot="7"],
-            .skill-bar .skill-slot[data-slot="8"],
-            .skill-bar .skill-slot[data-slot="9"],
+            /* Keep mobile fan slots 7..9 visible; hide only overflow/page slots. */
             .skill-bar .skill-slot[data-slot="10"],
             .skill-bar .skill-slot[data-slot="11"],
             .skill-bar .skill-slot[data-slot="22"],
