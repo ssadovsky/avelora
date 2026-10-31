@@ -4514,9 +4514,11 @@
             position: fixed !important;
             top: calc(max(env(safe-area-inset-top, 0px), 8px) + 44px) !important;
             right: max(env(safe-area-inset-right, 0px), 10px) !important;
-            width: 215px !important;
-            min-width: 215px !important;
-            max-width: 215px !important;
+            width: min(215px, calc(100vw - 20px)) !important;
+            min-width: 0 !important;
+            max-width: min(215px, calc(100vw - 20px)) !important;
+            height: auto !important;
+            min-height: 0 !important;
             max-height: min(210px, calc(100vh - 100px)) !important;
             padding: 6px 9px !important;
             background: rgba(12, 16, 22, 0.45) !important;
@@ -4530,7 +4532,6 @@
             z-index: 85 !important;
             user-select: none !important;
             -webkit-user-select: none !important;
-            display: flex !important;
             flex-direction: column !important;
         }
         body.touch-ui #quest-tracker .qt-content {
@@ -5117,11 +5118,11 @@
                 align-items: center !important;
                 justify-content: center !important;
                 pointer-events: auto !important;
-                background: rgba(16, 20, 26, 0.92) !important;
-                border: 1px solid rgba(195, 160, 95, 0.45) !important;
-                border-bottom: none !important;
-                border-radius: 8px 8px 0 0 !important;
-                color: #c9b48c !important;
+                background: transparent !important;
+                border: none !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                color: rgba(239, 207, 122, 0.75) !important;
                 cursor: pointer !important;
                 padding: 0 !important;
                 z-index: 107 !important;
@@ -5129,8 +5130,9 @@
             body.touch-ui .auto-action-chevron:active,
             body.touch-ui .auto-action-chevron.open {
                 color: #ffe699 !important;
-                background: rgba(28, 34, 44, 0.98) !important;
-                border-color: #efcf7a !important;
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
             }
             body.touch-ui .auto-action-popup {
                 bottom: 48px !important;
@@ -5158,6 +5160,36 @@
             body.touch-ui .auto-action-btn .auto-action-key {
                 display: none !important;
             }
+
+        /* Keep touch auto actions visually consistent with the desktop controls. */
+        body.touch-ui .auto-action-btn .auto-action-icon {
+            display: block !important;
+            color: rgba(239, 207, 122, 0.78) !important;
+            filter: none !important;
+        }
+        body.touch-ui .auto-action-btn .auto-action-label {
+            display: block !important;
+            margin-top: 6px !important;
+            font-size: 7.5px !important;
+            letter-spacing: 0.5px !important;
+            color: #ded1b8 !important;
+        }
+        body.touch-ui .auto-action-btn .auto-action-key {
+            display: block !important;
+            top: 5px !important;
+            font-size: 7.5px !important;
+            color: rgba(239, 207, 122, 0.75) !important;
+        }
+        body.touch-ui .auto-action-btn,
+        body.touch-ui .auto-action-btn.active {
+            border: 1px solid rgba(212, 175, 55, 0.35) !important;
+            background: rgba(16, 20, 26, 0.35) !important;
+            box-shadow: none !important;
+        }
+        body.touch-ui .auto-action-btn.active .auto-action-icon {
+            color: #ffe699 !important;
+            filter: none !important;
+        }
 
             /* Hide desktop slots 7..9 and PC xp-bar on mobile screens */
             .skill-bar .skill-slot[data-slot="7"],

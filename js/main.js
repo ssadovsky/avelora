@@ -3572,7 +3572,8 @@ class AveloraGame {
         if (this.coordsEl && this.character) {
             const p = this.character.position;
             const name = this.currentCharacterConfig ? this.currentCharacterConfig.name : '';
-            const text = `${name ? name + '  ' : ''}X: ${p.x.toFixed(1)} | Z: ${p.z.toFixed(1)}`;
+            const showCharacterName = !document.body.classList.contains('touch-ui');
+            const text = `${showCharacterName && name ? name + '  ' : ''}X: ${p.x.toFixed(1)} | Z: ${p.z.toFixed(1)}`;
             if (this._hudCoordsText !== text) {
                 this._hudCoordsText = text;
                 this.coordsEl.textContent = text;
