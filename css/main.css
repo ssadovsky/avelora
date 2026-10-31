@@ -2698,11 +2698,11 @@
         #quest-tracker .qt-btn-icon { display: none; }
         #quest-tracker.collapsed {
             cursor: pointer;
-            width: 44px !important;
-            height: 44px !important;
-            min-width: 44px !important;
-            max-width: 44px !important;
-            max-height: 44px !important;
+            width: 40px !important;
+            height: 40px !important;
+            min-width: 40px !important;
+            max-width: 40px !important;
+            max-height: 40px !important;
             padding: 0 !important;
             border-radius: 50% !important;
             background: radial-gradient(circle, rgba(28, 22, 14, 0.95) 0%, rgba(12, 10, 6, 0.95) 100%) !important;
@@ -2712,8 +2712,8 @@
             align-items: center !important;
             justify-content: center !important;
             overflow: hidden !important;
-            top: calc(max(env(safe-area-inset-top, 0px), 20px) + 108px) !important;
-            right: max(env(safe-area-inset-right, 0px), 25px) !important;
+            top: calc(max(env(safe-area-inset-top, 0px), 14px) + 48px) !important;
+            right: max(env(safe-area-inset-right, 0px), 14px) !important;
             transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
         #quest-tracker.collapsed:hover {
@@ -2734,6 +2734,7 @@
             color: #ffd700;
             text-shadow: 0 0 8px rgba(255, 215, 0, 0.8), 0 2px 4px #000;
             user-select: none;
+            pointer-events: none;
         }
         #quest-tracker.collapsed .qt-btn-icon.ready {
             color: #70ff70;
@@ -4457,6 +4458,11 @@
         body:not(.touch-ui) #compass-btn { right: max(env(safe-area-inset-right, 0px), 14px) !important; }
         body:not(.touch-ui) #cam-btn { right: calc(max(env(safe-area-inset-right, 0px), 14px) + 48px) !important; }
 
+        /* Desktop quest tracker sits directly beneath the compass in row two. */
+        body:not(.touch-ui) #quest-tracker {
+            top: calc(max(env(safe-area-inset-top, 0px), 14px) + 48px) !important;
+        }
+
         /* Mobile top-right order, from right to left: compass, camera, hero, menu, bag. */
         body.touch-ui #compass-btn {
             position: fixed !important;
@@ -4561,7 +4567,7 @@
         /* Mobile Quest Tracker (BDM / PWM Dark Glass HUD) */
         body.touch-ui #quest-tracker {
             position: fixed !important;
-            top: calc(max(env(safe-area-inset-top, 0px), 8px) + 44px) !important;
+            top: calc(max(env(safe-area-inset-top, 0px), 8px) + 112px) !important;
             right: max(env(safe-area-inset-right, 0px), 10px) !important;
             width: min(215px, calc(100vw - 20px)) !important;
             min-width: 0 !important;
@@ -4578,7 +4584,7 @@
             border-radius: 6px !important;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45) !important;
             box-sizing: border-box !important;
-            z-index: 85 !important;
+            z-index: 400 !important;
             user-select: none !important;
             -webkit-user-select: none !important;
             flex-direction: column !important;
@@ -4675,12 +4681,13 @@
             text-shadow: 0 0 6px rgba(141, 240, 128, 0.4) !important;
         }
         body.touch-ui #quest-tracker.collapsed {
-            top: calc(max(env(safe-area-inset-top, 0px), 8px) + 44px) !important;
+            top: calc(max(env(safe-area-inset-top, 0px), 8px) + 102px) !important;
             right: max(env(safe-area-inset-right, 0px), 10px) !important;
             width: 38px !important;
             height: 38px !important;
             min-width: 38px !important;
             max-width: 38px !important;
+            min-height: 38px !important;
             max-height: 38px !important;
             border-radius: 50% !important;
             padding: 0 !important;
@@ -4693,6 +4700,15 @@
             cursor: pointer !important;
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
+            touch-action: manipulation !important;
+            transform: none !important;
+        }
+        /* The mobile expanded-content rule is also !important, so hide it explicitly
+           in the collapsed state to prevent quest text leaking past the round button. */
+        body.touch-ui #quest-tracker.collapsed .qt-content {
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
         }
         body.touch-ui #quest-tracker.collapsed .qt-btn-icon {
             display: flex !important;
@@ -4705,6 +4721,10 @@
             font-family: 'Cinzel', Georgia, serif !important;
             color: #ffd700 !important;
             text-shadow: 0 0 8px rgba(255, 215, 0, 0.8), 0 2px 4px #000 !important;
+            pointer-events: none !important;
+            line-height: 1 !important;
+            padding: 0 !important;
+            margin: 0 !important;
         }
         body.touch-ui #quest-tracker.collapsed .qt-btn-icon.ready {
             color: #70ff70 !important;
@@ -5116,34 +5136,31 @@
                 overflow: visible !important;
             }
 
-            /* Mobile Auto Actions Dock: placed along the bottom row continuing left from combat fan */
+            /* Mobile auto actions: second row below the system buttons, in combat/gather/quest order. */
             body.touch-ui #auto-actions-dock {
                 position: fixed !important;
                 left: auto !important;
                 right: max(env(safe-area-inset-right, 0px), 8px) !important;
-                bottom: max(env(safe-area-inset-bottom, 0px), 4px) !important;
+                top: calc(max(env(safe-area-inset-top, 0px), 8px) + 50px) !important;
+                bottom: auto !important;
                 width: auto !important;
                 height: auto !important;
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: flex-start !important;
+                gap: 6px !important;
                 pointer-events: none !important;
                 z-index: 106 !important;
-                display: block !important;
             }
             body.touch-ui .auto-action-group {
-                position: absolute !important;
-                bottom: 3px !important;
+                position: relative !important;
+                right: auto !important;
+                bottom: auto !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: center !important;
+                flex: 0 0 38px !important;
                 pointer-events: none !important;
-            }
-            body.touch-ui #auto-combat-group {
-                right: 324px !important; /* continues row to the left after slot 6 (274px) */
-            }
-            body.touch-ui #auto-gather-group {
-                right: 374px !important; /* next round button in row */
-            }
-            body.touch-ui #auto-quest-group {
-                right: 424px !important; /* continues row further to the left, closer to center */
             }
             body.touch-ui .auto-action-btn {
                 position: relative !important;
@@ -5151,18 +5168,19 @@
                 border-radius: 50% !important;
                 border: none !important;
                 box-shadow: 0 4px 14px rgba(0, 0, 0, 0.75), inset 0 0 10px rgba(0, 0, 0, 0.85) !important;
-                width: 42px !important;
-                height: 42px !important;
+                width: 38px !important;
+                height: 38px !important;
                 bottom: auto !important;
                 background: radial-gradient(circle, rgba(20, 24, 28, 0.92) 0%, rgba(8, 12, 14, 0.96) 100%) !important;
             }
             body.touch-ui .auto-action-chevron {
                 position: absolute !important;
-                top: -15px !important;
+                top: auto !important;
+                bottom: -12px !important;
                 left: 50% !important;
                 transform: translateX(-50%) !important;
-                width: 32px !important;
-                height: 15px !important;
+                width: 26px !important;
+                height: 12px !important;
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
@@ -5176,6 +5194,9 @@
                 padding: 0 !important;
                 z-index: 107 !important;
             }
+            body.touch-ui .auto-action-chevron svg {
+                transform: rotate(180deg) !important;
+            }
             body.touch-ui .auto-action-chevron:active,
             body.touch-ui .auto-action-chevron.open {
                 color: #ffe699 !important;
@@ -5183,21 +5204,48 @@
                 border: none !important;
                 box-shadow: none !important;
             }
+            body.touch-ui .auto-action-chevron.open svg {
+                transform: rotate(0deg) !important;
+            }
             body.touch-ui .auto-action-popup {
-                bottom: 48px !important;
-                width: 160px !important;
+                top: calc(100% + 16px) !important;
+                bottom: auto !important;
+                width: 138px !important;
+                max-height: min(50vh, 260px) !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                padding: 4px 6px !important;
+                gap: 2px !important;
+                overscroll-behavior: contain !important;
             }
             body.touch-ui .auto-popup-header {
-                padding: 2px 4px 6px 6px !important;
+                padding: 1px 2px 3px 4px !important;
+                font-size: 8px !important;
+                letter-spacing: 0.6px !important;
             }
             body.touch-ui .auto-popup-close {
-                font-size: 18px !important;
-                padding: 2px 6px !important;
-                min-width: 24px !important;
-                min-height: 24px !important;
+                font-size: 15px !important;
+                padding: 1px 4px !important;
+                min-width: 20px !important;
+                min-height: 20px !important;
             }
             body.touch-ui .auto-popup-item {
-                padding: 6px 6px !important;
+                gap: 5px !important;
+                padding: 4px !important;
+            }
+            body.touch-ui .auto-popup-text,
+            body.touch-ui .auto-popup-option {
+                font-size: 10px !important;
+            }
+            body.touch-ui .auto-popup-option {
+                padding: 4px 6px !important;
+            }
+            body.touch-ui .auto-popup-check {
+                width: 11px !important;
+                height: 11px !important;
+            }
+            body.touch-ui .auto-popup-icon {
+                font-size: 11px !important;
             }
             body.touch-ui .auto-action-btn .auto-action-icon {
                 position: absolute !important;
