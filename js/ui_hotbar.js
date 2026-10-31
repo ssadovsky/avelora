@@ -6,8 +6,7 @@
  * character's state (game_state.js). Nothing here pauses the game.
  *
  * HOTBAR RULES (the bar is for ACTIONS):
- *   - 10 slots, keys 1..9,0 (physical e.code Digit1..Digit0 — any keyboard
- *     layout) or click/tap on the slot.
+ *   - 12 slots on each page; page 1 uses 1..9,0,-,. and page 2 uses Alt+Q..C.
  *   - skills: always allowed (only the character's own).
  *   - items: only if the def has a non-null `use` (tools/consumables). Materials
  *     are rejected with a red flash + "Нельзя: у предмета нет действия".
@@ -29,8 +28,9 @@
 
     const DRAG_THRESHOLD = 6;      // px before a press becomes a drag
     const FLOAT_LIFE = 1.5;        // seconds (game time) a floating "+5 Камень" lives
-    const KEY_LABELS_PAGE1 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
-    const KEY_LABELS_PAGE2 = ['A+Q', 'A+W', 'A+E', 'A+R', 'A+A', 'A+S', 'A+Z', 'A+X', 'A+C', '.'];
+    const PAGE_SIZE = 12;
+    const KEY_LABELS_PAGE1 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '.'];
+    const KEY_LABELS_PAGE2 = ['A+Q', 'A+W', 'A+E', 'A+R', 'A+A', 'A+S', 'A+Z', 'A+X', 'A+C', '', '', ''];
     const KEY_LABELS = KEY_LABELS_PAGE1;
 
     function hueOf(str) {
@@ -87,13 +87,13 @@
             this.microMenuOpen = false;
             this.currentPage = 0;
             this.totalPages = 2;
-            this.cdCache = new Array(20).fill(-1);
+            this.cdCache = new Array(24).fill(-1);
             this.tooltipTimer = null;
             this._lastCellTap = null;
             this._v = new THREE.Vector3();
 
             this.bar = document.getElementById('skill-bar');
-            this.slots = Array.from(document.querySelectorAll('#skill-bar .skill-slot:not(.hud-btn)')).slice(0, 10);
+            this.slots = Array.from(document.querySelectorAll('#skill-bar .skill-slot:not(.hud-btn)')).slice(0, 12);
             this.pagerEl = document.getElementById('hotbar-pager');
             this.pageUpBtn = document.getElementById('hotbar-page-up');
             this.pageDownBtn = document.getElementById('hotbar-page-down');
@@ -427,10 +427,11 @@
 
         renderHotbar() {
             const hb = this.state ? this.state.hotbar : [];
-            const baseIdx = this.currentPage * 10;
+            const baseIdx = this.currentPage * PAGE_SIZE;
             const labels = this.currentPage === 0 ? KEY_LABELS_PAGE1 : KEY_LABELS_PAGE2;
             this.slots.forEach((slot, i) => {
                 const slotIdx = baseIdx + i;
+                slot.classList.remove('page-hidden');
                 slot.dataset.slot = String(slotIdx);
                 const e = hb[slotIdx] || null;
                 slot._icon.innerHTML = '';
@@ -1956,8 +1957,9 @@
         activateSlot(i) {
             if (!this.inputAllowed()) return;
             const e = this.state ? this.state.hotbar[i] : null;
-            const baseIdx = this.currentPage * 10;
-            const slot = (i >= baseIdx && i < baseIdx + 10) ? this.slots[i - baseIdx] : null;
+            const baseIdx = this.currentPage * PAGE_SIZE;
+            const pageLength = this.slots.length;
+            const slot = (i >= baseIdx && i < baseIdx + pageLength) ? this.slots[i - baseIdx] : null;
             if (!e) {
                 const isTouchUi = document.body && document.body.classList.contains('touch-ui');
                 if (i === 0 && isTouchUi && this.game.combat) {
@@ -2875,11 +2877,12 @@
             const hitR = (target.def && target.def.hitRadius) || 0.4;
             const edgeDist = Math.max(0, dist - hitR);
             const hb = this.state ? this.state.hotbar : [];
-            const baseIdx = this.currentPage * 10;
+            const baseIdx = this.currentPage * PAGE_SIZE;
             let hasAny = false;
 
             for (let i = 0; i < this.slots.length; i++) {
                 const slot = this.slots[i];
+                if (slot.classList.contains('page-hidden')) continue;
                 const slotIdx = baseIdx + i;
                 const e = hb[slotIdx];
                 let outOfRange = false;
@@ -2916,8 +2919,9 @@
             if (this.heroOpen && (this._heroT = (this._heroT || 0) + delta) >= 0.4) { this._heroT = 0; this.updateHeroStats(); }
             if (!this.state) return;
             const hb = this.state.hotbar;
-            const baseIdx = this.currentPage * 10;
+            const baseIdx = this.currentPage * PAGE_SIZE;
             for (let i = 0; i < this.slots.length; i++) {
+                if (this.slots[i].classList.contains('page-hidden')) continue;
                 const slotIdx = baseIdx + i;
                 const e = hb[slotIdx];
                 if (!e || e.type !== 'skill') continue;
@@ -2976,15 +2980,15 @@
                 // 1. Вторая панель: Alt + Q, W, E, R, A, S, Z, X, C
                 if (e.altKey) {
                     let altSlot = -1;
-                    if (e.code === 'KeyQ') altSlot = 10;
-                    else if (e.code === 'KeyW') altSlot = 11;
-                    else if (e.code === 'KeyE') altSlot = 12;
-                    else if (e.code === 'KeyR') altSlot = 13;
-                    else if (e.code === 'KeyA') altSlot = 14;
-                    else if (e.code === 'KeyS') altSlot = 15;
-                    else if (e.code === 'KeyZ') altSlot = 16;
-                    else if (e.code === 'KeyX') altSlot = 17;
-                    else if (e.code === 'KeyC') altSlot = 18;
+                    if (e.code === 'KeyQ') altSlot = 12;
+                    else if (e.code === 'KeyW') altSlot = 13;
+                    else if (e.code === 'KeyE') altSlot = 14;
+                    else if (e.code === 'KeyR') altSlot = 15;
+                    else if (e.code === 'KeyA') altSlot = 16;
+                    else if (e.code === 'KeyS') altSlot = 17;
+                    else if (e.code === 'KeyZ') altSlot = 18;
+                    else if (e.code === 'KeyX') altSlot = 19;
+                    else if (e.code === 'KeyC') altSlot = 20;
 
                     if (altSlot !== -1) {
                         e.preventDefault();
@@ -2994,12 +2998,18 @@
                     }
                 }
 
-                // 2. Десятый слот второй панели: обычная точка (.) на клавиатуре (EN: '.', RU: 'Ю') или numpad
+                // Первая панель: два новых слота назначены на Minus и Period.
                 if (!e.altKey && !e.ctrlKey && !e.metaKey) {
-                    if (e.code === 'Period' || e.code === 'NumpadDecimal' || (e.location === 3 && (e.key === '.' || e.key === ','))) {
+                    if (e.code === 'Minus') {
                         e.preventDefault();
                         e.stopPropagation();
-                        this.activateSlot(19);
+                        this.activateSlot(10);
+                        return;
+                    }
+                    if (e.code === 'Period' || e.code === 'NumpadDecimal') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.activateSlot(11);
                         return;
                     }
                 }
@@ -3606,8 +3616,9 @@
                 if (i !== index && e && e.type === entry.type && e.id === entry.id) st.hotbar[i] = null;
             });
             st.setHotbar(index, entry); // saves + re-renders
-            const baseIdx = this.currentPage * 10;
-            if (index >= baseIdx && index < baseIdx + 10) {
+            const baseIdx = this.currentPage * PAGE_SIZE;
+            const pageLength = this.slots.length;
+            if (index >= baseIdx && index < baseIdx + pageLength) {
                 this.flashSlot(this.slots[index - baseIdx], 'pressed');
             }
         }

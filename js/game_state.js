@@ -9,7 +9,7 @@
  *   avelora_state_<characterId> = {
  *     version: 1, characterId,
  *     inventory: Array(32) of {item, count} | null,
- *     hotbar:    Array(10) of {type: 'skill'|'item', id} | null,
+ *     hotbar:    Array(24) of {type: 'skill'|'item', id} | null,
  *     pickupsTaken: { <locationId>: { <pickupId>: takenCount } },
  *     equipped:  { right: itemId | null, head, neck, cloak, body, hands, ring, ring2, legs, feet },
  *     // --- optional since the combat/harvest milestone (still version 1: a
@@ -38,7 +38,7 @@
 
     const STATE_VERSION = 1;
     const KEY_PREFIX = 'avelora_state_';
-    const HOTBAR_SIZE = 20; // 2 страницы по 10 слотов
+    const HOTBAR_SIZE = 24; // 12 slots on each of 2 pages
 
     function keyFor(characterId) { return KEY_PREFIX + characterId; }
 
@@ -149,11 +149,16 @@
         const out = new Array(HOTBAR_SIZE).fill(null);
         const skills = characterSkills(characterId, learned);
         if (Array.isArray(raw)) {
-            for (let i = 0; i < HOTBAR_SIZE && i < raw.length; i++) {
+            // Older saves stored 10 slots per page. Insert the two new first-page
+            // slots before page 2 so existing page-2 bindings keep their positions.
+            const shiftLegacyPageTwo = raw.length <= 22;
+            for (let i = 0; i < raw.length; i++) {
+                const targetIndex = shiftLegacyPageTwo && i >= 10 ? i + 2 : i;
+                if (targetIndex >= HOTBAR_SIZE) continue;
                 const e = raw[i];
                 if (!e || typeof e !== 'object' || typeof e.id !== 'string') continue;
-                if (e.type === 'skill' && skills.includes(e.id)) out[i] = { type: 'skill', id: e.id };
-                else if (e.type === 'item' && window.AveloraItems.canHotbar(e.id)) out[i] = { type: 'item', id: e.id };
+                if (e.type === 'skill' && skills.includes(e.id)) out[targetIndex] = { type: 'skill', id: e.id };
+                else if (e.type === 'item' && window.AveloraItems.canHotbar(e.id)) out[targetIndex] = { type: 'item', id: e.id };
             }
         }
         // If hotbar has no skills, populate slots with learned skills:

@@ -159,6 +159,8 @@
         <div class="skill-slot"></div>
         <div class="skill-slot"></div>
         <div class="skill-slot"></div>
+        <div class="skill-slot"></div>
+        <div class="skill-slot"></div>
 
         <!-- Hotbar Pager (arrows between 1-0 and hero menu, PC Desktop only) -->
         <div class="hotbar-pager pc-only" id="hotbar-pager" title="Переключение панели скилов (1 / 2)">
@@ -237,6 +239,19 @@
             <img src="content/img/bag.jpg" alt="" aria-hidden="true">
         </button>
     </div>
+
+    <script>
+        // Keep viewport-fixed system buttons outside the transformed skill bar.
+        (() => {
+            const ui = document.getElementById('game-ui');
+            const bar = document.getElementById('skill-bar');
+            const menu = document.getElementById('menu-btn');
+            const heroMenu = document.querySelector('.micromenu-container');
+            if (!ui || !bar || !menu || !heroMenu) return;
+            ui.insertBefore(menu, bar.nextSibling);
+            ui.insertBefore(heroMenu, menu.nextSibling);
+        })();
+    </script>
 
     <!-- Auto Actions Dock (Автобой / Автосбор / Автоквест) -->
     <div id="auto-actions-dock" aria-label="Автоматические действия">
