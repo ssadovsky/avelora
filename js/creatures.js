@@ -186,8 +186,9 @@
         respawnSeconds(def) { return Math.max(5, (Number(def.respawnMinutes) || 5) * 60); }
 
         makeRecord(sp, def) {
-            const mergedDef = (sp.behavior || sp.aggroRadius !== undefined || sp.leashRadius !== undefined)
-                ? Object.assign({}, def, sp)
+            const hasOverrides = sp.scale !== undefined || sp.s !== undefined || sp.behavior || sp.aggroRadius !== undefined || sp.leashRadius !== undefined || sp.rank !== undefined;
+            const mergedDef = hasOverrides
+                ? Object.assign({}, def, sp, (sp.scale !== undefined ? { scale: sp.scale } : (sp.s !== undefined ? { scale: sp.s } : {})))
                 : def;
             // Параметры рангов и масштабирования берутся из js/config/creatures.js
             const cfg = window.AVELORA_CREATURES_CONFIG || {};

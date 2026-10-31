@@ -9,8 +9,8 @@
     "count": 10
   },
   "reward": {
-    "gold": 10,
-    "xp": 250,
+    "gold": 20,
+    "xp": 200,
     "classItems": {
       "mage": [
         {

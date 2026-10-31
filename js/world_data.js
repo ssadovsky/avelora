@@ -201,7 +201,7 @@ window.LOCATIONS = {
             { x: -108.0, z: 8.0, radius: 7.0 },
             { x: -80.0,  z: 8.0, radius: 7.0 },
             // Просветы в новом лесу (по просьбе): убраны куски леса
-            { x: -10.0, z: 25.0, radius: 11.0 }, { x: -30.0, z: 25.0, radius: 11.0 }, { x: -130.0, z: -10.0, radius: 11.0 },
+            { x: -10.0, z: 25.0, radius: 11.0 }, { x: -30.0, z: 25.0, radius: 11.0 }, { x: -130.0, z: -10.0, radius: 11.0 }, { x: -130.0, z: 23.0, radius: 14.0 },
             { x: -48.0,  z: 8.0, radius: 6.0 },
             { x: -38.0,  z: 7.0, radius: 5.0 },
             { x: -28.0,  z: 6.0, radius: 5.0 },
@@ -237,8 +237,7 @@ window.LOCATIONS = {
             { id: 'sw_forest_b', type: 'forest', x: -62.0,  z: 62.0, rx: 32.0, rz: 28.0, count: 34, spacing: 7.0, seed: 182 },
             { id: 'sw_forest_c', type: 'forest', x: -92.0,  z: 32.0, rx: 38.0, rz: 14.0, count: 32, spacing: 6.0, seed: 183 },
             { id: 'sw_forest_d', type: 'forest', x: -34.0,  z: 66.0, rx: 24.0, rz: 22.0, count: 24, spacing: 6.0, seed: 184 },
-            // Лес вокруг западного портала в саванну (скала в лесу, дорога по z=8 свободна — её держат поляны) и вдоль дороги с юга до (6, 50)
-            { id: 'gate_forest_s', type: 'forest', x: -134.0, z: 21.0, rx: 18.0, rz: 13.0, count: 26, spacing: 6.0, seed: 191 },
+            // Лес вдоль дороги с юга до (6, 50) (кусок леса у ворот gate_forest_s возле -130 23 убран)
             { id: 'road_south_forest', type: 'forest', x: -72.0, z: 27.0, rx: 74.0, rz: 11.0, count: 52, spacing: 6.0, seed: 193 },
             { id: 'road_south_east', type: 'forest', x: -17.0, z: 30.0, rx: 22.0, rz: 11.0, count: 16, spacing: 6.0, seed: 195 },
             { id: 'sw_forest_f', type: 'forest', x: -14.0, z: 43.0, rx: 22.0, rz: 8.0, count: 10, spacing: 6.0, seed: 196 },
@@ -344,8 +343,19 @@ window.LOCATIONS = {
             { id: 'fox_3', type: 'fire_fox', level: 5, x: 93.0, z: -38.0, r: 5.0 },
             { id: 'fox_4', type: 'fire_fox', level: 5, x: 81.0, z: -33.0, r: 2.2 },
             { id: 'fox_5', type: 'fire_fox', level: 5, x: 100.0, z: -43.0, r: 4.1 },
-            // Серый волк по центру севера долины у горной гряды (5 уровень, Элита, квест «Охота на волка»)
-            { id: 'forest_wolf', type: 'wolf', level: 7, rank: 'elite', x: 0.0, z: -72.0, r: 0.0 },
+            // 10 серых волков в юго-западном лесу около (-55, 65) (6 уровень, квест «Волчья стая»)
+            { id: 'wolf_1',  type: 'wolf', level: 6, x: -55.0, z: 65.0, r: 1.2 },
+            { id: 'wolf_2',  type: 'wolf', level: 6, x: -65.0, z: 62.0, r: 2.8 },
+            { id: 'wolf_3',  type: 'wolf', level: 6, x: -45.0, z: 63.0, r: 4.5 },
+            { id: 'wolf_4',  type: 'wolf', level: 6, x: -58.0, z: 54.0, r: 0.6 },
+            { id: 'wolf_5',  type: 'wolf', level: 6, x: -44.0, z: 52.0, r: 3.3 },
+            { id: 'wolf_6',  type: 'wolf', level: 6, x: -64.0, z: 73.0, r: 5.1 },
+            { id: 'wolf_7',  type: 'wolf', level: 6, x: -43.0, z: 73.0, r: 1.9 },
+            { id: 'wolf_8',  type: 'wolf', level: 6, x: -35.0, z: 65.0, r: 3.7 },
+            { id: 'wolf_9',  type: 'wolf', level: 6, x: -56.0, z: 73.0, r: 0.2 },
+            { id: 'wolf_10', type: 'wolf', level: 6, x: -68.0, z: 48.0, r: 4.8 },
+            // Царь волков у южных скал в глубине леса (-52, 82) (7 уровень, Элита, квест «Царь волков»)
+            { id: 'forest_wolf', type: 'alpha_wolf', level: 7, rank: 'elite', x: -52.0, z: 82.0, r: 0.0, scale: 1.1 },
             // 10 янтарных стрекоз на северо-западе: летают над лугом (8 уровень, квест Оленихи)
             { id: 'dragonfly_1', type: 'dragonfly', level: 8, x: -66.0, z: -58.0, r: 1.70 },
             { id: 'dragonfly_2', type: 'dragonfly', level: 8, x: -48.1, z: -54.5, r: 3.40 },
