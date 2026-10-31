@@ -5152,6 +5152,32 @@
                 pointer-events: none !important;
                 z-index: 106 !important;
             }
+            /* Mobile auto-potion control: first (leftmost) item in the auto-action row. */
+            body.touch-ui .skill-bar #potion-btn {
+                position: fixed !important;
+                top: calc(max(env(safe-area-inset-top, 0px), 8px) + 50px) !important;
+                right: calc(max(env(safe-area-inset-right, 0px), 8px) + 130px) !important;
+                bottom: auto !important;
+                width: 38px !important;
+                height: 38px !important;
+                min-width: 38px !important;
+                max-width: 38px !important;
+                min-height: 38px !important;
+                max-height: 38px !important;
+                flex: 0 0 38px !important;
+                box-sizing: border-box !important;
+                border-radius: 50% !important;
+                z-index: 106 !important;
+            }
+            body.touch-ui #potion-modal {
+                position: fixed !important;
+                left: 50% !important;
+                top: 50% !important;
+                right: auto !important;
+                bottom: auto !important;
+                transform: translate(-50%, -50%) !important;
+                margin: 0 !important;
+            }
             body.touch-ui .auto-action-group {
                 position: relative !important;
                 right: auto !important;
@@ -6029,5 +6055,23 @@ body:not(.touch-ui) #target-frame .hp-text {
         width: clamp(34px, 2.7vw, 42px) !important;
         height: clamp(34px, 2.7vw, 42px) !important;
         border-radius: 4px !important;
+    }
+}
+
+/* Final mobile override: keep the potion control the same outer size as auto buttons. */
+@media (max-width: 880px), (max-height: 540px) and (orientation: landscape) {
+    body.touch-ui .skill-bar #potion-btn {
+        width: 38px !important;
+        min-width: 38px !important;
+        max-width: 38px !important;
+        height: 38px !important;
+        min-height: 38px !important;
+        max-height: 38px !important;
+        padding: 0 !important;
+        transform: none !important;
+        box-sizing: border-box !important;
+    }
+    body.touch-ui .skill-bar #potion-btn .slot-heal-frame {
+        inset: 0 !important;
     }
 }
