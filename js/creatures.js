@@ -385,6 +385,7 @@
                     if (!o.isMesh || !o.material) return;
                     const m = o.material.clone();
                     o.material = m;
+                    if (window.AveloraColor) window.AveloraColor.srgb(m);   // мобы — sRGB-режим (js/color_mode.js)
                     if (tpl.customMap) {
                         m.map = tpl.customMap;
                         m.needsUpdate = true;

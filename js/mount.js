@@ -102,6 +102,7 @@
                 const loader = new THREE.GLTFLoader();
                 loader.parse(buffer, '', (gltf) => {
                     const scene = gltf.scene;
+                    if (window.AveloraColor) window.AveloraColor.srgb(scene);   // ездовые — sRGB-режим, как мобы
                     scene.traverse(o => {
                         if (o.isMesh) {
                             o.castShadow = true;

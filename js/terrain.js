@@ -892,15 +892,6 @@ class LakesideTerrain {
                 varying vec3 vWorldPosition;
                 varying vec3 vWorldNormal;
 
-                // These color maps are sampled through custom uniforms, so Three.js
-                // cannot apply GLTF/standard-material sRGB decoding for us. Convert
-                // their texels to linear before blending and lighting. Scalar/data
-                // maps (path distances, masks, normals) must stay untouched.
-                vec3 avSRGBToLinear(vec3 c) {
-                    return mix(pow(c * 0.9478672986 + vec3(0.0521327014), vec3(2.4)),
-                               c * 0.0773993808, step(c, vec3(0.04045)));
-                }
-
                 // Быстрый процедурный шум для органичных рваных краев тропинки
                 float avHash(vec2 p) {
                     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -929,7 +920,7 @@ class LakesideTerrain {
                 vec2 uvRockMacro = vWorldPosition.xz * 0.22 + vec2(vWorldPosition.y * 0.10, 0.0);
                 vec2 uvRockMicro = vWorldPosition.xz * 0.68 + vec2(0.0, vWorldPosition.y * 0.35);
 
-                vec4 colGrass = vec4(avSRGBToLinear(texture2D(uGrassDiff, uvGrass).rgb), 1.0);
+                vec4 colGrass = texture2D(uGrassDiff, uvGrass);
 
                 // Shore weight:
                 float shoreWeight;
@@ -939,7 +930,7 @@ class LakesideTerrain {
                     float shoreEdgeN = (vWorldPosition.y < 0.35) ? avNoise(vWorldPosition.xz * 0.45) * 0.05 : 0.0;
                     shoreWeight = 1.0 - smoothstep(0.02, 0.20 + shoreEdgeN, vWorldPosition.y);
                 }
-                vec3 colBeachRgb = (shoreWeight > 0.0005) ? avSRGBToLinear(texture2D(uBeachDiff, uvShore).rgb) : vec3(0.0);
+                vec3 colBeachRgb = (shoreWeight > 0.0005) ? texture2D(uBeachDiff, uvShore).rgb : vec3(0.0);
 
                 // Rocky outcrop weight: moderate slope (normal.y < 0.90)
                 float cliffWeight = 1.0 - smoothstep(0.70, 0.90, vWorldNormal.y);
@@ -954,17 +945,17 @@ class LakesideTerrain {
                     roadMask *= smoothstep(0.0, 5.0, vWorldPosition.x);
                     roadMask *= 1.0 - smoothstep(49.0, 53.0, vWorldPosition.x);
 
-                    vec3 colDirtRgb = (roadMask > 0.0005) ? avSRGBToLinear(texture2D(uTrailDiff, uvDirtTrail).rgb) : colGrass.rgb;
+                    vec3 colDirtRgb = (roadMask > 0.0005) ? texture2D(uTrailDiff, uvDirtTrail).rgb : colGrass.rgb;
                     vec3 baseCol = mix(colGrass.rgb, colDirtRgb, roadMask * 0.95);
                     terrainColor = mix(baseCol, colBeachRgb, shoreWeight);
                     if (cliffWeight > 0.0005) {
-                        vec3 rockTex = mix(avSRGBToLinear(texture2D(uRockDiff, uvRockMacro).rgb), avSRGBToLinear(texture2D(uRockDiff, uvRockMicro).rgb) * 1.15, 0.50);
+                        vec3 rockTex = mix(texture2D(uRockDiff, uvRockMacro).rgb, texture2D(uRockDiff, uvRockMicro).rgb * 1.15, 0.50);
                         terrainColor = mix(terrainColor, rockTex, cliffWeight * 0.80);
                     }
                     terrainColor = pow(terrainColor, vec3(1.10));
                 } else if (uBiome > 1.5) {
                     // === BIOME: VOLCANIC (Future Extensibility) ===
-                    vec3 rockTex = mix(avSRGBToLinear(texture2D(uRockDiff, uvRockMacro).rgb), avSRGBToLinear(texture2D(uRockDiff, uvRockMicro).rgb) * 1.15, 0.50);
+                    vec3 rockTex = mix(texture2D(uRockDiff, uvRockMacro).rgb, texture2D(uRockDiff, uvRockMicro).rgb * 1.15, 0.50);
                     vec3 ashCol = rockTex * 0.35;
                     vec3 lavaGlow = vec3(1.0, 0.35, 0.05);
                     float lavaCracks = smoothstep(0.85, 0.98, sin(vWorldPosition.x * 0.25) * cos(vWorldPosition.z * 0.25));
@@ -1004,8 +995,8 @@ class LakesideTerrain {
                     }
 
                     // Центр — старинная каменная мостовая Poly Haven (читаем текстуру только на тропе)
-                    vec3 centerPath = (stoneMask > 0.0005) ? avSRGBToLinear(texture2D(uStoneTrailDiff, uvStoneTrail).rgb) : vec3(0.0);
-                    vec3 colDirtRgb = (passTrailMask > 0.0005 || shoulderMask > 0.0005 || uGroundMix > 4.5) ? avSRGBToLinear(texture2D(uTrailDiff, uvDirtTrail).rgb) : vec3(0.0);
+                    vec3 centerPath = (stoneMask > 0.0005) ? texture2D(uStoneTrailDiff, uvStoneTrail).rgb : vec3(0.0);
+                    vec3 colDirtRgb = (passTrailMask > 0.0005 || shoulderMask > 0.0005 || uGroundMix > 4.5) ? texture2D(uTrailDiff, uvDirtTrail).rgb : vec3(0.0);
 
                     // Смешивание слоев покрытия:
                     // 1) Для 'camp' (uGroundMix > 2.5): сочная зелёная трава на полянке (где нет леса) + лесная подстилка в лесу
@@ -1014,8 +1005,8 @@ class LakesideTerrain {
                     if (uGroundMix > 4.5) {
                         // === GROUND: SAVANNA (golden dry grass, patches of red earth, fresh green near water) ===
                         vec2 gxz = vWorldPosition.xz;
-                        vec3 sT1 = avSRGBToLinear(texture2D(uGrass2Diff, gxz * 0.16 + vec2(0.13, 0.57)).rgb);
-                        vec3 sT2 = avSRGBToLinear(texture2D(uGrass2Diff, gxz * 0.043 + vec2(0.71, 0.29)).rgb);   // крупный масштаб: разбивает повтор плитки
+                        vec3 sT1 = texture2D(uGrass2Diff, gxz * 0.16 + vec2(0.13, 0.57)).rgb;
+                        vec3 sT2 = texture2D(uGrass2Diff, gxz * 0.043 + vec2(0.71, 0.29)).rgb;   // крупный масштаб: разбивает повтор плитки
                         vec3 sTex = mix(sT1, sT2, 0.45);
                         vec3 sGray = vec3(dot(sTex, vec3(0.30, 0.55, 0.15))) * 1.30;   // яркость текстуры без зелёного оттенка
                         vec3 dryGold  = sGray * vec3(1.05, 0.68, 0.24);
@@ -1068,7 +1059,7 @@ class LakesideTerrain {
                         float clearingFactor = 1.0 - forestFactor; // 1.0 на полянке без леса, 0.0 в лесу
 
                         // Слой сочной оливково-зелёной текстурной травы из комбинированного покрытия
-                        vec3 gB = avSRGBToLinear(texture2D(uGrass2Diff, gxz * 0.16 + vec2(0.13, 0.57)).rgb);
+                        vec3 gB = texture2D(uGrass2Diff, gxz * 0.16 + vec2(0.13, 0.57)).rgb;
                         gB *= vec3(0.40, 0.48, 0.28); // глубокий природный тон зелёной травы
 
                         // На полянке без леса — доминирующий красивый травяной покров
@@ -1099,7 +1090,7 @@ class LakesideTerrain {
                             grassZone = clearing * (0.80 + 0.12 * zoneN) + forestF * smoothstep(0.66, 0.86, zoneN) * 0.15;
                         }
                         if (grassZone > 0.003) {
-                            vec3 gB = avSRGBToLinear(texture2D(uGrass2Diff, gxz * 0.16 + vec2(0.13, 0.57)).rgb);
+                            vec3 gB = texture2D(uGrass2Diff, gxz * 0.16 + vec2(0.13, 0.57)).rgb;
                             gB *= vec3(0.40, 0.48, 0.28);           // тёмная оливковая трава, детали текстуры сохранены
                             groundCol = mix(groundCol, gB, grassZone);
                         }
@@ -1146,7 +1137,7 @@ class LakesideTerrain {
                     vec2 tintDiff = vWorldPosition.xz - uRockTint.xy;
                     bool nearTint = (uRockTint.w > 0.001 && dot(tintDiff, tintDiff) < uRockTint.z * uRockTint.z);
                     if (totalRock > 0.0005 || nearCave || nearTint) {
-                        vec3 rockTex = mix(avSRGBToLinear(texture2D(uRockDiff, uvRockMacro).rgb), avSRGBToLinear(texture2D(uRockDiff, uvRockMicro).rgb) * 1.15, 0.50);
+                        vec3 rockTex = mix(texture2D(uRockDiff, uvRockMacro).rgb, texture2D(uRockDiff, uvRockMicro).rgb * 1.15, 0.50);
                         // Выразительный скальный микрорельеф на пиках
                         float peakAltitude = smoothstep(3.8, 8.5, vWorldPosition.y);
                         float rockRelief = 0.82 + 0.38 * smoothstep(0.40, 0.95, vWorldNormal.y);

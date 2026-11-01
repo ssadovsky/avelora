@@ -177,26 +177,19 @@
         }
 
         // ---------------------------------------------------------------- материалы
-        _tex(src, rep, isColor = false) {
+        _tex(src, rep) {
             if (!src) return null;
             const t = new THREE.TextureLoader().load(src);
             t.wrapS = t.wrapT = THREE.RepeatWrapping;
             if (rep) t.repeat.set(rep, rep);
-            if (isColor && THREE.sRGBEncoding !== undefined) t.encoding = THREE.sRGBEncoding;
             this.texs.push(t);
             return t;
         }
-        _mat(o) {
-            const options = Object.assign({}, o);
-            ['color', 'emissive'].forEach(key => {
-                if (options[key] !== undefined) options[key] = new THREE.Color(options[key]).convertSRGBToLinear();
-            });
-            const m = new THREE.MeshStandardMaterial(options); this.mats.push(m); return m;
-        }
+        _mat(o) { const m = new THREE.MeshStandardMaterial(o); this.mats.push(m); return m; }
 
         _materials() {
             const a = (window.GAME_ASSETS && window.GAME_ASSETS.textures) || {};
-            const rock = this._tex(a.rockDiff, null, true), nor = this._tex(a.rockNor || a.beachNor), stone = this._tex(a.stoneTrailDiff || a.rockDiff, null, true);
+            const rock = this._tex(a.rockDiff), nor = this._tex(a.rockNor || a.beachNor), stone = this._tex(a.stoneTrailDiff || a.rockDiff);
             this.wallMat = this._mat({ color: 0x8d9096, map: rock, normalMap: nor, roughness: 0.9, metalness: 0.03, side: THREE.DoubleSide });
             this.floorMat = this._mat({ color: 0x7a7c82, map: stone, normalMap: nor, roughness: 0.84, metalness: 0.02 });
             this.stepMat = this._mat({ color: 0x9a9a9c, map: stone, normalMap: nor, roughness: 0.82, metalness: 0.02 });
@@ -205,7 +198,7 @@
             this.roofMat = this._mat({ color: 0x3f628f, map: rock, roughness: 0.7, metalness: 0.05 });
             this.woodMat = this._mat({ color: 0x4d3825, roughness: 0.9, metalness: 0.0 });
             this.ironMat = this._mat({ color: 0x25272b, roughness: 0.5, metalness: 0.8 });
-            this.glowMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffd58a).convertSRGBToLinear() }); this.mats.push(this.glowMat);
+            this.glowMat = new THREE.MeshBasicMaterial({ color: 0xffd58a }); this.mats.push(this.glowMat);
             this.waterMat = this._mat({ color: 0x3b6f8f, roughness: 0.15, metalness: 0.2, emissive: 0x0b1d2a });
             // знамя: синее, золотой знак
             const cv = document.createElement('canvas'); cv.width = 128; cv.height = 256;
@@ -400,9 +393,7 @@
             }
             g.beginPath(); for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 - Math.PI / 2; const x = Math.cos(a) * 118, y2 = Math.sin(a) * 118; if (i) g.lineTo(x, y2); else g.moveTo(x, y2); } g.closePath(); g.stroke();
             g.beginPath(); for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + Math.PI / 6; const x = Math.cos(a) * 118, y2 = Math.sin(a) * 118; if (i) g.lineTo(x, y2); else g.moveTo(x, y2); } g.closePath(); g.stroke();
-            const t = new THREE.CanvasTexture(cv);
-            if (THREE.sRGBEncoding !== undefined) t.encoding = THREE.sRGBEncoding;
-            this.texs.push(t);
+            const t = new THREE.CanvasTexture(cv); this.texs.push(t);
             const m = new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.8 }); this.mats.push(m);
             this.runeMat = m;
             const geo = new THREE.PlaneGeometry(rad * 2, rad * 2); geo.rotateX(-Math.PI / 2); this.geos.push(geo);
@@ -552,7 +543,7 @@
                 if (dx * dx + dz * dz > 2500) continue;
                 f.update(delta);
             }
-            if (this.runeMat) this.runeMat.opacity = 0.18 + 0.06 * Math.sin((g.gameTime || 0) * 1.6);
+            if (this.runeMat) this.runeMat.opacity = 0.62 + 0.2 * Math.sin((g.gameTime || 0) * 1.6);
         }
 
         // ---------------------------------------------------------------- камера

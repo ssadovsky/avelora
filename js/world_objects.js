@@ -240,6 +240,8 @@
                             v.userData.minY = box.min.y;
                             window.AveloraItems.setShadows(v, !foliage, true);
                             if (foliage) AveloraWorldObjects.prepareFoliage(v);
+                            // новые GLB-пропсы — sRGB-режим; старый режим только у id из AveloraColor.LEGACY_PROPS
+                            if (category === 'props' && window.AveloraColor && !window.AveloraColor.isLegacyProp(id)) window.AveloraColor.srgb(v);
                             this.allTemplates.push(v);
                         });
                         resolve(variants);
@@ -479,6 +481,7 @@
                 new THREE.GLTFLoader().parse(buffer, '', gltf => {
                     if (this.disposed) { resolve(); return; }
                     const model = gltf.scene;
+                    if (window.AveloraColor) window.AveloraColor.srgb(model);   // NPC — sRGB-режим (js/color_mode.js)
                     const box = new THREE.Box3().setFromObject(model);
                     const height = Math.max(0.01, box.max.y - box.min.y);
                     const target = rec.npc.height || 1.75;
