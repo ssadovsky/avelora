@@ -16,12 +16,13 @@
         5
     ],
     "xp": 50,
-    "level": 6,
+    "level": 14,
     "attackCooldown": 1.6,
     "walkSpeed": 1.0,
     "runSpeed": 4.2,
     "behavior": "retaliate",
     "aggroRadius": 0,
     "scale": 1.0,
-    "statMultiplier": 1.1
+    "statMultiplier": 1.1,
+    "rank": "elite"
 }

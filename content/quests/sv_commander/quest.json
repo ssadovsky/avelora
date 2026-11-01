@@ -2,7 +2,10 @@
   "id": "sv_commander",
   "name": "Ящер-командир",
   "giver": "lizard_hermit",
-  "requires": "sv_elementals",
+  "requires": [
+    "sv_elementals",
+    "sv_air_elementals"
+  ],
   "summary": "Убей Ящера-командира в лагере на юго-востоке.",
   "objective": {
     "type": "kill",
@@ -10,8 +13,8 @@
     "count": 1
   },
   "reward": {
-    "gold": 80,
-    "xp": 600
+    "gold": 400,
+    "xp": 4200
   },
   "dialog": {
     "offer": "Остался командир. Он был моим другом и учителем, но теперь он опаснее всех в саванне. Он в лагере на юго-востоке. Прошу, закончи это.",

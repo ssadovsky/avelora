@@ -710,7 +710,7 @@
                     if (this.questEnabled) {
                         const huntTypes = this.getHuntCreatureTypes();
                         if (huntTypes && huntTypes.size > 0) {
-                            const huntCandidates = (cr.list || []).filter(rec => cr.isAlive(rec) && huntTypes.has(rec.type));
+                            const huntCandidates = (cr.list || []).filter(rec => cr.isAlive(rec) && huntTypes.has(rec.type) && this.matchesActiveHuntObjective(rec));
                             if (huntCandidates.length > 0) {
                                 huntCandidates.sort((a, b) => (cr.sameLevel(b) - cr.sameLevel(a)) || Math.hypot(a.x - c.position.x, a.z - c.position.z) - Math.hypot(b.x - c.position.x, b.z - c.position.z));
                                 tgt = huntCandidates[0];
@@ -1491,6 +1491,21 @@
                 }
             }
             return types;
+        }
+
+        matchesActiveHuntObjective(creature) {
+            const st = this.game.gameState;
+            const allQuests = (window.GAME_CONTENT && window.GAME_CONTENT.quests) || {};
+            return Object.entries((st && st.quests) || {}).some(([qid, status]) => {
+                if (status !== 'active' || !allQuests[qid]) return false;
+                const obj = allQuests[qid].objective || {};
+                if (obj.type !== 'kill' || this.isQuestReady(allQuests[qid])) return false;
+                const types = Array.isArray(obj.creatures) ? obj.creatures : [obj.creature];
+                if (!types.includes(creature.type)) return false;
+                if (obj.creatureId && obj.creatureId !== creature.id) return false;
+                if (Array.isArray(obj.creatureIds) && !obj.creatureIds.includes(creature.id)) return false;
+                return true;
+            });
         }
 
         /** Returns the creature type needed for current active kill quest (or null) */

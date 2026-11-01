@@ -1,7 +1,7 @@
 {
     "id": "rhino",
     "name": "Серый носорог",
-    "level": 7,
+    "level": 12,
     "rank": "elite",
     "hp": 260,
     "damage": [

@@ -13,11 +13,17 @@
       "air_elemental"
     ],
     "label": "Элементали",
-    "count": 4
+    "count": 4,
+    "creatureIds": [
+      "sv_fire_elemental",
+      "sv_stone_elemental",
+      "sv_water_elemental",
+      "sv_air_elemental"
+    ]
   },
   "reward": {
-    "gold": 60,
-    "xp": 420
+    "gold": 600,
+    "xp": 3800
   },
   "dialog": {
     "offer": "Духи в Круге стихий проснулись и мечутся без хозяина. Утихомирь всех четверых: воду, огонь, камень и воздух. Круг на северо-востоке, у каменной аллеи.",

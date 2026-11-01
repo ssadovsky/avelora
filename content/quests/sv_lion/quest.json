@@ -2,7 +2,7 @@
   "id": "sv_lion",
   "name": "Пещерный лев",
   "giver": "lizard_hermit",
-  "requires": "sv_soldiers",
+  "requires": "sv_croc",
   "summary": "Убей пещерного льва в северных скалах.",
   "objective": {
     "type": "kill",
@@ -10,8 +10,8 @@
     "count": 1
   },
   "reward": {
-    "gold": 45,
-    "xp": 330
+    "gold": 400,
+    "xp": 3300
   },
   "dialog": {
     "offer": "В северных скалах живёт пещерный лев. Он вышел из логова и бродит у тропы. Это серьёзный зверь, сходи подготовленным.",

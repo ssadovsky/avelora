@@ -375,6 +375,7 @@
                 if (st.questStatus(id) !== 'active' || o.type !== 'kill') return;
                 if (Array.isArray(o.creatures) ? o.creatures.indexOf(detail.type) < 0 : o.creature !== detail.type) return;   // creatures: [..] — любой из перечисленных типов
                 if (o.creatureId && o.creatureId !== detail.id) return;
+                if (Array.isArray(o.creatureIds) && o.creatureIds.indexOf(detail.id) < 0) return;
                 if ((st.questKills[id] || 0) < (o.count || 1)) st.addQuestKill(id);
                 if (o.slayForGood && this.game.location) st.slay(this.game.location.id, detail.id);
                 this.ui.floatText(this.questLabel(q, this.questProgress(q)), 'info', 0.6);

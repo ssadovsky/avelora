@@ -929,8 +929,13 @@ window.LOCATIONS = {
             { id: 'sv_lion_1', type: 'cave_lion', x: 18.0, z: -66.0, r: 2.00 },
             { id: 'sv_lion_2', type: 'cave_lion', x: 34.0, z: -72.0, r: 3.70 },
             { id: 'sv_lion_3', type: 'cave_lion', x: 4.0, z: -74.0, r: 5.40 },
-            // Серый носорог: элита, северо-запад у края карты, за гиеньими лугами (агрессивный, радиус 10 м)
-            { id: 'sv_rhino_1', type: 'rhino', x: -112.0, z: -76.0, r: 1.57 },
+            // Обычные носороги и вожак у северо-западной окраины саванны
+            { id: 'sv_rhino_1', type: 'rhino', name: 'Носорог', x: -130.0, z: -72.0, r: 1.57, rank: 'normal', scale: 0.82 },
+            { id: 'sv_rhino_2', type: 'rhino', name: 'Носорог', x: -110.0, z: -82.0, r: 2.10, rank: 'normal', scale: 0.82 },
+            { id: 'sv_rhino_3', type: 'rhino', name: 'Носорог', x: -86.0, z: -84.0, r: 2.62, rank: 'normal', scale: 0.82 },
+            { id: 'sv_rhino_4', type: 'rhino', name: 'Носорог', x: -60.0, z: -82.0, r: 3.14, rank: 'normal', scale: 0.82 },
+            { id: 'sv_rhino_5', type: 'rhino', name: 'Носорог', x: -36.0, z: -76.0, r: 3.66, rank: 'normal', scale: 0.82 },
+            { id: 'sv_rhino_leader', type: 'rhino', name: 'Вожак носорогов', x: -112.0, z: -76.0, r: 1.57, rank: 'elite', scale: 1.15 },
             // Ящеры-солдаты в лагере (расширены по всей восточной и юго-восточной части)
             { id: 'sv_soldier_1', type: 'lizard_soldier', x: 105.6, z: 49.0, r: 0.50 },
             { id: 'sv_soldier_2', type: 'lizard_soldier', x: 98.2, z: 55.8, r: 2.20 },
@@ -954,7 +959,13 @@ window.LOCATIONS = {
             { id: 'sv_fire_elemental', type: 'fire_elemental', x: 74.0, z: -52.0, r: 0.00 },
             { id: 'sv_stone_elemental', type: 'stone_elemental', x: 84.0, z: -42.0, r: 1.57 },
             { id: 'sv_water_elemental', type: 'water_elemental', x: 74.0, z: -32.0, r: 3.14 },
-            { id: 'sv_air_elemental', type: 'air_elemental', x: 64.0, z: -42.0, r: 4.71 }
+            { id: 'sv_air_elemental', type: 'air_elemental', x: 64.0, z: -42.0, r: 4.71 },
+            // Обычные воздушные элементали дальше Круга стихий, у восточной окраины
+            { id: 'sv_air_elemental_1', type: 'air_elemental', x: 96.0, z: -42.0, r: 0.50, rank: 'normal' },
+            { id: 'sv_air_elemental_2', type: 'air_elemental', x: 112.0, z: -54.0, r: 2.20, rank: 'normal' },
+            { id: 'sv_air_elemental_3', type: 'air_elemental', x: 126.0, z: -38.0, r: 3.90, rank: 'normal' },
+            { id: 'sv_air_elemental_4', type: 'air_elemental', x: 116.0, z: -20.0, r: 5.60, rank: 'normal' },
+            { id: 'sv_air_elemental_5', type: 'air_elemental', x: 130.0, z: -8.0, r: 1.02, rank: 'normal' }
         ],
 
         pickups: [],
