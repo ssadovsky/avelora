@@ -106,7 +106,11 @@
         return tex;
     }
 
-    function isQuestAvailable(st, q) {
+    function isQuestAvailable(game, st, q) {
+        if (q.minLevel) {
+            const heroLevel = game.hero ? game.hero.level : 1;
+            if (heroLevel < q.minLevel) return false;
+        }
         if (!q.requires) return true;
         const isDone = (req) => {
             if (st.questStatus(req) === 'done') return true;
@@ -130,7 +134,7 @@
             const status = st.questStatus(qid);
             if (status === 'done') continue;
 
-            const available = isQuestAvailable(st, q);
+            const available = isQuestAvailable(game, st, q);
             if (!available) continue;
             const isGiver = !q.giver || q.giver === npc.id;
             const isTurnIn = (q.turnInNpc || q.giver || npc.id) === npc.id;
