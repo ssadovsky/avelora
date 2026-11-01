@@ -1346,10 +1346,12 @@ window.LOCATIONS = {
             border: 0,
             baseHeight: 1.7,
             landFloor: 0.85,
+            // Ровное основание на уровне центральных дорог; горный край сохраняется.
+            groundNoise: 0,
             mountainRim: { width: 16.0, height: 6.0 },
             mountainPasses: [],
             waterBody: { type: 'none' },
-            hills: { amplitude: 1.2, inclineX: 0.0, inclineZ: 0.0 },
+            hills: { amplitude: 0.0, inclineX: 0.0, inclineZ: 0.0 },
             stoneTexture: 'pebbleTrailDiff',
             // мощёная улица от портала к входу в подвал и площадь (само мощение — просто дороги рельефа)
             // выравнивание застройки: дороги и участки вокруг на одной высоте с площадкой подвала (точка 71;0)
@@ -1413,6 +1415,8 @@ window.LOCATIONS = {
         groups: [],
 
         props: [
+            // Южные городские ворота. Фасад на юг, проход открыт; препятствия только на башнях.
+            { id: 'runeLands.starlit_castle_gate', prop: 'starlit_castle_gate', x: 56.5, z: 50.0, r: Math.PI, s: 7.0 },
             // «Рунные врата»: Meshy-часовня над входом в старый подвал (cellars[0], x65 z16); дверь на запад, неф — над траншеей, колокольня в глубине
             { id: 'runeLands.rune_chapel', prop: 'rune_chapel', x: 65.0, z: 0.0, r: -Math.PI / 2, dy: -0.08, over: 'oldCellar' },
             // «Старинный дом с синими крышами» (Meshy Moonlit Hearth Cottage, S=9.5, 90k тр.): фасадом на запад к поперечной дороге (ось x=57.1),

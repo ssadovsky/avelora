@@ -2152,6 +2152,78 @@ window.GAME_CONTENT = {
    "cameraBlock": true,
    "modelKey": "props/smithy"
   },
+  "starlit_castle_gate": {
+   "id": "starlit_castle_gate",
+   "name": "Южные городские ворота",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "polygon",
+     "padding": 0.04,
+     "points": [
+      [
+       -0.92,
+       -0.274
+      ],
+      [
+       -0.47,
+       -0.277
+      ],
+      [
+       -0.336,
+       -0.128
+      ],
+      [
+       -0.336,
+       0.12
+      ],
+      [
+       -0.455,
+       0.274
+      ],
+      [
+       -0.92,
+       0.274
+      ]
+     ]
+    },
+    {
+     "type": "polygon",
+     "padding": 0.04,
+     "points": [
+      [
+       0.467,
+       -0.277
+      ],
+      [
+       0.907,
+       -0.277
+      ],
+      [
+       0.916,
+       0.26
+      ],
+      [
+       0.909,
+       0.274
+      ],
+      [
+       0.465,
+       0.274
+      ],
+      [
+       0.335,
+       0.127
+      ],
+      [
+       0.332,
+       -0.129
+      ]
+     ]
+    }
+   ],
+   "modelKey": "props/starlit_castle_gate"
+  },
   "stone_cottage": {
    "id": "stone_cottage",
    "name": "Каменный коттедж",

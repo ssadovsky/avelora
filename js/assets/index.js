@@ -91,6 +91,7 @@ window.AVELORA_ASSET_INDEX = {
   "props/rune_chapel": ["m/props__rune_chapel.js", "423702f72d"],
   "props/rune_portal": ["m/props__rune_portal.js", "e51a1d387f"],
   "props/smithy": ["m/props__smithy.js", "0155832e1f"],
+  "props/starlit_castle_gate": ["m/props__starlit_castle_gate.js", "ae000cbf6a"],
   "props/stone_cottage": ["m/props__stone_cottage.js", "ad01d273bf"],
   "props/stone_pass": ["m/props__stone_pass.js", "137f7dd980"],
   "props/stump": ["m/props__stump.js", "72156d4f43"],

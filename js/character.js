@@ -1260,6 +1260,38 @@ class MedievalCharacter {
             if (ob.under && !this._belowCellar(ob.under)) continue;   // препятствие на полу подвала: наверху не действует
             if (ob.over && this._belowCellar(ob.over)) continue;      // препятствие здания над подвалом: внизу не действует
             const dx = px - ob.x, dz = pz - ob.z;
+            if (ob.type === 'polygon') {
+                const points = ob.points;
+                let area = 0;
+                for (let k = 0, j = points.length - 1; k < points.length; j = k++) area += points[j].x * points[k].z - points[k].x * points[j].z;
+                let inside = false, bestD2 = Infinity, closestX = 0, closestZ = 0, normalX = 0, normalZ = 0;
+                for (let k = 0, j = points.length - 1; k < points.length; j = k++) {
+                    const a = points[j], b = points[k];
+                    if ((a.z > pz) !== (b.z > pz) && px < (b.x - a.x) * (pz - a.z) / (b.z - a.z) + a.x) inside = !inside;
+                    const ex = b.x - a.x, ez = b.z - a.z;
+                    const t = Math.max(0, Math.min(1, ((px - a.x) * ex + (pz - a.z) * ez) / (ex * ex + ez * ez || 1e-9)));
+                    const qx = a.x + ex * t, qz = a.z + ez * t;
+                    const qdx = px - qx, qdz = pz - qz, d2 = qdx * qdx + qdz * qdz;
+                    if (d2 < bestD2) {
+                        bestD2 = d2; closestX = qx; closestZ = qz;
+                        const sign = area >= 0 ? 1 : -1;
+                        const len = Math.hypot(ex, ez) || 1;
+                        normalX = sign * ez / len; normalZ = -sign * ex / len;
+                    }
+                }
+                const minDist = (ob.padding || 0) + playerRadius;
+                const dist = Math.sqrt(bestD2);
+                if (inside) {
+                    this.position.x += normalX * (dist + minDist);
+                    this.position.z += normalZ * (dist + minDist);
+                } else if (dist < minDist) {
+                    const nx = dist > 1e-6 ? (px - closestX) / dist : normalX;
+                    const nz = dist > 1e-6 ? (pz - closestZ) / dist : normalZ;
+                    this.position.x += nx * (minDist - dist);
+                    this.position.z += nz * (minDist - dist);
+                }
+                continue;
+            }
             const distSq = dx * dx + dz * dz;
             const minDist = ob.r + playerRadius;
             if (distSq < minDist * minDist && distSq > 1e-6) {

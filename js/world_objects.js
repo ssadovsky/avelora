@@ -334,7 +334,7 @@
             if (obstacle > 0 && this.pathfinder && !p.noObstacle) {
                 this.pathfinder.addObstacle(p.x, p.z, Math.max(obstacle, MIN_NAV_OBSTACLE));
             }
-            // составная непроходимая форма (prop.json "obstacleShapes"): box {hx,hz,cx,cz} — прямоугольник, ring {radius,step,gapDeg,r} — кольцо с проёмом у локального +Z
+            // составная непроходимая форма (prop.json "obstacleShapes"): box {hx,hz,cx,cz}, polygon {points,padding}, ring {radius,step,gapDeg,r}
             if (def.obstacleShapes && this.pathfinder && !p.noObstacle) {
                 const cr = Math.cos(p.r || 0), sr = Math.sin(p.r || 0);
                 const put = (lx, lz, rad, exact) => this.pathfinder.addObstacle(p.x + (lx * cr + lz * sr) * s, p.z + (-lx * sr + lz * cr) * s, exact ? rad * s : Math.max(rad * s, MIN_NAV_OBSTACLE));
@@ -344,6 +344,12 @@
                         const nx = Math.max(1, Math.ceil(2 * sh.hx / step)), nz = Math.max(1, Math.ceil(2 * sh.hz / step));
                         for (let i = 0; i <= nx; i++) for (let j = 0; j <= nz; j++)
                             put((sh.cx || 0) - sh.hx + 2 * sh.hx * i / nx, (sh.cz || 0) - sh.hz + 2 * sh.hz * j / nz, rad, sh.exact);
+                    } else if (sh.type === 'polygon') {
+                        const points = sh.points.map(([lx, lz]) => ({
+                            x: p.x + (lx * cr + lz * sr) * s,
+                            z: p.z + (-lx * sr + lz * cr) * s
+                        }));
+                        this.pathfinder.addPolygonObstacle(points, (sh.padding || 0) * s);
                     } else if (sh.type === 'octagon') {
                         // восьмиугольный заборчик: apothem — расстояние до сторон, вход (плоская сторона) у локального +Z; gapHalf — полуширина проёма
                         const R = sh.apothem / Math.cos(Math.PI / 8), gh = sh.gapHalf || 1.3;

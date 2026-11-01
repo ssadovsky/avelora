@@ -191,11 +191,51 @@ class DiabloPathfinder {
         }
     }
 
+    addPolygonObstacle(points, padding = 0) {
+        if (!points || points.length < 3) return;
+        const center = points.reduce((c, p) => ({ x: c.x + p.x / points.length, z: c.z + p.z / points.length }), { x: 0, z: 0 });
+        const boundR = Math.max(...points.map(p => Math.hypot(p.x - center.x, p.z - center.z))) + padding;
+        const poly = { type: 'polygon', points, padding, x: center.x, z: center.z, r: boundR };
+        this.obstacles.push(poly);
+        const minX = Math.min(...points.map(p => p.x)) - padding;
+        const maxX = Math.max(...points.map(p => p.x)) + padding;
+        const minZ = Math.min(...points.map(p => p.z)) - padding;
+        const maxZ = Math.max(...points.map(p => p.z)) + padding;
+        const minG = this.worldToGrid(minX, minZ), maxG = this.worldToGrid(maxX, maxZ);
+        for (let gz = minG.z; gz <= maxG.z; gz++) for (let gx = minG.x; gx <= maxG.x; gx++) {
+            const p = this.gridToWorld(gx, gz);
+            if (this._insidePolygon(p.x, p.z, points) || (padding > 0 && this._polygonEdgeDistanceSq(p.x, p.z, points) <= padding * padding))
+                this.grid[this.getIndex(gx, gz)] = 1;
+        }
+    }
+
+    _insidePolygon(x, z, points) {
+        let inside = false;
+        for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+            const a = points[i], b = points[j];
+            if ((a.z > z) !== (b.z > z) && x < (b.x - a.x) * (z - a.z) / (b.z - a.z) + a.x) inside = !inside;
+        }
+        return inside;
+    }
+
+    _polygonEdgeDistanceSq(x, z, points) {
+        let best = Infinity;
+        for (let i = 0; i < points.length; i++) {
+            const a = points[i], b = points[(i + 1) % points.length];
+            const dx = b.x - a.x, dz = b.z - a.z;
+            const t = Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz || 1e-9)));
+            const ex = x - (a.x + dx * t), ez = z - (a.z + dz * t);
+            best = Math.min(best, ex * ex + ez * ez);
+        }
+        return best;
+    }
+
     removeObstacle(wx, wz, radius = 1.0) {
         let bestIdx = -1;
         let bestDistSq = Infinity;
         for (let i = 0; i < this.obstacles.length; i++) {
             const ob = this.obstacles[i];
+            if (ob.type === 'polygon') continue;
             const distSq = (ob.x - wx) * (ob.x - wx) + (ob.z - wz) * (ob.z - wz);
             if (distSq < bestDistSq) {
                 bestDistSq = distSq;
@@ -223,6 +263,13 @@ class DiabloPathfinder {
                         let blockedByOther = false;
                         for (let j = 0; j < this.obstacles.length; j++) {
                             const ob = this.obstacles[j];
+                            if (ob.type === 'polygon') {
+                                if (this._insidePolygon(pos.x, pos.z, ob.points) || (ob.padding > 0 && this._polygonEdgeDistanceSq(pos.x, pos.z, ob.points) <= ob.padding * ob.padding)) {
+                                    blockedByOther = true;
+                                    break;
+                                }
+                                continue;
+                            }
                             const odx = pos.x - ob.x;
                             const odz = pos.z - ob.z;
                             if (odx * odx + odz * odz <= ob.r * ob.r) {
