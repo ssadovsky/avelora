@@ -309,10 +309,13 @@
 
                         float a = uOpacity * edge * head * (0.50 + 0.50 * max(streak, foam));
                         if (a < 0.01) discard;
-                        gl_FragColor = vec4(col, a);
+                        gl_FragColor = sRGBToLinear(vec4(col, a));
                         #include <fog_fragment>
+                        #include <tonemapping_fragment>
+                        #include <encodings_fragment>
                     }`,
                 transparent: true,
+                toneMapped: false,
                 depthWrite: false,
                 side: THREE.DoubleSide,
                 fog: true
@@ -420,10 +423,13 @@
 
                         float a = edge * mix(0.80, 0.97, max(foam, fres));
                         if (a < 0.01) discard;
-                        gl_FragColor = vec4(col, a);
+                        gl_FragColor = sRGBToLinear(vec4(col, a));
                         #include <fog_fragment>
+                        #include <tonemapping_fragment>
+                        #include <encodings_fragment>
                     }`,
                 transparent: true,
+                toneMapped: false,
                 depthWrite: false,
                 fog: true
             });
@@ -492,10 +498,13 @@
                         float r2 = dot(c, c) * 4.0;
                         if (r2 > 1.0) discard;
                         float a = exp(-r2 * 3.0) * vAlpha * uOpacity;
-                        gl_FragColor = vec4(0.94, 0.97, 1.0, a);
+                        gl_FragColor = sRGBToLinear(vec4(0.94, 0.97, 1.0, a));
                         #include <fog_fragment>
+                        #include <tonemapping_fragment>
+                        #include <encodings_fragment>
                     }`,
                 transparent: true,
+                toneMapped: false,
                 depthWrite: false,
                 fog: true
             });

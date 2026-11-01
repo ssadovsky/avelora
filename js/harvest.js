@@ -54,6 +54,7 @@
         c.width = c.height = size;
         draw(c.getContext('2d'), size);
         const t = new THREE.CanvasTexture(c);
+        if (THREE.sRGBEncoding !== undefined) t.encoding = THREE.sRGBEncoding;
         t.needsUpdate = true;
         return t;
     }
@@ -98,9 +99,11 @@
                     uniform sampler2D uMap;
                     varying vec4 vColor;
                     void main() {
-                        vec4 t = texture2D(uMap, gl_PointCoord);
+                        vec4 t = sRGBToLinear(texture2D(uMap, gl_PointCoord));
                         if (t.a * vColor.a < 0.02) discard;
                         gl_FragColor = vec4(vColor.rgb * t.rgb, t.a * vColor.a);
+                        #include <tonemapping_fragment>
+                        #include <encodings_fragment>
                     }`,
                 transparent: true,
                 depthWrite: false

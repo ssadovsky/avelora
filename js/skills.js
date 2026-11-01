@@ -72,6 +72,7 @@
         c.width = c.height = size;
         draw(c.getContext('2d'), size);
         const t = new THREE.CanvasTexture(c);
+        if (THREE.sRGBEncoding !== undefined) t.encoding = THREE.sRGBEncoding;
         t.needsUpdate = true;
         return t;
     }
@@ -147,8 +148,10 @@
                     uniform sampler2D uMap;
                     varying vec4 vColor;
                     void main() {
-                        vec4 t = texture2D(uMap, gl_PointCoord);
+                        vec4 t = sRGBToLinear(texture2D(uMap, gl_PointCoord));
                         gl_FragColor = vec4(vColor.rgb * t.rgb, t.a * vColor.a);
+                        #include <tonemapping_fragment>
+                        #include <encodings_fragment>
                     }`,
                 transparent: true,
                 depthWrite: false,
@@ -703,7 +706,7 @@
                 transparent: true, depthWrite: false,
                 uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color('#5aa9ff') }, uAlpha: { value: 1 } },
                 vertexShader: 'varying vec3 vN; varying vec3 vV; void main() { vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }',
-                fragmentShader: 'uniform vec3 uColor; uniform float uTime; uniform float uAlpha; varying vec3 vN; varying vec3 vV; void main() { float f = 1.0 - abs(dot(normalize(vN), normalize(vV))); float rim = pow(f, 2.2); float pulse = 0.85 + 0.15 * sin(uTime * 2.5); gl_FragColor = vec4(mix(uColor, vec3(0.9, 0.96, 1.0), rim * 0.6), (0.10 + 0.55 * rim) * pulse * uAlpha); }'
+                fragmentShader: 'uniform vec3 uColor; uniform float uTime; uniform float uAlpha; varying vec3 vN; varying vec3 vV; void main() { float f = 1.0 - abs(dot(normalize(vN), normalize(vV))); float rim = pow(f, 2.2); float pulse = 0.85 + 0.15 * sin(uTime * 2.5); gl_FragColor = vec4(mix(uColor, vec3(0.9, 0.96, 1.0), rim * 0.6), (0.10 + 0.55 * rim) * pulse * uAlpha);\n#include <tonemapping_fragment>\n#include <encodings_fragment>\n}'
             });
             const m = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), mat);
             m.scale.set(0.85, 1.05, 0.85);

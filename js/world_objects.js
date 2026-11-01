@@ -492,13 +492,6 @@
                             o.castShadow = true;
                             o.receiveShadow = true;
                             o.frustumCulled = false;
-                            if (o.material) {
-                                const mats = Array.isArray(o.material) ? o.material : [o.material];
-                                mats.forEach(m => {
-                                    // Lirael's rig needs linear maps; creature-style models (no 'Talk' clip) keep sRGB like the creatures
-                                    if (m.map && (gltf.animations || []).some(a => a.name === 'Talk')) m.map.encoding = THREE.LinearEncoding;
-                                });
-                            }
                         }
                     });
                     model.position.y = -box.min.y * k;

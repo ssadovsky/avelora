@@ -59,7 +59,9 @@
             vec3 col = mix(vec3(1.0, 0.93, 0.62), vec3(1.0, 0.46, 0.08), smoothstep(0.0, 0.5, vAge));
             col = mix(col, vec3(0.65, 0.13, 0.02), smoothstep(0.5, 1.0, vAge));
             float a = soft * smoothstep(0.0, 0.08, vAge) * (1.0 - smoothstep(0.55, 1.0, vAge)) * 0.85;
-            gl_FragColor = vec4(col, a);
+            gl_FragColor = sRGBToLinear(vec4(col, a));
+            #include <tonemapping_fragment>
+            #include <encodings_fragment>
         }`;
     const FRAG_EMBER = `
         varying float vAge;
@@ -72,7 +74,9 @@
             vec3 col = mix(vec3(1.0, 0.85, 0.45), vec3(1.0, 0.35, 0.05), vAge);
             float tw = 0.6 + 0.4 * sin(vAge * 40.0 + vSeed * 50.0);
             float a = soft * tw * smoothstep(0.0, 0.05, vAge) * (1.0 - smoothstep(0.4, 1.0, vAge));
-            gl_FragColor = vec4(col, a);
+            gl_FragColor = sRGBToLinear(vec4(col, a));
+            #include <tonemapping_fragment>
+            #include <encodings_fragment>
         }`;
     const FRAG_SMOKE = `
         varying float vAge;
@@ -84,7 +88,9 @@
             float soft = 1.0 - d; soft = soft * soft * (3.0 - 2.0 * soft);
             float shade = 0.36 + 0.14 * fract(vSeed * 9.7);
             float a = soft * smoothstep(0.0, 0.18, vAge) * (1.0 - smoothstep(0.35, 1.0, vAge)) * 0.17;
-            gl_FragColor = vec4(vec3(shade), a);
+            gl_FragColor = sRGBToLinear(vec4(vec3(shade), a));
+            #include <tonemapping_fragment>
+            #include <encodings_fragment>
         }`;
 
     class AveloraFire {

@@ -100,6 +100,7 @@
 // ToneMapping
 this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
 this.renderer.toneMappingExposure = 1.05;
+this.renderer.outputEncoding = THREE.sRGBEncoding;
 
 // Ambient (полусфера)
 const hemiLight = new THREE.HemisphereLight(
@@ -118,20 +119,16 @@ this.sunLight = new THREE.DirectionalLight(0xfff5e6, 0.85); // 0.85, НЕ 1.45
 - **`hemi intensity = 1.8`** — поднимает даже очень тёмных животных (крысы, вепрь) в видимый диапазон.
 - **`sun intensity = 0.85`** вместо оригинальных `1.45` — убирает «слепит с одной стороны», тени мягкие.
 - **Убраны**: `_buildEnvMap()`, `PMREMGenerator`, `fillLight` — вызывали тормоза (IBL для тысяч объектов).
+- **Вывод цвета**: `renderer.outputEncoding = THREE.sRGBEncoding`. GLTFLoader декодирует baseColor карты GLB в линейное пространство, а рендерер кодирует финальный цвет для экрана. Это не настройка оптимизации и не повод менять пиксели baseColor.
+- **Собственные шейдеры**: цветовые текстуры, читаемые через raw sampler uniforms (например, splat-шейдер `terrain.js`), явно декодируются через `sRGBToLinear`; scalar/data maps (normal, roughness, metallic, AO, маски) не перекодируются. ShaderMaterial должен включать `encodings_pars_fragment` и `encodings_fragment` на выходе.
 
-## 8. Цвета GLB-персонажей и существ — правила (зафиксировано 2026-10-03)
+## 8. Цвета GLB-персонажей и существ
 
-### Два типа GLB в проекте и их различия
-
-| Тип | Источник | Пиксели baseColor | Поведение |
-|---|---|---|---|
-| **Meshy AI biped → Blender** | Маг, минотавр, воин | Тёмные (~40–65/255) | При `sRGBEncoding` (`v^2.2`) = почти чёрный. Нужен `LinearEncoding`. |
-| **Meshy AI texture** | Фавн, барсук, волк, крыса, вепрь, Яша | Нормальные (~75–125/255) | `sRGBEncoding` работает правильно. `LinearEncoding` выбеляет! |
-
-### Правило применения LinearEncoding
-- **`js/character.js`** — `m.map.encoding = THREE.LinearEncoding` применяется к персонажам игрока (маг, воин). Это обходит двойную гамму для тёмных Blender-biped текстур.
-- **`js/world_objects.js`** — то же для NPC (Лираэль и будущие NPC через `attachNpcModel`).
-- **`js/creatures.js`** — **НЕ** применять `LinearEncoding` для всех существ: Meshy AI texture GLBs (фавн, барсук, крыса, вепрь) выбелятся. Для существ из Blender-biped (минотавр и подобные) — чинить прямо в GLB (см. ниже).
+### Единый цветовой путь
+- BaseColor/albedo/emissive color textures — `sRGBEncoding`; числовые карты данных (normal, roughness, metallic, AO) — линейные.
+- Не назначать `THREE.LinearEncoding` на GLTF `material.map` ради осветления/затемнения отдельных персонажей. GLTFLoader назначает sRGB baseColor, а renderer кодирует итог через `THREE.sRGBEncoding`.
+- Не применять яркость/гамму к текстурам модели, чтобы компенсировать настройки рендерера. Если конкретный GLB остаётся неверным, сначала проверить его PBR factors, карту и экспорт.
+- Для текстур, сэмплируемых собственным GLSL-кодом через `uniform sampler2D`, GLTFLoader/стандартный материал не вставляют декодер автоматически: baseColor сэмплы переводить в linear до смешивания; карты данных не менять.
 
 ### metallicFactor в новых GLB (ОБЯЗАТЕЛЬНО проверять)
 - **Meshy AI biped GLBs** по умолчанию имеют `metallicFactor = 1.0` (без явного значения = 1.0 по glTF).
@@ -146,8 +143,8 @@ this.sunLight = new THREE.DirectionalLight(0xfff5e6, 0.85); // 0.85, НЕ 1.45
 - `python temp_work/fix_glb_material.py <glb> key=val ...` — правит PBR-параметры в JSON-чанке GLB (не трогает текстуры). Используй для `metallicFactor`, `roughnessFactor`, `doubleSided` и т.д.
 - `python temp_work/fix_glb_gamma.py <glb>` — применяет гамма-коррекцию 0.45 к baseColor текстуре. Нужен только если Blender-biped GLB остаётся тёмным даже после metallicFactor=0 (встречается редко).
 
-### Почему крысы, медведь и вепрь тёмные — это нормально
-Meshy AI texture GLBs этих животных имеют пиксели baseColor в диапазоне 37–65/255. Это их реальный цвет (тёмно-серые крысы, тёмно-бурый вепрь). Цвет корректен, просто природно тёмные животные. Поднять их яркость без искажения цвета можно только через более сильный ambient (hemi intensity).
+### Тёмный вид модели
+Не делать вывод по диапазону значений пикселей отдельно от color-space. Оценивать GLB в игровом sRGB-пути и проверять материал, освещение и metallicFactor. Настройка ambient применяется к целой сцене, а не как компенсация конкретному мешу.
 
 ## 9. Стандарты мобильной верстки и адаптивности Android TWA / WebView (зафиксировано 2026-10-05)
 

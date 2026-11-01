@@ -35,6 +35,7 @@
         c.width = c.height = size;
         draw(c.getContext('2d'), size);
         const t = new THREE.CanvasTexture(c);
+        if (THREE.sRGBEncoding !== undefined) t.encoding = THREE.sRGBEncoding;
         t.anisotropy = 4;
         t.needsUpdate = true;
         return t;
@@ -148,6 +149,8 @@
             float a = fall * rays * uAlpha;
             vec3 col = mix(uColor, uCore, fall * 0.6);
             gl_FragColor = vec4(col, a);
+            #include <tonemapping_fragment>
+            #include <encodings_fragment>
         }`;
 
     const SPARK_VERT = `
@@ -178,6 +181,8 @@
                         + max(0.0, 1.0 - abs(c.y) * 14.0) * max(0.0, 1.0 - abs(c.x) * 2.2);
             float a = (soft + cross * 0.6) * vA;
             gl_FragColor = vec4(mix(uColor, uCore, soft), a);
+            #include <tonemapping_fragment>
+            #include <encodings_fragment>
         }`;
 
     const SPARK_COUNT = 70;

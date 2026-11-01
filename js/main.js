@@ -173,6 +173,10 @@ class AveloraGame {
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 1.05;
+        // GLTFLoader assigns sRGB to color maps. Keep renderer output in the
+        // matching display space so imported PBR assets render without per-mesh
+        // gamma overrides. Custom shaders convert their own color samples.
+        this.renderer.outputEncoding = THREE.sRGBEncoding;
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.container.appendChild(this.renderer.domElement);
@@ -419,8 +423,13 @@ class AveloraGame {
                             child.castShadow = true;
                             child.receiveShadow = true;
                             if (child.material) {
-                                child.material.roughness = Math.max(0.35, child.material.roughness || 0.6);
-                                child.material.metalness = Math.min(0.2, child.material.metalness || 0.0);
+                                if (charConfig.id === 'warrior') {
+                                    const mats = Array.isArray(child.material) ? child.material : [child.material];
+                                    mats.forEach(mat => {
+                                        mat.roughness = 0.8;
+                                        mat.metalness = 0.05;
+                                    });
+                                }
                             }
                         }
                     });
@@ -1442,6 +1451,8 @@ class AveloraGame {
                 void main() {
                     float h = normalize(vWorldPosition + offset).y;
                     gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+                    #include <tonemapping_fragment>
+                    #include <encodings_fragment>
                 }
             `,
             side: THREE.BackSide,
@@ -1540,9 +1551,12 @@ class AveloraGame {
                 rp.needsUpdate = true;
             }
             const ringMat = new THREE.MeshBasicMaterial({
-                color: colorHex, transparent: true, opacity: 0.55,
+                color: colorHex, transparent: true, opacity: 0.16,
                 depthWrite: false, blending: THREE.AdditiveBlending
             });
+            // Exit colors are authored as sRGB hex values; the shader pipeline
+            // expects material colors in linear space before display encoding.
+            ringMat.color.convertSRGBToLinear();
             const ring = new THREE.Mesh(ringGeo, ringMat);
             if (!ex.noRing) group.add(ring);   // noRing: без белого кольца на полу (портал в тумане)
 
@@ -1552,7 +1566,7 @@ class AveloraGame {
             const pillarGeo = new THREE.CylinderGeometry(radius * 0.9, radius * 0.9, pHeight + pDown, 40, 1, true);
             pillarGeo.translate(0, (pHeight - pDown) * 0.5, 0);
             const pillarMat = new THREE.ShaderMaterial({
-                uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(colorHex) } },
+                uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(colorHex).convertSRGBToLinear() } },
                 vertexShader: `
                     varying float vH;
                     void main() {
@@ -1566,8 +1580,11 @@ class AveloraGame {
                     void main() {
                         float a = (1.0 - vH) * (1.0 - vH) * (0.22 + 0.08 * sin(uTime * 2.0));
                         gl_FragColor = vec4(uColor, a);
+                        #include <tonemapping_fragment>
+                        #include <encodings_fragment>
                     }`,
                 transparent: true,
+                toneMapped: false,
                 depthWrite: false,
                 side: THREE.DoubleSide,
                 blending: THREE.AdditiveBlending
@@ -1701,7 +1718,7 @@ class AveloraGame {
             if (ex.disabled) continue;
             // Pulse (game time => frozen on pause)
             ex.pillarMat.uniforms.uTime.value = this.gameTime;
-            ex.ring.material.opacity = 0.45 + Math.sin(this.gameTime * 2.4) * 0.15;
+            ex.ring.material.opacity = 0.12 + Math.sin(this.gameTime * 2.4) * 0.04;
             if (ex.group.userData.fogPlanes) ex.group.userData.fogPlanes.forEach((pl, k) => { pl.material.opacity = pl.userData.base * (0.9 + 0.1 * Math.sin(this.gameTime * 0.7 + k * 1.7)); });
             if (ex.data.under) { const ec = this.cellars && this.cellars.find(c => c.cfg && c.cfg.id === ex.data.under); if (!ec || !ec.below) { ex.armed = false; continue; } }
             if (ex.data.track && !ex.data.under && this.terrain && this.terrain.getHeightAt) { ex.y = this.terrain.getHeightAt(ex.data.x, ex.data.z) + 0.06; ex.group.position.y = ex.y; }
@@ -3631,7 +3648,9 @@ class AveloraGame {
                 '  float r = length(d) * 1.45;',
                 '  float a = smoothstep(0.55, 1.15, r);',
                 '  vec3 col = mix(vec3(0.07, 0.055, 0.04), vec3(0.03, 0.024, 0.016), a);',
-                '  gl_FragColor = vec4(col, a * 0.55);',
+                '  gl_FragColor = sRGBToLinear(vec4(col, a * 0.55));',
+                '  #include <tonemapping_fragment>',
+                '  #include <encodings_fragment>',
                 '}'
             ].join('\n')
         });
