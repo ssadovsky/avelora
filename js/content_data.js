@@ -526,8 +526,8 @@ window.GAME_CONTENT = {
    },
    "weapon": {
     "damage": [
-     5,
-     10
+     6,
+     12
     ],
     "range": 20,
     "cooldown": 0.9,
@@ -1314,7 +1314,7 @@ window.GAME_CONTENT = {
   },
   "staff": {
    "id": "staff",
-   "name": "Посох",
+   "name": "Простой посох",
    "description": "Узловатый посох странника с кристаллом в навершии. Берётся в правую руку; обычная атака — сгусток магии по цели (клик по врагу), урон от Интеллекта.",
    "category": "weapon",
    "stackMax": 1,
@@ -1345,8 +1345,8 @@ window.GAME_CONTENT = {
    },
    "weapon": {
     "damage": [
-     5,
-     10
+     3,
+     6
     ],
     "range": 20,
     "cooldown": 0.9,
@@ -7855,6 +7855,7 @@ window.GAME_CONTENT = {
    "id": "sv_hyenas",
    "name": "Гиены у Врат",
    "giver": "lizard_hermit",
+   "requires": "portal_boar",
    "summary": "Убей 4 гиен на западных лугах между порталом и озером.",
    "objective": {
     "type": "kill",
@@ -7862,8 +7863,8 @@ window.GAME_CONTENT = {
     "count": 4
    },
    "reward": {
-    "gold": 20,
-    "xp": 150
+    "gold": 120,
+    "xp": 1500
    },
    "dialog": {
     "offer": "Гиены у Врат совсем обнаглели: шастают по тропе и пугают путников. Прогони четверых, остальные поймут.",

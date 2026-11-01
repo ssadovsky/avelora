@@ -31,8 +31,8 @@
   },
   "weapon": {
     "damage": [
-      5,
-      10
+      6,
+      12
     ],
     "range": 20,
     "cooldown": 0.9,
