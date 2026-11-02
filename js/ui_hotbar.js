@@ -6,7 +6,7 @@
  * character's state (game_state.js). Nothing here pauses the game.
  *
  * HOTBAR RULES (the bar is for ACTIONS):
- *   - 12 slots on each page; page 1 uses 1..9,0,-,. and page 2 uses Alt+Q..C.
+ *   - 12 slots on each page; page 1 uses 1..5, Alt+E, Alt+R, Alt+S, Alt+X, Alt+A, -, . and page 2 uses Alt+Q, Alt+W, 6, 7, 0, 8, Alt+Z, 9, Alt+C.
  *   - skills: always allowed (only the character's own).
  *   - items: only if the def has a non-null `use` (tools/consumables). Materials
  *     are rejected with a red flash + "Нельзя: у предмета нет действия".
@@ -29,8 +29,8 @@
     const DRAG_THRESHOLD = 6;      // px before a press becomes a drag
     const FLOAT_LIFE = 1.5;        // seconds (game time) a floating "+5 Камень" lives
     const PAGE_SIZE = 12;
-    const KEY_LABELS_PAGE1 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '.'];
-    const KEY_LABELS_PAGE2 = ['A+Q', 'A+W', 'A+E', 'A+R', 'A+A', 'A+S', 'A+Z', 'A+X', 'A+C', '', '', ''];
+    const KEY_LABELS_PAGE1 = ['1', '2', '3', '4', '5', 'A+E', 'A+R', 'A+S', 'A+X', 'A+A', '-', '.'];
+    const KEY_LABELS_PAGE2 = ['A+Q', 'A+W', '6', '7', '0', '8', 'A+Z', '9', 'A+C', '', '', ''];
     const KEY_LABELS = KEY_LABELS_PAGE1;
 
     function hueOf(str) {
@@ -3010,17 +3010,17 @@
                 const ae = document.activeElement;
                 if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)) return;
 
-                // 1. Вторая панель: Alt + Q, W, E, R, A, S, Z, X, C
+                // 1. Горячие клавиши с Alt (Alt + Q, W, Z, C на второй панели; Alt + E, R, A, S, X на верхней панели)
                 if (e.altKey) {
                     let altSlot = -1;
                     if (e.code === 'KeyQ') altSlot = 12;
                     else if (e.code === 'KeyW') altSlot = 13;
-                    else if (e.code === 'KeyE') altSlot = 14;
-                    else if (e.code === 'KeyR') altSlot = 15;
-                    else if (e.code === 'KeyA') altSlot = 16;
-                    else if (e.code === 'KeyS') altSlot = 17;
+                    else if (e.code === 'KeyE') altSlot = 5;   // верхняя панель (вместо 6)
+                    else if (e.code === 'KeyR') altSlot = 6;   // верхняя панель (вместо 7)
+                    else if (e.code === 'KeyA') altSlot = 9;   // верхняя панель (вместо 0)
+                    else if (e.code === 'KeyS') altSlot = 7;   // верхняя панель (вместо 8)
                     else if (e.code === 'KeyZ') altSlot = 18;
-                    else if (e.code === 'KeyX') altSlot = 19;
+                    else if (e.code === 'KeyX') altSlot = 8;   // верхняя панель (вместо 9)
                     else if (e.code === 'KeyC') altSlot = 20;
 
                     if (altSlot !== -1) {
@@ -3055,12 +3055,22 @@
                     if (e.code === 'ArrowDown') { e.preventDefault(); this.nextPage(); return; }
                 }
 
-                // 4. Первая панель: Digit 1..0
-                if (!e.altKey && !e.ctrlKey && !e.metaKey) {
-                    const m = /^Digit([0-9])$/.exec(e.code);
+                // 4. Цифры 1..0 (1..5 на верхней панели; 6, 7, 8, 9, 0 на второй панели)
+                if (!e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+                    const m = /^(?:Digit|Numpad)([0-9])$/.exec(e.code);
                     if (m) {
                         const d = parseInt(m[1], 10);
-                        this.activateSlot(d === 0 ? 9 : d - 1);
+                        let targetSlot;
+                        if (d === 0) targetSlot = 16;      // вторая панель (вместо Alt+A)
+                        else if (d === 6) targetSlot = 14; // вторая панель (вместо Alt+E)
+                        else if (d === 7) targetSlot = 15; // вторая панель (вместо Alt+R)
+                        else if (d === 8) targetSlot = 17; // вторая панель (вместо Alt+S)
+                        else if (d === 9) targetSlot = 19; // вторая панель (вместо Alt+X)
+                        else targetSlot = d - 1;
+
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.activateSlot(targetSlot);
                         return;
                     }
                 }
