@@ -414,6 +414,8 @@ class AveloraGame {
                     }
 
                     const model = gltf.scene;
+                    if (window.AveloraColor) window.AveloraColor.srgb(model, 1.0);
+                    if (classId === 'mage' && window.AveloraColor) window.AveloraColor.liftNavyFabric(model);
                     const scale = charConfig.scale || 1.0;
                     model.scale.set(scale, scale, scale);
                     model.position.set(-0.35, 0, 0);
@@ -428,7 +430,7 @@ class AveloraGame {
                             child.receiveShadow = true;
                             if (child.material) {
                                 child.material.roughness = Math.max(0.35, child.material.roughness || 0.6);
-                                child.material.metalness = Math.min(0.2, child.material.metalness || 0.0);
+                                child.material.metalness = 0.0;
                             }
                         }
                     });

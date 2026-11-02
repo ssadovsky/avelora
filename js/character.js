@@ -202,6 +202,8 @@ class MedievalCharacter {
 
         loader.parse(buffer, '', (gltf) => {
             this.mesh = gltf.scene;
+            if (window.AveloraColor) window.AveloraColor.srgb(this.mesh, 1.0);
+            if (this.config.id === 'mage' && window.AveloraColor) window.AveloraColor.liftNavyFabric(this.mesh);
 
             // Character scale & initial orientation
             const s = this.config.scale || 1.0;
@@ -217,11 +219,13 @@ class MedievalCharacter {
                     child.castShadow = true;
                     child.receiveShadow = true;
                     if (child.material) {
-                        const mats = Array.isArray(child.material) ? child.material : [child.material];
-                        mats.forEach(m => {
-                            if (m.map) m.map.encoding = THREE.LinearEncoding;
-                        });
-                        // Только воину задаем принудительную матовость; у мага и Ариссы сохраняем родной PBR
+                        // Магу и Ариссе задаём те же ограничения PBR, что в превью выбора персонажа:
+                        // у glTF без metallicFactor значение по умолчанию = 1, из-за чего синяя ткань темнеет.
+                        if (this.config.id === 'mage' || this.config.id === 'archer') {
+                            child.material.roughness = Math.max(0.35, child.material.roughness || 0.6);
+                            child.material.metalness = 0.0;
+                        }
+                        // Воину оставляем отдельную настройку матовости.
                         if (this.config.id === 'warrior') {
                             child.material.roughness = 0.8;
                             child.material.metalness = 0.05;

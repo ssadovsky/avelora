@@ -40,10 +40,43 @@
         'sawmill'   // = модель props/woodshed (отдельный id для построек), старый режим
     ]);
 
-    function mark(m) {
+    function mark(m, gain = GAIN) {
         if (!m || (m.defines && m.defines.AV_SRGB !== undefined)) return;
-        m.defines = Object.assign({}, m.defines, { AV_SRGB: '', AV_GAIN: GAIN.toFixed(3) });
+        m.defines = Object.assign({}, m.defines, { AV_SRGB: '', AV_GAIN: gain.toFixed(3) });
         m.needsUpdate = true;
+    }
+
+    // AzureArchmage has one atlas/material for skin, gold trim and navy cloth.
+    // Lift navy base-color texels by hue (not brightness), so the robe pattern keeps its contrast.
+    function liftNavyFabric(root, factor = 3.0) {
+        if (!root) return root;
+        const apply = m => {
+            if (!m || m.userData.aveloraNavyFabricLift) return;
+            m.userData.aveloraNavyFabricLift = factor;
+            const previousCompile = m.onBeforeCompile;
+            m.onBeforeCompile = function (shader, renderer) {
+                if (previousCompile) previousCompile.call(this, shader, renderer);
+                const token = '#include <map_fragment>';
+                if (!shader.fragmentShader.includes(token)) return;
+                const boost = Number(factor).toFixed(2);
+                shader.fragmentShader = shader.fragmentShader.replace(token, `${token}
+                    float avNavyRG = max(diffuseColor.r, diffuseColor.g);
+                    float avNavyRatio = diffuseColor.b / max(avNavyRG, 0.003);
+                    float avNavyMask = smoothstep(1.35, 2.15, avNavyRatio);
+                    diffuseColor.rgb *= mix(1.0, ${boost}, avNavyMask);`);
+            };
+            const previousKey = m.customProgramCacheKey;
+            m.customProgramCacheKey = function () {
+                return `${previousKey ? previousKey.call(this) : ''}|avelora-navy-fabric-${factor}`;
+            };
+            m.needsUpdate = true;
+        };
+        if (root.isMaterial) apply(root);
+        else root.traverse(o => {
+            if (!o.material) return;
+            (Array.isArray(o.material) ? o.material : [o.material]).forEach(apply);
+        });
+        return root;
     }
 
     window.AveloraColor = {
@@ -51,14 +84,15 @@
         LEGACY_PROPS,
         isLegacyProp(id) { return LEGACY_PROPS.has(id); },
         srgbMaterial: mark,
-        srgb(root) {
+        srgb(root, gain = GAIN) {
             if (!root) return root;
-            if (root.isMaterial) { mark(root); return root; }
+            if (root.isMaterial) { mark(root, gain); return root; }
             root.traverse(o => {
                 if (!o.material) return;
-                (Array.isArray(o.material) ? o.material : [o.material]).forEach(mark);
+                (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => mark(m, gain));
             });
             return root;
-        }
+        },
+        liftNavyFabric
     };
 })();
