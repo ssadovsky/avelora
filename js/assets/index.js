@@ -77,6 +77,7 @@ window.AVELORA_ASSET_INDEX = {
   "ore_boulder_a": ["m/ore_boulder_a.js", "590b8dd475"],
   "ore_boulder_b": ["m/ore_boulder_b.js", "3309ce187b"],
   "props/anvil": ["m/props__anvil.js", "8c296e08dd"],
+  "props/azure_starwatch_tower": ["m/props__azure_starwatch_tower.js", "f3258cd5de"],
   "props/blue_horseshoe_stable": ["m/props__blue_horseshoe_stable.js", "7592763065"],
   "props/campfire": ["m/props__campfire.js", "8af39b4f43"],
   "props/chest": ["m/props__chest.js", "0ec9dbe92a"],

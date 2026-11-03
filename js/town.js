@@ -283,11 +283,18 @@
             return t;
         };
         const ms = imgTex('townMeshStone'), mp = imgTex('townMeshPlinth', 6.29), mw = imgTex('townMeshWindow', 0, true), md = imgTex('townMeshDoor', 0, true), mb = imgTex('townMeshBeam', 6.125);
-        M.mstone = ms ? std(ms, null, { roughness: 0.92 }) : M.stone;
-        M.mplinth = mp ? std(mp, null, { roughness: 0.9 }) : M.stone;
+        const mws = imgTex('townWallStone', 0.4831, true);   // кирпич+цоколь, снятые с нижней части башен ворот; по длине бесшовный (период 1.667 м)
+        M.mstone = ms ? std(ms, T.stone.bump, { roughness: 0.92, bumpScale: 1.4 }) : M.stone;
+        M.mplinth = mp ? std(mp, T.stone.bump, { roughness: 0.9,  bumpScale: 1.0 }) : M.stone;
         M.mbeam = mb ? std(mb, null, { roughness: 0.85 }) : M.wood;
         M.mdoor = md ? new THREE.MeshStandardMaterial({ map: md, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x2a1806, emissiveMap: md, emissiveIntensity: 0.25 }) : M.wood;
         M.mwin = mw ? new THREE.MeshStandardMaterial({ map: mw, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x3a2508, emissiveMap: mw, emissiveIntensity: 0.35 }) : M.glass;
+        // Стена: тот же камень, что у башен (sRGB-режим, как у GLB ворот и башни)
+        M.wallstone = mws ? new THREE.MeshStandardMaterial({ map: mws, roughness: 0.9, metalness: 0, vertexColors: true }) : M.mstone;
+        // верх стены: тот же кирпич, но с повтором по обеим осям (боковая текстура на верхней грани тянется полосами)
+        const mwc = imgTex('townWallCap');
+        M.wallcap = mwc ? new THREE.MeshStandardMaterial({ map: mwc, roughness: 0.9, metalness: 0, vertexColors: true }) : M.mstone;
+        if (mws && window.AveloraColor) { window.AveloraColor.srgb(M.wallstone); window.AveloraColor.srgb(M.wallcap); }
         return SHARED;
     }
     function releaseMaterials() {
@@ -1118,8 +1125,29 @@
         return { rects, platform: null, w: 2 * HO + 2, d: 2 * ZF + 6, h: 19.5 };
     }
 
-    const TYPES = { stoneHouse: buildStoneHouse, marbleTemple: buildMarbleTemple, tavern: buildTavern, runeGate: buildRuneGate, corral: buildCorral };
-    const CAMERA_BLOCK = { stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], corral: [] };
+    // ------------------------------------------------------------------ процедурная крепостная стена
+    /**
+     * buildCastleWall — ровная тонкая стена из модулей по 5 м (sections = число модулей).
+     * Без зубцов, контрфорсов и боевого хода: плоская плита, внизу цоколь — всё в текстуре (камень снят с низа башен ворот).
+     * Локальная ось z: 0..5*sections. UV считаются от начала стены и кратны периоду текстуры (1.667 м), поэтому
+     * модули стыкуются без швов, а несколько записей подряд (x/z кратно 5 м) тоже.
+     * Концы заходят внутрь башен (cfg.capS / capE, по умолчанию 0.7 м), низ заглублён в землю на 0.5 м.
+     */
+    function buildCastleWall(B, cfg) {
+        cfg = cfg || {};
+        const MOD = 5.0, N = Math.max(1, cfg.sections || 1), L = N * MOD;
+        const H = cfg.H || 3.4, T = cfg.T || 0.9, BURY = 0.5;
+        const capS = cfg.capS !== undefined ? cfg.capS : 0.7, capE = cfg.capE !== undefined ? cfg.capE : 0.7;
+        const z0 = -capS, z1 = L + capE;
+        // uv:1.2 -> период текстуры по длине 2/1.2 = 1.667 м (3 тайла на модуль)
+        B.box('wallstone', 0, (H - BURY) / 2, (z0 + z1) / 2, T, H + BURY, z1 - z0, { uv: 1.2 });
+        B.box('wallcap', 0, H + 0.01, (z0 + z1) / 2, T, 0.02, z1 - z0, { uv: 1.2 });   // плоский верх
+        const th = T / 2 + 0.3;      // барьер чуть шире стены
+        return { rects: [{ x0: -th, x1: th, z0: z0, z1: z1 }], platform: null, w: T, d: z1 - z0, h: H, length: L, sections: N };
+    }
+
+    const TYPES = { stoneHouse: buildStoneHouse, marbleTemple: buildMarbleTemple, tavern: buildTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall };
+    const CAMERA_BLOCK = { stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], corral: [], castleWall: ['wallstone', 'wallcap'] };
 
     // ------------------------------------------------------------------ менеджер локации
     class AveloraTown {
@@ -1144,6 +1172,15 @@
             for (const b of (cfg.buildings || [])) {
                 let dims, cx = b.x, cz = b.z;
                 if (b.type === 'tavern') { dims = 13.6; cx += 0.7 * Math.sin(b.r || 0); cz += 0.7 * Math.cos(b.r || 0); }   // терраса смещена вперёд от начала здания
+                else if (b.type === 'castleWall') {
+                    const N = b.sections || 1;
+                    const wLen = N * 5.0;
+                    if (b.align !== 'center') {
+                        cx += (wLen / 2) * Math.sin(b.r || 0);
+                        cz += (wLen / 2) * Math.cos(b.r || 0);
+                    }
+                    dims = wLen / 2 + 1.5;
+                }
                 else dims = b.type === 'marbleTemple' ? Math.hypot((b.HX || 3.9) + 0.8, (b.HZ || 5.0) + 0.8) : Math.hypot((b.W || 8.2) / 2 + 1, (b.D || 6.2) / 2 + 1);
                 if (b.type === 'corral') dims = Math.hypot((b.W || 14) / 2 + 1, (b.D || 11) / 2 + 1);
                 if (b.type === 'runeGate') dims = 12;     // площадку выравнивает плаза подвала (cellar.js), здесь только чистим траву
@@ -1222,6 +1259,6 @@
     }
 
     // для headless-теста без игры
-    AveloraTown._internals = { Builder, TYPES, sharedMaterials, buildStoneHouse, buildMarbleTemple, buildTavern, buildRuneGate };
+    AveloraTown._internals = { Builder, TYPES, sharedMaterials, buildStoneHouse, buildMarbleTemple, buildTavern, buildRuneGate, buildCastleWall };
     window.AveloraTown = AveloraTown;
 })();

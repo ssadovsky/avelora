@@ -1406,6 +1406,11 @@ window.LOCATIONS = {
                 // процедурные врата (type 'runeGate') заменены моделью props rune_chapel; для отката — вернуть строку:
                 // загон конюшни (town.js corral): южнее конюшни, проход на запад к поперечной дороге; W — вдоль z (с севера на юг), D — вдоль x
                 { id: 'rl_corral', type: 'corral', x: 69.75, z: 35.5, r: -Math.PI / 2, W: 14, D: 11 },
+                // Городская стена (town.js castleWall): 8 модулей по 5 м = 40 м, тонкая плоская; концы заходят в тело башен.
+                // Идёт строго на запад (z=50) от западной башни ворот (x≈51.7) до дозорной башни (x=10.8).
+                { id: 'rl_wall_gate_to_tower', type: 'castleWall', x: 51.3, z: 50.0, r: -Math.PI / 2, sections: 8 },
+                // Продолжение стены на восток: от восточной башни ворот (x≈61.3) до x≈81, 4 модуля по 5 м; восточный конец свободный
+                { id: 'rl_wall_gate_east', type: 'castleWall', x: 61.2, z: 50.0, r: Math.PI / 2, sections: 4, capS: 0.7, capE: 0.0 },
                 // { id: 'rl_rune_gate', type: 'runeGate', x: 69.0, z: 0.0, r: -Math.PI / 2 }
             ]
         },
@@ -1417,6 +1422,8 @@ window.LOCATIONS = {
         props: [
             // Южные городские ворота. Фасад на юг, проход открыт; препятствия только на башнях.
             { id: 'runeLands.starlit_castle_gate', prop: 'starlit_castle_gate', x: 56.5, z: 50.0, r: Math.PI, s: 7.0 },
+            // Дозорная башня (Meshy Azure Starwatch Tower): стоит на земле в конце стены (западный конец, 40 м от ворот)
+            { id: 'runeLands.starwatch_tower_1', prop: 'azure_starwatch_tower', x: 10.8, z: 50.0, r: 0, s: 7.0 },
             // «Рунные врата»: Meshy-часовня над входом в старый подвал (cellars[0], x65 z16); дверь на запад, неф — над траншеей, колокольня в глубине
             { id: 'runeLands.rune_chapel', prop: 'rune_chapel', x: 65.0, z: 0.0, r: -Math.PI / 2, dy: -0.08, over: 'oldCellar' },
             // «Старинный дом с синими крышами» (Meshy Moonlit Hearth Cottage, S=9.5, 90k тр.): фасадом на запад к поперечной дороге (ось x=57.1),

@@ -1,0 +1,9 @@
+{
+  "id": "azure_starwatch_tower",
+  "name": "Дозорная башня со шпилем",
+  "obstacle": 0,
+  "cameraBlock": true,
+  "obstacleShapes": [
+    { "type": "polygon", "padding": 0.02, "points": [[-0.24, -0.24], [0.24, -0.24], [0.24, 0.24], [-0.24, 0.24]] }
+  ]
+}

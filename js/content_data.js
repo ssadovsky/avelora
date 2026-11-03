@@ -1475,6 +1475,37 @@ window.GAME_CONTENT = {
    "obstacle": 0.55,
    "modelKey": "props/anvil"
   },
+  "azure_starwatch_tower": {
+   "id": "azure_starwatch_tower",
+   "name": "Дозорная башня со шпилем",
+   "obstacle": 0,
+   "cameraBlock": true,
+   "obstacleShapes": [
+    {
+     "type": "polygon",
+     "padding": 0.02,
+     "points": [
+      [
+       -0.24,
+       -0.24
+      ],
+      [
+       0.24,
+       -0.24
+      ],
+      [
+       0.24,
+       0.24
+      ],
+      [
+       -0.24,
+       0.24
+      ]
+     ]
+    }
+   ],
+   "modelKey": "props/azure_starwatch_tower"
+  },
   "blue_horseshoe_stable": {
    "id": "blue_horseshoe_stable",
    "name": "Конюшня «Синяя подкова»",
@@ -2156,6 +2187,7 @@ window.GAME_CONTENT = {
    "id": "starlit_castle_gate",
    "name": "Южные городские ворота",
    "obstacle": 0,
+   "cameraBlock": true,
    "obstacleShapes": [
     {
      "type": "polygon",
