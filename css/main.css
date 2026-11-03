@@ -4530,7 +4530,8 @@
             pointer-events: auto !important;
             z-index: 310 !important;
         }
-        body.touch-ui #micromenu-toggle-btn {
+        body.touch-ui #micromenu-toggle-btn,
+        body.touch-ui .skill-slot.micromenu-toggle {
             position: relative !important;
             top: 0 !important;
             left: 0 !important;
@@ -4866,16 +4867,16 @@
                 font-size: 0.8rem;
             }
             /* Mobile Top-Right System Dock (BDM/PWM style) - placed neatly in a single line */
-            #menu-btn {
+            .micromenu-container {
                 position: fixed !important;
                 top: max(env(safe-area-inset-top, 0px), 8px) !important;
                 right: calc(max(env(safe-area-inset-right, 0px), 10px) + 88px) !important;
                 width: 38px !important;
                 height: 38px !important;
-                border-radius: 50% !important;
-                z-index: 120 !important;
+                pointer-events: auto !important;
+                z-index: 310 !important;
             }
-            #inventory-btn {
+            #menu-btn {
                 position: fixed !important;
                 top: max(env(safe-area-inset-top, 0px), 8px) !important;
                 right: calc(max(env(safe-area-inset-right, 0px), 10px) + 132px) !important;
@@ -4884,16 +4885,17 @@
                 border-radius: 50% !important;
                 z-index: 120 !important;
             }
-            .micromenu-container {
+            #inventory-btn {
                 position: fixed !important;
                 top: max(env(safe-area-inset-top, 0px), 8px) !important;
                 right: calc(max(env(safe-area-inset-right, 0px), 10px) + 176px) !important;
                 width: 38px !important;
                 height: 38px !important;
-                pointer-events: auto !important;
-                z-index: 310 !important;
+                border-radius: 50% !important;
+                z-index: 120 !important;
             }
-            #micromenu-toggle-btn {
+            #micromenu-toggle-btn,
+            .skill-slot.micromenu-toggle {
                 position: relative !important;
                 top: 0 !important;
                 left: 0 !important;
@@ -4901,6 +4903,7 @@
                 bottom: auto !important;
                 width: 38px !important;
                 height: 38px !important;
+                border: none !important;
                 border-radius: 50% !important;
                 display: flex !important;
                 align-items: center !important;
@@ -6044,7 +6047,8 @@ body:not(.touch-ui) #target-frame .hp-text {
         right: calc(max(env(safe-area-inset-right, 0px), 14px) + 96px) !important;
         margin: 0 !important;
     }
-    body.touch-ui #micromenu-toggle-btn {
+    body.touch-ui #micromenu-toggle-btn,
+        body.touch-ui .skill-slot.micromenu-toggle {
         width: 40px !important;
         height: 40px !important;
     }
