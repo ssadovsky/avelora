@@ -19,8 +19,8 @@
     "path": "./android-upload.keystore",
     "alias": "upload"
   },
-  "appVersionCode": 3,
-  "appVersionName": "1.0.2",
+  "appVersionCode": 4,
+  "appVersionName": "1.0.3",
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://ssadovsky.github.io/avelora/js/manifest.json",

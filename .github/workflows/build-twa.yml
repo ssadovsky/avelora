@@ -84,6 +84,41 @@ jobs:
           printf '%.0s\n' {1..30} > /tmp/answers.txt
           bubblewrap update --manifest=./js/twa-manifest.json --skipVersionUpgrade < /tmp/answers.txt
 
+      - name: Patch Android styles for Display Cutout (One UI 9 / Android 15 edge-to-edge)
+        run: |
+          python3 - << 'EOF'
+          import os, re
+
+          cutout_item = '    <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>\n'
+          res_dir = 'app/src/main/res'
+          if os.path.isdir(res_dir):
+              for root, _, files in os.walk(res_dir):
+                  for f in files:
+                      if f.endswith('.xml') and ('style' in f or 'theme' in f):
+                          p = os.path.join(root, f)
+                          with open(p, 'r', encoding='utf-8') as fp:
+                              txt = fp.read()
+                          if 'windowLayoutInDisplayCutoutMode' not in txt:
+                              new_txt = re.sub(r'(<style[^>]*>)', r'\1\n' + cutout_item, txt)
+                              with open(p, 'w', encoding='utf-8') as fp:
+                                  fp.write(new_txt)
+                              print(f'Patched style file: {p}')
+
+          manifest_path = 'app/src/main/AndroidManifest.xml'
+          if os.path.isfile(manifest_path):
+              with open(manifest_path, 'r', encoding='utf-8') as fp:
+                  m_txt = fp.read()
+              if 'android:windowLayoutInDisplayCutoutMode' not in m_txt:
+                  m_txt = re.sub(
+                      r'(<activity\b[^>]*?)(\s*/?>)',
+                      r'\1\n            android:windowLayoutInDisplayCutoutMode="shortEdges"\2',
+                      m_txt
+                  )
+                  with open(manifest_path, 'w', encoding='utf-8') as fp:
+                      fp.write(m_txt)
+                  print('Patched AndroidManifest.xml')
+          EOF
+
       - name: Build signed APK and AAB
         env:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.BUBBLEWRAP_KEYSTORE_PASSWORD }}
