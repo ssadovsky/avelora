@@ -1,0 +1,28 @@
+{
+  "id": "ranger_jerkin",
+  "name": "Куртка следопыта",
+  "description": "Кожаная броня: носит только лучница.",
+  "category": "armor",
+  "quality": "rare",
+  "armorType": "leather",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "body"
+  },
+  "armor": 14,
+  "stats": {
+    "dex": 9,
+    "sta": 6
+  },
+  "requires": {
+    "level": 10
+  },
+  "value": 390,
+  "sellPrice": 195
+}

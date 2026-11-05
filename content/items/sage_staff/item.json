@@ -1,0 +1,53 @@
+{
+  "id": "sage_staff",
+  "name": "Посох мудреца",
+  "description": "Посох из тёмного дерева с синим кристаллом в навершии. Берётся в правую руку; обычная атака — сгусток магии по цели, урон от Интеллекта.",
+  "category": "weapon",
+  "quality": "rare",
+  "requires": {
+    "level": 10
+  },
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 1.0,
+    "pile": "single",
+    "rotation": [
+      1.5708,
+      0,
+      0
+    ],
+    "offsetY": 0.04
+  },
+  "use": {
+    "type": "equip",
+    "hand": "right"
+  },
+  "stats": {
+    "int": 14,
+    "sta": 5
+  },
+  "weapon": {
+    "damage": [
+      15,
+      24
+    ],
+    "range": 20,
+    "cooldown": 0.9,
+    "style": "staff",
+    "stat": "int"
+  },
+  "hold": {
+    "rotation": [
+      0.759,
+      1.381,
+      2.218
+    ]
+  },
+  "glow": {
+    "color": "#5f8bff",
+    "y": 0.66
+  },
+  "value": 250,
+  "sellPrice": 125
+}

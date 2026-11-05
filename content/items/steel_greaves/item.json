@@ -1,0 +1,28 @@
+{
+  "id": "steel_greaves",
+  "name": "Стальные сапоги",
+  "description": "Тяжёлые латы: носят только воины.",
+  "category": "armor",
+  "quality": "rare",
+  "armorType": "plate",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "feet"
+  },
+  "armor": 6,
+  "stats": {
+    "str": 2,
+    "sta": 1
+  },
+  "requires": {
+    "level": 5
+  },
+  "value": 77,
+  "sellPrice": 38
+}

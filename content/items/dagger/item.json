@@ -4,6 +4,7 @@
   "description": "Простой стальной кинжал. Быстрый, бьёт вблизи.",
   "category": "weapon",
   "quality": "common",
+  "weaponType": "dagger",
   "stackMax": 1,
   "ground": {
     "variants": 1,
@@ -52,4 +53,4 @@
       ]
     }
   }
-}
+}

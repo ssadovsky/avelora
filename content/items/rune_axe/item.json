@@ -1,0 +1,42 @@
+{
+  "id": "rune_axe",
+  "name": "Рунный топор",
+  "description": "Тяжёлая боевая секира с вырезанными рунами. Требует недюжинной силы. Урон от Силы.",
+  "category": "weapon",
+  "quality": "rare",
+  "weaponType": "axe",
+  "requires": {
+    "level": 10
+  },
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 1.25,
+    "pile": "single",
+    "rotation": [
+      1.5708,
+      0,
+      0
+    ],
+    "offsetY": 0.04
+  },
+  "use": {
+    "type": "equip",
+    "hand": "right"
+  },
+  "stats": {
+    "str": 11,
+    "sta": 7
+  },
+  "weapon": {
+    "damage": [
+      30,
+      46
+    ],
+    "range": 2.2,
+    "cooldown": 1.05,
+    "stat": "str"
+  },
+  "value": 260,
+  "sellPrice": 130
+}

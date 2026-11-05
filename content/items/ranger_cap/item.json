@@ -1,0 +1,28 @@
+{
+  "id": "ranger_cap",
+  "name": "Шапка следопыта",
+  "description": "Кожаная броня: носит только лучница.",
+  "category": "armor",
+  "quality": "rare",
+  "armorType": "leather",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "head"
+  },
+  "armor": 8,
+  "stats": {
+    "dex": 6,
+    "sta": 4
+  },
+  "requires": {
+    "level": 10
+  },
+  "value": 260,
+  "sellPrice": 130
+}

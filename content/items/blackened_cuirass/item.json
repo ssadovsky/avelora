@@ -1,0 +1,28 @@
+{
+  "id": "blackened_cuirass",
+  "name": "Чернёный нагрудник",
+  "description": "Тяжёлые латы: носят только воины.",
+  "category": "armor",
+  "quality": "rare",
+  "armorType": "plate",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "body"
+  },
+  "armor": 22,
+  "stats": {
+    "str": 9,
+    "sta": 6
+  },
+  "requires": {
+    "level": 10
+  },
+  "value": 390,
+  "sellPrice": 195
+}

@@ -1,0 +1,38 @@
+{
+  "id": "war_hammer",
+  "name": "Боевой молот",
+  "description": "Простой кузнечный молот на длинной рукояти. Тяжёлый и надёжный — первое оружие воина. Берётся в правую руку; урон от Силы.",
+  "category": "weapon",
+  "quality": "uncommon",
+  "weaponType": "hammer",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 1.1,
+    "pile": "single",
+    "rotation": [
+      1.5708,
+      0,
+      0
+    ],
+    "offsetY": 0.04
+  },
+  "use": {
+    "type": "equip",
+    "hand": "right"
+  },
+  "stats": {
+    "str": 3
+  },
+  "weapon": {
+    "damage": [
+      5,
+      9
+    ],
+    "range": 2.0,
+    "cooldown": 1.1,
+    "stat": "str"
+  },
+  "value": 40,
+  "sellPrice": 20
+}

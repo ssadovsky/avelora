@@ -49,9 +49,43 @@
         return (window.GAME_CONTENT && window.GAME_CONTENT.items) || {};
     }
 
+    // Class gear rules (hard restriction on equip). item.json: `armorType` (cloth|leather|plate) on
+    // head/body/hands/legs/feet pieces; `weaponType` (axe|hammer|dagger|bow|staff) on weapons. Cloaks, rings,
+    // amulets and gathering tools are free for everyone. Already-worn items are not re-checked on load.
+    const GEAR_TYPE_NAMES = { cloth: 'ткань', leather: 'кожа', plate: 'латы', axe: 'топоры', hammer: 'молоты', dagger: 'кинжалы', bow: 'луки', staff: 'посохи' };
+    const CLASS_GEAR = {
+        warrior: { armor: ['plate'], weapon: ['axe', 'hammer', 'dagger'] },
+        archer: { armor: ['leather'], weapon: ['bow', 'dagger'] },
+        mage: { armor: ['cloth'], weapon: ['staff', 'dagger'] }
+    };
+    const ARMOR_SLOTS = ['head', 'body', 'hands', 'legs', 'feet'];
+
     const AveloraItems = {
         INVENTORY_SIZE,
         QUALITIES,
+        CLASS_GEAR,
+        GEAR_TYPE_NAMES,
+        /** 'plate' / 'axe' / ... or null (free for all). */
+        gearType(id) {
+            const def = this.get(id);
+            if (!def || def.category === 'tool') return null;
+            if (def.armorType && ARMOR_SLOTS.indexOf(this.equipSlot(id)) >= 0) return def.armorType;
+            if (def.weapon) {
+                if (def.weaponType) return def.weaponType;
+                if (def.weapon.style === 'bow') return 'bow';
+                if (def.weapon.style === 'staff') return 'staff';
+            }
+            return null;
+        },
+        /** Message like "Только: латы" if this class cannot wear/wield the item, else null. */
+        classRestriction(id, classId) {
+            const t = this.gearType(id), rule = CLASS_GEAR[classId];
+            if (!t || !rule) return null;
+            const def = this.get(id), isArmor = !!(def.armorType && t === def.armorType);
+            const allowed = isArmor ? rule.armor : rule.weapon;
+            if (allowed.indexOf(t) >= 0) return null;
+            return `Класс не может носить: ${GEAR_TYPE_NAMES[t] || t}`;
+        },
         get BARE_HANDS() {
             return getBareHands();
         },

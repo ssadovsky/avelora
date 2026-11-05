@@ -1,0 +1,28 @@
+{
+  "id": "hunter_cap",
+  "name": "Охотничья шапка",
+  "description": "Кожаная броня: носит только лучница.",
+  "category": "armor",
+  "quality": "rare",
+  "armorType": "leather",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "head"
+  },
+  "armor": 4,
+  "stats": {
+    "dex": 3,
+    "sta": 2
+  },
+  "requires": {
+    "level": 5
+  },
+  "value": 110,
+  "sellPrice": 55
+}

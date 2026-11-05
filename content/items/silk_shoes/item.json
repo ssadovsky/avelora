@@ -1,0 +1,28 @@
+{
+  "id": "silk_shoes",
+  "name": "Шёлковые туфли",
+  "description": "Одежда из ткани: носит только маг.",
+  "category": "armor",
+  "quality": "rare",
+  "armorType": "cloth",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "feet"
+  },
+  "armor": 2,
+  "stats": {
+    "int": 2,
+    "sta": 1
+  },
+  "requires": {
+    "level": 5
+  },
+  "value": 77,
+  "sellPrice": 38
+}

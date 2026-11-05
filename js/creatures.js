@@ -83,6 +83,30 @@
             || null;
     }
 
+    /* LEVEL-HELPERS-BEGIN */
+    /**
+     * Mob level in a dungeon: tier = step * floor((hero level + offset) / step), clamped to the dungeon's
+     * minLevel / maxLevel (location.dungeon). With step 5, offset 1: hero 5-8 -> 5, 9-13 -> 10, 14-18 -> 15, 19-23 -> 20 ...
+     */
+    function dungeonMobLevel(heroLvl, scaling, dg) {
+        const s = scaling || {}, d = dg || {};
+        const step = Math.max(1, Number(s.step) || 5);
+        const off = Number.isFinite(Number(s.offset)) ? Number(s.offset) : 1;
+        const minL = d.minLevel !== undefined ? Number(d.minLevel) : (s.minLevel !== undefined ? Number(s.minLevel) : 5);
+        const maxL = d.maxLevel !== undefined ? Number(d.maxLevel) : Infinity;
+        const tier = step * Math.floor(((Number(heroLvl) || 1) + off) / step);
+        return Math.max(minL, Math.min(Math.max(minL, maxL), tier));
+    }
+
+    /** creature.json lootTiers { "5": [rolls], "10": [rolls] }: rolls of the highest tier key <= level (or null). */
+    function pickLootTier(tiers, level) {
+        if (!tiers || typeof tiers !== 'object') return null;
+        let best = -1;
+        Object.keys(tiers).forEach(k => { const n = Number(k); if (Number.isFinite(n) && n <= level && n > best) best = n; });
+        return best < 0 ? null : (Array.isArray(tiers[best]) ? tiers[best] : null);
+    }
+    /* LEVEL-HELPERS-END */
+
     const _v = new THREE.Vector3();
 
     class AveloraCreatures {
@@ -193,19 +217,20 @@
             // Параметры рангов и масштабирования берутся из js/config/creatures.js
             const cfg = window.AVELORA_CREATURES_CONFIG || {};
 
-            // Уровень существа: в подземельях (isDungeon: true) масштабируется строго под уровень героя (не ниже minLevel),
-            // в остальных локациях берётся из спавна sp.level или creature.json def.level (по умолчанию 1)
+            // Уровень существа: в подземельях (isDungeon: true) — ступень по уровню героя (dungeonMobLevel, js/config/creatures.js
+            // dungeonScaling: step 5), фиксируется на всё посещение; границы задаёт dungeon.minLevel / dungeon.maxLevel.
+            // В остальных локациях — из спавна sp.level или creature.json def.level (по умолчанию 1)
             let level = Math.max(1, Math.floor(Number(sp.level !== undefined ? sp.level : def.level) || 1));
             if (this.location && this.location.isDungeon) {
                 const dScale = cfg.dungeonScaling || {};
                 if (dScale.enabled !== false) {
-                    const minLvl = (this.location.dungeon && this.location.dungeon.minLevel !== undefined)
-                        ? this.location.dungeon.minLevel
-                        : (dScale.minLevel !== undefined ? dScale.minLevel : 5);
-                    const heroLvl = (this.game && this.game.hero && this.game.hero.level)
-                        || (window.AveloraProgress && this.state && window.AveloraProgress.levelForXp(this.state.xp))
-                        || 1;
-                    level = Math.max(minLvl, heroLvl);
+                    if (this._dungeonLevel === undefined) {
+                        const heroLvl = (this.game && this.game.hero && this.game.hero.level)
+                            || (window.AveloraProgress && this.state && window.AveloraProgress.levelForXp(this.state.xp))
+                            || 1;
+                        this._dungeonLevel = dungeonMobLevel(heroLvl, dScale, this.location.dungeon);
+                    }
+                    level = this._dungeonLevel;
                 }
             }
             const rank = sp.rank || def.rank || 'normal';
@@ -1242,19 +1267,21 @@
             const wo = this.game.worldObjects, st = this.state, ui = this.game.ui;
             if (!st) return;
 
-            // Босс Минотавр: гарантированный дроп 1 случайной бижутерии (кольцо или амулет)
-            if (rec.type === 'minotaur') {
-                const jewelryPool = ['amulet_catacombs', 'amulet_sapphire_eye', 'ring_labyrinth', 'ring_arcane_ward'];
-                const chosen = jewelryPool[Math.floor(Math.random() * jewelryPool.length)];
-                const got = st.inventory.add(chosen, 1);
-                const def = window.AveloraItems.get(chosen);
-                if (got > 0 && ui) {
-                    ui.bagFloat(`+1 ${def ? def.name : chosen}`, 0.25);
-                    ui.pulseInventory();
-                } else if (wo) {
-                    wo.addDrop(chosen, 1, rec.x + 0.6, rec.z + 0.6);
+            // Таблица добычи по ступеням (creature.json lootTiers): ступень = наибольший ключ <= уровня существа
+            (pickLootTier(rec.def.lootTiers, rec.level) || []).forEach((r, i) => {
+                if (!r || (r.chance !== undefined && Math.random() > r.chance)) return;
+                const Items = window.AveloraItems;
+                let pool = Array.isArray(r.pool) ? r.pool.filter(id => Items.get(id)) : (r.item && Items.get(r.item) ? [r.item] : []);
+                if (r.forClass) {   // only what the hero's class can wear/wield
+                    const cls = this.game.character && this.game.character.config && this.game.character.config.id;
+                    pool = pool.filter(id => !Items.classRestriction(id, cls));
                 }
-            }
+                if (!pool.length) return;
+                const id = pool[Math.floor(Math.random() * pool.length)], want = Math.max(1, r.count || 1);
+                const got = st.inventory.add(id, want), def = Items.get(id);
+                if (got > 0 && ui) { ui.bagFloat(`+${got} ${def.name}`, 0.25 + i * 0.15); ui.pulseInventory(); }
+                if (got < want && wo) wo.addDrop(id, want - got, rec.x + 0.6 + i * 0.4, rec.z + 0.6);
+            });
 
             // Gold drop
             const gRange = rec.scaledGold || rec.def.gold;

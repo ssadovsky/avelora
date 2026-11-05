@@ -1,28 +1,72 @@
 {
-    "id": "minotaur",
-    "name": "Минотавр",
-    "level": 6,
-    "attackRange": 2.2,
-    "attackCooldown": 2.0,
-    "walkSpeed": 1.2,
-    "runSpeed": 4.5,
-    "behavior": "aggressive",
-    "aggroRadius": 11,
-    "leashRadius": 36,
-    "wanderRadius": 6,
-    "respawnMinutes": 60,
-    "hitRadius": 1.5,
-    "scale": 1.45,
-    "gold": [
-        25,
-        50
-    ],
-    "xp": 350,
-    "drops": [
-        {
-            "item": "meat",
-            "count": 5
-        }
-    ],
-    "statMultiplier": 1.25
+  "id": "minotaur",
+  "name": "Минотавр",
+  "level": 6,
+  "attackRange": 2.2,
+  "attackCooldown": 2.0,
+  "walkSpeed": 1.2,
+  "runSpeed": 4.5,
+  "behavior": "aggressive",
+  "aggroRadius": 11,
+  "leashRadius": 36,
+  "wanderRadius": 6,
+  "respawnMinutes": 60,
+  "hitRadius": 1.5,
+  "scale": 1.45,
+  "gold": [
+    25,
+    50
+  ],
+  "xp": 350,
+  "drops": [
+    {
+      "item": "meat",
+      "count": 5
+    }
+  ],
+  "statMultiplier": 1.25,
+  "lootTiers": {
+    "5": [
+      {
+        "pool": [
+          "ring_labyrinth",
+          "ring_arcane_ward"
+        ]
+      },
+      {
+        "pool": [
+          "amulet_catacombs",
+          "amulet_sapphire_eye"
+        ],
+        "chance": 0.25
+      },
+      {
+        "pool": [
+          "minotaur_axe",
+          "elven_bow",
+          "apprentice_staff"
+        ],
+        "chance": 0.35,
+        "forClass": true
+      },
+      {
+        "pool": [
+          "steel_helm",
+          "steel_cuirass",
+          "steel_gauntlets",
+          "steel_greaves",
+          "silk_hood",
+          "silk_robe",
+          "silk_gloves",
+          "silk_shoes",
+          "hunter_cap",
+          "hunter_jerkin",
+          "hunter_gloves",
+          "hunter_boots"
+        ],
+        "chance": 0.5,
+        "forClass": true
+      }
+    ]
+  }
 }

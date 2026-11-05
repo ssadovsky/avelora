@@ -1,0 +1,28 @@
+{
+  "id": "blackened_helm",
+  "name": "Чернёный шлем",
+  "description": "Тяжёлые латы: носят только воины.",
+  "category": "armor",
+  "quality": "rare",
+  "armorType": "plate",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "head"
+  },
+  "armor": 12,
+  "stats": {
+    "str": 6,
+    "sta": 4
+  },
+  "requires": {
+    "level": 10
+  },
+  "value": 260,
+  "sellPrice": 130
+}

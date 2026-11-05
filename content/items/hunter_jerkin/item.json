@@ -1,0 +1,28 @@
+{
+  "id": "hunter_jerkin",
+  "name": "Охотничья куртка",
+  "description": "Кожаная броня: носит только лучница.",
+  "category": "armor",
+  "quality": "rare",
+  "armorType": "leather",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "body"
+  },
+  "armor": 7,
+  "stats": {
+    "dex": 4,
+    "sta": 3
+  },
+  "requires": {
+    "level": 5
+  },
+  "value": 165,
+  "sellPrice": 82
+}

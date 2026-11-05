@@ -4,6 +4,7 @@
   "description": "Тёплая шапка из лисьего меха с ушками. Ловкость и сообразительность.",
   "category": "armor",
   "quality": "uncommon",
+  "armorType": "leather",
   "stackMax": 1,
   "ground": {
     "variants": 1,
@@ -23,4 +24,4 @@
     "level": 3
   },
   "value": 60
-}
+}

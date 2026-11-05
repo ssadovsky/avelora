@@ -2251,6 +2251,13 @@
                 ['str', 'dex', 'int', 'sta'].forEach(k => { if (rq[k]) parts.push(`${nm[k] || k} ${rq[k]}`); });
                 mk('tt-req' + (this.unmetRequirement(def) ? ' bad' : ''), 'Требуется: ' + parts.join(', '));
             }
+            {
+                const gt = Items.gearType(itemId);
+                if (gt) {
+                    const cls = this.game.character && this.game.character.config && this.game.character.config.id;
+                    mk('tt-req' + (Items.classRestriction(itemId, cls) ? ' bad' : ''), 'Тип: ' + (Items.GEAR_TYPE_NAMES[gt] || gt));
+                }
+            }
             if (equippable && st) {
                 const slot = Items.equipSlot(itemId);
                 if (slot === 'ring') {
@@ -2311,6 +2318,11 @@
         /** item.json `requires: { level, str, dex, int }` -> message of the first unmet condition, or null. */
         unmetRequirement(def) {
             const rq = def && def.requires, h = this.game.hero;
+            if (h && def && def.id) {
+                const cls = this.game.character && this.game.character.config && this.game.character.config.id;
+                const bad = window.AveloraItems.classRestriction(def.id, cls);
+                if (bad) return bad;
+            }
             if (!rq || !h) return null;
             if (rq.level && h.level < rq.level) return `Нужен ${rq.level}-й уровень`;
             const names = (window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.statNames) || {};
@@ -2570,6 +2582,16 @@
                 r.className = 'tt-req' + (lack ? ' bad' : '');
                 r.textContent = 'Требуется: ' + parts.join(', ');
                 this.tooltip.appendChild(r);
+            }
+            {
+                const gt = window.AveloraItems.gearType(def.id);
+                if (gt) {
+                    const cls = this.game.character && this.game.character.config && this.game.character.config.id;
+                    const g = document.createElement('div');
+                    g.className = 'tt-req' + (window.AveloraItems.classRestriction(def.id, cls) ? ' bad' : '');
+                    g.textContent = 'Тип: ' + (window.AveloraItems.GEAR_TYPE_NAMES[gt] || gt);
+                    this.tooltip.appendChild(g);
+                }
             }
 
             // Action buttons row (tap on mobile or click on PC)

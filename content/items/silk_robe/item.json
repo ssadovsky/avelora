@@ -1,0 +1,28 @@
+{
+  "id": "silk_robe",
+  "name": "Шёлковая мантия",
+  "description": "Одежда из ткани: носит только маг.",
+  "category": "armor",
+  "quality": "rare",
+  "armorType": "cloth",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "body"
+  },
+  "armor": 4,
+  "stats": {
+    "int": 4,
+    "sta": 3
+  },
+  "requires": {
+    "level": 5
+  },
+  "value": 165,
+  "sellPrice": 82
+}

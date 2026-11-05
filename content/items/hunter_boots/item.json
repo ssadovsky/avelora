@@ -1,0 +1,28 @@
+{
+  "id": "hunter_boots",
+  "name": "Охотничьи сапоги",
+  "description": "Кожаная броня: носит только лучница.",
+  "category": "armor",
+  "quality": "rare",
+  "armorType": "leather",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "feet"
+  },
+  "armor": 4,
+  "stats": {
+    "dex": 2,
+    "sta": 1
+  },
+  "requires": {
+    "level": 5
+  },
+  "value": 77,
+  "sellPrice": 38
+}

@@ -62,9 +62,13 @@ window.AVELORA_CREATURES_CONFIG = {
     goldMultiplier: 1.0,
 
     // Масштабирование монстров в подземельях (локации с isDungeon: true):
+    // Уровень мобов = step * floor((уровень героя + offset) / step): при step 5, offset 1 герой 5–8 -> мобы 5,
+    // 9–13 -> 10, 14–18 -> 15, 19–23 -> 20 и т.д. Границы данжа: world_data.js dungeon.minLevel / dungeon.maxLevel.
     dungeonScaling: {
         enabled: true,
-        minLevel: 5 // Минимальный уровень мобов в данже (даже если уровень героя ниже)
+        step: 5,
+        offset: 1,
+        minLevel: 5 // Минимальный уровень мобов в данже по умолчанию (если у данжа нет своего minLevel)
     },
 
     // Тайминги поведения:

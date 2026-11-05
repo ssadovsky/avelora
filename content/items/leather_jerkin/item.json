@@ -4,6 +4,7 @@
   "description": "Куртка из прочной кожи, сшитая вручную.",
   "category": "armor",
   "quality": "common",
+  "armorType": "leather",
   "stackMax": 1,
   "ground": {
     "variants": 1,
@@ -23,4 +24,4 @@
     "level": 2
   },
   "value": 40
-}
+}

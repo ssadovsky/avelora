@@ -4,6 +4,7 @@
   "description": "Тяжелая двуручная секира Минотавра. Закаленная сталь требует недюжинной силы и ловкости.",
   "category": "weapon",
   "quality": "rare",
+  "weaponType": "axe",
   "stackMax": 1,
   "ground": {
     "variants": 1,
@@ -35,6 +36,9 @@
     "chop": 2,
     "stat": "str"
   },
-  "value": 50,
-  "sellPrice": 25
+  "value": 150,
+  "sellPrice": 75,
+  "requires": {
+    "level": 5
+  }
 }

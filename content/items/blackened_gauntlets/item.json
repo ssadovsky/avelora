@@ -1,0 +1,28 @@
+{
+  "id": "blackened_gauntlets",
+  "name": "Чернёные рукавицы",
+  "description": "Тяжёлые латы: носят только воины.",
+  "category": "armor",
+  "quality": "rare",
+  "armorType": "plate",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "hands"
+  },
+  "armor": 10,
+  "stats": {
+    "str": 4,
+    "sta": 3
+  },
+  "requires": {
+    "level": 10
+  },
+  "value": 182,
+  "sellPrice": 91
+}
