@@ -3,6 +3,7 @@
   "name": "Топор",
   "description": "Плотницкий топор на ясеневом топорище. Берётся в правую руку: рубит деревья и годится для боя.",
   "category": "tool",
+  "quality": "common",
   "stackMax": 1,
   "ground": {
     "variants": 1,

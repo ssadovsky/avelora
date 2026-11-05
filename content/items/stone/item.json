@@ -3,6 +3,7 @@
   "name": "Камень",
   "description": "Увесистый булыжник. Пригодится для строительства и ремесла.",
   "category": "material",
+  "quality": "common",
   "stackMax": 20,
   "ground": {
     "variants": 5,

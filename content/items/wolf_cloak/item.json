@@ -3,6 +3,7 @@
   "name": "Волчий плащ",
   "description": "Плащ из шкуры серого волка. Защищает и придаёт проворства.",
   "category": "armor",
+  "quality": "uncommon",
   "stackMax": 1,
   "ground": {
     "variants": 1,

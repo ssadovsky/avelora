@@ -2843,6 +2843,9 @@
         .tt-req { font-size: 0.78rem; color: #8f9c9a; margin-top: 4px; }
         .tt-req.bad { color: #e0806c; }
         .dlg-empty { color: #7e8a89; font-style: italic; padding: 8px; }
+        .dlg-junk-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 4px 6px; background: rgba(22, 27, 29, 0.7); border: 1px solid rgba(195, 160, 95, 0.15); border-radius: 3px; flex-shrink: 0; }
+        .dlg-junk { border-color: #9d9d9d; color: #d6d6d6; }
+        .dlg-junk-info { font-size: 0.82rem; color: #9d9d9d; }
         /* Quest reward / tools window (dialog.js renderReward) */
         .dlg-rewards { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; }
         .dlg-reward-line { font-size: 0.92rem; color: #efcf7a; padding: 3px 6px; }
@@ -2931,11 +2934,14 @@
             align-items: center;
             gap: 8px;
         }
-        .inv-craft-link {
+        .inv-sort-btn {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            padding: 3px 8px;
+            justify-content: center;
+            gap: 0;
+            width: 24px;
+            height: 24px;
+            padding: 0;
             font-family: inherit;
             font-size: 0.8rem;
             color: #b9a47a;
@@ -2946,17 +2952,17 @@
             text-decoration: none;
             transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
         }
-        .inv-craft-link:hover {
+        .inv-sort-btn:hover {
             color: #efcf7a;
             border-color: rgba(239, 207, 122, 0.8);
             background: rgba(34, 28, 20, 0.85);
         }
-        .inv-craft-link.active {
+        .inv-sort-btn.active {
             color: #efcf7a;
             border-color: #efcf7a;
             background: rgba(50, 40, 28, 0.9);
         }
-        .inv-craft-link svg {
+        .inv-sort-btn svg {
             flex-shrink: 0;
         }
 
@@ -3867,6 +3873,21 @@
             border-color: rgba(195, 160, 95, 0.4);
         }
         .inventory-cell.filled:hover { border-color: rgba(239, 207, 122, 0.8); }
+        /* Item quality (data-q / --q from ui_hotbar.js applyQuality): coloured frame; common keeps the default one */
+        .inventory-cell.filled[data-q], .chest-cell.filled[data-q], .doll-slot.filled[data-q] {
+            border-color: var(--q);
+            box-shadow: 0 0 5px -1px var(--q), inset 0 0 4px rgba(0, 0, 0, 0.7);
+        }
+        .inventory-cell.filled[data-q="common"], .chest-cell.filled[data-q="common"], .doll-slot.filled[data-q="common"] {
+            border-color: #ffffff;
+            box-shadow: 0 0 5px -1px rgba(255, 255, 255, 0.85), inset 0 0 4px rgba(0, 0, 0, 0.7);
+        }
+        .inventory-cell.filled[data-q="poor"], .chest-cell.filled[data-q="poor"], .doll-slot.filled[data-q="poor"] {
+            border-color: #6a6a6a;
+            box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.7);
+        }
+        .inventory-cell.filled[data-q="poor"] .ui-icon, .chest-cell.filled[data-q="poor"] .ui-icon { opacity: 0.72; }
+        .inventory-cell.filled[data-q]:hover, .chest-cell.filled[data-q]:hover { filter: brightness(1.18); }
         .inventory-cell.equipped { border-color: #efcf7a; box-shadow: 0 0 8px rgba(239, 207, 122, 0.45), inset 0 0 6px rgba(0, 0, 0, 0.8); }
         .inventory-cell.equipped::after {
             content: '';

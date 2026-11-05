@@ -3,6 +3,7 @@
   "name": "Кожаные сапоги",
   "description": "Прочные сапоги для долгих дорог.",
   "category": "armor",
+  "quality": "common",
   "stackMax": 1,
   "ground": {
     "variants": 1,

@@ -3,6 +3,7 @@
   "name": "Кожаные перчатки",
   "description": "Мягкие перчатки: рука крепче держит оружие и посох.",
   "category": "armor",
+  "quality": "common",
   "stackMax": 1,
   "ground": {
     "variants": 1,

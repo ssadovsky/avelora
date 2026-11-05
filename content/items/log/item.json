@@ -3,6 +3,7 @@
   "name": "Бревно",
   "description": "Ровное сосновое бревно. Материал для постройки.",
   "category": "material",
+  "quality": "common",
   "stackMax": 20,
   "ground": {
     "variants": 3,

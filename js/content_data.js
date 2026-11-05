@@ -480,6 +480,7 @@ window.GAME_CONTENT = {
    "name": "Яблоко",
    "description": "Спелое яблоко с яблони. Можно съесть — восстанавливает 10 единиц здоровья.",
    "category": "consumable",
+   "quality": "common",
    "stackMax": 20,
    "ground": {
     "variants": 1,
@@ -501,6 +502,7 @@ window.GAME_CONTENT = {
    "name": "Посох ученика",
    "description": "Посох ученика-мага: резное навершие с аметистом в бронзовой оправе. Берётся в правую руку; обычная атака — сгусток магии по цели (клик по врагу), урон от Интеллекта.",
    "category": "weapon",
+   "quality": "rare",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -550,6 +552,7 @@ window.GAME_CONTENT = {
    "name": "Топор",
    "description": "Плотницкий топор на ясеневом топорище. Берётся в правую руку: рубит деревья и годится для боя.",
    "category": "tool",
+   "quality": "common",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -584,6 +587,7 @@ window.GAME_CONTENT = {
    "name": "Пушистый хвост",
    "description": "Мягкий радужный хвост барсука. Ценится у меховщиков.",
    "category": "material",
+   "quality": "poor",
    "stackMax": 50,
    "ground": {
     "variants": 1,
@@ -601,6 +605,7 @@ window.GAME_CONTENT = {
    "name": "Шкура медведя",
    "description": "Тяжёлая тёмная шкура чёрного медведя. Дорого ценится у кожевников.",
    "category": "material",
+   "quality": "poor",
    "stackMax": 50,
    "ground": {
     "variants": 1,
@@ -618,6 +623,7 @@ window.GAME_CONTENT = {
    "name": "Медвежья куртка",
    "description": "Тяжёлая куртка из медвежьей шкуры. Мощная защита и сила.",
    "category": "armor",
+   "quality": "uncommon",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -643,6 +649,7 @@ window.GAME_CONTENT = {
    "name": "Клыки",
    "description": "Крепкие клыки вепря. Хорошая добыча для торговца.",
    "category": "material",
+   "quality": "poor",
    "stackMax": 50,
    "ground": {
     "variants": 1,
@@ -660,6 +667,7 @@ window.GAME_CONTENT = {
    "name": "Простой лук",
    "description": "Лёгкий охотничий лук из гибкого ясеня. Берётся в руку; обычная атака — выстрел стрелой по цели (клик по врагу), урон от Ловкости.",
    "category": "weapon",
+   "quality": "common",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -717,6 +725,7 @@ window.GAME_CONTENT = {
    "name": "Ветка",
    "description": "Сухая ветка. Растопка, древки, плетни.",
    "category": "material",
+   "quality": "poor",
    "stackMax": 20,
    "ground": {
     "variants": 3,
@@ -733,6 +742,7 @@ window.GAME_CONTENT = {
    "name": "Медное кольцо",
    "description": "Кольцо с голубым камнем. Слегка обостряет разум.",
    "category": "armor",
+   "quality": "common",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -758,6 +768,7 @@ window.GAME_CONTENT = {
    "name": "Кинжал",
    "description": "Простой стальной кинжал. Быстрый, бьёт вблизи.",
    "category": "weapon",
+   "quality": "common",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -814,6 +825,7 @@ window.GAME_CONTENT = {
    "name": "Папоротник",
    "description": "Свежие побеги дикого папоротника. Используются в алхимии для приготовления зелий. Можно съесть — восстанавливает 5 единиц здоровья.",
    "category": "material",
+   "quality": "common",
    "stackMax": 50,
    "ground": {
     "variants": 1,
@@ -834,6 +846,7 @@ window.GAME_CONTENT = {
    "name": "Лисья шапка",
    "description": "Тёплая шапка из лисьего меха с ушками. Ловкость и сообразительность.",
    "category": "armor",
+   "quality": "uncommon",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -860,6 +873,7 @@ window.GAME_CONTENT = {
    "name": "Лисья шкура",
    "description": "Яркая рыжая шкура огненной лисы.",
    "category": "material",
+   "quality": "common",
    "stackMax": 50,
    "ground": {
     "variants": 1,
@@ -877,6 +891,7 @@ window.GAME_CONTENT = {
    "name": "Лисий хвост",
    "description": "Пушистый рыжий хвост с белым кончиком.",
    "category": "material",
+   "quality": "common",
    "stackMax": 50,
    "ground": {
     "variants": 1,
@@ -894,6 +909,7 @@ window.GAME_CONTENT = {
    "name": "Железный слиток",
    "description": "Слиток очищенного железа. Основной материал для ковки оружия, доспехов и прочных колец.",
    "category": "material",
+   "quality": "common",
    "stackMax": 20,
    "ground": {
     "variants": 1,
@@ -909,6 +925,7 @@ window.GAME_CONTENT = {
    "name": "Железная руда",
    "description": "Кусок неочищенной железной руды с металлическими прожилками. Пригодится для кузнечного дела.",
    "category": "material",
+   "quality": "common",
    "stackMax": 20,
    "ground": {
     "variants": 1,
@@ -926,6 +943,7 @@ window.GAME_CONTENT = {
    "name": "Кованое железное кольцо",
    "description": "Кованое кольцо с магической гравировкой. Обостряет разум и наделяет владельца жизненной силой.",
    "category": "armor",
+   "quality": "uncommon",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -952,6 +970,7 @@ window.GAME_CONTENT = {
    "name": "Кожаные сапоги",
    "description": "Прочные сапоги для долгих дорог.",
    "category": "armor",
+   "quality": "common",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -977,6 +996,7 @@ window.GAME_CONTENT = {
    "name": "Кожаная шапка",
    "description": "Простая шапка из выделанной кожи. Защищает голову от ударов.",
    "category": "armor",
+   "quality": "common",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -1002,6 +1022,7 @@ window.GAME_CONTENT = {
    "name": "Кожаные перчатки",
    "description": "Мягкие перчатки: рука крепче держит оружие и посох.",
    "category": "armor",
+   "quality": "common",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -1027,6 +1048,7 @@ window.GAME_CONTENT = {
    "name": "Кожаная куртка",
    "description": "Куртка из прочной кожи, сшитая вручную.",
    "category": "armor",
+   "quality": "common",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -1053,6 +1075,7 @@ window.GAME_CONTENT = {
    "name": "Бревно",
    "description": "Ровное сосновое бревно. Материал для постройки.",
    "category": "material",
+   "quality": "common",
    "stackMax": 20,
    "ground": {
     "variants": 3,
@@ -1069,6 +1092,7 @@ window.GAME_CONTENT = {
    "name": "Мясо",
    "description": "Свежее сырое мясо. Годится в пищу и на продажу.",
    "category": "material",
+   "quality": "common",
    "stackMax": 50,
    "ground": {
     "variants": 1,
@@ -1128,6 +1152,7 @@ window.GAME_CONTENT = {
    "name": "Кирка",
    "description": "Шахтёрская кирка с кованым клювом. Берётся в правую руку: дробит камни, добывает руду и годится для боя.",
    "category": "tool",
+   "quality": "common",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -1162,6 +1187,7 @@ window.GAME_CONTENT = {
    "name": "Доска",
    "description": "Гладко обтёсанная доска. Материал для постройки.",
    "category": "material",
+   "quality": "common",
    "stackMax": 20,
    "ground": {
     "variants": 1,
@@ -1177,6 +1203,7 @@ window.GAME_CONTENT = {
    "name": "Большое зелье здоровья",
    "description": "Концентрированный эликсир из отборного папоротника. Восстанавливает 100 единиц здоровья при употреблении.",
    "category": "consumable",
+   "quality": "common",
    "stackMax": 20,
    "ground": {
     "variants": 1,
@@ -1195,6 +1222,7 @@ window.GAME_CONTENT = {
    "name": "Малое зелье здоровья",
    "description": "Целебный отвар из папоротника. Восстанавливает 50 единиц здоровья при употреблении.",
    "category": "consumable",
+   "quality": "common",
    "stackMax": 20,
    "ground": {
     "variants": 1,
@@ -1213,6 +1241,7 @@ window.GAME_CONTENT = {
    "name": "Большое зелье маны",
    "description": "Концентрированный эликсир из отборных фиалок. Восстанавливает 100 единиц маны при употреблении.",
    "category": "consumable",
+   "quality": "common",
    "stackMax": 20,
    "ground": {
     "variants": 1,
@@ -1231,6 +1260,7 @@ window.GAME_CONTENT = {
    "name": "Малое зелье маны",
    "description": "Отвар из лепестков фиалки. Восстанавливает 50 единиц маны при употреблении.",
    "category": "consumable",
+   "quality": "common",
    "stackMax": 20,
    "ground": {
     "variants": 1,
@@ -1249,6 +1279,7 @@ window.GAME_CONTENT = {
    "name": "Крысиный хвостик",
    "description": "Тонкий голый хвостик. Торговцы берут и такое.",
    "category": "material",
+   "quality": "poor",
    "stackMax": 50,
    "ground": {
     "variants": 1,
@@ -1320,6 +1351,7 @@ window.GAME_CONTENT = {
    "name": "Простой посох",
    "description": "Узловатый посох странника с кристаллом в навершии. Берётся в правую руку; обычная атака — сгусток магии по цели (клик по врагу), урон от Интеллекта.",
    "category": "weapon",
+   "quality": "uncommon",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -1368,6 +1400,7 @@ window.GAME_CONTENT = {
    "name": "Камень",
    "description": "Увесистый булыжник. Пригодится для строительства и ремесла.",
    "category": "material",
+   "quality": "common",
    "stackMax": 20,
    "ground": {
     "variants": 5,
@@ -1384,6 +1417,7 @@ window.GAME_CONTENT = {
    "name": "Плащ путника",
    "description": "Плотный плащ странника. Греет и немного защищает.",
    "category": "armor",
+   "quality": "common",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -1409,6 +1443,7 @@ window.GAME_CONTENT = {
    "name": "Фиалка",
    "description": "Душистый лесной цветок с лиловыми лепестками. Используется в алхимии для зелий маны. Можно съесть — восстанавливает 5 единиц маны.",
    "category": "material",
+   "quality": "common",
    "stackMax": 50,
    "ground": {
     "variants": 1,
@@ -1429,6 +1464,7 @@ window.GAME_CONTENT = {
    "name": "Волчий плащ",
    "description": "Плащ из шкуры серого волка. Защищает и придаёт проворства.",
    "category": "armor",
+   "quality": "uncommon",
    "stackMax": 1,
    "ground": {
     "variants": 1,
@@ -1455,6 +1491,7 @@ window.GAME_CONTENT = {
    "name": "Шкура волка",
    "description": "Густая серая шкура волка. Пригодится кожевникам.",
    "category": "material",
+   "quality": "common",
    "stackMax": 50,
    "ground": {
     "variants": 1,

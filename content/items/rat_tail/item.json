@@ -3,6 +3,7 @@
   "name": "Крысиный хвостик",
   "description": "Тонкий голый хвостик. Торговцы берут и такое.",
   "category": "material",
+  "quality": "poor",
   "stackMax": 50,
   "ground": {
     "variants": 1,

@@ -3,6 +3,7 @@
   "name": "Кинжал",
   "description": "Простой стальной кинжал. Быстрый, бьёт вблизи.",
   "category": "weapon",
+  "quality": "common",
   "stackMax": 1,
   "ground": {
     "variants": 1,

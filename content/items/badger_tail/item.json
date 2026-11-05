@@ -3,6 +3,7 @@
   "name": "Пушистый хвост",
   "description": "Мягкий радужный хвост барсука. Ценится у меховщиков.",
   "category": "material",
+  "quality": "poor",
   "stackMax": 50,
   "ground": {
     "variants": 1,

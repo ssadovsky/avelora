@@ -3,6 +3,7 @@
   "name": "Яблоко",
   "description": "Спелое яблоко с яблони. Можно съесть — восстанавливает 10 единиц здоровья.",
   "category": "consumable",
+  "quality": "common",
   "stackMax": 20,
   "ground": {
     "variants": 1,

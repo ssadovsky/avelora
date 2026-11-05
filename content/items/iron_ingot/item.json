@@ -3,6 +3,7 @@
   "name": "Железный слиток",
   "description": "Слиток очищенного железа. Основной материал для ковки оружия, доспехов и прочных колец.",
   "category": "material",
+  "quality": "common",
   "stackMax": 20,
   "ground": {
     "variants": 1,

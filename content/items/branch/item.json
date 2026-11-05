@@ -3,6 +3,7 @@
   "name": "Ветка",
   "description": "Сухая ветка. Растопка, древки, плетни.",
   "category": "material",
+  "quality": "poor",
   "stackMax": 20,
   "ground": {
     "variants": 3,

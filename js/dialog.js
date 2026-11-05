@@ -1283,6 +1283,21 @@
                     this.addRow(list, def, def.name, `${price}`, 'Купить', !!st && st.gold >= price, () => this.buy(def.id, price));
                 });
             } else {
+                const junk = this.junkInfo();
+                const bar = document.createElement('div');
+                bar.className = 'dlg-junk-bar';
+                const jb = document.createElement('button');
+                jb.type = 'button';
+                jb.className = 'dlg-buy dlg-junk' + (junk.count > 0 ? '' : ' disabled');
+                jb.disabled = junk.count <= 0;
+                jb.textContent = 'Продать ненужное';
+                jb.title = 'Продать всё серое (хлам) из сумки';
+                jb.addEventListener('click', (e) => { e.stopPropagation(); this.sellJunk(); });
+                const info = document.createElement('span');
+                info.className = 'dlg-junk-info';
+                info.innerHTML = junk.count > 0 ? `${junk.count} шт. · <span class="coin"></span> ${junk.gold}` : 'серых вещей нет';
+                bar.append(jb, info);
+                this.body.appendChild(bar);
                 const seen = new Set();
                 const inv = st ? st.inventory : null;
                 (inv ? inv.cells : []).forEach(c => {
@@ -1312,6 +1327,7 @@
             const n = document.createElement('div');
             n.className = 'dlg-row-name';
             n.textContent = label;
+            if (def && def.id) n.style.color = window.AveloraItems.quality(def.id).color;
             const p = document.createElement('div');
             p.className = 'dlg-row-price';
             p.innerHTML = `<span class="coin"></span> ${price}`;
@@ -1355,6 +1371,35 @@
             st.inventory.add(itemId, 1);
             const def = window.AveloraItems.get(itemId);
             this.ui.floatText(`Куплено: ${def ? def.name : itemId}`, 'loot');
+        }
+
+        /** Grey junk in the bag that this merchant would buy: {count, gold}. */
+        junkInfo() {
+            const st = this.state, Items = window.AveloraItems;
+            let count = 0, gold = 0;
+            ((st && st.inventory.cells) || []).forEach(c => {
+                if (!c || !Items.isJunk(c.item) || (Items.get(c.item) || {}).category === 'tool') return;
+                const p = this.sellPriceOf(c.item);
+                if (p > 0) { count += c.count; gold += p * c.count; }
+            });
+            return { count, gold };
+        }
+
+        /** "Продать ненужное": every grey (poor) item in the bag in one click. */
+        sellJunk() {
+            const st = this.state, Items = window.AveloraItems;
+            if (!st) return;
+            let count = 0, gold = 0;
+            st.inventory.cells.forEach((c, i) => {
+                if (!c || !Items.isJunk(c.item) || (Items.get(c.item) || {}).category === 'tool') return;
+                const p = this.sellPriceOf(c.item);
+                if (!(p > 0)) return;
+                const r = st.inventory.removeCountAt(i, c.count);
+                if (r && r.count > 0) { count += r.count; gold += r.count * p; }
+            });
+            if (count <= 0) { this.ui.floatText('Нет ненужных вещей', 'warn'); return; }
+            st.addGold(gold);
+            this.ui.floatText(`Продано хлама: ${count} · +${gold} золота`, 'gain');
         }
 
         sell(itemId, price, count) {

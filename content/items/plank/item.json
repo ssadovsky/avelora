@@ -3,6 +3,7 @@
   "name": "Доска",
   "description": "Гладко обтёсанная доска. Материал для постройки.",
   "category": "material",
+  "quality": "common",
   "stackMax": 20,
   "ground": {
     "variants": 1,

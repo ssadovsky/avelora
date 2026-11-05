@@ -73,6 +73,14 @@
         return el;
     }
 
+    /** Quality frame of a bag / chest / doll cell: data-q + --q colour (white frame for common, dark grey for junk). */
+    function applyQuality(el, itemId) {
+        if (!el) return;
+        const q = itemId ? window.AveloraItems.quality(itemId) : null;
+        if (q) { el.dataset.q = q.key; el.style.setProperty('--q', q.color); }
+        else { delete el.dataset.q; el.style.removeProperty('--q'); }
+    }
+
     class AveloraHotbarUI {
         constructor(game) {
             this.game = game;
@@ -267,6 +275,7 @@
                 const c = this.chestInv.cells[i];
                 cell.innerHTML = '';
                 cell.classList.toggle('filled', !!c);
+                applyQuality(cell, c ? c.item : null);
                 if (!c) return;
                 cell.appendChild(makeIcon(window.AveloraItems.get(c.item)));
                 if (c.count > 1) {
@@ -362,6 +371,7 @@
                 cell.innerHTML = '';
                 cell.classList.toggle('filled', !!c);
                 cell.classList.remove('equipped');   // (an item in the hand is not in the bag)
+                applyQuality(cell, c ? c.item : null);
                 if (!c) return;
                 any = true;
                 const def = window.AveloraItems.get(c.item);
@@ -578,7 +588,6 @@
             this.craftingClose = document.getElementById('crafting-close');
             this.craftMenuBtn = document.getElementById('craft-btn');
             this.heroCraftBtn = document.getElementById('hero-open-craft-btn');
-            this.invCraftBtn = document.getElementById('inv-open-craft-btn');
             this.craftingList = document.getElementById('crafting-recipe-list');
             this.craftingOpen = false;
             this.craftOpenGroup = 'potions';
@@ -610,10 +619,16 @@
                     this.setCraftingOpen(true);
                 });
             }
-            if (this.invCraftBtn) {
-                this.invCraftBtn.addEventListener('click', (e) => {
+            this.invSortBtn = document.getElementById('inv-sort-btn');
+            if (this.invSortBtn) {
+                this.invSortBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    this.toggleCrafting();
+                    this.hideTooltip();
+                    if (this.cancelDrag) this.cancelDrag();
+                    const inv = this.state && this.state.inventory;
+                    if (!inv) return;
+                    if (inv.arrange()) this.renderInventory();
+                    else this.showMessageAt(this.invSortBtn, 'Сумка уже упорядочена');
                 });
             }
         }
@@ -626,7 +641,6 @@
             this.craftingOpen = !!open;
             this.setPanelAria(this.craftingPanel, this.craftingOpen);
             if (this.craftMenuBtn) this.craftMenuBtn.classList.toggle('active', this.craftingOpen);
-            if (this.invCraftBtn) this.invCraftBtn.classList.toggle('active', this.craftingOpen);
             if (this.craftingOpen) {
                 if (!this.craftOpenGroup) this.craftOpenGroup = 'potions';
                 this.renderCrafting();
@@ -1669,6 +1683,7 @@
                 el._shown = shownKey;
                 el.querySelectorAll('.ui-icon').forEach(n => n.remove());
                 el.classList.toggle('filled', !!def);
+                applyQuality(el, def ? itemId : null);
                 if (def) {
                     el.insertBefore(makeIcon(def), el.firstChild);
                     el.removeAttribute('title');
@@ -2223,9 +2238,10 @@
             const mk = (cls, txt, color) => { const d = document.createElement('div'); d.className = cls; d.textContent = txt; if (color) d.style.color = color; t.appendChild(d); return d; };
             const SLOT = { right: 'правая рука', head: 'голова', neck: 'амулет', cloak: 'плащ', body: 'тело', hands: 'руки', ring: 'кольцо', legs: 'ноги', feet: 'ступни' };
             const equippable = Items.isEquippable(itemId);
-            mk('tt-name', def.name);
+            const qi = Items.quality(itemId);
+            mk('tt-name', def.name, qi.color);
             mk('tt-desc', def.description || '');
-            mk('tt-meta', equippable ? `снаряжение · ${SLOT[Items.equipSlot(itemId)] || ''}` : (def.use ? 'действие' : 'материал'));
+            mk('tt-meta', (qi.key !== 'common' ? qi.name + ' · ' : '') + (equippable ? `снаряжение · ${SLOT[Items.equipSlot(itemId)] || ''}` : (def.use ? 'действие' : 'материал')));
             const slLines = this.itemStatsLines(def);
             slLines.forEach(l => mk('tt-req', l, '#a9d68c'));
             if (def.requires) {
@@ -2360,6 +2376,8 @@
                     const countStr = (count !== undefined && count > 1) ? `Количество: ${count}` : (count === undefined && n > 1 ? `В сумке: ${n}` : '');
                     const typeStr = def.use ? (def.use.type === 'equip' ? (isDoll ? 'снаряжение (надето)' : 'снаряжение') : (def.use.food ? 'еда' : 'действие')) : 'материал';
                     meta = countStr ? `${countStr} · ${typeStr}` : typeStr;
+                    const qh = window.AveloraItems.quality(id);
+                    if (qh.key !== 'common') meta = `${qh.name} · ${meta}`;
                 }
             }
             if (!def) return;
@@ -2367,6 +2385,7 @@
             this.tooltip.classList.remove('warn');
             const lab = kind === 'skill' ? this.game.skills.labelOf(def) : def;
             const n = document.createElement('div'); n.className = 'tt-name'; n.textContent = lab.name;
+            if (kind !== 'skill') n.style.color = window.AveloraItems.quality(id).color;
             const d = document.createElement('div'); d.className = 'tt-desc'; d.textContent = lab.description || '';
             const m = document.createElement('div'); m.className = 'tt-meta'; m.textContent = meta;
             this.tooltip.append(n, d, m);
@@ -2508,6 +2527,7 @@
             const n = document.createElement('div');
             n.className = 'tt-name';
             n.textContent = def.name;
+            n.style.color = window.AveloraItems.quality(src.item).color;
 
             const btnClose = document.createElement('button');
             btnClose.type = 'button';
@@ -2529,6 +2549,8 @@
             const m = document.createElement('div');
             m.className = 'tt-meta';
             m.textContent = src.count > 1 ? `Количество: ${src.count} · ${typeStr}` : typeStr;
+            const qc = window.AveloraItems.quality(src.item);
+            if (qc.key !== 'common') m.textContent = `${qc.name} · ${m.textContent}`;
 
             this.tooltip.append(header, d, m);
             const slLines = this.itemStatsLines(def);

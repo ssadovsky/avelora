@@ -3,6 +3,7 @@
   "name": "Кожаная куртка",
   "description": "Куртка из прочной кожи, сшитая вручную.",
   "category": "armor",
+  "quality": "common",
   "stackMax": 1,
   "ground": {
     "variants": 1,

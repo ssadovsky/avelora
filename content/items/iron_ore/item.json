@@ -3,6 +3,7 @@
   "name": "Железная руда",
   "description": "Кусок неочищенной железной руды с металлическими прожилками. Пригодится для кузнечного дела.",
   "category": "material",
+  "quality": "common",
   "stackMax": 20,
   "ground": {
     "variants": 1,

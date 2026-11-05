@@ -3,6 +3,7 @@
   "name": "Лисий хвост",
   "description": "Пушистый рыжий хвост с белым кончиком.",
   "category": "material",
+  "quality": "common",
   "stackMax": 50,
   "ground": {
     "variants": 1,

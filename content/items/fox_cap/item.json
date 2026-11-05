@@ -3,6 +3,7 @@
   "name": "Лисья шапка",
   "description": "Тёплая шапка из лисьего меха с ушками. Ловкость и сообразительность.",
   "category": "armor",
+  "quality": "uncommon",
   "stackMax": 1,
   "ground": {
     "variants": 1,

@@ -3,6 +3,7 @@
   "name": "Медное кольцо",
   "description": "Кольцо с голубым камнем. Слегка обостряет разум.",
   "category": "armor",
+  "quality": "common",
   "stackMax": 1,
   "ground": {
     "variants": 1,

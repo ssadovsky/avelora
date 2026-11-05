@@ -3,6 +3,7 @@
   "name": "Медвежья куртка",
   "description": "Тяжёлая куртка из медвежьей шкуры. Мощная защита и сила.",
   "category": "armor",
+  "quality": "uncommon",
   "stackMax": 1,
   "ground": {
     "variants": 1,

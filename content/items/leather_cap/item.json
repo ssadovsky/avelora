@@ -3,6 +3,7 @@
   "name": "Кожаная шапка",
   "description": "Простая шапка из выделанной кожи. Защищает голову от ударов.",
   "category": "armor",
+  "quality": "common",
   "stackMax": 1,
   "ground": {
     "variants": 1,

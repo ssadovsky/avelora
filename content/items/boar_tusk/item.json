@@ -3,6 +3,7 @@
   "name": "Клыки",
   "description": "Крепкие клыки вепря. Хорошая добыча для торговца.",
   "category": "material",
+  "quality": "poor",
   "stackMax": 50,
   "ground": {
     "variants": 1,

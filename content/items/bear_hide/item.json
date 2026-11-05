@@ -3,6 +3,7 @@
   "name": "Шкура медведя",
   "description": "Тяжёлая тёмная шкура чёрного медведя. Дорого ценится у кожевников.",
   "category": "material",
+  "quality": "poor",
   "stackMax": 50,
   "ground": {
     "variants": 1,

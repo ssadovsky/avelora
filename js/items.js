@@ -18,6 +18,17 @@
 
     const INVENTORY_SIZE = 32;
 
+    // Item quality (item.json "quality"; missing = common). Level and stats are NOT tied to it: a green item of
+    // level 20 may beat a purple one of level 5. poor = grey junk (vendor button "Продать ненужное" sells it),
+    // common = white (materials, potions, plain gear), uncommon = green, rare = blue, epic = purple.
+    const QUALITIES = {
+        poor:     { key: 'poor',     name: 'Хлам',      color: '#9d9d9d' },
+        common:   { key: 'common',   name: 'Обычное',   color: '#f2f2f2' },
+        uncommon: { key: 'uncommon', name: 'Необычное', color: '#3ee23e' },
+        rare:     { key: 'rare',     name: 'Редкое',    color: '#4a9dff' },
+        epic:     { key: 'epic',     name: 'Эпическое', color: '#b565f5' }
+    };
+
     // Fists: what everyone fights with when the right hand holds no weapon (driven by progression.js bareHands).
     function getBareHands() {
         const cfg = (window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.bareHands) || {};
@@ -40,6 +51,7 @@
 
     const AveloraItems = {
         INVENTORY_SIZE,
+        QUALITIES,
         get BARE_HANDS() {
             return getBareHands();
         },
@@ -52,6 +64,15 @@
         all() {
             return Object.values(content());
         },
+
+        /** Quality record {key, name, color} of an item (unknown id / no field -> common). */
+        quality(id) {
+            const def = this.get(id);
+            return QUALITIES[(def && def.quality) || 'common'] || QUALITIES.common;
+        },
+
+        /** Grey junk: sold in one click by the merchant button. */
+        isJunk(id) { return this.quality(id).key === 'poor'; },
 
         stackMax(id) {
             const def = this.get(id);
@@ -1258,6 +1279,38 @@
                 this.cells[to] = { item: a.item, count: actual };
                 a.count -= actual;
             }
+            this.changed();
+            return true;
+        }
+
+        /**
+         * "Упорядочить": merges partial stacks of the same item and packs everything from cell 0 without gaps
+         * (items keep the order of their first appearance). Returns true if anything changed.
+         */
+        arrange() {
+            const order = [], total = new Map();
+            for (const c of this.cells) {
+                if (!c) continue;
+                if (!total.has(c.item)) { total.set(c.item, 0); order.push(c.item); }
+                total.set(c.item, total.get(c.item) + c.count);
+            }
+            const next = new Array(this.cells.length).fill(null);
+            let i = 0;
+            for (const id of order) {
+                const max = AveloraItems.stackMax(id);
+                let left = total.get(id);
+                while (left > 0 && i < next.length) {
+                    const k = Math.min(left, max);
+                    next[i++] = { item: id, count: k };
+                    left -= k;
+                }
+            }
+            const same = next.every((c, j) => {
+                const o = this.cells[j];
+                return (!c && !o) || (c && o && c.item === o.item && c.count === o.count);
+            });
+            if (same) return false;
+            for (let j = 0; j < next.length; j++) this.cells[j] = next[j];
             this.changed();
             return true;
         }

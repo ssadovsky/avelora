@@ -3,6 +3,7 @@
   "name": "Шкура волка",
   "description": "Густая серая шкура волка. Пригодится кожевникам.",
   "category": "material",
+  "quality": "common",
   "stackMax": 50,
   "ground": {
     "variants": 1,

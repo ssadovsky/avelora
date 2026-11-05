@@ -3,6 +3,7 @@
   "name": "Мясо",
   "description": "Свежее сырое мясо. Годится в пищу и на продажу.",
   "category": "material",
+  "quality": "common",
   "stackMax": 50,
   "ground": {
     "variants": 1,

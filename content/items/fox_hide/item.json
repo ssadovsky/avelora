@@ -3,6 +3,7 @@
   "name": "Лисья шкура",
   "description": "Яркая рыжая шкура огненной лисы.",
   "category": "material",
+  "quality": "common",
   "stackMax": 50,
   "ground": {
     "variants": 1,

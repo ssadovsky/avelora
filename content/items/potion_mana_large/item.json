@@ -3,6 +3,7 @@
   "name": "Большое зелье маны",
   "description": "Концентрированный эликсир из отборных фиалок. Восстанавливает 100 единиц маны при употреблении.",
   "category": "consumable",
+  "quality": "common",
   "stackMax": 20,
   "ground": {
     "variants": 1,
