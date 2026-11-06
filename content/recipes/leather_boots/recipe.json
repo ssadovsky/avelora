@@ -1,0 +1,18 @@
+{
+  "id": "leather_boots",
+  "name": "Кожаные сапоги",
+  "description": "Изготовление: Кожаные сапоги.",
+  "category": "tailoring",
+  "ingredients": [
+    {
+      "item": "fox_hide",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "leather_boots",
+    "count": 1
+  },
+  "price": 8,
+  "requiresLevel": 2
+}

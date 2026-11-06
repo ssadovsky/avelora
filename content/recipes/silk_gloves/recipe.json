@@ -1,0 +1,18 @@
+{
+  "id": "silk_gloves",
+  "name": "Шёлковые перчатки",
+  "description": "Изготовление: Шёлковые перчатки.",
+  "category": "tailoring",
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "silk_gloves",
+    "count": 1
+  },
+  "price": 24,
+  "requiresLevel": 5
+}

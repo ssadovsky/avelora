@@ -1,0 +1,18 @@
+{
+  "id": "silk_hood",
+  "name": "Шёлковый капюшон",
+  "description": "Изготовление: Шёлковый капюшон.",
+  "category": "tailoring",
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "silk_hood",
+    "count": 1
+  },
+  "price": 35,
+  "requiresLevel": 5
+}

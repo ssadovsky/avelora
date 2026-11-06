@@ -1,27 +1,50 @@
 {
-    "id": "lizard_soldier",
-    "name": "Ящер-солдат",
-    "hp": 80,
-    "damage": [
-        6,
-        10
-    ],
-    "attackRange": 1.6,
-    "leashRadius": 14,
-    "wanderRadius": 5,
-    "respawnMinutes": 5,
-    "hitRadius": 1.1,
-    "gold": [
-        2,
-        5
-    ],
-    "xp": 40,
-    "level": 15,
-    "attackCooldown": 1.5,
-    "walkSpeed": 1.2,
-    "runSpeed": 4.8,
-    "behavior": "retaliate",
-    "aggroRadius": 0,
-    "scale": 1.0,
-    "statMultiplier": 1.1
+  "id": "lizard_soldier",
+  "name": "Ящер-солдат",
+  "hp": 80,
+  "damage": [
+    6,
+    10
+  ],
+  "attackRange": 1.6,
+  "leashRadius": 14,
+  "wanderRadius": 5,
+  "respawnMinutes": 5,
+  "hitRadius": 1.1,
+  "gold": [
+    2,
+    5
+  ],
+  "xp": 40,
+  "level": 15,
+  "attackCooldown": 1.5,
+  "walkSpeed": 1.2,
+  "runSpeed": 4.8,
+  "behavior": "retaliate",
+  "aggroRadius": 0,
+  "scale": 1.0,
+  "statMultiplier": 1.1,
+  "goldDrop": true,
+  "lootTiers": {
+    "5": [
+      {
+        "pool": [
+          "steel_helm",
+          "steel_cuirass",
+          "steel_gauntlets",
+          "steel_greaves",
+          "silk_hood",
+          "silk_robe",
+          "silk_gloves",
+          "silk_shoes",
+          "hunter_cap",
+          "hunter_jerkin",
+          "hunter_gloves",
+          "hunter_boots"
+        ],
+        "chance": 0.12,
+        "forClass": true
+      }
+    ]
+  }
 }

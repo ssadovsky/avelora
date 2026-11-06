@@ -1,0 +1,30 @@
+{
+  "id": "apprentice_staff",
+  "name": "Посох ученика",
+  "description": "Изготовление: Посох ученика.",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "beam",
+      "count": 3
+    },
+    {
+      "item": "branch",
+      "count": 4
+    },
+    {
+      "item": "iron_ingot",
+      "count": 1
+    },
+    {
+      "item": "web_cloth",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "apprentice_staff",
+    "count": 1
+  },
+  "price": 45,
+  "requiresLevel": 5
+}

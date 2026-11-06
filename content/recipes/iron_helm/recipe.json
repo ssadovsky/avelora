@@ -1,0 +1,18 @@
+{
+  "id": "iron_helm",
+  "name": "Железный шлем",
+  "description": "Изготовление: Железный шлем.",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "iron_helm",
+    "count": 1
+  },
+  "price": 12,
+  "requiresLevel": 2
+}

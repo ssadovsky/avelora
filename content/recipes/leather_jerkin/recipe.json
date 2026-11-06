@@ -1,0 +1,18 @@
+{
+  "id": "leather_jerkin",
+  "name": "Кожаная куртка",
+  "description": "Изготовление: Кожаная куртка.",
+  "category": "tailoring",
+  "ingredients": [
+    {
+      "item": "fox_hide",
+      "count": 4
+    }
+  ],
+  "result": {
+    "item": "leather_jerkin",
+    "count": 1
+  },
+  "price": 15,
+  "requiresLevel": 2
+}

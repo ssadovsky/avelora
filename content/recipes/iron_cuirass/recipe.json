@@ -1,0 +1,18 @@
+{
+  "id": "iron_cuirass",
+  "name": "Железный нагрудник",
+  "description": "Изготовление: Железный нагрудник.",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 4
+    }
+  ],
+  "result": {
+    "item": "iron_cuirass",
+    "count": 1
+  },
+  "price": 18,
+  "requiresLevel": 2
+}

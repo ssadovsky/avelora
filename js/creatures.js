@@ -293,10 +293,12 @@
 
             const goldMult = level * rm.gold * (cfg.goldMultiplier !== undefined ? cfg.goldMultiplier : 1.0);
             const baseGold = Array.isArray(mergedDef.gold) ? mergedDef.gold : (cfg.baseGold || [1, 2]);
-            const scaledGold = [
+            // золото: в подземельях — у всех; в открытом мире — только у «разумных» (creature.json goldDrop: true), звери золота не носят
+            const goldOk = Boolean((this.location && this.location.isDungeon) || mergedDef.goldDrop === true);
+            const scaledGold = goldOk ? [
                 Math.max(0, Math.round((baseGold[0] || 0) * goldMult)),
                 Math.max(1, Math.round((baseGold[1] || 1) * goldMult))
-            ];
+            ] : [0, 0];
 
             return {
                 id: sp.id, type: sp.type, def: mergedDef, spawn: sp,

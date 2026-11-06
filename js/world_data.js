@@ -832,7 +832,7 @@ window.LOCATIONS = {
 
         exits: [
             // Вход в Храм Стихий (ур. 10+): врата-пилоны (town.buildings templeGate), печать-портал между пилонами
-            { id: 'toTemple', x: 100.0, z: -90.4, radius: 1.7, minLevel: 10, height: 0.2, to: 'elementTemple', spawn: 'entrance', label: 'Храм Стихий', color: 0x6fe3ff, noRing: true },
+            { id: 'toTemple', x: 100.0, z: -90.4, radius: 1.7, minLevel: 10, height: 0.2, to: 'elementTemple', spawn: 'entrance', label: 'Храм Стихий', color: 0xb78cff, noRing: true },
             { id: 'toForest', x: -146.0, z: 10.0, radius: 2.0, to: 'forestEdge', spawn: 'fromSavanna', label: 'Лесная опушка', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, r: -Math.PI / 2, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.25, color: 0x9bc2a4 } }
         ],
 

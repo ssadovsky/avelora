@@ -1,0 +1,22 @@
+{
+  "id": "hunter_cap",
+  "name": "Охотничья шапка",
+  "description": "Изготовление: Охотничья шапка.",
+  "category": "tailoring",
+  "ingredients": [
+    {
+      "item": "wolf_hide",
+      "count": 3
+    },
+    {
+      "item": "fox_hide",
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "hunter_cap",
+    "count": 1
+  },
+  "price": 35,
+  "requiresLevel": 5
+}

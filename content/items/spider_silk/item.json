@@ -1,0 +1,15 @@
+{
+  "id": "spider_silk",
+  "name": "Паутина",
+  "description": "Прочные липкие нити. Из них прядут ткань.",
+  "category": "material",
+  "quality": "common",
+  "stackMax": 20,
+  "ground": {
+    "variants": 1,
+    "scale": 1.0,
+    "pile": "heap"
+  },
+  "use": null,
+  "value": 3
+}

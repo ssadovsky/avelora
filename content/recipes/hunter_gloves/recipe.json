@@ -1,0 +1,22 @@
+{
+  "id": "hunter_gloves",
+  "name": "Охотничьи перчатки",
+  "description": "Изготовление: Охотничьи перчатки.",
+  "category": "tailoring",
+  "ingredients": [
+    {
+      "item": "wolf_hide",
+      "count": 2
+    },
+    {
+      "item": "fox_hide",
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "hunter_gloves",
+    "count": 1
+  },
+  "price": 24,
+  "requiresLevel": 5
+}

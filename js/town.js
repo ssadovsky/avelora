@@ -18,6 +18,35 @@
     'use strict';
 
     const TEX_M = 2.0;            // сколько метров покрывает одна текстура
+    // портал врат: полупрозрачная колышущаяся завеса (фиолетовая, края и верх тают); при закрытом входе — тёмная глухая пластина
+    function makeGatePortalMat() {
+        const m = new THREE.ShaderMaterial({
+            uniforms: { uTime: { value: 0 }, uLock: { value: 0 } },
+            vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+            fragmentShader: [
+                'uniform float uTime; uniform float uLock; varying vec2 vUv;',
+                'void main() {',
+                '  float u = vUv.x, v = vUv.y, t = uTime;',
+                '  float n1 = 0.5 + 0.5 * sin(u * 2.3 + t * 0.9 + sin(v * 1.7 - t * 0.6) * 1.4);',
+                '  float n2 = 0.5 + 0.5 * sin(u * 4.1 - t * 1.3 + v * 2.0);',
+                '  float n3 = 0.5 + 0.5 * sin(v * 1.2 - t * 0.8 + sin(u * 1.6 + t * 0.5) * 1.2);',
+                '  float edge = 1.0 - smoothstep(1.6, 2.9, abs(u));',
+                '  float top = 1.0 - smoothstep(5.2, 7.3, v);',
+                '  float bot = 0.55 + 0.45 * smoothstep(-0.1, 1.2, v);',
+                '  float glow = clamp(0.5 + 0.55 * (0.55 * n1 + 0.30 * n2 + 0.25 * n3 - 0.55), 0.0, 1.0);',
+                '  float a = (0.34 + 0.34 * glow) * (0.35 + 0.65 * edge) * (0.45 + 0.55 * top) * bot;',
+                '  vec3 deep = vec3(0.30, 0.14, 0.72), lite = vec3(0.74, 0.58, 1.0);',
+                '  vec3 col = mix(deep, lite, glow * (0.45 + 0.55 * edge));',
+                '  col = mix(col, vec3(0.20, 0.15, 0.11), uLock);',
+                '  a = mix(a, 1.0, uLock);',
+                '  gl_FragColor = vec4(col, a);',
+                '}'
+            ].join('\n'),
+            transparent: true, depthWrite: false, side: THREE.DoubleSide
+        });
+        m.onBeforeRender = () => { m.uniforms.uTime.value = performance.now() * 0.001; };
+        return m;
+    }
     const TS = 512;               // размер текстуры, px
 
     function mulberry32(a) {
@@ -304,7 +333,7 @@
                 cloth: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0, vertexColors: true, side: THREE.DoubleSide }),
                 rune: new THREE.MeshBasicMaterial({ color: 0x6be3c0, vertexColors: true }),
                 runeW: new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true }),
-                gatePortal: new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true }),
+                gatePortal: makeGatePortalMat(),
                 sign: new THREE.MeshStandardMaterial({ map: T.sign.map, roughness: 0.8, metalness: 0, vertexColors: true }),
                 gatePanel: new THREE.MeshStandardMaterial({ map: T.gatePanel.map, roughness: 0.9, metalness: 0, vertexColors: true }),
                 gateSign: new THREE.MeshStandardMaterial({ map: T.gateSign.map, roughness: 0.7, metalness: 0, vertexColors: true })
@@ -1218,9 +1247,18 @@
         B.box('stone', 0, 8.85, 0, 4.6, 0.5, 1.8, { t: SB, uv: 0.4 });
         // портал между пилонами: светящееся поле на весь проём (без рамы)
         const arch = (w, y1, y2, z, tint, mat) => B.poly(mat, [[-w, -0.1, z], [w, -0.1, z], [w, y1, z], [w * 0.68, y2 - 0.55, z], [0, y2, z], [-w * 0.68, y2 - 0.55, z], [-w, y1, z]], [0, 0, 1], { t: tint });
-        B.poly('gatePortal', [[-2.9, -0.1, -0.4], [2.9, -0.1, -0.4], [2.9, 6.35, -0.4], [-2.9, 6.35, -0.4]], [0, 0, 1], { t: [0.42, 0.86, 1.0] });   // портал: один слой на весь проём до архитрава, без каймы
+        B.poly('gatePortal', [[-2.9, -0.1, -0.4], [2.9, -0.1, -0.4], [2.9, 7.3, -0.4], [-2.9, 7.3, -0.4]], [0, 0, 1], { uv: TEX_M });   // uv = метры от оси врат (u: -2.9…2.9, v: высота) — для шейдера   // портал (фиолетовый, как свет главного зала храма): один слой на весь проём до архитрава, без каймы
         // массив скалы позади врат: закрывает «дыру» в горах и край локации (ворота вмурованы в гору)
-        B.box('stone', 0, 5.25, -7.6, 22.0, 13.5, 12.8, { t: [1.12, 0.76, 0.5], uv: 0.16 });             // от z=-1.2 (внутри пилонов, без общих плоскостей) до -14
+        // массив разбит вокруг проёма: за завесой — тёмный тоннель глубиной ~4 м с мягко светящейся глухой стенкой (вид прохода)
+        const RK = { t: [1.12, 0.76, 0.5], uv: 0.16 };
+        for (const q of [-1, 1]) B.box('stone', q * 6.95, 5.25, -7.6, 8.1, 13.5, 12.8, RK);                // слева и справа от проёма (x 2.9…11)
+        B.box('stone', 0, 9.65, -7.6, 5.8, 4.7, 12.8, RK);                                                     // над проёмом (y от 6.4)
+        B.box('stone', 0, -0.75, -7.6, 5.8, 1.5, 12.8, RK);                                                   // под проёмом (до земли)
+        B.box('dark', 0, 2.9, -9.5, 5.8, 10.0, 9.0, { t: [0.14, 0.1, 0.2] });                                  // заглушка тоннеля: z -14…-5
+        for (const q of [-1, 1]) B.box('dark', q * 2.85, 3.7, -3.075, 0.1, 7.3, 3.85, { t: [0.16, 0.11, 0.24] });   // боковые стенки тоннеля
+        B.box('dark', 0, 7.3, -3.075, 5.8, 0.1, 3.85, { t: [0.12, 0.09, 0.18] });                            // потолок
+        B.box('dark', 0, 0.05, -3.075, 5.8, 0.1, 3.85, { t: [0.2, 0.15, 0.3] });                              // пол
+        B.poly('runeW', [[-2.8, 0.1, -4.95], [2.8, 0.1, -4.95], [2.8, 7.25, -4.95], [-2.8, 7.25, -4.95]], [0, 0, 1], { t: [0.32, 0.18, 0.62] });   // глухая стенка в конце прохода
         for (const q of [-1, 1]) B.box('stone', q * 8.95, 3.0, 0.2, 3.9, 9.0, 2.8, { t: [1.1, 0.75, 0.5], uv: 0.16 });   // заполнение у боков пилонов
         // тропа камней перед вратами
         for (let k = 0; k < 5; k++) B.box('stone', (k % 2 - 0.5) * 0.9, 0.0, 2.2 + k * 1.2, 2.2, 0.08, 1.0, { t: SD, jit: 0.2 });
@@ -1329,7 +1367,7 @@
         }
 
         /** пластина портала врат: тёмная и «мёртвая», пока вход закрыт (низкий уровень / откат) */
-        setGateLocked(lock) { const m = this.shared && this.shared.mats.gatePortal; if (m) { m.vertexColors = !lock; m.color.setHex(lock ? 0x33261b : 0xffffff); m.needsUpdate = true; } }
+        setGateLocked(lock) { const m = this.shared && this.shared.mats.gatePortal; if (m && m.uniforms) m.uniforms.uLock.value = lock ? 1 : 0; }
 
         dispose() {
             if (this.disposed) return;

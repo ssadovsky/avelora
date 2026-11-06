@@ -1,0 +1,34 @@
+{
+  "id": "bow_dawnflame",
+  "name": "Лук Рассветного Пламени",
+  "description": "Изготовление: Лук Рассветного Пламени.",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "beam",
+      "count": 3
+    },
+    {
+      "item": "branch",
+      "count": 5
+    },
+    {
+      "item": "iron_ingot",
+      "count": 1
+    },
+    {
+      "item": "element_crystal",
+      "count": 15
+    },
+    {
+      "item": "primordial_core",
+      "count": 3
+    }
+  ],
+  "result": {
+    "item": "bow_dawnflame",
+    "count": 1
+  },
+  "price": 100,
+  "requiresLevel": 15
+}

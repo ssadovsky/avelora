@@ -1,0 +1,15 @@
+{
+  "id": "web_cloth",
+  "name": "Паутинная ткань",
+  "description": "Лёгкая прочная ткань из паутины. Идёт на одежду магов.",
+  "category": "material",
+  "quality": "common",
+  "stackMax": 20,
+  "ground": {
+    "variants": 1,
+    "scale": 1.0,
+    "pile": "stack"
+  },
+  "use": null,
+  "value": 8
+}

@@ -1,0 +1,22 @@
+{
+  "id": "steel_helm",
+  "name": "Клёпаный шлем",
+  "description": "Изготовление: Клёпаный шлем.",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 4
+    },
+    {
+      "item": "wolf_hide",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "steel_helm",
+    "count": 1
+  },
+  "price": 40,
+  "requiresLevel": 5
+}

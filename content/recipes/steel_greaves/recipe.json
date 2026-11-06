@@ -1,0 +1,22 @@
+{
+  "id": "steel_greaves",
+  "name": "Клёпаные сапоги",
+  "description": "Изготовление: Клёпаные сапоги.",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 4
+    },
+    {
+      "item": "wolf_hide",
+      "count": 3
+    }
+  ],
+  "result": {
+    "item": "steel_greaves",
+    "count": 1
+  },
+  "price": 32,
+  "requiresLevel": 5
+}

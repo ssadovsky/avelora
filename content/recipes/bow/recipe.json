@@ -1,0 +1,26 @@
+{
+  "id": "bow",
+  "name": "Простой лук",
+  "description": "Изготовление: Простой лук.",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "beam",
+      "count": 2
+    },
+    {
+      "item": "branch",
+      "count": 3
+    },
+    {
+      "item": "fox_hide",
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "bow",
+    "count": 1
+  },
+  "price": 15,
+  "requiresLevel": 2
+}

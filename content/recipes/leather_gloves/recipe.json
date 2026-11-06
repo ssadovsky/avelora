@@ -1,0 +1,18 @@
+{
+  "id": "leather_gloves",
+  "name": "Кожаные перчатки",
+  "description": "Изготовление: Кожаные перчатки.",
+  "category": "tailoring",
+  "ingredients": [
+    {
+      "item": "fox_hide",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "leather_gloves",
+    "count": 1
+  },
+  "price": 7,
+  "requiresLevel": 2
+}

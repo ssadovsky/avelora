@@ -1,0 +1,18 @@
+{
+  "id": "iron_gauntlets",
+  "name": "Железные рукавицы",
+  "description": "Изготовление: Железные рукавицы.",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "iron_gauntlets",
+    "count": 1
+  },
+  "price": 8,
+  "requiresLevel": 2
+}

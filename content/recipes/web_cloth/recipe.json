@@ -1,0 +1,18 @@
+{
+  "id": "web_cloth",
+  "name": "Паутинная ткань",
+  "description": "Паутина сплетается в лёгкую прочную ткань.",
+  "category": "materials",
+  "ingredients": [
+    {
+      "item": "spider_silk",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "web_cloth",
+    "count": 1
+  },
+  "price": 10,
+  "requiresLevel": 3
+}

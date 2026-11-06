@@ -1,0 +1,18 @@
+{
+  "id": "silk_shoes",
+  "name": "Шёлковые туфли",
+  "description": "Изготовление: Шёлковые туфли.",
+  "category": "tailoring",
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "silk_shoes",
+    "count": 1
+  },
+  "price": 28,
+  "requiresLevel": 5
+}

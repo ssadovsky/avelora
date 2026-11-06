@@ -1,0 +1,22 @@
+{
+  "id": "steel_cuirass",
+  "name": "Клёпаный нагрудник",
+  "description": "Изготовление: Клёпаный нагрудник.",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 6
+    },
+    {
+      "item": "wolf_hide",
+      "count": 4
+    }
+  ],
+  "result": {
+    "item": "steel_cuirass",
+    "count": 1
+  },
+  "price": 60,
+  "requiresLevel": 5
+}

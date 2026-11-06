@@ -1,0 +1,22 @@
+{
+  "id": "steel_gauntlets",
+  "name": "Клёпаные рукавицы",
+  "description": "Изготовление: Клёпаные рукавицы.",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 3
+    },
+    {
+      "item": "wolf_hide",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "steel_gauntlets",
+    "count": 1
+  },
+  "price": 28,
+  "requiresLevel": 5
+}

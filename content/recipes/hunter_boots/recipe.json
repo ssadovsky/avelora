@@ -1,0 +1,22 @@
+{
+  "id": "hunter_boots",
+  "name": "Охотничьи сапоги",
+  "description": "Изготовление: Охотничьи сапоги.",
+  "category": "tailoring",
+  "ingredients": [
+    {
+      "item": "wolf_hide",
+      "count": 3
+    },
+    {
+      "item": "fox_hide",
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "hunter_boots",
+    "count": 1
+  },
+  "price": 28,
+  "requiresLevel": 5
+}

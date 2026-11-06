@@ -1,0 +1,30 @@
+{
+  "id": "elven_bow",
+  "name": "Эльфийский лук",
+  "description": "Изготовление: Эльфийский лук.",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "beam",
+      "count": 3
+    },
+    {
+      "item": "branch",
+      "count": 4
+    },
+    {
+      "item": "wolf_hide",
+      "count": 2
+    },
+    {
+      "item": "web_cloth",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "elven_bow",
+    "count": 1
+  },
+  "price": 55,
+  "requiresLevel": 5
+}

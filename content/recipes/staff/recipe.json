@@ -1,0 +1,22 @@
+{
+  "id": "staff",
+  "name": "Простой посох",
+  "description": "Изготовление: Простой посох.",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "beam",
+      "count": 2
+    },
+    {
+      "item": "branch",
+      "count": 3
+    }
+  ],
+  "result": {
+    "item": "staff",
+    "count": 1
+  },
+  "price": 12,
+  "requiresLevel": 2
+}

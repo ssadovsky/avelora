@@ -1,0 +1,22 @@
+{
+  "id": "hunter_jerkin",
+  "name": "Охотничья куртка",
+  "description": "Изготовление: Охотничья куртка.",
+  "category": "tailoring",
+  "ingredients": [
+    {
+      "item": "wolf_hide",
+      "count": 6
+    },
+    {
+      "item": "iron_ingot",
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "hunter_jerkin",
+    "count": 1
+  },
+  "price": 52,
+  "requiresLevel": 5
+}

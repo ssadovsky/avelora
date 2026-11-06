@@ -1015,6 +1015,8 @@
                 const t = document.createElement('div'); t.textContent = def.name;
                 const d = document.createElement('div'); d.className = 'dlg-row-desc'; d.textContent = def.description || '';
                 n.append(t, d);
+                const sLine = (this.ui && this.ui.skillStatsLine) ? this.ui.skillStatsLine(def) : '';
+                if (sLine) { const sd = document.createElement('div'); sd.className = 'dlg-row-desc'; sd.style.color = '#a9d68c'; sd.textContent = sLine; n.appendChild(sd); }
                 row.appendChild(n);
                 if (known) {
                     const k = document.createElement('div');
@@ -1112,6 +1114,8 @@
                 const t = document.createElement('div'); t.textContent = def.name;
                 const d = document.createElement('div'); d.className = 'dlg-row-desc'; d.textContent = def.description || '';
                 n.append(t, d);
+                const sLine = (this.ui && this.ui.skillStatsLine) ? this.ui.skillStatsLine(def) : '';
+                if (sLine) { const sd = document.createElement('div'); sd.className = 'dlg-row-desc'; sd.style.color = '#a9d68c'; sd.textContent = sLine; n.appendChild(sd); }
                 row.appendChild(n);
                 if (known) {
                     const k = document.createElement('div');
@@ -1201,7 +1205,22 @@
                 d.className = 'dlg-row-desc';
                 d.textContent = rec.description || (resItemDef ? resItemDef.description : '');
                 n.append(t, d);
+                // «Нужно: …» — состав рецепта прямо в строке обучения
+                const needTxt = (rec.ingredients || []).map(ing => { const idef = window.AveloraItems.get(ing.item); return `${ing.count}× ${idef ? idef.name : ing.item}`; }).join(', ');
+                if (needTxt) { const ni = document.createElement('div'); ni.className = 'dlg-row-desc dlg-row-need'; ni.textContent = 'Нужно: ' + needTxt; n.appendChild(ni); }
                 row.appendChild(n);
+                // подсказка по предмету-результату (как в магазине): наведение / тап по строке
+                const uiT = this.ui;
+                if (uiT && uiT.showCompareTooltip && resItemDef) {
+                    row.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'touch') uiT.showCompareTooltip(row, resItemDef.id); });
+                    row.addEventListener('pointerleave', () => uiT.hideTooltip());
+                    row.addEventListener('click', (e) => {
+                        if (e.target.closest('button')) return;
+                        uiT.showCompareTooltip(row, resItemDef.id);
+                        clearTimeout(uiT.tooltipTimer);
+                        uiT.tooltipTimer = setTimeout(() => uiT.hideTooltip(), 5000);
+                    });
+                }
 
                 const p = document.createElement('div');
                 p.className = 'dlg-row-price';

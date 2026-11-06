@@ -1,0 +1,18 @@
+{
+  "id": "silk_robe",
+  "name": "Шёлковая мантия",
+  "description": "Изготовление: Шёлковая мантия.",
+  "category": "tailoring",
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 4
+    }
+  ],
+  "result": {
+    "item": "silk_robe",
+    "count": 1
+  },
+  "price": 52,
+  "requiresLevel": 5
+}

@@ -6,8 +6,12 @@
   "start": "start",
   "dialog": {
     "start": {
-      "text": "Здравствуй, путник! Я Ивелина, шью и штопаю для всей улицы. Сукно, кожа, всякая всячина — несёшь что-нибудь? Куплю всё, что сгодится в хозяйстве.",
+      "text": "Здравствуй, путник! Я Ивелина, шью и штопаю для всей улицы. Сукно, кожа, паутина — несёшь что-нибудь? Куплю всё, что сгодится в хозяйстве. А если хочешь, научу шить кожаную и тканевую одежду.",
       "options": [
+        {
+          "text": "Обучи меня ремеслу",
+          "action": "teach_craft"
+        },
         {
           "text": "Покажи свои товары",
           "action": "shop"
@@ -22,5 +26,23 @@
   "shop": {
     "buy": [],
     "sell": true
+  },
+  "teach": {
+    "price": 10,
+    "only": [
+      "web_cloth",
+      "leather_cap",
+      "leather_jerkin",
+      "leather_gloves",
+      "leather_boots",
+      "hunter_cap",
+      "hunter_jerkin",
+      "hunter_gloves",
+      "hunter_boots",
+      "silk_hood",
+      "silk_robe",
+      "silk_gloves",
+      "silk_shoes"
+    ]
   }
 }

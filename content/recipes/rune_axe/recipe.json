@@ -1,0 +1,30 @@
+{
+  "id": "rune_axe",
+  "name": "Рунный топор",
+  "description": "Изготовление: Рунный топор.",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "beam",
+      "count": 2
+    },
+    {
+      "item": "iron_ingot",
+      "count": 5
+    },
+    {
+      "item": "element_crystal",
+      "count": 8
+    },
+    {
+      "item": "primordial_core",
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "rune_axe",
+    "count": 1
+  },
+  "price": 50,
+  "requiresLevel": 10
+}

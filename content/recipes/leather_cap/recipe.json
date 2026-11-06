@@ -1,0 +1,18 @@
+{
+  "id": "leather_cap",
+  "name": "Кожаная шапка",
+  "description": "Изготовление: Кожаная шапка.",
+  "category": "tailoring",
+  "ingredients": [
+    {
+      "item": "fox_hide",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "leather_cap",
+    "count": 1
+  },
+  "price": 10,
+  "requiresLevel": 2
+}

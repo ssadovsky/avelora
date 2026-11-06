@@ -1,0 +1,30 @@
+{
+  "id": "infernal_axe",
+  "name": "Инфернальная секира",
+  "description": "Изготовление: Инфернальная секира.",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "beam",
+      "count": 3
+    },
+    {
+      "item": "iron_ingot",
+      "count": 8
+    },
+    {
+      "item": "element_crystal",
+      "count": 15
+    },
+    {
+      "item": "primordial_core",
+      "count": 3
+    }
+  ],
+  "result": {
+    "item": "infernal_axe",
+    "count": 1
+  },
+  "price": 100,
+  "requiresLevel": 15
+}

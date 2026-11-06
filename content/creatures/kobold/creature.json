@@ -33,5 +33,6 @@
     2,
     5
   ],
-  "statMultiplier": 1.0
+  "statMultiplier": 1.0,
+  "goldDrop": true
 }

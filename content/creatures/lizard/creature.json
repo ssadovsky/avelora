@@ -1,28 +1,69 @@
 {
-    "id": "lizard",
-    "name": "Ящер-командир",
-    "hp": 150,
-    "damage": [
-        12,
-        18
-    ],
-    "attackRange": 1.7,
-    "leashRadius": 14,
-    "wanderRadius": 5,
-    "respawnMinutes": 6,
-    "hitRadius": 1.2,
-    "gold": [
-        5,
-        9
-    ],
-    "xp": 80,
-    "level": 15,
-    "attackCooldown": 1.5,
-    "walkSpeed": 1.2,
-    "runSpeed": 4.8,
-    "behavior": "retaliate",
-    "aggroRadius": 0,
-    "scale": 1.0,
-    "statMultiplier": 1.15,
-    "rank": "elite"
+  "id": "lizard",
+  "name": "Ящер-командир",
+  "hp": 150,
+  "damage": [
+    12,
+    18
+  ],
+  "attackRange": 1.7,
+  "leashRadius": 14,
+  "wanderRadius": 5,
+  "respawnMinutes": 6,
+  "hitRadius": 1.2,
+  "gold": [
+    5,
+    9
+  ],
+  "xp": 80,
+  "level": 15,
+  "attackCooldown": 1.5,
+  "walkSpeed": 1.2,
+  "runSpeed": 4.8,
+  "behavior": "retaliate",
+  "aggroRadius": 0,
+  "scale": 1.0,
+  "statMultiplier": 1.15,
+  "rank": "elite",
+  "goldDrop": true,
+  "lootTiers": {
+    "5": [
+      {
+        "pool": [
+          "steel_helm",
+          "steel_cuirass",
+          "steel_gauntlets",
+          "steel_greaves",
+          "silk_hood",
+          "silk_robe",
+          "silk_gloves",
+          "silk_shoes",
+          "hunter_cap",
+          "hunter_jerkin",
+          "hunter_gloves",
+          "hunter_boots"
+        ],
+        "chance": 0.45,
+        "forClass": true
+      },
+      {
+        "pool": [
+          "blackened_helm",
+          "blackened_cuirass",
+          "blackened_gauntlets",
+          "blackened_greaves",
+          "arcane_hood",
+          "arcane_robe",
+          "arcane_gloves",
+          "arcane_shoes",
+          "ranger_cap",
+          "ranger_jerkin",
+          "ranger_gloves",
+          "ranger_boots"
+        ],
+        "chance": 0.2,
+        "forClass": true
+      }
+    ]
+  }
 }
