@@ -1,0 +1,73 @@
+{
+    "id": "element_heart",
+    "name": "Первородный Элементаль",
+    "level": 10,
+    "attackRange": 3.6,
+    "attackCooldown": 2.2,
+    "walkSpeed": 1.1,
+    "runSpeed": 3.4,
+    "behavior": "aggressive",
+    "aggroRadius": 12,
+    "leashRadius": 40,
+    "wanderRadius": 0,
+    "respawnMinutes": 120,
+    "hitRadius": 2.0,
+    "scale": 1.7,
+    "gold": [
+        60,
+        100
+    ],
+    "xp": 600,
+    "statMultiplier": 1.4,
+    "rank": "boss",
+    "proceduralDeath": true,
+    "orbit": {
+        "prefix": "shard_",
+        "speed": 0.6
+    },
+    "lootTiers": {
+        "10": [
+            {
+                "pool": [
+                    "ring_labyrinth",
+                    "ring_arcane_ward"
+                ]
+            },
+            {
+                "pool": [
+                    "amulet_catacombs",
+                    "amulet_sapphire_eye"
+                ],
+                "chance": 0.25
+            },
+            {
+                "pool": [
+                    "minotaur_axe",
+                    "elven_bow",
+                    "apprentice_staff"
+                ],
+                "chance": 0.35,
+                "forClass": true
+            },
+            {
+                "pool": [
+                    "steel_helm",
+                    "steel_cuirass",
+                    "steel_gauntlets",
+                    "steel_greaves",
+                    "silk_hood",
+                    "silk_robe",
+                    "silk_gloves",
+                    "silk_shoes",
+                    "hunter_cap",
+                    "hunter_jerkin",
+                    "hunter_gloves",
+                    "hunter_boots"
+                ],
+                "chance": 0.5,
+                "forClass": true
+            }
+        ]
+    },
+    "elementBoss": true
+}

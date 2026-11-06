@@ -582,13 +582,41 @@
         }
 
         /** Procedural stand-ins for missing clips (bob when moving, lunge, hit tilt, death roll). */
+        /** def.orbit = {prefix, speed}: узлы модели prefix0..N обращаются вокруг оси модели (Сердце Стихий) */
+        orbitShards(rec, dt) {
+            const od = rec.def.orbit, m = rec.model;
+            if (!od || !m) return;
+            if (!rec._orb) {
+                rec._orb = [];
+                for (let i = 0; i < 8; i++) {
+                    const n = m.getObjectByName((od.prefix || 'shard_') + i);
+                    if (!n) break;
+                    const p = n.position;
+                    rec._orb.push({ n, r: Math.hypot(p.x, p.z), a: Math.atan2(p.z, p.x), y: p.y, s: i });
+                }
+                rec._orbT = 0;
+            }
+            rec._orbT += dt * (rec.state === 'dead' ? 0.15 : (rec.heartCast ? 3.4 : (rec.aggro ? 1.7 : 1)));
+            const sp = od.speed || 0.6;
+            for (let i = 0; i < rec._orb.length; i++) {
+                const o = rec._orb[i], a = o.a + rec._orbT * sp;
+                o.n.position.set(Math.cos(a) * o.r, o.y + Math.sin(rec._orbT * 1.3 + o.s * 1.7) * 0.18, Math.sin(a) * o.r);
+                o.n.rotation.y += dt * (0.8 + o.s * 0.2);
+            }
+        }
+
         proceduralPose(rec, dt) {
             const m = rec.model;
             if (!m) return;
+            this.orbitShards(rec, dt);
             const h = rec.height;
             let py = 0, pz = 0, rx = 0, rz = 0, ry = 0;
             if (rec.state === 'dead') {
-                if (!this.hasClip(rec, 'Death')) {
+                if (rec.def.proceduralDeath) {
+                    // элементаль рассыпается: застывает в позе покоя, раздаётся вширь и оседает в кучу
+                    const t = Math.min(1, rec.deadT / 0.9), e = t * t;
+                    const bs = rec.def.scale || 1; m.scale.set(bs * (1 + 0.25 * e), bs * Math.max(0.04, 1 - 0.96 * e), bs * (1 + 0.25 * e));
+                } else if (!this.hasClip(rec, 'Death')) {
                     const t = Math.min(1, rec.deadT / 0.5);
                     rz = t * t * Math.PI * 0.5;
                     py = t * h * 0.15;
@@ -782,7 +810,7 @@
 
                 const isVis = rec.group.visible;
                 if (rec.mixer) {
-                    const noDeathFreeze = rec.state === 'dead' && !this.hasClip(rec, 'Death') && rec.deadT > 0.22;
+                    const noDeathFreeze = rec.state === 'dead' && (!this.hasClip(rec, 'Death') || rec.def.proceduralDeath) && rec.deadT > 0.22;
                     const animRate = noDeathFreeze ? 0 : (rec.stunT > 0 ? 0.05 : (rec.slowT > 0 ? rec.slowF : 1));
                     rec._animDt = (rec._animDt || 0) + delta * animRate;
                     const d2 = rec._d2 || 0;
@@ -856,6 +884,12 @@
                 return;
             }
 
+            // Сердце Стихий: стихийное умение в процессе
+            if (rec.heartCast) {
+                this.heartUpdate(rec, dt, now, c, playerAlive);
+                return;
+            }
+
             // Attack in progress: runs to completion (the hit lands at hitAt)
             if (rec.attackT >= 0) {
                 rec.attackT += dt;
@@ -899,6 +933,12 @@
                     this.startMinotaurShockwave(rec, now, c);
                     return;
                 }
+            }
+
+            // Сердце Стихий: запуск умений (огонь / вода / воздух / камень по очереди, первое через 5 с боя)
+            if (def.elementBoss && rec.aggro && playerAlive && rec.state !== 'return') {
+                if (rec.heartTimer === undefined) rec.heartTimer = now + 5.0;
+                else if (now >= rec.heartTimer && distP < 34.0) { this.heartStart(rec, now, c); return; }
             }
 
             if (rec.staggerT > 0) return; // flinching from a hit
@@ -1013,6 +1053,7 @@
             rec.state = 'return';
             rec.attackT = -1;
             if (rec.minotaurCasting) this.cleanupMinotaurShockwave(rec);
+            if (rec.heartCast) this.heartCleanup(rec);
             rec.lastPath = -99;
             rec.hp = rec.maxHp; // leashing resets the fight
         }
@@ -1049,6 +1090,12 @@
 
         // Сетка прямоугольная (halfWorldX/Z, cellWidth/Height): переводим через worldToGrid самой сетки.
         // (Раньше здесь читались несуществующие pf.halfWorld / pf.cellSize -> NaN -> «всегда непроходимо»: мобы не блуждали.)
+        /** жёсткая граница подземелья (стены/колонны храма): ни толчок, ни «стою в закрытой клетке» не пускают моба в камень */
+        hardOK(x, z) {
+            const d = this.game.dungeon;
+            return !(d && d._isWalkPoint) || d._isWalkPoint(x, z);
+        }
+
         isWalkable(x, z, rec) {
             const pf = this.pathfinder;
             if (!pf) return true;
@@ -1137,7 +1184,7 @@
                 const step = Math.min(d, speed * dt);
                 const nx = rec.x + (dx / d) * step, nz = rec.z + (dz / d) * step;
                 // Never step into water / blocked cells (e.g. while steering directly)
-                if (this.isWalkable(nx, nz, rec) || !this.isWalkable(rec.x, rec.z, rec)) {
+                if (this.hardOK(nx, nz) && (this.isWalkable(nx, nz, rec) || !this.isWalkable(rec.x, rec.z, rec))) {
                     rec.x = nx; rec.z = nz;
                     rec.speed = speed;
                 } else {
@@ -1171,8 +1218,9 @@
         updateDead(rec, dt) {
             rec.deadT += dt;
             rec.speed = 0;
-            if (rec.deadT > CORPSE_TIME) {
-                const t = (rec.deadT - CORPSE_TIME) / SINK_TIME;
+            const ct = rec.def.proceduralDeath ? 2.5 : CORPSE_TIME;
+            if (rec.deadT > ct) {
+                const t = (rec.deadT - ct) / SINK_TIME;
                 rec.y = this._gy(rec) - t * (rec.height + 0.3);
                 if (t >= 1) {
                     this.despawn(rec);
@@ -1238,7 +1286,7 @@
             rec.stunOn = false;
             const i = this.proxies.indexOf(rec.proxy);
             if (i >= 0) this.proxies.splice(i, 1);
-            if (this.hasClip(rec, 'Death')) {
+            if (this.hasClip(rec, 'Death') && !rec.def.proceduralDeath) {
                 this.play(rec, 'Death', 0.1, true);
             } else if (rec.mixer) {
                 // Если у модели нет анимации Death (носорог, динозавры и др.) — плавно возвращаем ноги из бега в спокойную позу
@@ -1251,6 +1299,7 @@
             if (this.hovered === rec) this.hovered = null;
             this.hideHpBar(rec);
             if (rec.minotaurCasting) this.cleanupMinotaurShockwave(rec);
+            if (rec.heartCast) this.heartCleanup(rec);
             if (this.state) this.state.setKilled(this.location.id, rec.id, Math.floor(Date.now() / 1000));
             const bd = this.location.dungeon;
             if (this.state && bd && bd.bossId === rec.id) this.state.setKilled(this.location.id, '__cleared', Math.floor(Date.now() / 1000));   // boss killed under the dungeon-reset rules
@@ -1372,9 +1421,9 @@
             rec.kbT = Math.max(0, t0 - dt);
             const step = rec.kbV0 * ((t0 + rec.kbT) * 0.5 / rec.kbDur) * Math.min(dt, t0);   // trapezoid: exact total distance
             const nx = rec.x + rec.kbDx * step, nz = rec.z + rec.kbDz * step;
-            if (this.isWalkable(nx, nz, rec) || !this.isWalkable(rec.x, rec.z, rec)) { rec.x = nx; rec.z = nz; }   // standing on a blocked nav cell (tree margin): do not get stuck
-            else if (this.isWalkable(nx, rec.z, rec)) rec.x = nx;      // slide along a wall
-            else if (this.isWalkable(rec.x, nz, rec)) rec.z = nz;
+            if (this.hardOK(nx, nz) && (this.isWalkable(nx, nz, rec) || !this.isWalkable(rec.x, rec.z, rec))) { rec.x = nx; rec.z = nz; }   // standing on a blocked nav cell (tree margin): do not get stuck
+            else if (this.hardOK(nx, rec.z) && this.isWalkable(nx, rec.z, rec)) rec.x = nx;      // slide along a wall
+            else if (this.hardOK(rec.x, nz) && this.isWalkable(rec.x, nz, rec)) rec.z = nz;
             else rec.kbT = 0;                                     // blocked
             rec.y = this._gy(rec);
         }
@@ -1752,6 +1801,137 @@
                 if (rec.minotaurTelegraph.material) rec.minotaurTelegraph.material.dispose();
                 rec.minotaurTelegraph = null;
             }
+        }
+
+
+        // -----------------------------------------------------------
+        // Сердце Стихий (босс Храма Стихий): стихийные умения с предупреждением на полу
+        // огонь — кольцо пламени по всему залу (спасает колонна), вода — приливы кругами, воздух — три луча-веера, камень — обвал
+        // -----------------------------------------------------------
+        heartStart(rec, now, c) {
+            const order = ['fire', 'water', 'air', 'stone'];
+            let k;
+            do { k = order[(Math.random() * 4) | 0]; } while (k === rec.heartLast && Math.random() < 0.85);
+            rec.heartLast = k;
+            rec.speed = 0; rec.attackT = -1;
+            const cast = rec.heartCast = { k, t: 0, zones: [], end: 3.0 };
+            const ui = this.game.ui;
+            const msg = {
+                fire: 'Сердце Стихий вызывает огненное кольцо! Прячьтесь за колонной!',
+                water: 'Сердце Стихий поднимает приливы! Уйдите с отмеченных кругов!',
+                air: 'Сердце Стихий заряжает бурю! Уйдите с линий удара!',
+                stone: 'Сердце Стихий обрушивает камни! Не стойте на отметках!'
+            }[k];
+            if (ui && ui.floatText) ui.floatText(msg, 'warn', 0.1);
+            const px = c && c.position ? c.position.x : rec.x, pz = c && c.position ? c.position.z : rec.z + 1;
+            const color = { fire: 0xff4a14, water: 0x3aa8ff, air: 0xdff2ff, stone: 0xc89a5a }[k];
+            const dmgBase = 50 * Math.max(1, (rec.level || 10) / 10);
+            const circle = (x, z, r, delay, o) => cast.zones.push(Object.assign({ type: 'circle', x, z, r, delay, color }, o || {}));
+            const clampX = x => Math.max(-13, Math.min(13, x)), clampZ = z => Math.max(12, Math.min(38, z));
+            if (k === 'fire') {
+                circle(rec.x, rec.z, 19.0, 2.6, { cover: true, dmg: dmgBase * 1.15, label: 'Огненное кольцо' });
+                cast.end = 3.6;
+            } else if (k === 'water') {
+                circle(px, pz, 2.7, 2.2, { dmg: dmgBase, label: 'Прилив' });
+                for (let i = 0; i < 4; i++) { const a = Math.random() * 6.28, d = 3 + Math.random() * 6; circle(clampX(px + Math.cos(a) * d), clampZ(pz + Math.sin(a) * d), 2.7, 2.2 + i * 0.15, { dmg: dmgBase, label: 'Прилив' }); }
+                cast.end = 3.4;
+            } else if (k === 'air') {
+                const base = Math.atan2(pz - rec.z, px - rec.x);
+                for (const da of [-0.55, 0, 0.55]) { const a = base + da; cast.zones.push({ type: 'rect', x: rec.x, z: rec.z, dx: Math.cos(a), dz: Math.sin(a), len: 26, w: 3.0, delay: 2.0, color, dmg: dmgBase * 1.05, label: 'Буря' }); }
+                cast.end = 3.0;
+            } else {
+                circle(px, pz, 2.3, 1.8, { dmg: dmgBase, label: 'Обвал' });
+                for (let i = 0; i < 6; i++) { const a = Math.random() * 6.28, d = 2 + Math.random() * 8; circle(clampX(px + Math.cos(a) * d), clampZ(pz + Math.sin(a) * d), 2.3, 1.8 + i * 0.12, { dmg: dmgBase, label: 'Обвал' }); }
+                cast.end = 3.0;
+            }
+            if (this.root) cast.zones.forEach(zn => {
+                const mats = [];
+                const mk = (geo, op) => { const m = new THREE.MeshBasicMaterial({ color: zn.color, transparent: true, opacity: op, side: THREE.DoubleSide, depthWrite: false }); mats.push(m); const o = new THREE.Mesh(geo, m); o.renderOrder = 6; this.root.add(o); return o; };
+                if (zn.type === 'circle') {
+                    zn.base = mk(new THREE.CircleGeometry(zn.r, 40).rotateX(-Math.PI / 2), 0.22);
+                    zn.fill = mk(new THREE.CircleGeometry(zn.r, 40).rotateX(-Math.PI / 2), 0.4);
+                    zn.base.position.set(zn.x, rec.y + 0.06, zn.z); zn.fill.position.set(zn.x, rec.y + 0.07, zn.z); zn.fill.scale.set(0.01, 1, 0.01);
+                } else {
+                    zn.base = mk(new THREE.PlaneGeometry(zn.len, zn.w).rotateX(-Math.PI / 2).translate(zn.len / 2, 0, 0), 0.2);
+                    zn.fill = mk(new THREE.PlaneGeometry(zn.len, zn.w).rotateX(-Math.PI / 2).translate(zn.len / 2, 0, 0), 0.4);
+                    for (const m of [zn.base, zn.fill]) { m.position.set(zn.x, rec.y + 0.06, zn.z); m.rotation.y = -Math.atan2(zn.dz, zn.dx); }
+                    zn.fill.scale.set(0.01, 1, 1);
+                }
+                zn.mats = mats;
+            });
+        }
+
+        heartHit(rec, zn, px, pz) {
+            if (zn.type === 'circle') {
+                if (Math.hypot(px - zn.x, pz - zn.z) > zn.r) return false;
+                if (zn.cover && this.heartCovered(rec.x, rec.z, px, pz)) return 'cover';
+                return true;
+            }
+            const rx = (px - zn.x) * zn.dx + (pz - zn.z) * zn.dz, ry = Math.abs(-(px - zn.x) * zn.dz + (pz - zn.z) * zn.dx);
+            return rx >= 0 && rx <= zn.len && ry <= zn.w / 2;
+        }
+
+        heartCovered(bx, bz, px, pz) {
+            const d = this.game.dungeon, pil = d && d.pillars;
+            if (!pil) return false;
+            const vx = px - bx, vz = pz - bz, L2 = vx * vx + vz * vz;
+            if (L2 < 0.01) return false;
+            for (let i = 0; i < pil.length; i++) {
+                const q = pil[i]; if (q[2] < 0.7) continue;                      // только колонны, не жаровни
+                const t = Math.max(0, Math.min(1, ((q[0] - bx) * vx + (q[1] - bz) * vz) / L2));
+                if (Math.hypot(bx + vx * t - q[0], bz + vz * t - q[1]) < q[2] + 0.15 && t < 0.98) return true;
+            }
+            return false;
+        }
+
+        heartUpdate(rec, dt, now, c, playerAlive) {
+            const cast = rec.heartCast;
+            cast.t += dt; rec.speed = 0;
+            if (c && c.position) this.turnTowards(rec, c.position.x, c.position.z, dt * 0.8);
+            const ui = this.game.ui;
+            for (let i = 0; i < cast.zones.length; i++) {
+                const zn = cast.zones[i];
+                if (!zn.base) continue;
+                if (!zn.fired) {
+                    const pr = Math.min(1, cast.t / zn.delay);
+                    if (zn.type === 'circle') zn.fill.scale.set(Math.max(0.01, pr), 1, Math.max(0.01, pr)); else zn.fill.scale.set(Math.max(0.01, pr), 1, 1);
+                    zn.base.material.opacity = 0.16 + 0.1 * Math.sin(cast.t * 9);
+                    if (cast.t >= zn.delay) {
+                        zn.fired = true; zn.flashT = 0;
+                        zn.fill.material.opacity = 0.9; zn.fill.scale.set(1, 1, 1);
+                        if (playerAlive && c && c.position && this.game.combat && this.sameLevel(rec)) {
+                            const px = c.position.x, pz = c.position.z, hit = this.heartHit(rec, zn, px, pz);
+                            if (hit === 'cover') {
+                                if (ui && ui.floatAt) ui.floatAt('Укрытие за колонной! 0 урона', 'gain', px, c.position.y + 1.8, pz);
+                            } else if (hit && !cast.hitDone) {
+                                cast.hitDone = true;                                              // за одно умение игрок получает урон один раз
+                                const dmg = Math.round(zn.dmg * (0.9 + Math.random() * 0.25));
+                                this.game.combat.damagePlayer(dmg, rec);
+                                if (ui && ui.floatAt) ui.floatAt(`${zn.label}! -${dmg}`, 'dmg-magic', px, c.position.y + 2.0, pz);
+                                const cam = this.game.camera; if (cam && typeof cam.shake === 'function') cam.shake(0.3, 12);
+                            }
+                        }
+                    }
+                } else {
+                    zn.flashT += dt;
+                    const f = Math.max(0, 1 - zn.flashT / 0.45);
+                    zn.fill.material.opacity = 0.9 * f; zn.base.material.opacity = 0.2 * f;
+                }
+            }
+            if (cast.t >= cast.end) {
+                this.heartCleanup(rec);
+                rec.heartTimer = now + 8.5 + Math.random() * 3.0;
+                this.play(rec, 'Idle', 0.15);
+            }
+        }
+
+        heartCleanup(rec) {
+            const cast = rec.heartCast;
+            if (cast) cast.zones.forEach(zn => {
+                [zn.base, zn.fill].forEach(m => { if (m) { if (m.parent) m.parent.remove(m); if (m.geometry) m.geometry.dispose(); } });
+                (zn.mats || []).forEach(m => m.dispose());
+            });
+            rec.heartCast = null;
         }
 
         isBehindDungeonColumn(bx, bz, px, pz) {

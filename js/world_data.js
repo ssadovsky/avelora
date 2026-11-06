@@ -823,10 +823,16 @@ window.LOCATIONS = {
 
         spawns: {
             default:    { x: -128.0, z: 10.0, r: 4.71 },
-            fromForest: { x: -128.0, z: 10.0, r: 4.71 }     // выход из портала, лицом на восток
+            fromForest: { x: -128.0, z: 10.0, r: 4.71 },    // выход из портала, лицом на восток
+            fromTemple: { x: 100.0, z: -84.5, r: Math.PI }  // выход из Храма Стихий: перед вратами, лицом от них
         },
 
+        // Процедурные здания (js/town.js): врата Храма Стихий у северной скалы
+        town: { level: [100.0, -72.0], buildings: [ { id: 'temple_gate', type: 'templeGate', x: 100.0, z: -91.0, r: 0.0, W: 10.0, D: 4.0 } ] },
+
         exits: [
+            // Вход в Храм Стихий (ур. 10+): врата-пилоны (town.buildings templeGate), печать-портал между пилонами
+            { id: 'toTemple', x: 100.0, z: -90.4, radius: 1.7, minLevel: 10, height: 0.2, to: 'elementTemple', spawn: 'entrance', label: 'Храм Стихий', color: 0x6fe3ff, noRing: true },
             { id: 'toForest', x: -146.0, z: 10.0, radius: 2.0, to: 'forestEdge', spawn: 'fromSavanna', label: 'Лесная опушка', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, r: -Math.PI / 2, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.25, color: 0x9bc2a4 } }
         ],
 
@@ -1556,7 +1562,7 @@ window.LOCATIONS = {
             id: 'crypt_passage',
             // Ступень данжа: мобы = 5 (герои 5–8 и выше, пока нет добычи следующей ступени); см. creatures.js dungeonMobLevel
             minLevel: 5,
-            maxLevel: 5,
+            // maxLevel нет: ступени мобов по 5 уровней без потолка
             // Босс убит -> на его месте открывается портал выхода, входной портал на поверхности гаснет;
             // через resetSeconds (настенные часы) данж откатывается полностью (босс и все мобы возрождаются)
             bossId: 'catacombs_minotaur_1',
@@ -1586,6 +1592,106 @@ window.LOCATIONS = {
             { id: 'catacombs_minotaur_1', type: 'minotaur', level: 6, rank: 'boss', x: 0.0, z: 42.0, r: Math.PI, behavior: 'aggressive', aggroRadius: 11.0, leashRadius: 36.0 }
         ],
 
+        decorations: [],
+        groups: []
+    },
+
+    // ------------------------------------------------------------------
+    // Храм Стихий (подземный храм, js/temple.js). Вход: саванна (100, -86). Ступень мобов 10.
+    // Планировка — dungeon.rooms (прямоугольники; стены/пол/потолок/навигация строятся из них), doors — рамы проёмов.
+    // ------------------------------------------------------------------
+    elementTemple: {
+        id: 'elementTemple',
+        name: 'Храм Стихий',
+        isDungeon: true,
+        surfaceLocation: 'savanna',
+        surfaceSpawn: 'fromTemple',
+
+        terrain: { size: 130, seed: 4242, biome: 'forest', flat: true, hidden: true, segments: 4, waterBody: { type: 'none' }, hills: { amplitude: 0.0, inclineX: 0.0, inclineZ: 0.0 }, baseHeight: 0.0, border: 0 },
+        atmosphere: { sky: 0x06080c, skyTop: 0x040508, fogColor: 0x07090d, fogDensity: 0.012 },
+        lighting: { hemiSky: 0x4a5670, hemiGround: 0x2a2420, hemiIntensity: 1.1, sunColor: 0x486080, sunIntensity: 0.12 },
+        cameraAngle: Math.PI,
+        cameraDistance: 6.8, minDistance: 3.8, maxDistance: 8.5, pitchZoomedIn: 0.28, pitchZoomedOut: 0.52,
+
+        spawns: {
+            default:  { x: 0.0, z: -56.0, r: Math.PI },
+            entrance: { x: 0.0, z: -56.0, r: Math.PI }
+        },
+        exits: [
+            { id: 'toSurface', x: 0.0, z: -58.6, y: 0.02, radius: 1.2, height: 2.2, color: 0x7fd4ff, to: 'savanna', spawn: 'fromTemple', label: 'Выход на поверхность' }
+        ],
+
+        dungeon: {
+            kind: 'temple',
+            id: 'element_temple',
+            minLevel: 10,
+            // maxLevel нет: ступени мобов идут по 5 уровней (герой 9–13 → 10, 14–18 → 15, 19–23 → 20 …)
+            bossId: 'tt_boss_heart',
+            // босс убит → в зале открывается выход на поверхность, врата в саванне гаснут; откат всего данжа через resetSeconds после выхода
+            bossExit: { id: 'bossExit', x: 0.0, z: -7.0, y: 0.05, radius: 1.7, height: 1.2, style: 'disc', color: 0x3fb4ff, to: 'savanna', spawn: 'fromTemple', label: 'Выход из храма' },
+            // Печать врат босса (temple.js): гаснет, когда убиты все четыре хранителя (порядок = знаки: огонь, вода, воздух, камень)
+            seal: { x: 0, z: 9.75, w: 4.8, h: 4.3, colors: [0xff6a2a, 0x4fb4ff, 0xe6f6ff, 0xe0a040] },
+            guardians: [{ id: 'tt_guard_fire' }, { id: 'tt_guard_water' }, { id: 'tt_guard_air' }, { id: 'tt_guard_stone' }],
+            resetSeconds: 60,   // тест; для боя вернуть 7200
+            rooms: [
+                {id: "vestibule", x0: -3, z0: -60, x1: 3, z1: -50, h: 4.2, theme: "hub", flames: [[-2.2, -58.5], [2.2, -58.5]]},
+                {id: "stairs", x0: -3, z0: -50, x1: 3, z1: -44, h: 4.5, theme: "hub", lights: [[0, 3.2, -47, 1, 12]]},
+                {id: "hub1", x0: -13, z0: -44, x1: 13, z1: -26, h: 7.5, theme: "hub", ring: 6.5, cols: [[-9, -39.5], [9, -39.5], [-9, -30.5], [9, -30.5]], colR: 0.95, beams: 6, flames: [[-11.5, -42.5], [11.5, -42.5], [-11.5, -27.5], [11.5, -27.5]], lights: [[0, 5.5, -35, 1.5, 24]]},
+                {id: "hub1_n", x0: -2.5, z0: -26, x1: 2.5, z1: -16, h: 4.8, theme: "hub", lights: [[0, 3.4, -21, 1, 12]]},
+                {id: "hub2", x0: -13, z0: -16, x1: 13, z1: 2, h: 7.5, theme: "hub", ring: 6.5, cols: [[-9, -11.5], [9, -11.5], [-9, -2.5], [9, -2.5]], colR: 0.95, beams: 6, flames: [[-11.5, -14.5], [11.5, -14.5], [-11.5, 0.5], [11.5, 0.5]], lights: [[0, 5.5, -7, 1.5, 24]]},
+                {id: "door_w1", x0: -17, z0: -37.5, x1: -13, z1: -32.5, h: 4.8, theme: "door"},
+                {id: "door_e1", x0: 13, z0: -37.5, x1: 17, z1: -32.5, h: 4.8, theme: "door"},
+                {id: "door_w2", x0: -17, z0: -9.5, x1: -13, z1: -4.5, h: 4.8, theme: "door"},
+                {id: "door_e2", x0: 13, z0: -9.5, x1: 17, z1: -4.5, h: 4.8, theme: "door"},
+                {id: "wing_water", x0: -33, z0: -43, x1: -17, z1: -27, h: 6.5, theme: "water", ring: 5.5, beams: 6, props: [], flames: [[-31, -41], [-31, -29], [-19.5, -41], [-19.5, -29]], lights: [[-25, 4.8, -35, 1.5, 22]]},
+                {id: "wing_fire", x0: 17, z0: -43, x1: 33, z1: -27, h: 6.5, theme: "fire", ring: 5.5, beams: 6, props: [], flames: [[31, -41], [31, -29], [19.5, -41], [19.5, -29]], lights: [[25, 4.8, -35, 1.6, 22]]},
+                {id: "wing_air", x0: -33, z0: -15, x1: -17, z1: 1, h: 6.5, theme: "air", ring: 5.5, beams: 6, flames: [[-31, -13], [-31, -1], [-19.5, -13], [-19.5, -1]], lights: [[-25, 4.8, -7, 1.5, 22]]},
+                {id: "wing_stone", x0: 17, z0: -15, x1: 33, z1: 1, h: 6.5, theme: "stone", ring: 5.5, beams: 6, flames: [[31, -13], [31, -1], [19.5, -13], [19.5, -1]], lights: [[25, 4.8, -7, 1.5, 22]]},
+                {id: "gate_corr", x0: -2.5, z0: 2, x1: 2.5, z1: 10, h: 5, theme: "hub", lights: [[0, 3.6, 6, 1, 12]]},
+                {id: "boss_hall", x0: -15, z0: 10, x1: 15, z1: 40, h: 14, theme: "boss", ring: 11, cols: [[-11, 17], [11, 17], [-11, 25], [11, 25], [-11, 33], [11, 33]], colR: 1.15, beams: 7, flames: [[-13, 12.5], [13, 12.5], [-13, 37.5], [13, 37.5]], lights: [[0, 9, 25, 2, 34], [0, 5, 14, 1.2, 20]]}
+              ],
+            doors: [
+                {x: 0, z: -44, axis: "z", w: 6},
+                {x: 0, z: -26, axis: "z", w: 5},
+                {x: 0, z: -16, axis: "z", w: 5},
+                {x: -13, z: -35, axis: "x", w: 5},
+                {x: 13, z: -35, axis: "x", w: 5},
+                {x: -13, z: -7, axis: "x", w: 5},
+                {x: 13, z: -7, axis: "x", w: 5},
+                {x: -17, z: -35, axis: "x", w: 5},
+                {x: 17, z: -35, axis: "x", w: 5},
+                {x: -17, z: -7, axis: "x", w: 5},
+                {x: 17, z: -7, axis: "x", w: 5},
+                {x: 0, z: 2, axis: "z", w: 5},
+                {x: 0, z: 10, axis: "z", w: 5}
+              ]
+        },
+
+        creatures: [
+            // --- Храм Стихий: мобы ступени 10 (уровень задаёт dungeonMobLevel), хранители крыльев (мини-боссы) ---,
+            { id: 'tt_hub_1', type: 'stone_elemental', x: -5, z: -36, r: 0.5, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'normal' },
+            { id: 'tt_hub_2', type: 'fire_elemental', x: 6, z: -32, r: 3.6, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'normal' },
+            { id: 'tt_hub_3', type: 'water_elemental', x: -6, z: -9, r: 0.8, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'normal' },
+            { id: 'tt_hub_4', type: 'air_elemental', x: 5, z: -5, r: 3.9, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'normal' },
+            { id: 'tt_fire_1', type: 'fire_elemental', x: 20.5, z: -39.5, r: 4.71, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'elite' },
+            { id: 'tt_fire_2', type: 'fire_elemental', x: 20.5, z: -30.5, r: 4.71, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'elite' },
+            { id: 'tt_fire_3', type: 'fire_elemental', x: 25, z: -35, r: 1.57, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'elite' },
+            { id: 'tt_guard_fire', type: 'fire_elemental', name: 'Хранитель Углей', rank: 'boss', scale: 1.55, x: 29.5, z: -35, r: 1.57, behavior: 'aggressive', aggroRadius: 9.0, leashRadius: 26.0 },
+            { id: 'tt_water_1', type: 'water_elemental', x: -20.5, z: -39.5, r: 1.57, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'elite' },
+            { id: 'tt_water_2', type: 'water_elemental', x: -20.5, z: -30.5, r: 1.57, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'elite' },
+            { id: 'tt_water_3', type: 'water_elemental', x: -25, z: -35, r: 1.57, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'elite' },
+            { id: 'tt_guard_water', type: 'water_elemental', name: 'Хранитель Приливов', rank: 'boss', scale: 1.55, x: -29.5, z: -35, r: -1.57, behavior: 'aggressive', aggroRadius: 9.0, leashRadius: 26.0 },
+            { id: 'tt_air_1', type: 'air_elemental', x: -20.5, z: -11.5, r: 1.57, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'elite' },
+            { id: 'tt_air_2', type: 'air_elemental', x: -20.5, z: -2.5, r: 1.57, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'elite' },
+            { id: 'tt_air_3', type: 'air_elemental', x: -25, z: -7, r: 1.57, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'elite' },
+            { id: 'tt_guard_air', type: 'air_elemental', name: 'Хранитель Бурь', rank: 'boss', scale: 1.55, x: -29.5, z: -7, r: -1.57, behavior: 'aggressive', aggroRadius: 9.0, leashRadius: 26.0 },
+            { id: 'tt_stone_1', type: 'stone_elemental', x: 20.5, z: -11.5, r: 4.71, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'elite' },
+            { id: 'tt_stone_2', type: 'stone_elemental', x: 20.5, z: -2.5, r: 4.71, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'elite' },
+            { id: 'tt_stone_3', type: 'stone_elemental', x: 25, z: -7, r: 1.57, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'elite' },
+            { id: 'tt_guard_stone', type: 'stone_elemental', name: 'Хранитель Глыб', rank: 'boss', scale: 1.55, x: 29.5, z: -7, r: 1.57, behavior: 'aggressive', aggroRadius: 9.0, leashRadius: 26.0 },
+            // Босс: Сердце Стихий в зале босса (за печатью)
+            { id: 'tt_boss_heart', type: 'element_heart', x: 0.0, z: 28.0, r: Math.PI, behavior: 'aggressive', aggroRadius: 12.0, leashRadius: 40.0 }
+        ],
         decorations: [],
         groups: []
     }

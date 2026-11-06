@@ -248,9 +248,45 @@
         return { rects, platform: null, w: W, d: D, h: 1.6 };
     }
 
+    /** резная панель пилона (2.5 x 5.2 м → 480x1000), как арочные панели храма: рамка, тёмная ниша, розетка, насечки */
+    function makeGatePanelTex() {
+        const W = 480, H = 1000, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+        g.fillStyle = '#3e3022'; g.fillRect(0, 0, W, H);
+        const arch = (m) => { g.beginPath(); g.moveTo(m, H - m); g.lineTo(m, W / 2); g.arc(W / 2, W / 2, W / 2 - m, Math.PI, 0); g.lineTo(W - m, H - m); g.closePath(); };
+        arch(6); g.fillStyle = '#4c3b2a'; g.fill(); g.lineWidth = 6; g.strokeStyle = 'rgba(40,24,8,0.85)'; g.stroke();
+        arch(30); g.fillStyle = '#241b13'; g.fill(); g.lineWidth = 4; g.strokeStyle = 'rgba(25,14,4,0.9)'; g.stroke();
+        const fg = g.createLinearGradient(0, 0, W, H); fg.addColorStop(0, 'rgba(0,0,0,0.42)'); fg.addColorStop(0.5, 'rgba(0,0,0,0.05)'); fg.addColorStop(1, 'rgba(0,0,0,0.3)'); arch(30); g.fillStyle = fg; g.fill();
+        const carve = (fn) => { for (const [ox, oy, col] of [[3, 3, 'rgba(0,0,0,0.65)'], [0, 0, 'rgba(80,64,46,0.7)']]) { g.save(); g.translate(ox, oy); g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 6; g.lineCap = 'round'; fn(); g.restore(); } };
+        const cx = W / 2, cy = 330;
+        carve(() => {
+            g.beginPath(); g.arc(cx, cy, 92, 0, 7); g.stroke(); g.beginPath(); g.arc(cx, cy, 60, 0, 7); g.stroke(); g.beginPath(); g.arc(cx, cy, 20, 0, 7); g.fill();
+            for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; g.beginPath(); g.moveTo(cx + Math.cos(a) * 104, cy + Math.sin(a) * 104); g.lineTo(cx + Math.cos(a) * 134, cy + Math.sin(a) * 134); g.stroke(); }
+            g.beginPath(); g.moveTo(cx - 100, 640); g.lineTo(cx + 100, 640); g.moveTo(cx - 70, 664); g.lineTo(cx + 70, 664); g.stroke();
+            for (let i = -3; i <= 3; i++) { g.beginPath(); g.moveTo(cx + i * 36, 720); g.lineTo(cx + i * 36, 860 - Math.abs(i) * 14); g.stroke(); }
+        });
+        const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return { map: t };
+    }
+    /** фриз над проёмом (5.8 x 0.9 м → 1024x160): резные знаки стихий (волна, пламя, вихрь, меандр) */
+    function makeGateSignTex() {
+        const W = 1024, H = 160, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+        g.fillStyle = '#3e3022'; g.fillRect(0, 0, W, H);
+        g.fillStyle = '#241b13'; g.fillRect(0, 14, W, H - 28);
+        const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, 'rgba(0,0,0,0.35)'); gr.addColorStop(0.4, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,0.2)'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+        const carve = (fn) => { for (const [ox, oy, col] of [[2.5, 2.5, 'rgba(0,0,0,0.65)'], [0, 0, 'rgba(80,64,46,0.7)']]) { g.save(); g.translate(ox, oy); g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 5; g.lineCap = 'round'; fn(); g.restore(); } };
+        carve(() => {
+            g.beginPath(); g.moveTo(0, 22); g.lineTo(W, 22); g.moveTo(0, H - 22); g.lineTo(W, H - 22); g.stroke();
+            const cy = H / 2;
+            { const x0 = 40; g.beginPath(); for (let x = 0; x <= 180; x += 6) { const y = cy + Math.sin(x / 180 * Math.PI * 4) * 18; x ? g.lineTo(x0 + x, y) : g.moveTo(x0 + x, y); } g.stroke(); }
+            { const x0 = 290; for (let i = 0; i < 3; i++) { const x = x0 + i * 60; g.beginPath(); g.moveTo(x, cy + 34); g.bezierCurveTo(x - 24, cy + 6, x + 4, cy - 10, x - 2, cy - 36); g.bezierCurveTo(x + 22, cy - 10, x + 26, cy + 10, x, cy + 34); g.stroke(); } }
+            { const x0 = 590; g.beginPath(); for (let a = 0; a < 11; a += 0.2) { const r = 4 + a * 3.4, px = x0 + 40 + Math.cos(a) * r, py = cy + Math.sin(a) * r; a ? g.lineTo(px, py) : g.moveTo(px, py); } g.stroke(); }
+            { const x0 = 760; g.beginPath(); for (let i = 0; i < 6; i++) { const x = x0 + i * 40; g.moveTo(x, cy + 24); g.lineTo(x, cy - 24); g.lineTo(x + 26, cy - 24); g.lineTo(x + 26, cy + 8); g.lineTo(x + 12, cy + 8); } g.stroke(); }
+        });
+        const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return { map: t };
+    }
+
     function sharedMaterials() {
         if (SHARED) { SHARED.refs++; return SHARED; }
-        const T = { stone: makeStoneTex(), marble: makeMarbleTex(), wood: makeWoodTex(), slate: makeSlateTex(), plaster: makePlasterTex(), deck: makeDeckTex(), sign: makeSignTex() };
+        const T = { stone: makeStoneTex(), marble: makeMarbleTex(), wood: makeWoodTex(), slate: makeSlateTex(), plaster: makePlasterTex(), deck: makeDeckTex(), sign: makeSignTex(), gatePanel: makeGatePanelTex(), gateSign: makeGateSignTex() };
         const std = (map, bump, o) => new THREE.MeshStandardMaterial(Object.assign({ map, bumpMap: bump || null, bumpScale: bump ? 2.2 : 0, roughness: 0.92, metalness: 0, vertexColors: true }, o || {}));
         SHARED = {
             refs: 1, tex: T,
@@ -267,7 +303,11 @@
                 deck: std(T.deck.map, null, { roughness: 0.85 }),
                 cloth: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0, vertexColors: true, side: THREE.DoubleSide }),
                 rune: new THREE.MeshBasicMaterial({ color: 0x6be3c0, vertexColors: true }),
-                sign: new THREE.MeshStandardMaterial({ map: T.sign.map, roughness: 0.8, metalness: 0, vertexColors: true })
+                runeW: new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true }),
+                gatePortal: new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true }),
+                sign: new THREE.MeshStandardMaterial({ map: T.sign.map, roughness: 0.8, metalness: 0, vertexColors: true }),
+                gatePanel: new THREE.MeshStandardMaterial({ map: T.gatePanel.map, roughness: 0.9, metalness: 0, vertexColors: true }),
+                gateSign: new THREE.MeshStandardMaterial({ map: T.gateSign.map, roughness: 0.7, metalness: 0, vertexColors: true })
             }
         };
         // текстуры из Meshy-коттеджа (build_assets: townMeshStone/Plinth/Window) для домов с meshTex: true; без них — обычный камень
@@ -401,7 +441,7 @@
                 let u, v;
                 if (ax >= ay && ax >= az) { u = p[2]; v = p[1]; } else if (ay >= az) { u = p[0]; v = p[2]; } else { u = p[0]; v = p[1]; }
                 const W = this.T(p[0], p[1], p[2]);
-                idx.push(b.vert(W[0], W[1], W[2], Nn[0], Nn[1], Nn[2], u * us, v * us, col[0], col[1], col[2]));
+                idx.push(b.vert(W[0], W[1], W[2], Nn[0], Nn[1], Nn[2], u * us + (o.ou || 0), v * (o.vs || us) + (o.ov || 0), col[0], col[1], col[2]));
             }
             for (let k = 1; k < idx.length - 1; k++) b.i.push(idx[0], idx[k], idx[k + 1]);
         }
@@ -1146,8 +1186,49 @@
         return { rects: [{ x0: -th, x1: th, z0: z0, z1: z1 }], platform: null, w: T, d: z1 - z0, h: H, length: L, sections: N };
     }
 
-    const TYPES = { stoneHouse: buildStoneHouse, marbleTemple: buildMarbleTemple, tavern: buildTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall };
-    const CAMERA_BLOCK = { stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], corral: [], castleWall: ['wallstone', 'wallcap'] };
+    // ------------------------------------------------------------------ вход в Храм Стихий (саванна): врата-пилоны с печатью
+    // Фасад — локальный +Z. Два пилона с рунами четырёх стихий, архитрав с карнизом, между ними — светящаяся печать-портал.
+    function buildTempleGate(B, cfg) {
+        const rect = (x0, x1, z0, z1) => ({ x0, x1, z0, z1 });
+        const SA = [0.8, 0.66, 0.5], SB = [0.7, 0.58, 0.45], SD = [0.52, 0.43, 0.33];       // тёплый древний песчаник
+        const GLY = [[-4.55, 2.3, [1.0, 0.36, 0.1]], [-4.55, 4.7, [0.25, 0.6, 1.0]], [4.55, 2.3, [0.88, 0.97, 1.0]], [4.55, 4.7, [0.95, 0.68, 0.28]]];   // огонь, вода | воздух, камень
+        for (const s of [-1, 1]) {
+            const cx = s * 4.55;
+            B.box('stone', cx, -0.35, 0, 4.6, 1.7, 3.2, { t: SD, uv: 0.3 });            // цоколь (уходит под землю)
+            B.box('stone', cx, 3.85, 0, 3.8, 6.7, 2.6, { t: SA, uv: 0.3 });             // ствол пилона
+            B.box('stone', cx, 7.6, 0, 4.2, 0.8, 3.0, { t: SB, uv: 0.4 });              // капитель
+            B.box('stone', cx, 0.62, 1.4, 3.1, 0.24, 0.3, { t: SB });                   // карниз у основания (рельеф фасада)
+            B.box('stone', cx, 6.55, 1.4, 3.1, 0.24, 0.3, { t: SB });
+            // рамка-панель на фасаде
+            B.box('dark', cx, 3.5, 1.33, 2.5, 5.2, 0.06, { t: [0.55, 0.47, 0.38] });
+            { const pw = 2.5, ph = 5.2, y0 = 0.9, us = 1 / pw, sc = TEX_M / pw, x0 = cx - pw / 2, z = 1.366;      // резная панель поверх (uv: 1 текстура = панель)
+              B.poly('gatePanel', [[x0, y0, z], [x0 + pw, y0, z], [x0 + pw, y0 + ph, z], [x0, y0 + ph, z]], [0, 0, 1], { uv: sc, vs: 1 / ph, ou: -x0 * us, ov: -y0 / ph }); }
+            for (const q of [-1, 1]) B.box('stone', cx + q * 1.62, 3.7, 1.34, 0.34, 5.6, 0.2, { t: SB, uv: 0.3 });   // пилястры по краям фасада
+        }
+        B.box('stone', 0, 6.7, 0, 5.8, 1.0, 2.7, { t: SB, uv: 0.4 });                    // архитрав между пилонами
+        { const sw = 5.8, sh = 0.9, x0 = -sw / 2, y0 = 6.25, z = 1.38, sc = TEX_M / sw;                                 // резной фриз знаков стихий над проёмом
+          B.poly('gateSign', [[x0, y0, z], [x0 + sw, y0, z], [x0 + sw, y0 + sh, z], [x0, y0 + sh, z]], [0, 0, 1], { uv: sc, vs: 1 / sh, ou: -x0 / sw, ov: -y0 / sh, t: 0.62 }); }
+        for (const s2 of [-1, 1]) {                                                       // поясные тяги и зубчики на пилонах
+            const cx = s2 * 4.55;
+            for (let k = 0; k < 7; k++) B.box('stone', cx - 1.5 + k * 0.5, 7.0, 1.56, 0.28, 0.22, 0.2, { t: SB, uv: 0.3 });   // зубчики под карнизом
+        }
+        for (let k = 0; k < 11; k++) B.box('stone', -2.75 + k * 0.55, 7.12, 1.56, 0.3, 0.2, 0.2, { t: SB, uv: 0.3 });
+        B.box('stone', 0, 7.6, 0, 13.6, 0.8, 3.0, { t: SB, uv: 0.4 });                  // общий карниз
+        B.box('stone', 0, 8.3, 0, 8.6, 0.6, 2.2, { t: SA, uv: 0.4 });                   // ступенчатый гребень
+        B.box('stone', 0, 8.85, 0, 4.6, 0.5, 1.8, { t: SB, uv: 0.4 });
+        // портал между пилонами: светящееся поле на весь проём (без рамы)
+        const arch = (w, y1, y2, z, tint, mat) => B.poly(mat, [[-w, -0.1, z], [w, -0.1, z], [w, y1, z], [w * 0.68, y2 - 0.55, z], [0, y2, z], [-w * 0.68, y2 - 0.55, z], [-w, y1, z]], [0, 0, 1], { t: tint });
+        B.poly('gatePortal', [[-2.9, -0.1, -0.4], [2.9, -0.1, -0.4], [2.9, 6.35, -0.4], [-2.9, 6.35, -0.4]], [0, 0, 1], { t: [0.42, 0.86, 1.0] });   // портал: один слой на весь проём до архитрава, без каймы
+        // массив скалы позади врат: закрывает «дыру» в горах и край локации (ворота вмурованы в гору)
+        B.box('stone', 0, 5.25, -7.6, 22.0, 13.5, 12.8, { t: [1.12, 0.76, 0.5], uv: 0.16 });             // от z=-1.2 (внутри пилонов, без общих плоскостей) до -14
+        for (const q of [-1, 1]) B.box('stone', q * 8.95, 3.0, 0.2, 3.9, 9.0, 2.8, { t: [1.1, 0.75, 0.5], uv: 0.16 });   // заполнение у боков пилонов
+        // тропа камней перед вратами
+        for (let k = 0; k < 5; k++) B.box('stone', (k % 2 - 0.5) * 0.9, 0.0, 2.2 + k * 1.2, 2.2, 0.08, 1.0, { t: SD, jit: 0.2 });
+        return { rects: [rect(-6.95, -2.55, -1.75, 1.75), rect(2.55, 6.95, -1.75, 1.75), rect(-2.6, 2.6, -3.0, -0.75), rect(-11.0, 11.0, -14.0, -1.0), rect(-10.9, -7.0, -1.4, 1.6), rect(7.0, 10.9, -1.4, 1.6)], platform: null, w: 13.9, d: 3.5, h: 9.1 };
+    }
+
+    const TYPES = { templeGate: buildTempleGate, stoneHouse: buildStoneHouse, marbleTemple: buildMarbleTemple, tavern: buildTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall, buildTempleGate };
+    const CAMERA_BLOCK = { templeGate: ['stone'], stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], corral: [], castleWall: ['wallstone', 'wallcap'] };
 
     // ------------------------------------------------------------------ менеджер локации
     class AveloraTown {
@@ -1246,6 +1327,9 @@
                 }
             }
         }
+
+        /** пластина портала врат: тёмная и «мёртвая», пока вход закрыт (низкий уровень / откат) */
+        setGateLocked(lock) { const m = this.shared && this.shared.mats.gatePortal; if (m) { m.vertexColors = !lock; m.color.setHex(lock ? 0x33261b : 0xffffff); m.needsUpdate = true; } }
 
         dispose() {
             if (this.disposed) return;

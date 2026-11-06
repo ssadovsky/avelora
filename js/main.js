@@ -1349,9 +1349,11 @@ class AveloraGame {
         this.grottos = (loc.grottos && loc.grottos.length && window.AveloraGrotto)
             ? loc.grottos.map(cfg => new AveloraGrotto(this.locationRoot, cfg, this.terrain, this.pathfinder))
             : [];
-        this.dungeon = (loc.dungeon && window.AveloraDungeon)
-            ? new AveloraDungeon(this.locationRoot, loc.dungeon, this.terrain, this.pathfinder)
-            : null;
+        this.dungeon = (loc.dungeon && loc.dungeon.kind === 'temple' && window.AveloraTemple)
+            ? new AveloraTemple(this.locationRoot, loc.dungeon, this.terrain, this.pathfinder)    // temple.js: Храм Стихий
+            : ((loc.dungeon && window.AveloraDungeon)
+                ? new AveloraDungeon(this.locationRoot, loc.dungeon, this.terrain, this.pathfinder)
+                : null);
         this.cellars = (loc.cellars && loc.cellars.length && window.AveloraCellar)   // cellar.js: подвал как нижний этаж этой же локации
             ? loc.cellars.map(c => new AveloraCellar(this, c))
             : [];
@@ -1588,6 +1590,14 @@ class AveloraGame {
             });
             const pillar = new THREE.Mesh(pillarGeo, pillarMat);
             group.add(pillar);
+            if (ex.style === 'disc') {
+                // «диск»: яркое кольцо и заливка на полу, без столба света — не меняется от угла обзора и видно на светлом полу
+                pillar.visible = false;
+                ringMat.blending = THREE.NormalBlending; ringMat.opacity = 0.95; ringMat.polygonOffset = true; ringMat.polygonOffsetFactor = -2;
+                const dg = new THREE.CircleGeometry(radius * 0.82, 64); dg.rotateX(-Math.PI / 2);
+                const dm = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.5, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 });
+                const disc = new THREE.Mesh(dg, dm); disc.position.y = 0.01; disc.renderOrder = 2; ring.renderOrder = 3; group.add(disc);
+            }
 
             // Дымка в створе ущелья (ex.fog = {w, h, dz, color}): ОДНА мягкая плоскость, края и верх/низ плавно сходят на нет (без видимых слоёв и швов о скалу)
             if (ex.fog && ex.fog.planes) {   // плоскость дымки светилась (unlit) — отключена, остаётся только объёмный туман
@@ -1713,9 +1723,18 @@ class AveloraGame {
 
         for (const ex of this.exits) {
             if (ex.disabled) continue;
+            if (ex.data.minLevel) {   // вход закрыт низким уровнем: подпись с требованием, пластина врат тёмная, вход не срабатывает
+                const lock = ((this.hero && this.hero.level) || 1) < ex.data.minLevel;
+                if (!!ex.locked !== lock) {
+                    ex.locked = lock;
+                    if (ex.labelEl) ex.labelEl.textContent = (ex.data.label || '') + (lock ? ' — нужен ' + ex.data.minLevel + '-й уровень' : '');
+                    if (this.town && this.town.setGateLocked) this.town.setGateLocked(lock || !!ex.disabled);
+                }
+                if (lock) { ex.armed = false; continue; }
+            }
             // Pulse (game time => frozen on pause)
             ex.pillarMat.uniforms.uTime.value = this.gameTime;
-            ex.ring.material.opacity = 0.45 + Math.sin(this.gameTime * 2.4) * 0.15;
+            if (ex.data.style !== 'disc') ex.ring.material.opacity = 0.45 + Math.sin(this.gameTime * 2.4) * 0.15;
             if (ex.group.userData.fogPlanes) ex.group.userData.fogPlanes.forEach((pl, k) => { pl.material.opacity = pl.userData.base * (0.9 + 0.1 * Math.sin(this.gameTime * 0.7 + k * 1.7)); });
             if (ex.data.under) { const ec = this.cellars && this.cellars.find(c => c.cfg && c.cfg.id === ex.data.under); if (!ec || !ec.below) { ex.armed = false; continue; } }
             if (ex.data.track && !ex.data.under && this.terrain && this.terrain.getHeightAt) { ex.y = this.terrain.getHeightAt(ex.data.x, ex.data.z) + 0.06; ex.group.position.y = ex.y; }
@@ -1756,7 +1775,10 @@ class AveloraGame {
             const target = window.LOCATIONS && window.LOCATIONS[ex.data.to];
             if (!target || !target.dungeon || !target.dungeon.bossId) continue;
             const off = this.dungeonCooling(ex.data.to);
-            if (!!ex.disabled !== off) { ex.disabled = off; ex.group.visible = !off; ex.armed = false; }
+            if (!!ex.disabled !== off) {
+                ex.disabled = off; ex.group.visible = !off; ex.armed = false;
+                if (ex.data.minLevel && this.town && this.town.setGateLocked) this.town.setGateLocked(off || !!ex.locked);   // откат данжа: пластина врат тёмная
+            }
         }
         const d = loc.dungeon;
         if (d && d.bossId && d.bossExit) {
@@ -3754,6 +3776,11 @@ class AveloraGame {
         }
         if (this.dungeon) {
             this.dungeon.update(delta, this.gameTime, this.character ? this.character.position : null);
+            const dgc = this.location && this.location.dungeon;
+            if (this.dungeon.setGuardians && dgc && dgc.guardians && this.gameState) {   // печать врат босса: хранители убиты?
+                this._guardT = (this._guardT || 0) - delta;
+                if (this._guardT <= 0) { this._guardT = 0.4; this.dungeon.setGuardians(dgc.guardians.map(gd => this.gameState.getKilled(this.location.id, gd.id) !== null)); }
+            }
         }
         if (this.cellars && this.cellars.length && this.character) {
             for (let i = 0; i < this.cellars.length; i++) this.cellars[i].update(delta, this.character.position);

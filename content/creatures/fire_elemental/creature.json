@@ -24,5 +24,6 @@
     "aggroRadius": 0,
     "scale": 1.0,
     "statMultiplier": 1.15,
-    "rank": "elite"
+    "rank": "elite",
+    "proceduralDeath": true
 }
