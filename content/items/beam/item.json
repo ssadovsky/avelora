@@ -1,0 +1,15 @@
+{
+  "id": "beam",
+  "name": "Брусок",
+  "description": "Ровный деревянный брусок. Основа для древков, посохов и рукоятей.",
+  "category": "material",
+  "quality": "common",
+  "stackMax": 20,
+  "ground": {
+    "variants": 1,
+    "scale": 1.0,
+    "pile": "stack"
+  },
+  "use": null,
+  "value": 6
+}

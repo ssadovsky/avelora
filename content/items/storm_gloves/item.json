@@ -1,0 +1,28 @@
+{
+  "id": "storm_gloves",
+  "name": "Штормовые перчатки",
+  "description": "Кожаная броня: носит только лучница.",
+  "category": "armor",
+  "quality": "rare",
+  "armorType": "leather",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "hands"
+  },
+  "armor": 11,
+  "stats": {
+    "dex": 7,
+    "sta": 5
+  },
+  "requires": {
+    "level": 15
+  },
+  "value": 364,
+  "sellPrice": 182
+}

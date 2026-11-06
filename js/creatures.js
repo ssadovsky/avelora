@@ -1318,15 +1318,16 @@
 
             // Таблица добычи по ступеням (creature.json lootTiers): ступень = наибольший ключ <= уровня существа
             (pickLootTier(rec.def.lootTiers, rec.level) || []).forEach((r, i) => {
-                if (!r || (r.chance !== undefined && Math.random() > r.chance)) return;
+                const ch = (r && r.rankChance && r.rankChance[rec.rank] !== undefined) ? r.rankChance[rec.rank] : (r && r.chance);   // rankChance: шанс по рангу моба
+                if (!r || (ch !== undefined && Math.random() > ch)) return;
                 const Items = window.AveloraItems;
                 let pool = Array.isArray(r.pool) ? r.pool.filter(id => Items.get(id)) : (r.item && Items.get(r.item) ? [r.item] : []);
                 if (r.forClass) {   // only what the hero's class can wear/wield
                     const cls = this.game.character && this.game.character.config && this.game.character.config.id;
-                    pool = pool.filter(id => !Items.classRestriction(id, cls));
+                    pool = pool.filter(id => !Items.classRestriction(id, cls) && (!Items.get(id).dropClass || Items.get(id).dropClass === cls));   // dropClass: бижутерия «для класса» падает только своему
                 }
                 if (!pool.length) return;
-                const id = pool[Math.floor(Math.random() * pool.length)], want = Math.max(1, r.count || 1);
+                const id = pool[Math.floor(Math.random() * pool.length)], want = Math.max(1, (r.rankCount && r.rankCount[rec.rank]) || r.count || 1);
                 const got = st.inventory.add(id, want), def = Items.get(id);
                 if (got > 0 && ui) { ui.bagFloat(`+${got} ${def.name}`, 0.25 + i * 0.15); ui.pulseInventory(); }
                 if (got < want && wo) wo.addDrop(id, want - got, rec.x + 0.6 + i * 0.4, rec.z + 0.6);

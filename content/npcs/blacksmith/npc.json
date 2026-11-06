@@ -1,7 +1,7 @@
 {
   "id": "blacksmith",
   "name": "Торвальд Железнорук",
-  "title": "Кузнец",
+  "title": "Кузнец-плотник",
   "height": 1.8,
   "start": "start",
   "dialog": {
@@ -27,6 +27,7 @@
     "price": 10,
     "only": [
       "plank",
+      "beam",
       "iron_ingot",
       "iron_ring"
     ]

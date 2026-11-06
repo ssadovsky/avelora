@@ -1628,7 +1628,7 @@ window.LOCATIONS = {
             // maxLevel нет: ступени мобов идут по 5 уровней (герой 9–13 → 10, 14–18 → 15, 19–23 → 20 …)
             bossId: 'tt_boss_heart',
             // босс убит → в зале открывается выход на поверхность, врата в саванне гаснут; откат всего данжа через resetSeconds после выхода
-            bossExit: { id: 'bossExit', x: 0.0, z: -7.0, y: 0.05, radius: 1.7, height: 1.2, style: 'disc', color: 0x3fb4ff, to: 'savanna', spawn: 'fromTemple', label: 'Выход из храма' },
+            bossExit: { id: 'bossExit', x: 0.0, z: -7.0, y: 0.02, radius: 1.2, height: 2.2, color: 0x7fd4ff, to: 'savanna', spawn: 'fromTemple', label: 'Выход из храма' },
             // Печать врат босса (temple.js): гаснет, когда убиты все четыре хранителя (порядок = знаки: огонь, вода, воздух, камень)
             seal: { x: 0, z: 9.75, w: 4.8, h: 4.3, colors: [0xff6a2a, 0x4fb4ff, 0xe6f6ff, 0xe0a040] },
             guardians: [{ id: 'tt_guard_fire' }, { id: 'tt_guard_water' }, { id: 'tt_guard_air' }, { id: 'tt_guard_stone' }],

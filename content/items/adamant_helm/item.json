@@ -1,0 +1,28 @@
+{
+  "id": "adamant_helm",
+  "name": "Адамантовый шлем",
+  "description": "Тяжёлые латы: носят только воины.",
+  "category": "armor",
+  "quality": "rare",
+  "armorType": "plate",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "head"
+  },
+  "armor": 20,
+  "stats": {
+    "str": 10,
+    "sta": 7
+  },
+  "requires": {
+    "level": 15
+  },
+  "value": 520,
+  "sellPrice": 260
+}

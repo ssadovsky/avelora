@@ -1,0 +1,26 @@
+{
+  "id": "ring_mountain_lord",
+  "name": "Перстень Горного Владыки",
+  "description": "Создание: Перстень Горного Владыки.",
+  "category": "jewelry",
+  "price": 60,
+  "requiresLevel": 15,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 5
+    },
+    {
+      "item": "element_crystal",
+      "count": 10
+    },
+    {
+      "item": "primordial_core",
+      "count": 3
+    }
+  ],
+  "result": {
+    "item": "ring_mountain_lord",
+    "count": 1
+  }
+}

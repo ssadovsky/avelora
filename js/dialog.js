@@ -993,7 +993,7 @@
             this.body.appendChild(tabs);
 
             const list = document.createElement('div');
-            list.className = 'dlg-list';
+            list.className = 'dlg-list dlg-teach';
             const heroLevel = this.game.hero ? this.game.hero.level : 1;
             const lvlOf = (sid) => { const d = this.game.skills && this.game.skills.get(sid); return (d && d.requiresLevel) || 1; };
             const ids = ((window.AveloraState && cfg) ? window.AveloraState.skillCatalog(cfg.id) : []).slice()
@@ -1085,7 +1085,7 @@
             this.body.appendChild(tabs);
 
             const list = document.createElement('div');
-            list.className = 'dlg-list';
+            list.className = 'dlg-list dlg-teach';
             const heroLevel = this.game.hero ? this.game.hero.level : 1;
             const lvlOf = (sid) => { const d = this.game.skills && this.game.skills.get(sid); return (d && d.requiresLevel) || 1; };
             const ids = ((window.AveloraState && cfg) ? window.AveloraState.skillCatalog(cfg.id) : []).slice()
@@ -1166,7 +1166,7 @@
             this.body.appendChild(tabs);
 
             const list = document.createElement('div');
-            list.className = 'dlg-list';
+            list.className = 'dlg-list dlg-teach';
             const heroLevel = this.game.hero ? this.game.hero.level : 1;
             const allRecipes = (window.GAME_CONTENT && window.GAME_CONTENT.recipes) || {};
             const only = this.npc && this.npc.teach && this.npc.teach.only;

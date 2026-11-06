@@ -1,0 +1,26 @@
+{
+  "id": "amulet_livingflame",
+  "name": "Амулет Живого Пламени",
+  "description": "Создание: Амулет Живого Пламени.",
+  "category": "jewelry",
+  "price": 30,
+  "requiresLevel": 10,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 2
+    },
+    {
+      "item": "element_crystal",
+      "count": 8
+    },
+    {
+      "item": "primordial_core",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "amulet_livingflame",
+    "count": 1
+  }
+}

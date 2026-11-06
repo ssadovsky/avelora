@@ -1,0 +1,26 @@
+{
+  "id": "amulet_storm_lord",
+  "name": "Амулет Властителя Бурь",
+  "description": "Создание: Амулет Властителя Бурь.",
+  "category": "jewelry",
+  "price": 90,
+  "requiresLevel": 15,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 7
+    },
+    {
+      "item": "element_crystal",
+      "count": 14
+    },
+    {
+      "item": "primordial_core",
+      "count": 4
+    }
+  ],
+  "result": {
+    "item": "amulet_storm_lord",
+    "count": 1
+  }
+}

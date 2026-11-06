@@ -1,0 +1,26 @@
+{
+  "id": "amulet_flame_lord",
+  "name": "Амулет Огненного Владыки",
+  "description": "Создание: Амулет Огненного Владыки.",
+  "category": "jewelry",
+  "price": 90,
+  "requiresLevel": 15,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 7
+    },
+    {
+      "item": "element_crystal",
+      "count": 14
+    },
+    {
+      "item": "primordial_core",
+      "count": 4
+    }
+  ],
+  "result": {
+    "item": "amulet_flame_lord",
+    "count": 1
+  }
+}

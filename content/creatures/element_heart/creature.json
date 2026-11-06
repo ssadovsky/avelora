@@ -1,73 +1,155 @@
 {
-    "id": "element_heart",
-    "name": "Первородный Элементаль",
-    "level": 10,
-    "attackRange": 3.6,
-    "attackCooldown": 2.2,
-    "walkSpeed": 1.1,
-    "runSpeed": 3.4,
-    "behavior": "aggressive",
-    "aggroRadius": 12,
-    "leashRadius": 40,
-    "wanderRadius": 0,
-    "respawnMinutes": 120,
-    "hitRadius": 2.0,
-    "scale": 1.7,
-    "gold": [
-        60,
-        100
+  "id": "element_heart",
+  "name": "Первородный Элементаль",
+  "level": 10,
+  "attackRange": 3.6,
+  "attackCooldown": 2.2,
+  "walkSpeed": 1.1,
+  "runSpeed": 3.4,
+  "behavior": "aggressive",
+  "aggroRadius": 12,
+  "leashRadius": 40,
+  "wanderRadius": 0,
+  "respawnMinutes": 120,
+  "hitRadius": 2.0,
+  "scale": 1.7,
+  "gold": [
+    60,
+    100
+  ],
+  "xp": 600,
+  "statMultiplier": 1.4,
+  "rank": "boss",
+  "proceduralDeath": true,
+  "orbit": {
+    "prefix": "shard_",
+    "speed": 0.6
+  },
+  "lootTiers": {
+    "10": [
+      {
+        "pool": [
+          "ring_stoneheart",
+          "ring_galewind",
+          "ring_livingflame"
+        ],
+        "forClass": true
+      },
+      {
+        "pool": [
+          "amulet_stoneheart",
+          "amulet_galewind",
+          "amulet_livingflame"
+        ],
+        "chance": 0.3,
+        "forClass": true
+      },
+      {
+        "pool": [
+          "rune_axe",
+          "bow_ebon_gale",
+          "sage_staff"
+        ],
+        "chance": 0.45,
+        "forClass": true
+      },
+      {
+        "pool": [
+          "blackened_helm",
+          "blackened_cuirass",
+          "blackened_gauntlets",
+          "blackened_greaves",
+          "arcane_hood",
+          "arcane_robe",
+          "arcane_gloves",
+          "arcane_shoes",
+          "ranger_cap",
+          "ranger_jerkin",
+          "ranger_gloves",
+          "ranger_boots"
+        ],
+        "chance": 0.6,
+        "forClass": true
+      },
+      {
+        "pool": [
+          "infernal_axe",
+          "bow_dawnflame",
+          "staff_ember_heart"
+        ],
+        "chance": 0.08,
+        "forClass": true
+      },
+      {
+        "item": "primordial_core"
+      },
+      {
+        "item": "primordial_core",
+        "chance": 0.5
+      },
+      {
+        "item": "element_crystal",
+        "count": 4
+      }
     ],
-    "xp": 600,
-    "statMultiplier": 1.4,
-    "rank": "boss",
-    "proceduralDeath": true,
-    "orbit": {
-        "prefix": "shard_",
-        "speed": 0.6
-    },
-    "lootTiers": {
-        "10": [
-            {
-                "pool": [
-                    "ring_labyrinth",
-                    "ring_arcane_ward"
-                ]
-            },
-            {
-                "pool": [
-                    "amulet_catacombs",
-                    "amulet_sapphire_eye"
-                ],
-                "chance": 0.25
-            },
-            {
-                "pool": [
-                    "minotaur_axe",
-                    "elven_bow",
-                    "apprentice_staff"
-                ],
-                "chance": 0.35,
-                "forClass": true
-            },
-            {
-                "pool": [
-                    "steel_helm",
-                    "steel_cuirass",
-                    "steel_gauntlets",
-                    "steel_greaves",
-                    "silk_hood",
-                    "silk_robe",
-                    "silk_gloves",
-                    "silk_shoes",
-                    "hunter_cap",
-                    "hunter_jerkin",
-                    "hunter_gloves",
-                    "hunter_boots"
-                ],
-                "chance": 0.5,
-                "forClass": true
-            }
-        ]
-    },
-    "elementBoss": true
+    "15": [
+      {
+        "pool": [
+          "ring_mountain_lord",
+          "ring_storm_lord",
+          "ring_flame_lord"
+        ],
+        "forClass": true
+      },
+      {
+        "pool": [
+          "amulet_mountain_lord",
+          "amulet_storm_lord",
+          "amulet_flame_lord"
+        ],
+        "chance": 0.3,
+        "forClass": true
+      },
+      {
+        "pool": [
+          "infernal_axe",
+          "bow_dawnflame",
+          "staff_ember_heart"
+        ],
+        "chance": 0.45,
+        "forClass": true
+      },
+      {
+        "pool": [
+          "adamant_helm",
+          "adamant_cuirass",
+          "adamant_gauntlets",
+          "adamant_greaves",
+          "ether_hood",
+          "ether_robe",
+          "ether_gloves",
+          "ether_shoes",
+          "storm_cap",
+          "storm_jerkin",
+          "storm_gloves",
+          "storm_boots"
+        ],
+        "chance": 0.6,
+        "forClass": true
+      },
+      {
+        "item": "primordial_core",
+        "count": 2
+      },
+      {
+        "item": "primordial_core",
+        "chance": 0.5
+      },
+      {
+        "item": "element_crystal",
+        "count": 6
+      }
+    ]
+  },
+  "elementBoss": true
 }

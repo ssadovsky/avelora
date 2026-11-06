@@ -1,0 +1,16 @@
+{
+  "id": "primordial_core",
+  "name": "Первородное ядро",
+  "description": "Сгусток первозданной силы стихий, застывший в тёмный самоцвет. Падает с Первородного Элементаля. Редкий компонент для посохов, колец и амулетов.",
+  "category": "material",
+  "quality": "epic",
+  "stackMax": 5,
+  "ground": {
+    "variants": 1,
+    "scale": 0.9,
+    "pile": "single"
+  },
+  "use": null,
+  "value": 250,
+  "sellPrice": 125
+}

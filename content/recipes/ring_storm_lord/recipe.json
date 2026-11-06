@@ -1,0 +1,26 @@
+{
+  "id": "ring_storm_lord",
+  "name": "Перстень Властителя Бурь",
+  "description": "Создание: Перстень Властителя Бурь.",
+  "category": "jewelry",
+  "price": 60,
+  "requiresLevel": 15,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 5
+    },
+    {
+      "item": "element_crystal",
+      "count": 10
+    },
+    {
+      "item": "primordial_core",
+      "count": 3
+    }
+  ],
+  "result": {
+    "item": "ring_storm_lord",
+    "count": 1
+  }
+}

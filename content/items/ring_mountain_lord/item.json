@@ -1,0 +1,28 @@
+{
+  "id": "ring_mountain_lord",
+  "name": "Перстень Горного Владыки",
+  "description": "Перстень из червонного золота с самоцветом стихии. Создан для воина, но носить его может любой.",
+  "category": "armor",
+  "quality": "epic",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "ring"
+  },
+  "armor": 18,
+  "stats": {
+    "str": 14,
+    "sta": 9
+  },
+  "requires": {
+    "level": 15
+  },
+  "dropClass": "warrior",
+  "value": 420,
+  "sellPrice": 210
+}

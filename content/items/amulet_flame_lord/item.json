@@ -1,0 +1,28 @@
+{
+  "id": "amulet_flame_lord",
+  "name": "Амулет Огненного Владыки",
+  "description": "Амулет из червонного золота с самоцветом стихии. Создан для мага, но носить его может любой.",
+  "category": "armor",
+  "quality": "epic",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.9,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "neck"
+  },
+  "armor": 18,
+  "stats": {
+    "int": 26,
+    "sta": 12
+  },
+  "requires": {
+    "level": 15
+  },
+  "dropClass": "mage",
+  "value": 650,
+  "sellPrice": 325
+}

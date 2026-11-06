@@ -1,0 +1,65 @@
+{
+  "id": "bow_dawnflame",
+  "name": "Лук Рассветного Пламени",
+  "description": "Золочёный лук с рубиновыми самоцветами. Берётся в руку; обычная атака — выстрел стрелой по цели, урон от Ловкости.",
+  "category": "weapon",
+  "quality": "epic",
+  "requires": {
+    "level": 15
+  },
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 1.0,
+    "pile": "single",
+    "rotation": [
+      1.5708,
+      0,
+      0
+    ],
+    "offsetY": 0.03
+  },
+  "use": {
+    "type": "equip",
+    "hand": "right"
+  },
+  "stats": {
+    "dex": 15,
+    "sta": 9
+  },
+  "weapon": {
+    "damage": [
+      35,
+      52
+    ],
+    "range": 14,
+    "cooldown": 1.05,
+    "style": "bow",
+    "stat": "dex"
+  },
+  "hold": {
+    "warrior": {
+      "rotation": [
+        -0.775,
+        -0.537,
+        -2.627
+      ]
+    },
+    "archer": {
+      "rotation": [
+        -1.117,
+        -0.709,
+        -2.866
+      ]
+    },
+    "mage": {
+      "rotation": [
+        2.869,
+        0.102,
+        0.104
+      ]
+    }
+  },
+  "value": 650,
+  "sellPrice": 325
+}

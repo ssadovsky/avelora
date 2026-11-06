@@ -1,0 +1,26 @@
+{
+  "id": "ring_galewind",
+  "name": "Перстень Бурного Ветра",
+  "description": "Создание: Перстень Бурного Ветра.",
+  "category": "jewelry",
+  "price": 20,
+  "requiresLevel": 10,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 1
+    },
+    {
+      "item": "element_crystal",
+      "count": 5
+    },
+    {
+      "item": "primordial_core",
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "ring_galewind",
+    "count": 1
+  }
+}

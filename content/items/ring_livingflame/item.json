@@ -1,0 +1,28 @@
+{
+  "id": "ring_livingflame",
+  "name": "Перстень Живого Пламени",
+  "description": "Перстень из серебра с самоцветом стихии. Создан для мага, но носить его может любой.",
+  "category": "armor",
+  "quality": "rare",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "ring"
+  },
+  "armor": 12,
+  "stats": {
+    "int": 9,
+    "sta": 6
+  },
+  "requires": {
+    "level": 10
+  },
+  "dropClass": "mage",
+  "value": 190,
+  "sellPrice": 95
+}

@@ -1,14 +1,18 @@
 {
   "id": "rune_smith",
   "name": "Бранд",
-  "title": "Кузнец «Синего пламени»",
+  "title": "Мастер «Синего пламени»",
   "modelKey": "npcs/blacksmith",
   "height": 1.8,
   "start": "start",
   "dialog": {
     "start": {
-      "text": "Горн у меня горит синим — говорят, от рунной пыли в угле. Я Бранд, кую для всей улицы. Железо, лом, старое оружие — неси всё, найду куда пустить.",
+      "text": "Горн у меня горит синим — говорят, от рунной пыли в угле. Я Бранд, кую для всей улицы. Железо, лом, старое оружие — неси всё, найду куда пустить. А если добудешь кристаллы стихий и первородные ядра — научу, что из них сделать.",
       "options": [
+        {
+          "text": "Обучи меня ремеслу",
+          "action": "teach_craft"
+        },
         {
           "text": "Покажи свои товары",
           "action": "shop"
@@ -23,5 +27,24 @@
   "shop": {
     "buy": [],
     "sell": true
+  },
+  "teach": {
+    "price": 10,
+    "only": [
+      "ring_stoneheart",
+      "ring_galewind",
+      "ring_livingflame",
+      "amulet_stoneheart",
+      "amulet_galewind",
+      "amulet_livingflame",
+      "ring_mountain_lord",
+      "ring_storm_lord",
+      "ring_flame_lord",
+      "amulet_mountain_lord",
+      "amulet_storm_lord",
+      "amulet_flame_lord",
+      "sage_staff",
+      "staff_ember_heart"
+    ]
   }
 }

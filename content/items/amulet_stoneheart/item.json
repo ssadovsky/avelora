@@ -1,0 +1,28 @@
+{
+  "id": "amulet_stoneheart",
+  "name": "Амулет Каменного Сердца",
+  "description": "Амулет из серебра с самоцветом стихии. Создан для воина, но носить его может любой.",
+  "category": "armor",
+  "quality": "epic",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.9,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "neck"
+  },
+  "armor": 12,
+  "stats": {
+    "str": 18,
+    "sta": 8
+  },
+  "requires": {
+    "level": 10
+  },
+  "dropClass": "warrior",
+  "value": 300,
+  "sellPrice": 150
+}

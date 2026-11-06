@@ -1,0 +1,16 @@
+{
+  "id": "element_crystal",
+  "name": "Кристалл стихий",
+  "description": "Опаловый кристалл, в котором мерцают отблески всех четырёх стихий. Выпадает из элементалей. Нужен для создания посохов и колец высокой ступени.",
+  "category": "material",
+  "quality": "rare",
+  "stackMax": 20,
+  "ground": {
+    "variants": 1,
+    "scale": 0.9,
+    "pile": "single"
+  },
+  "use": null,
+  "value": 40,
+  "sellPrice": 20
+}

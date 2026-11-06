@@ -1,0 +1,26 @@
+{
+  "id": "amulet_galewind",
+  "name": "Амулет Бурного Ветра",
+  "description": "Создание: Амулет Бурного Ветра.",
+  "category": "jewelry",
+  "price": 30,
+  "requiresLevel": 10,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 2
+    },
+    {
+      "item": "element_crystal",
+      "count": 8
+    },
+    {
+      "item": "primordial_core",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "amulet_galewind",
+    "count": 1
+  }
+}

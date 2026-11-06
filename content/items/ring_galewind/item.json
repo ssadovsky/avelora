@@ -1,0 +1,28 @@
+{
+  "id": "ring_galewind",
+  "name": "Перстень Бурного Ветра",
+  "description": "Перстень из серебра с самоцветом стихии. Создан для лучницы, но носить его может любой.",
+  "category": "armor",
+  "quality": "rare",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "ring"
+  },
+  "armor": 12,
+  "stats": {
+    "dex": 9,
+    "sta": 6
+  },
+  "requires": {
+    "level": 10
+  },
+  "dropClass": "archer",
+  "value": 190,
+  "sellPrice": 95
+}

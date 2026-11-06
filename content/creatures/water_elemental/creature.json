@@ -25,5 +25,20 @@
     "scale": 1.0,
     "statMultiplier": 1.1,
     "rank": "elite",
-    "proceduralDeath": true
+    "proceduralDeath": true,
+    "lootTiers": {
+        "1": [
+            {
+                "item": "element_crystal",
+                "chance": 0.25,
+                "rankChance": {
+                    "elite": 0.6,
+                    "boss": 1
+                },
+                "rankCount": {
+                    "boss": 2
+                }
+            }
+        ]
+    }
 }

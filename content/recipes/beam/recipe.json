@@ -1,0 +1,19 @@
+{
+  "id": "beam",
+  "name": "Брусок",
+  "description": "Две доски стёсываются в ровный брусок. Работать можно только в домашнем лагере, если там построена пильня.",
+  "category": "carpentry",
+  "ingredients": [
+    {
+      "item": "plank",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "beam",
+    "count": 1
+  },
+  "station": "sawmill",
+  "price": 8,
+  "requiresLevel": 3
+}
