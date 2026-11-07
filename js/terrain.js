@@ -360,14 +360,17 @@ class LakesideTerrain {
             }
         }
 
+        // coverFlip: ущелья считаются в осях (-x,-z) — локация развёрнута на 180° (саванна)
+        const _cf = this.locTerrain.coverFlip ? -1.0 : 1.0;
+        const qx = x * _cf, qz = z * _cf;
         // Западное ущелье (twinstone_pass): плавные горки по краям среза скалы до края локации, закрывают торцы обрезанной модели.
-        // Тот же профиль, что у южного прохода, в осях: глубина zz = -x - 50 (срез x = cutX → 96.5), боковое смещение dx = z - z0.
+        // Тот же профиль, что у южного прохода, в осях: глубина zz = -qx - 50 (срез qx = cutX → 96.5), боковое смещение dx = qz - z0.
         const wc = this.locTerrain.westCover;
-        if (wc && x < -133.0 && Math.abs(z - wc.z) < 10.0) {
-            if (this._westBaseY === undefined) this._westBaseY = this._getRawHeightBase(-125.0, wc.z) + 0.08;
+        if (wc && qx < -133.0 && Math.abs(qz - wc.z) < 10.0) {
+            if (this._westBaseY === undefined) this._westBaseY = this._rawQ(-125.0, wc.z) + 0.08;
             const ss = (a, b, v) => { const u = Math.min(1.0, Math.max(0.0, (v - a) / (b - a))); return u * u * (3.0 - 2.0 * u); };
-            const dx = z - wc.z;
-            const zz = 96.5 + (-x) + wc.cutX;
+            const dx = qz - wc.z;
+            const zz = 96.5 + (-qx) + wc.cutX;
             const wz = (0.75 * ss(94.5, 96.6, zz) + 0.25 * ss(96.2, 99.4, zz)) * (1.0 + 0.14 * ss(98.0, 99.8, zz));
             let ly = -99.0;
             if (dx <= -1.0) {
@@ -382,11 +385,11 @@ class LakesideTerrain {
         }
 
         // Подход к западному ущелью: земля плавно поднимается до пола модели (диск скалы), без ступеньки у входа.
-        // Пол модели относительно уровня луга H: H + 0.08 + f(lz), lz = x - cx (вглубь прохода f = 0.72, к кромке диска плавно до 0.1).
-        if (wc && wc.cx !== undefined && x < wc.cx + wc.R + 5.0 && x > wc.cx - 6.0) {
-            const dxa = x - wc.cx, dza = z - wc.z, da = Math.hypot(dxa, dza);
+        // Пол модели относительно уровня луга H: H + 0.08 + f(lz), lz = qx - cx (вглубь прохода f = 0.72, к кромке диска плавно до 0.1).
+        if (wc && wc.cx !== undefined && qx < wc.cx + wc.R + 5.0 && qx > wc.cx - 6.0) {
+            const dxa = qx - wc.cx, dza = qz - wc.z, da = Math.hypot(dxa, dza);
             if (da < wc.R + 5.0) {
-                if (this._westH === undefined) this._westH = this._getRawHeightBase(-120.0, wc.z);
+                if (this._westH === undefined) this._westH = this._rawQ(-120.0, wc.z);
                 const ssa = (a, b, v) => { const u = Math.min(1.0, Math.max(0.0, (v - a) / (b - a))); return u * u * (3.0 - 2.0 * u); };
                 const f = 0.72 - 0.62 * ssa(1.0, 8.5, dxa);
                 const wa = 1.0 - ssa(wc.R - 0.2, wc.R + 4.0, da);
@@ -395,7 +398,45 @@ class LakesideTerrain {
             }
         }
 
+        // Северное ущелье (twinstone_pass у северного края): те же профили, что у западного, в осях xw = qz − (cz − cx_w), zw = qx − nc.x.
+        // northCover { qx, cutZ (срез скалы = -(halfZ-1)), cz (центр пропа), R }
+        const nc = this.locTerrain.northCover;
+        if (nc) {
+            const ssn = (a, b, v) => { const u = Math.min(1.0, Math.max(0.0, (v - a) / (b - a))); return u * u * (3.0 - 2.0 * u); };
+            if (qz < nc.cutZ + 16.0 && Math.abs(qx - nc.x) < 10.0) {
+                if (this._northBaseY === undefined) this._northBaseY = this._rawQ(nc.x, nc.cutZ + 24.0) + 0.08;
+                const dx = qx - nc.x;
+                const zz = 96.5 - qz + nc.cutZ;
+                const wz = (0.75 * ssn(94.5, 96.6, zz) + 0.25 * ssn(96.2, 99.4, zz)) * (1.0 + 0.14 * ssn(98.0, 99.8, zz));
+                let ly = -99.0;
+                if (dx <= -1.0) {
+                    ly = -0.35 + 5.95 * ssn(-1.1, -2.3, dx) * (1.0 - ssn(-6.8, -10.0, dx));
+                } else if (dx >= 1.0) {
+                    ly = -0.35 + 5.95 * ssn(1.1, 2.3, dx) * (1.0 - ssn(6.8, 10.0, dx));
+                }
+                if (ly > -50.0) {
+                    const cap = this._northBaseY - 0.35 + (ly + 0.35) * wz;
+                    if (cap > out) out = cap;
+                }
+            }
+            if (qz > nc.cz - 6.0 && qz < nc.cz + nc.R + 5.0) {
+                const dxa = qz - nc.cz, dza = qx - nc.x, da = Math.hypot(dxa, dza);
+                if (da < nc.R + 5.0) {
+                    if (this._northH === undefined) this._northH = this._rawQ(nc.x, nc.cz + 25.0);
+                    const f = 0.72 - 0.62 * ssn(1.0, 8.5, dxa);
+                    const wa = 1.0 - ssn(nc.R - 0.2, nc.R + 4.0, da);
+                    const tgt = this._northH + (0.05 + f - 0.07 * ssn(2.0, 5.0, dxa)) * wa;
+                    if (tgt > out) out = tgt;
+                }
+            }
+        }
+
         return out;
+    }
+
+    _rawQ(a, b) {
+        const f = this.locTerrain.coverFlip ? -1.0 : 1.0;
+        return this._getRawHeightBase(a * f, b * f);
     }
 
     _getRawHeightBase(x, z) {
@@ -566,8 +607,11 @@ class LakesideTerrain {
                 const rd0 = this.locTerrain.rimDip || [];
                 for (let di = 0; di < rd0.length; di++) {
                     const D0 = rd0[di];
-                    if (D0.side === 'west' && x > 0) continue;
-                    const q0 = Math.min(1.0, Math.abs((D0.axis === 'z' ? z - D0.z : x - D0.x)) / D0.w);
+                    const rfx = (D0.flip ? -x : x), rfz = (D0.flip ? -z : z);
+                    if (D0.side === 'west' && rfx > 0) continue;
+                    if (D0.side === 'north' && rfz > 0) continue;
+                    if (D0.side === 'south' && rfz < 0) continue;
+                    const q0 = Math.min(1.0, Math.abs((D0.axis === 'z' ? rfz - D0.z : rfx - D0.x)) / D0.w);
                     const s0 = q0 * q0 * (3.0 - 2.0 * q0);
                     cragK = Math.min(cragK, (D0.cragK !== undefined ? D0.cragK : 0.3) + (1.0 - (D0.cragK !== undefined ? D0.cragK : 0.3)) * s0);
                 }
@@ -580,8 +624,11 @@ class LakesideTerrain {
                 const rd = this.locTerrain.rimDip || [];
                 for (let di = 0; di < rd.length; di++) {
                     const D = rd[di];
-                    if (D.side === 'west' && x > 0) continue;
-                    const q = Math.min(1.0, Math.abs((D.axis === 'z' ? z - D.z : x - D.x)) / D.w);
+                    const rfx = (D.flip ? -x : x), rfz = (D.flip ? -z : z);
+                    if (D.side === 'west' && rfx > 0) continue;
+                    if (D.side === 'north' && rfz > 0) continue;
+                    if (D.side === 'south' && rfz < 0) continue;
+                    const q = Math.min(1.0, Math.abs((D.axis === 'z' ? rfz - D.z : rfx - D.x)) / D.w);
                     const s = q * q * q * (q * (q * 6.0 - 15.0) + 10.0);
                     mHeight *= D.k0 + (1.0 - D.k0) * s;
                 }
@@ -742,6 +789,12 @@ class LakesideTerrain {
             beachDiff = texLoader.load(shoreTex);
         }
 
+        // Выжженная земля (groundSet 'burnt'): Poly Haven gravel_stones (угольный щебень), rock_boulder_cracked (обожжённая глина), rock_ground_02 (пепел)
+        const burntMode = (this.groundSet === 'burnt') && assets.burntCinderDiff;
+        const burnCinder = burntMode ? texLoader.load(assets.burntCinderDiff) : null;
+        const burnCrack = burntMode ? texLoader.load(assets.burntCrackDiff || assets.burntCinderDiff) : null;
+        const burnAsh = burntMode ? texLoader.load(assets.burntAshDiff || assets.burntCinderDiff) : null;
+        [burnCinder, burnCrack, burnAsh].forEach(t => { if (t) { t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.RepeatWrapping; t.anisotropy = (window.GFX && window.GFX.aniso) || 8; } });
         const stoneTrailDiff = texLoader.load((this.locTerrain.stoneTexture && assets[this.locTerrain.stoneTexture]) || assets.stoneTrailDiff || assets.gravelDiff || assets.beachDiff);
         // groundMode:
         // 0: default single texture
@@ -749,7 +802,7 @@ class LakesideTerrain {
         // 2: 'grass2' (сплошное тёмное травяное покрытие)
         // 4: 'baseForest' (moss2 как база + лес/трава по реальным деревьям: маска плотности леса uForestMap)
         // 3: 'camp' (homeCamp: сочная зелёная трава на полянке без леса + лесная подстилка в лесу)
-        const groundMode = (this.groundSet === 'savanna') ? 5 : (this.groundSet === 'baseForest') ? 4 : (this.groundSet === 'camp') ? 3 : ((this.groundSet === 'grass2') ? 2 : (this.groundSet === 'moss2' ? 1 : 0));
+        const groundMode = (this.groundSet === 'burnt' && burntMode) ? 6 : (this.groundSet === 'savanna') ? 5 : (this.groundSet === 'baseForest') ? 4 : (this.groundSet === 'camp') ? 3 : ((this.groundSet === 'grass2') ? 2 : (this.groundSet === 'moss2' ? 1 : 0));
         const mixGround = groundMode > 0 && !!assets.meadowGrassDiff;
         this.contactAO = []; for (let i = 0; i < TERRAIN_AO_N; i++) this.contactAO.push(new THREE.Vector4(0, 0, 0, 0)); // uAO[TERRAIN_AO_N] is declared in every variant: always give it that many entries (empty array crashes the uniform upload)
         const grass2Diff = mixGround ? texLoader.load(assets.meadowGrassDiff) : grassDiff;
@@ -787,7 +840,7 @@ class LakesideTerrain {
 
         // КРИТИЧНО для Three.js: без customProgramCacheKey движок повторно использует
         // скомпилированный шейдер первой локации для всех последующих!
-        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v46_${this.groundSet}_mix${mixGround ? groundMode : 0}${holeSig}`;
+        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v47_${this.groundSet}_mix${mixGround ? groundMode : 0}${holeSig}`;
 
         const biomeId = (this.biome === 'goldshire') ? 1.0 : ((this.biome === 'volcanic') ? 2.0 : 0.0);
         const waterTypeId = (curWType === 'coast') ? 1.0 : ((curWType === 'river') ? 2.0 : 0.0);
@@ -799,6 +852,9 @@ class LakesideTerrain {
             shader.uniforms.uRockDiff = { value: rockDiff };
             shader.uniforms.uRockNor = { value: rockNor };
             shader.uniforms.uBeachDiff = { value: beachDiff };
+            shader.uniforms.uBurnCinder = { value: burnCinder || grassDiff };
+            shader.uniforms.uBurnCrack = { value: burnCrack || grassDiff };
+            shader.uniforms.uBurnAsh = { value: burnAsh || grassDiff };
             shader.uniforms.uBiome = { value: biomeId };
             shader.uniforms.uWaterType = { value: waterTypeId };
             shader.uniforms.uGrass2Diff = { value: grass2Diff };
@@ -882,6 +938,10 @@ class LakesideTerrain {
                 uniform sampler2D uRockDiff;
                 uniform sampler2D uRockNor;
                 uniform sampler2D uBeachDiff;
+                uniform sampler2D uBurnCinder;
+                uniform sampler2D uBurnCrack;
+                uniform sampler2D uBurnAsh;
+                float avLava = 0.0;
                 uniform float uBiome;
                 uniform float uWaterType;
                 uniform int uDirtCount;
@@ -907,6 +967,7 @@ class LakesideTerrain {
                 ${shader.fragmentShader}
             `;
 
+            shader.fragmentShader = shader.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n                totalEmissiveRadiance += vec3(1.0, 0.36, 0.07) * avLava * 2.4;');
             shader.fragmentShader = shader.fragmentShader.replace(
                 '#include <map_fragment>',
                 `
@@ -930,6 +991,7 @@ class LakesideTerrain {
                     float shoreEdgeN = (vWorldPosition.y < 0.35) ? avNoise(vWorldPosition.xz * 0.45) * 0.05 : 0.0;
                     shoreWeight = 1.0 - smoothstep(0.02, 0.20 + shoreEdgeN, vWorldPosition.y);
                 }
+                if (uGroundMix > 5.5) shoreWeight = 0.0;   // выжженная земля: воды/пляжей нет
                 vec3 colBeachRgb = (shoreWeight > 0.0005) ? texture2D(uBeachDiff, uvShore).rgb : vec3(0.0);
 
                 // Rocky outcrop weight: moderate slope (normal.y < 0.90)
@@ -997,12 +1059,45 @@ class LakesideTerrain {
                     // Центр — старинная каменная мостовая Poly Haven (читаем текстуру только на тропе)
                     vec3 centerPath = (stoneMask > 0.0005) ? texture2D(uStoneTrailDiff, uvStoneTrail).rgb : vec3(0.0);
                     vec3 colDirtRgb = (passTrailMask > 0.0005 || shoulderMask > 0.0005 || uGroundMix > 4.5) ? texture2D(uTrailDiff, uvDirtTrail).rgb : vec3(0.0);
+                    if (uGroundMix > 5.5) colDirtRgb = vec3(dot(colDirtRgb, vec3(0.30, 0.59, 0.11))) * vec3(0.62, 0.56, 0.52);   // выжженная земля: тропа тёмная, не жёлтый песок
 
                     // Смешивание слоев покрытия:
                     // 1) Для 'camp' (uGroundMix > 2.5): сочная зелёная трава на полянке (где нет леса) + лесная подстилка в лесу
                     // 2) Для 'moss2' (uGroundMix > 0.5): оригинальная лесная подстилка + пятна травы и подлесок
                     vec3 groundCol = colGrass.rgb;
-                    if (uGroundMix > 4.5) {
+                    if (uGroundMix > 5.5) {
+                        // === GROUND: BURNT (угольный щебень + обожжённая растрескавшаяся глина + пепел, лавовые жилы) ===
+                        vec2 gxz = vWorldPosition.xz;
+                        vec3 cin1 = texture2D(uBurnCinder, gxz * 0.20 + vec2(0.31, 0.12)).rgb;
+                        vec3 cin2 = texture2D(uBurnCinder, gxz * 0.052 + vec2(0.70, 0.40)).rgb;
+                        vec3 cinder = mix(cin1, cin2, 0.40) * vec3(1.05, 1.00, 0.97);
+                        vec3 crk1 = texture2D(uBurnCrack, gxz * 0.12 + vec2(0.55, 0.90)).rgb;
+                        float crkL = dot(crk1, vec3(0.30, 0.59, 0.11));
+                        vec3 scorch = vec3(crkL) * vec3(0.55, 0.43, 0.37) * 0.40;
+                        vec3 ash1 = texture2D(uBurnAsh, gxz * 0.17 + vec2(0.20, 0.80)).rgb;
+                        vec3 ashC = vec3(dot(ash1, vec3(0.30, 0.59, 0.11))) * vec3(1.00, 0.97, 0.94) * 1.05;
+                        float nA = avNoise(gxz * 0.030) * 0.65 + avNoise(gxz * 0.085 + 17.0) * 0.35;
+                        float nB = avNoise(gxz * 0.045 + 7.0) * 0.60 + avNoise(gxz * 0.19) * 0.40;
+                        groundCol = cinder;
+                        float scM = smoothstep(0.46, 0.66, nA);
+                        groundCol = mix(groundCol, scorch, scM * 0.85);
+                        groundCol = mix(groundCol, ashC, smoothstep(0.58, 0.78, nB) * 0.70);
+                        float lavaZone = smoothstep(0.40, 0.58, avNoise(gxz * 0.022 + 41.0) * 0.70 + avNoise(gxz * 0.07) * 0.30);
+                        // лавовые жилы: извилистые линии (искажённый ridge-шум), только в «горячих» зонах; сердцевина жилы ярче краёв
+                        if (lavaZone > 0.015) {   // жилы считаем только в «горячих» зонах (остальное — без лишних шумов)
+                        vec2 vwp = gxz + vec2(avNoise(gxz * 0.06) * 10.0, avNoise(gxz * 0.06 + 9.0) * 10.0);
+                        float vn1 = abs(avNoise(vwp * 0.040) - 0.5);
+                        float vn2 = abs(avNoise(vwp * 0.105 + 5.0) - 0.5);
+                        float vein = max((1.0 - smoothstep(0.0, 0.022, vn1)) * 0.95, (1.0 - smoothstep(0.0, 0.030, vn2)) * 0.70) * smoothstep(0.28, 0.55, avNoise(vwp * 0.22 + 3.0));
+                        float veinHalo = max(1.0 - smoothstep(0.0, 0.06, vn1), 1.0 - smoothstep(0.0, 0.07, vn2));
+                        avLava = vein * lavaZone;
+                        groundCol *= 1.0 - 0.55 * veinHalo * lavaZone;
+                        groundCol = mix(groundCol, vec3(1.0, 0.30, 0.04), veinHalo * lavaZone * 0.10);
+                        groundCol = mix(groundCol, vec3(1.0, 0.42, 0.08), avLava * 0.7);
+                        }
+                        float bv = avNoise(gxz * 0.017 + 3.0) - 0.5;
+                        groundCol *= vec3(1.0 + bv * 0.10, 1.0, 1.0 - bv * 0.10);
+                    } else if (uGroundMix > 4.5) {
                         // === GROUND: SAVANNA (golden dry grass, patches of red earth, fresh green near water) ===
                         vec2 gxz = vWorldPosition.xz;
                         vec3 sT1 = texture2D(uGrass2Diff, gxz * 0.16 + vec2(0.13, 0.57)).rgb;
@@ -1144,7 +1239,8 @@ class LakesideTerrain {
                         vec3 peakRock = rockTex * rockRelief;
                         peakRock = mix(peakRock, pow(peakRock, vec3(1.18)) * 1.12, peakAltitude * 0.80);
 
-                        if (uGroundMix > 4.5) peakRock = mix(peakRock, peakRock * vec3(1.50, 0.90, 0.62), 0.88);   // саванна: рыжий песчаник вместо серых гор
+                        if (uGroundMix > 5.5) peakRock *= vec3(0.50, 0.40, 0.36);   // выжженная земля: тёмный обугленный камень
+                        else if (uGroundMix > 4.5) peakRock = mix(peakRock, peakRock * vec3(1.50, 0.90, 0.62), 0.88);   // саванна: рыжий песчаник вместо серых гор
                         terrainColor = mix(baseCol, peakRock, totalRock);
                         terrainColor = pow(terrainColor, vec3(1.05));
                         // Склон вокруг грота: тёмный серо-зелёный камень (под цвет модели), чтобы пещера «росла» из горы

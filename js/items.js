@@ -352,7 +352,7 @@
                 elemental_obelisk: 1, elemental_altar_fire: 1, elemental_altar_water: 1,
                 elemental_altar_stone: 1, elemental_altar_air: 1,
                 lizard_tent: 1, lizard_totem: 1, lizard_banner: 1, bone_pile: 1,
-                lizard_barricade: 1, lizard_drum: 1
+                lizard_barricade: 1, lizard_drum: 1, volcano_crack: 1, charred_tree: 1
             };
             if (!SAVANNA_IDS[id]) return null;
 
@@ -510,6 +510,32 @@
                 }
                 parent.add(g);
                 return g;
+            };
+
+            // Склеивает все меши группы с одним материалом в один (меньше draw call'ов и проходов теней). skip — имена мешей, которые не трогаем.
+            const mergeByMaterial = (grp, skip) => {
+                grp.updateMatrixWorld(true);
+                const inv = new THREE.Matrix4().copy(grp.matrixWorld).invert();
+                const buckets = new Map(), olds = [];
+                grp.traverse(o => {
+                    if (!o.isMesh || (skip && skip.indexOf(o.name) >= 0)) return;
+                    olds.push(o);
+                    let g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
+                    g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld));
+                    const pos = g.attributes.position.array, nor = g.attributes.normal ? g.attributes.normal.array : null;
+                    let b = buckets.get(o.material); if (!b) { b = { p: [], n: [] }; buckets.set(o.material, b); }
+                    b.p.push(pos); b.n.push(nor);
+                    g.dispose();
+                });
+                olds.forEach(o => { if (o.parent) o.parent.remove(o); o.geometry.dispose(); });
+                buckets.forEach((b, mat) => {
+                    let len = 0; b.p.forEach(a => len += a.length);
+                    const P = new Float32Array(len), N = new Float32Array(len); let off = 0;
+                    b.p.forEach((a, i) => { P.set(a, off); if (b.n[i]) N.set(b.n[i], off); off += a.length; });
+                    const mg = new THREE.BufferGeometry();
+                    mg.setAttribute('position', new THREE.BufferAttribute(P, 3)); mg.setAttribute('normal', new THREE.BufferAttribute(N, 3));
+                    const m = new THREE.Mesh(mg, mat); m.castShadow = true; m.receiveShadow = true; grp.add(m);
+                });
             };
 
             const group = new THREE.Group();
@@ -702,6 +728,142 @@
                     const strip = perturbGeo(new THREE.CylinderGeometry(0.04, 0.06, 0.56, 6), 0.012, 0.01);
                     addMesh(group, strip, k === 0 ? meatMat : hideMat, sx, 1.08, 0, 0, k * 0.7, 0.05, 1.2, 1.0, 0.35);
                 }
+                return group;
+            }
+
+            // -------------------------------------------------------
+            // 3b. VOLCANO CRACK (Вулканическая трещина: лавовая расщелина ~30 x 12 м, вход в будущий подземный уровень)
+            // Контур: вытянут по локальной X, чуть извивается по Z. Внутри — лава (emissive), по краю — рёбра чёрного базальта.
+            // -------------------------------------------------------
+            if (id === 'volcano_crack') {
+                const HL = 15.0;                       // полудлина
+                const wAt = (x) => {                   // полуширина контура в точке x
+                    const u = Math.min(1, Math.abs(x) / HL);
+                    return 4.3 * Math.pow(Math.max(0, 1 - u * u), 0.6) + 0.2;
+                };
+                const cAt = (x) => Math.sin(x * 0.21) * 1.6 + Math.sin(x * 0.57 + 1.3) * 0.5;   // изгиб оси
+                const N = 40;
+                const outline = [];                    // по часовой: верхняя кромка слева направо, нижняя обратно
+                for (let i = 0; i <= N; i++) {
+                    const x = -HL + 2 * HL * i / N;
+                    outline.push([x, cAt(x) - wAt(x) * (0.72 + rnd() * 0.5)]);
+                }
+                for (let i = N; i >= 0; i--) {
+                    const x = -HL + 2 * HL * i / N;
+                    outline.push([x, cAt(x) + wAt(x) * (0.72 + rnd() * 0.5)]);
+                }
+                const lavaTex = makeTex((ctx, S) => {
+                    ctx.fillStyle = '#3a0d04'; ctx.fillRect(0, 0, S, S);
+                    for (let i = 0; i < 260; i++) {
+                        const x = rnd() * S, y = rnd() * S, r = 6 + rnd() * 30;
+                        const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+                        const hot = rnd();
+                        g.addColorStop(0, hot > 0.55 ? 'rgba(255,200,60,0.85)' : 'rgba(255,110,20,0.75)');
+                        g.addColorStop(1, 'rgba(120,20,0,0)');
+                        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+                    }
+                    ctx.strokeStyle = 'rgba(25,6,2,0.85)';
+                    for (let i = 0; i < 46; i++) {
+                        ctx.lineWidth = 2 + rnd() * 5;
+                        ctx.beginPath(); let x = rnd() * S, y = rnd() * S; ctx.moveTo(x, y);
+                        for (let k = 0; k < 4; k++) { x += (rnd() - 0.5) * 80; y += (rnd() - 0.5) * 80; ctx.lineTo(x, y); }
+                        ctx.stroke();
+                    }
+                }, 256, 0.09, 0.09);
+                const lavaMat = new THREE.MeshStandardMaterial({ map: lavaTex, emissiveMap: lavaTex, emissive: 0xffffff, emissiveIntensity: 1.35, color: 0x111111, roughness: 0.6, metalness: 0 });
+                const crustTex = makeTex((ctx, S) => {
+                    ctx.fillStyle = '#1b1412'; ctx.fillRect(0, 0, S, S);
+                    for (let i = 0; i < 700; i++) { ctx.fillStyle = rnd() > 0.5 ? 'rgba(70,50,40,0.18)' : 'rgba(0,0,0,0.2)'; ctx.beginPath(); ctx.arc(rnd() * S, rnd() * S, 3 + rnd() * 12, 0, Math.PI * 2); ctx.fill(); }
+                    ctx.strokeStyle = 'rgba(255,110,25,0.85)';
+                    for (let i = 0; i < 26; i++) { ctx.lineWidth = 1 + rnd() * 2.2; ctx.beginPath(); let x = rnd() * S, y = rnd() * S; ctx.moveTo(x, y); for (let k = 0; k < 4; k++) { x += (rnd() - 0.5) * 60; y += (rnd() - 0.5) * 60; ctx.lineTo(x, y); } ctx.stroke(); }
+                }, 256, 0.13, 0.13);
+                const crustMat = new THREE.MeshStandardMaterial({ map: crustTex, emissiveMap: crustTex, emissive: 0x7a2208, emissiveIntensity: 0.9, roughness: 0.95, metalness: 0 });
+                const rockMat = new THREE.MeshStandardMaterial({ color: 0x0c0807, roughness: 0.95, metalness: 0.0, flatShading: true });
+                const hotMat = new THREE.MeshStandardMaterial({ color: 0x0c0807, emissive: 0xb43a0a, emissiveIntensity: 0.5, roughness: 0.7 });
+
+                const mkShape = (scale, dy, mat, name) => {
+                    const sh = new THREE.Shape();
+                    outline.forEach(([x, z], i) => { const px = x * scale, pz = (z) * scale; if (i === 0) sh.moveTo(px, -pz); else sh.lineTo(px, -pz); });
+                    const g = new THREE.ShapeGeometry(sh);
+                    g.rotateX(-Math.PI / 2);
+                    const m = new THREE.Mesh(g, mat); m.position.y = dy; m.receiveShadow = true; m.name = name; group.add(m);
+                    return m;
+                };
+                mkShape(1.22, 0.10, crustMat, 'crust');   // остывшая корка вокруг
+                mkShape(0.94, 0.16, lavaMat, 'lava');     // сама лава
+
+                // рёбра базальта по контуру: зубья наружу, выше у середины трещины
+                for (let i = 0; i < outline.length - 1; i += 1) {
+                    const [x, z] = outline[i];
+                    const cz = cAt(x);
+                    const side = (z - cz) >= 0 ? 1 : -1;
+                    const out = 1.05 + rnd() * 0.5;
+                    const px = x * 1.04 + (rnd() - 0.5) * 0.6, pz = cz + (z - cz) * out;
+                    const hgt = (1.1 + rnd() * 2.4) * (0.5 + 0.5 * Math.min(1, wAt(x) / 3));
+                    const rad = 0.28 + rnd() * 0.42;
+                    const g = perturbGeo(new THREE.ConeGeometry(rad, hgt, 5, 3), 0.1, 0.22);
+                    const m = addMesh(group, g, rnd() > 0.97 ? hotMat : rockMat, px, hgt / 2 + 0.05, pz, side * (0.15 + rnd() * 0.25) * (rnd() > 0.5 ? 1 : 0.4), rnd() * 6, (rnd() - 0.5) * 0.3);
+                }
+                // концевые шипы расщелины
+                for (const sx of [-1, 1]) {
+                    for (let k = 0; k < 3; k++) {
+                        const h = 1.6 + rnd() * 2.2;
+                        addMesh(group, perturbGeo(new THREE.ConeGeometry(0.55 + rnd() * 0.4, h, 5, 3), 0.12, 0.25), rockMat, sx * (HL + 0.4 + rnd() * 1.4), h / 2, cAt(sx * HL) + (rnd() - 0.5) * 2.8, 0, rnd() * 6, 0);
+                    }
+                }
+                // тёплое свечение над расщелиной (спрайт, без источников света)
+                const glowTex = makeTex((ctx, S) => {
+                    const g = ctx.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+                    g.addColorStop(0, 'rgba(255,150,50,0.9)'); g.addColorStop(0.45, 'rgba(255,90,20,0.35)'); g.addColorStop(1, 'rgba(255,60,10,0)');
+                    ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
+                }, 128, 1, 1);
+                const glowMat = new THREE.SpriteMaterial({ map: glowTex, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, fog: true });
+                const glow = new THREE.Sprite(glowMat);
+                glow.scale.set(42, 14, 1); glow.position.set(0, 3.2, 0); glow.name = 'glow';
+                group.add(glow);
+                mergeByMaterial(group, ['lava', 'crust']);
+                return group;
+            }
+
+            // -------------------------------------------------------
+            // 3c. CHARRED TREE (Обугленное мёртвое дерево: h ~ 4 м, угольно-чёрное, голые сучья, тлеющие трещины)
+            // -------------------------------------------------------
+            if (id === 'charred_tree') {
+                const barkMat = new THREE.MeshStandardMaterial({ color: 0x0b0807, roughness: 0.96, metalness: 0, flatShading: true });
+                const emberMat = new THREE.MeshStandardMaterial({ color: 0x0b0807, emissive: 0xc2410a, emissiveIntensity: 0.55, roughness: 0.9, flatShading: true });
+                const H = 3.0 + rnd() * 1.6;
+                const lean = (rnd() - 0.5) * 0.18, leanDir = rnd() * 6.28;
+                const trunk = perturbGeo(new THREE.CylinderGeometry(0.15, 0.38, H, 7, 5), 0.05, 0.05);
+                const tm = addMesh(group, trunk, barkMat, 0, H / 2, 0, Math.sin(leanDir) * lean, 0, Math.cos(leanDir) * lean);
+                // корневые «лапы»
+                for (let i = 0; i < 4; i++) {
+                    const a = i * 1.57 + rnd() * 0.6;
+                    addMesh(group, perturbGeo(new THREE.ConeGeometry(0.12, 0.8, 4, 1), 0.03, 0.04), barkMat, Math.cos(a) * 0.3, 0.2, Math.sin(a) * 0.3, Math.sin(a) * 1.1, 0, -Math.cos(a) * 1.1);
+                }
+                // голые сучья: вверх и в стороны, обломанные, с разветвлением
+                const nb = 6 + Math.floor(rnd() * 4);
+                for (let i = 0; i < nb; i++) {
+                    const a = rnd() * 6.28, y0 = H * (0.45 + rnd() * 0.5), len = 0.9 + rnd() * 1.5 * (1.15 - y0 / (H * 1.3));
+                    const tilt = 0.7 + rnd() * 0.6;
+                    const br = perturbGeo(new THREE.CylinderGeometry(0.035, 0.11, len, 5, 2), 0.02, 0.03);
+                    br.translate(0, len / 2, 0);
+                    const bm = new THREE.Mesh(br, rnd() > 0.85 ? emberMat : barkMat);
+                    bm.position.set(0, y0, 0);
+                    bm.rotation.set(Math.sin(a) * tilt, 0, -Math.cos(a) * tilt);
+                    bm.castShadow = true; group.add(bm);
+                    if (rnd() > 0.35) {
+                        const l2 = len * (0.4 + rnd() * 0.3);
+                        const b2 = perturbGeo(new THREE.CylinderGeometry(0.02, 0.05, l2, 4, 1), 0.01, 0.02);
+                        b2.translate(0, l2 / 2, 0);
+                        const m2 = new THREE.Mesh(b2, barkMat);
+                        m2.position.set(0, len * 0.65, 0);
+                        m2.rotation.set((rnd() - 0.5) * 1.4, 0, (rnd() - 0.5) * 1.4 + 0.5);
+                        m2.castShadow = true; bm.add(m2);
+                    }
+                }
+                // тлеющая трещина вдоль ствола
+                addMesh(group, new THREE.BoxGeometry(0.035, H * 0.35, 0.035), emberMat, 0.1, H * 0.3, 0.12, 0, rnd() * 3, 0.05);
+                mergeByMaterial(group);
                 return group;
             }
 

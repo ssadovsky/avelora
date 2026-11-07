@@ -48,7 +48,28 @@
       "rune_axe",
       "bow_ebon_gale",
       "infernal_axe",
-      "bow_dawnflame"
+      "bow_dawnflame",
+      "onyx_helm",
+      "onyx_cuirass",
+      "onyx_gauntlets",
+      "onyx_greaves",
+      "twilight_hood",
+      "twilight_robe",
+      "twilight_gloves",
+      "twilight_shoes",
+      "midnight_cap",
+      "midnight_jerkin",
+      "midnight_gloves",
+      "midnight_boots",
+      "onyx_axe",
+      "bow_midnight_star",
+      "staff_twilight_rift",
+      "ring_onyx_titan",
+      "amulet_onyx_titan",
+      "ring_midnight_hunter",
+      "amulet_midnight_hunter",
+      "ring_twilight_sage",
+      "amulet_twilight_sage"
     ]
   }
 }

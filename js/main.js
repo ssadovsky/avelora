@@ -1092,6 +1092,7 @@ class AveloraGame {
         // Clean slate if a previous character/location is still live (switch/new game)
         this.stopAutosave();
         if (this.locationRoot) this.teardownLocation();
+        if (this.mount) { try { if (this.mount.cancelSummon && this.mount.summoning) this.mount.cancelSummon(); this.mount.dismount('silent'); } catch (e) { console.warn('[mount] reset', e); } }   // вход героя всегда пешим: маунт прежнего героя не переносим
         if (this.character) { this.character.dispose(); this.character = null; }
         if (this.skills) { this.skills.clearAll(); this.skills.resetCooldowns(); }
         if (this.ui) {

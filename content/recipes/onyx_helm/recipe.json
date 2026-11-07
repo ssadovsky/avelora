@@ -1,0 +1,26 @@
+{
+  "id": "onyx_helm",
+  "name": "Ониксовый шлем",
+  "description": "Создание: Ониксовый шлем.",
+  "category": "equipment",
+  "price": 80,
+  "requiresLevel": 20,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 6
+    },
+    {
+      "item": "element_crystal",
+      "count": 6
+    },
+    {
+      "item": "primordial_core",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "onyx_helm",
+    "count": 1
+  }
+}

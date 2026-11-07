@@ -1,0 +1,26 @@
+{
+  "id": "twilight_gloves",
+  "name": "Сумеречные перчатки",
+  "description": "Создание: Сумеречные перчатки.",
+  "category": "equipment",
+  "price": 80,
+  "requiresLevel": 20,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 5
+    },
+    {
+      "item": "element_crystal",
+      "count": 5
+    },
+    {
+      "item": "primordial_core",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "twilight_gloves",
+    "count": 1
+  }
+}

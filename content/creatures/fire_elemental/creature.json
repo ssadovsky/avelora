@@ -1,44 +1,65 @@
 {
-    "id": "fire_elemental",
-    "name": "Огненный элементаль",
-    "hp": 130,
-    "damage": [
-        9,
-        14
+  "id": "fire_elemental",
+  "name": "Огненный элементаль",
+  "hp": 130,
+  "damage": [
+    9,
+    14
+  ],
+  "attackRange": 2.0,
+  "leashRadius": 14,
+  "wanderRadius": 5,
+  "respawnMinutes": 5,
+  "hitRadius": 1.2,
+  "gold": [
+    4,
+    6
+  ],
+  "xp": 60,
+  "level": 14,
+  "attackCooldown": 1.6,
+  "walkSpeed": 1.0,
+  "runSpeed": 4.2,
+  "behavior": "retaliate",
+  "aggroRadius": 0,
+  "scale": 1.0,
+  "statMultiplier": 1.15,
+  "rank": "elite",
+  "proceduralDeath": true,
+  "lootTiers": {
+    "1": [
+      {
+        "item": "element_crystal",
+        "chance": 0.25,
+        "rankChance": {
+          "elite": 0.6,
+          "boss": 1
+        },
+        "rankCount": {
+          "boss": 2
+        }
+      }
     ],
-    "attackRange": 2.0,
-    "leashRadius": 14,
-    "wanderRadius": 5,
-    "respawnMinutes": 5,
-    "hitRadius": 1.2,
-    "gold": [
-        4,
-        6
-    ],
-    "xp": 60,
-    "level": 14,
-    "attackCooldown": 1.6,
-    "walkSpeed": 1.0,
-    "runSpeed": 4.2,
-    "behavior": "retaliate",
-    "aggroRadius": 0,
-    "scale": 1.0,
-    "statMultiplier": 1.15,
-    "rank": "elite",
-    "proceduralDeath": true,
-    "lootTiers": {
-        "1": [
-            {
-                "item": "element_crystal",
-                "chance": 0.25,
-                "rankChance": {
-                    "elite": 0.6,
-                    "boss": 1
-                },
-                "rankCount": {
-                    "boss": 2
-                }
-            }
-        ]
-    }
+    "20": [
+      {
+        "item": "element_crystal",
+        "chance": 0.35,
+        "rankChance": {
+          "elite": 0.8,
+          "boss": 1
+        },
+        "rankCount": {
+          "boss": 3
+        }
+      },
+      {
+        "item": "primordial_core",
+        "chance": 0.04,
+        "rankChance": {
+          "elite": 0.12,
+          "boss": 1
+        }
+      }
+    ]
+  }
 }

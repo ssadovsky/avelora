@@ -1,0 +1,42 @@
+{
+  "id": "onyx_axe",
+  "name": "Ониксовая секира",
+  "description": "Секира из чёрного оникса с жилами холодного света. Урон от Силы.",
+  "category": "weapon",
+  "quality": "epic",
+  "weaponType": "axe",
+  "requires": {
+    "level": 20
+  },
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 1.25,
+    "pile": "single",
+    "rotation": [
+      1.5708,
+      0,
+      0
+    ],
+    "offsetY": 0.04
+  },
+  "use": {
+    "type": "equip",
+    "hand": "right"
+  },
+  "stats": {
+    "str": 20,
+    "sta": 14
+  },
+  "weapon": {
+    "damage": [
+      65,
+      97
+    ],
+    "range": 2.2,
+    "cooldown": 1.05,
+    "stat": "str"
+  },
+  "value": 754,
+  "sellPrice": 377
+}

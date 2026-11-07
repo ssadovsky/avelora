@@ -1,0 +1,26 @@
+{
+  "id": "twilight_hood",
+  "name": "Сумеречный капюшон",
+  "description": "Создание: Сумеречный капюшон.",
+  "category": "equipment",
+  "price": 80,
+  "requiresLevel": 20,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 6
+    },
+    {
+      "item": "element_crystal",
+      "count": 6
+    },
+    {
+      "item": "primordial_core",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "twilight_hood",
+    "count": 1
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "midnight_cap",
+  "name": "Полуночная шапка",
+  "description": "Создание: Полуночная шапка.",
+  "category": "equipment",
+  "price": 80,
+  "requiresLevel": 20,
+  "ingredients": [
+    {
+      "item": "bear_hide",
+      "count": 4
+    },
+    {
+      "item": "element_crystal",
+      "count": 6
+    },
+    {
+      "item": "primordial_core",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "midnight_cap",
+    "count": 1
+  }
+}

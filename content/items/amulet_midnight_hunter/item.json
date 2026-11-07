@@ -1,0 +1,28 @@
+{
+  "id": "amulet_midnight_hunter",
+  "name": "Амулет Полуночного Охотника",
+  "description": "Амулет из тёмного серебра с самоцветом. Создан для лучницы, но носить его может любой.",
+  "category": "armor",
+  "quality": "epic",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.9,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "neck"
+  },
+  "armor": 24,
+  "stats": {
+    "dex": 35,
+    "sta": 16
+  },
+  "requires": {
+    "level": 20
+  },
+  "dropClass": "archer",
+  "value": 942,
+  "sellPrice": 471
+}

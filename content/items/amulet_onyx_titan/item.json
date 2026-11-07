@@ -1,0 +1,28 @@
+{
+  "id": "amulet_onyx_titan",
+  "name": "Амулет Ониксового Титана",
+  "description": "Амулет из тёмного серебра с самоцветом. Создан для воина, но носить его может любой.",
+  "category": "armor",
+  "quality": "epic",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.9,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "neck"
+  },
+  "armor": 24,
+  "stats": {
+    "str": 35,
+    "sta": 16
+  },
+  "requires": {
+    "level": 20
+  },
+  "dropClass": "warrior",
+  "value": 942,
+  "sellPrice": 471
+}

@@ -1,0 +1,26 @@
+{
+  "id": "midnight_jerkin",
+  "name": "Полуночная куртка",
+  "description": "Создание: Полуночная куртка.",
+  "category": "equipment",
+  "price": 120,
+  "requiresLevel": 20,
+  "ingredients": [
+    {
+      "item": "bear_hide",
+      "count": 7
+    },
+    {
+      "item": "element_crystal",
+      "count": 10
+    },
+    {
+      "item": "primordial_core",
+      "count": 3
+    }
+  ],
+  "result": {
+    "item": "midnight_jerkin",
+    "count": 1
+  }
+}

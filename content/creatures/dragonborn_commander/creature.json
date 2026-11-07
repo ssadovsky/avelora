@@ -1,0 +1,60 @@
+{
+  "id": "dragonborn_commander",
+  "name": "Драконорождённый командир",
+  "hp": 360,
+  "damage": [
+    30,
+    44
+  ],
+  "attackRange": 1.7,
+  "leashRadius": 14,
+  "wanderRadius": 5,
+  "respawnMinutes": 6,
+  "hitRadius": 1.2,
+  "gold": [
+    25,
+    40
+  ],
+  "xp": 520,
+  "level": 20,
+  "attackCooldown": 1.5,
+  "walkSpeed": 1.2,
+  "runSpeed": 4.8,
+  "behavior": "aggressive",
+  "aggroRadius": 0,
+  "scale": 1.25,
+  "statMultiplier": 1.3,
+  "rank": "elite",
+  "goldDrop": true,
+  "lootTiers": {
+    "20": [
+      {
+        "item": "element_crystal",
+        "chance": 0.8,
+        "rankChance": {
+          "elite": 0.8,
+          "boss": 1
+        },
+        "rankCount": {
+          "boss": 3
+        }
+      },
+      {
+        "item": "primordial_core",
+        "chance": 0.2
+      }
+    ]
+  },
+  "modelKey": "creatures/lizard",
+  "drops": [
+    {
+      "item": "meat",
+      "count": 2
+    },
+    {
+      "item": "bear_hide",
+      "count": 1,
+      "chance": 0.4
+    }
+  ]
+}

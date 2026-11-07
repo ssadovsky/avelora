@@ -1,0 +1,66 @@
+{
+  "id": "lava_spider",
+  "name": "Лавовый паук",
+  "hp": 260,
+  "damage": [
+    24,
+    36
+  ],
+  "attackRange": 0.85,
+  "attackCooldown": 1.1,
+  "walkSpeed": 1.1,
+  "runSpeed": 3.8,
+  "behavior": "aggressive",
+  "aggroRadius": 10,
+  "leashRadius": 20,
+  "wanderRadius": 5,
+  "respawnMinutes": 6,
+  "hitRadius": 0.9,
+  "scale": 1.1,
+  "modelKey": "creatures/spider",
+  "drops": [
+    {
+      "item": "meat",
+      "count": 1
+    },
+    {
+      "item": "spider_silk",
+      "count": 1,
+      "chance": 0.9
+    },
+    {
+      "item": "spider_silk",
+      "count": 1,
+      "chance": 0.6
+    },
+    {
+      "item": "spider_silk",
+      "count": 1,
+      "chance": 0.3
+    }
+  ],
+  "gold": [
+    12,
+    20
+  ],
+  "xp": 320,
+  "level": 20,
+  "statMultiplier": 1.25,
+  "lootTiers": {
+    "20": [
+      {
+        "item": "spider_silk",
+        "count": 1,
+        "chance": 0.5
+      },
+      {
+        "item": "element_crystal",
+        "chance": 0.2,
+        "rankChance": {
+          "elite": 0.6,
+          "boss": 1
+        }
+      }
+    ]
+  }
+}

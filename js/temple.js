@@ -20,8 +20,10 @@
         stone: { base: [104, 84, 60],  mortar: [24, 18, 12],  tint: 0xd9a35a, accent: '#b5834a', rune: '#e0b070', glyph: [215, 170, 100] },
         boss:  { base: [62, 56, 70],   mortar: [14, 12, 20],  tint: 0xb78cff, accent: '#a678ff', rune: '#d4b8ff', glyph: [190, 150, 255] }
     };
+    THEMES.magma    = { base: [58, 40, 36],  mortar: [16, 6, 4],  tint: 0xff5a1e, accent: '#e8541e', rune: '#ff9a4a', glyph: [240, 120, 50] };
+    THEMES.obsidian = { base: [42, 38, 54],  mortar: [8, 6, 14],  tint: 0xff7a44, accent: '#a07aff', rune: '#d0b0ff', glyph: [170, 130, 240] };
     THEMES.door = THEMES.hub;
-    const THEME_IDS = ['hub', 'water', 'fire', 'air', 'stone', 'boss'];
+    const THEME_IDS = ['hub', 'water', 'fire', 'air', 'stone', 'boss', 'magma', 'obsidian'];
 
     function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
@@ -274,7 +276,7 @@
     /** hanging banner cloth with border, theme emblem and swallow-tail (alpha-cut) */
     function bannerTex(themeId, th) {
         const W = 128, H = 320, [c, g] = cv2(W, H);
-        const cloth = { hub: '#7a1f1a', fire: '#8a2410', water: '#1d4f7a', air: '#8fa6bd', stone: '#7a5a1e', boss: '#3f2a63' }[themeId] || '#7a1f1a';
+        const cloth = { hub: '#7a1f1a', fire: '#8a2410', water: '#1d4f7a', air: '#8fa6bd', stone: '#7a5a1e', boss: '#3f2a63', magma: '#5a1208', obsidian: '#2a1f3a' }[themeId] || '#7a1f1a';
         const gl = th.glyph, gold = `rgb(${Math.min(255, gl[0] + 30)},${Math.min(255, gl[1] + 20)},${Math.min(255, gl[2])})`;
         g.beginPath(); g.moveTo(4, 0); g.lineTo(W - 4, 0); g.lineTo(W - 4, H - 4); g.lineTo(W / 2, H - 52); g.lineTo(4, H - 4); g.closePath();
         g.fillStyle = cloth; g.fill(); g.save(); g.clip();

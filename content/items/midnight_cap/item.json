@@ -1,0 +1,28 @@
+{
+  "id": "midnight_cap",
+  "name": "Полуночная шапка",
+  "description": "Полуночная кожа, не отражающая света: носит только лучница.",
+  "category": "armor",
+  "quality": "epic",
+  "armorType": "leather",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "head"
+  },
+  "armor": 18,
+  "stats": {
+    "dex": 14,
+    "sta": 9
+  },
+  "requires": {
+    "level": 20
+  },
+  "value": 754,
+  "sellPrice": 377
+}

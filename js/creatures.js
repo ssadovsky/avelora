@@ -918,7 +918,8 @@
                 rec.aggro = true;
             }
             // Босс подземелья держит бой на всей арене зала (не сбрасывается и не регенится, пока игрок внутри зала)
-            const playerInBossArena = isDungeonBoss && p && p.z >= 17.0;
+            const bArea = isDungeonBoss && this.location.dungeon.bossArena;
+            const playerInBossArena = isDungeonBoss && p && (bArea ? (p.x >= bArea[0] && p.z >= bArea[1] && p.x <= bArea[2] && p.z <= bArea[3]) : p.z >= 17.0);
             if (rec.aggro && (!playerAlive || !this.sameLevel(rec) || (distHome > leash && !playerInBossArena))) {
                 this.startReturn(rec);
             }

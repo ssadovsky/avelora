@@ -1,0 +1,28 @@
+{
+  "id": "ring_onyx_titan",
+  "name": "Перстень Ониксового Титана",
+  "description": "Перстень из тёмного серебра с самоцветом. Создан для воина, но носить его может любой.",
+  "category": "armor",
+  "quality": "epic",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "ring"
+  },
+  "armor": 24,
+  "stats": {
+    "str": 19,
+    "sta": 12
+  },
+  "requires": {
+    "level": 20
+  },
+  "dropClass": "warrior",
+  "value": 609,
+  "sellPrice": 304
+}

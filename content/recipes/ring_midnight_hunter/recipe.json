@@ -1,0 +1,26 @@
+{
+  "id": "ring_midnight_hunter",
+  "name": "Перстень Полуночного Охотника",
+  "description": "Создание: Перстень Полуночного Охотника.",
+  "category": "jewelry",
+  "price": 120,
+  "requiresLevel": 20,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 8
+    },
+    {
+      "item": "element_crystal",
+      "count": 14
+    },
+    {
+      "item": "primordial_core",
+      "count": 5
+    }
+  ],
+  "result": {
+    "item": "ring_midnight_hunter",
+    "count": 1
+  }
+}

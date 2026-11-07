@@ -1,0 +1,28 @@
+{
+  "id": "twilight_shoes",
+  "name": "Сумеречные туфли",
+  "description": "Сумеречная ткань, сотканная из паутины и света: носит только маг.",
+  "category": "armor",
+  "quality": "epic",
+  "armorType": "cloth",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "feet"
+  },
+  "armor": 9,
+  "stats": {
+    "int": 9,
+    "sta": 7
+  },
+  "requires": {
+    "level": 20
+  },
+  "value": 528,
+  "sellPrice": 264
+}

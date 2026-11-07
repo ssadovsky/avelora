@@ -1,0 +1,53 @@
+{
+  "id": "staff_twilight_rift",
+  "name": "Посох Сумеречного Разлома",
+  "description": "Посох с кристаллом, в котором дрожит сумеречный разлом. Обычная атака — сгусток магии, урон от Интеллекта.",
+  "category": "weapon",
+  "quality": "epic",
+  "requires": {
+    "level": 20
+  },
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 1.0,
+    "pile": "single",
+    "rotation": [
+      1.5708,
+      0,
+      0
+    ],
+    "offsetY": 0.04
+  },
+  "use": {
+    "type": "equip",
+    "hand": "right"
+  },
+  "stats": {
+    "int": 27,
+    "sta": 11
+  },
+  "weapon": {
+    "damage": [
+      32,
+      51
+    ],
+    "range": 20,
+    "cooldown": 0.9,
+    "style": "staff",
+    "stat": "int"
+  },
+  "hold": {
+    "rotation": [
+      0.759,
+      1.381,
+      2.218
+    ]
+  },
+  "glow": {
+    "color": "#bf66ff",
+    "y": 0.66
+  },
+  "value": 942,
+  "sellPrice": 471
+}

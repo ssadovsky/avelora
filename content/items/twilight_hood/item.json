@@ -1,0 +1,28 @@
+{
+  "id": "twilight_hood",
+  "name": "Сумеречный капюшон",
+  "description": "Сумеречная ткань, сотканная из паутины и света: носит только маг.",
+  "category": "armor",
+  "quality": "epic",
+  "armorType": "cloth",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "head"
+  },
+  "armor": 9,
+  "stats": {
+    "int": 14,
+    "sta": 9
+  },
+  "requires": {
+    "level": 20
+  },
+  "value": 754,
+  "sellPrice": 377
+}

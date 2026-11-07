@@ -1,0 +1,26 @@
+{
+  "id": "ring_twilight_sage",
+  "name": "Перстень Сумеречного Мудреца",
+  "description": "Создание: Перстень Сумеречного Мудреца.",
+  "category": "jewelry",
+  "price": 120,
+  "requiresLevel": 20,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 8
+    },
+    {
+      "item": "element_crystal",
+      "count": 14
+    },
+    {
+      "item": "primordial_core",
+      "count": 5
+    }
+  ],
+  "result": {
+    "item": "ring_twilight_sage",
+    "count": 1
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "onyx_helm",
+  "name": "Ониксовый шлем",
+  "description": "Тяжёлые латы из тёмного оникса: носят только воины.",
+  "category": "armor",
+  "quality": "epic",
+  "armorType": "plate",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "head"
+  },
+  "armor": 27,
+  "stats": {
+    "str": 14,
+    "sta": 9
+  },
+  "requires": {
+    "level": 20
+  },
+  "value": 754,
+  "sellPrice": 377
+}

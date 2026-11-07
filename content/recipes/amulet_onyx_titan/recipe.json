@@ -1,0 +1,26 @@
+{
+  "id": "amulet_onyx_titan",
+  "name": "Амулет Ониксового Титана",
+  "description": "Создание: Амулет Ониксового Титана.",
+  "category": "jewelry",
+  "price": 140,
+  "requiresLevel": 20,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 10
+    },
+    {
+      "item": "element_crystal",
+      "count": 20
+    },
+    {
+      "item": "primordial_core",
+      "count": 6
+    }
+  ],
+  "result": {
+    "item": "amulet_onyx_titan",
+    "count": 1
+  }
+}

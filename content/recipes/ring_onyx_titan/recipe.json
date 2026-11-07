@@ -1,0 +1,26 @@
+{
+  "id": "ring_onyx_titan",
+  "name": "Перстень Ониксового Титана",
+  "description": "Создание: Перстень Ониксового Титана.",
+  "category": "jewelry",
+  "price": 120,
+  "requiresLevel": 20,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 8
+    },
+    {
+      "item": "element_crystal",
+      "count": 14
+    },
+    {
+      "item": "primordial_core",
+      "count": 5
+    }
+  ],
+  "result": {
+    "item": "ring_onyx_titan",
+    "count": 1
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "midnight_boots",
+  "name": "Полуночные сапоги",
+  "description": "Полуночная кожа, не отражающая света: носит только лучница.",
+  "category": "armor",
+  "quality": "epic",
+  "armorType": "leather",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "feet"
+  },
+  "armor": 18,
+  "stats": {
+    "dex": 9,
+    "sta": 7
+  },
+  "requires": {
+    "level": 20
+  },
+  "value": 528,
+  "sellPrice": 264
+}

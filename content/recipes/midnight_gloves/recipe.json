@@ -1,0 +1,26 @@
+{
+  "id": "midnight_gloves",
+  "name": "Полуночные перчатки",
+  "description": "Создание: Полуночные перчатки.",
+  "category": "equipment",
+  "price": 80,
+  "requiresLevel": 20,
+  "ingredients": [
+    {
+      "item": "bear_hide",
+      "count": 3
+    },
+    {
+      "item": "element_crystal",
+      "count": 5
+    },
+    {
+      "item": "primordial_core",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "midnight_gloves",
+    "count": 1
+  }
+}
