@@ -1078,166 +1078,172 @@ window.LOCATIONS = {
             border: 0,
             baseHeight: 1.7,
             landFloor: 0.85,
-            mountainRim: { width: 16.0, height: 6.5, noWest: true },
+            mountainRim: { width: 16.0, height: 6.5, noEast: true },
             mountainPasses: [],
-            rimDip: [{ x: 0.0, k0: 0.85, w: 30.0, cragK: 0.0 }],
-            rockTint: { x: 0.0, z: 94.0, tintRadius: 26.0, tintStrength: 0.9 },
+            rimDip: [{ side: 'north', axis: 'x', x: 0.0, k0: 0.85, w: 30.0, cragK: 0.0 }, { side: 'west', axis: 'z', z: 0.0, k0: 0.85, w: 30.0, cragK: 0.0 }],
+            rockTint: { x: 0.0, z: -94.0, tintRadius: 26.0, tintStrength: 0.9, north: true },
+            westCover: { z: 0.0, cutX: -149.0, cx: -145.0, R: 9.5 },   // горки у среза западного ущелья в Выжженную землю (terrain.js)
             flatSpots: [
-                { x: 0.0, z: 86.0, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.07 },
-                { x: 0.0, z: 89.5, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.1 },
-                { x: 0.0, z: 93.0, radius: 2.2, blend: 4.5, hFrom: [0.0, 79.0], dh: 0.0 },
-                { x: 0.0, z: 95.3, radius: 1.6, blend: 6.5, hFrom: [0.0, 79.0], dh: -0.11 }
+                { x: 0.0, z: -86.0, radius: 2.2, blend: 3.0, hFrom: [0.0, -79.0], dh: 0.07 },
+                { x: 0.0, z: -89.5, radius: 2.2, blend: 3.0, hFrom: [0.0, -79.0], dh: 0.1 },
+                { x: 0.0, z: -93.0, radius: 2.2, blend: 4.5, hFrom: [0.0, -79.0], dh: 0.0 },
+                { x: 0.0, z: -95.3, radius: 1.6, blend: 6.5, hFrom: [0.0, -79.0], dh: -0.11 },
+                // западное ущелье в Выжженную землю (те же площадки, что у западного прохода опушки)
+                { x: -130.0, z: 0.0, radius: 2.2, blend: 2.5, hFrom: [-120.0, 0.0] }, { x: -136.5, z: 0.0, radius: 2.2, blend: 3.0, hFrom: [-120.0, 0.0], dh: 0.00 }, { x: -140.5, z: 0.0, radius: 2.2, blend: 3.5, hFrom: [-120.0, 0.0], dh: 0.22 }, { x: -144.0, z: 0.0, radius: 2.2, blend: 4.0, hFrom: [-120.0, 0.0], dh: 0.60 }, { x: -147.0, z: 0.0, radius: 2.0, blend: 4.5, hFrom: [-120.0, 0.0], dh: 0.60 }
             ],
             waterBody: {
                 type: 'coast_lake',
-                shoreLine: -85.0,
-                lakeX: 10.0,
-                lakeZ: -5.0,
+                shoreLine: 85.0, side: 'east',
+                lakeX: -10.0,
+                lakeZ: 5.0,
                 radius: 22.0,
                 depth: -2.2,
                 beachWidth: 16.0,
                 shoreSmooth: true
             },
-            hills: { amplitude: 2.0, inclineX: 0.1, inclineZ: -0.1 },
+            hills: { amplitude: 2.0, inclineX: -0.1, inclineZ: 0.1 },
             stoneTexture: 'pebbleTrailDiff',
             paths: [
-                { type: 'dirt', width: 2.4, thin: true, clearMargin: 1.6, points: [[0.0, 78.0], [0.0, 70.0], [0.0, 50.0], [6.0, 32.0], [10.0, 18.0]] },
-                { type: 'dirt', width: 2.4, thin: true, clearMargin: 1.6, points: [[0.0, 50.0], [-18.0, 42.0], [-42.0, 30.0], [-68.0, 15.0], [-84.0, 4.0]] }
+                { type: 'dirt', width: 2.4, thin: true, clearMargin: 1.6, points: [[0.0, -78.0], [0.0, -70.0], [0.0, -50.0], [-6.0, -32.0], [-10.0, -18.0]] },
+                { type: 'dirt', width: 2.4, thin: true, clearMargin: 1.6, points: [[0.0, -50.0], [18.0, -42.0], [42.0, -30.0], [68.0, -15.0], [84.0, -4.0]] }
             ]
         },
 
         atmosphere: { sky: 0xd9e6c6, skyTop: 0x5a9ccf, fogDensity: 0.0065 },
-        cameraAngle: 0.0,
-        noFerns: [{ x: 0.0, z: 89.0, rx: 10.0, rz: 10.0 }],
+        cameraAngle: Math.PI,
+        noFerns: [{ x: 0.0, z: -89.0, rx: 10.0, rz: 10.0 }],
 
         spawns: {
-            default:    { x: 0.0, z: 78.5, r: 0.0 },
-            fromForest: { x: 0.0, z: 78.5, r: 0.0 }
+            default:    { x: 0.0, z: -78.5, r: 3.14 },
+            fromForest: { x: 0.0, z: -78.5, r: 3.14 },
+            fromBurnt:  { x: -128.0, z: 0.0, r: 4.71 }      // выход из западного ущелья, лицом на восток в долину
         },
 
         exits: [
-            { id: 'toForest', x: 0.0, z: 95.0, radius: 1.4, to: 'forestEdge', spawn: 'fromPrimeval', label: 'Лесная опушка', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc } }
+            { id: 'toForest', x: 0.0, z: -95.0, radius: 1.4, to: 'forestEdge', spawn: 'fromPrimeval', label: 'Лесная опушка', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, r: Math.PI, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc } },
+            { id: 'toBurnt', x: -146.0, z: 0.0, radius: 2.0, to: 'burntLands', spawn: 'fromValley', label: 'Выжженная земля', color: 0xffc9a0, height: 5.0, track: true, noRing: true, r: -Math.PI / 2, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xcbb3a4 } }
         ],
 
         clearings: [
-            { x: 0.0, z: 93.0, radius: 10.0 },
-            { x: 0.0, z: 78.0, radius: 8.0 },
-            { x: 0.0, z: 68.0, radius: 5.5 },
-            { x: 0.0, z: 50.0, radius: 6.0 },
-            { x: 10.0, z: -5.0, radius: 26.0 },     // Озеро и пляж
-            { x: -105.0, z: 0.0, radius: 24.0 },   // Океанский берег и отмели
-            { x: 65.0, z: -55.0, radius: 14.0 },    // Логово Громового Когтя
-            { x: 88.0, z: 14.0, radius: 12.0 },     // Грот Яши
-            { x: 108.0, z: -50.0, radius: 12.0 },   // Драконье плато
-            { x: -68.0, z: -52.0, radius: 12.0 },   // Северный мыс
-            { x: 42.0, z: 28.0, radius: 14.0 },     // Стадо анкилозавров
-            { x: -30.0, z: 10.0, radius: 14.0 }     // Луг трицератопсов
+            { x: 0.0, z: -93.0, radius: 10.0 },
+            { x: 0.0, z: -78.0, radius: 8.0 },
+            { x: 0.0, z: -68.0, radius: 5.5 },
+            { x: 0.0, z: -50.0, radius: 6.0 },
+            { x: -10.0, z: 5.0, radius: 26.0 },     // Озеро и пляж
+            { x: 105.0, z: 0.0, radius: 24.0 },   // Океанский берег и отмели
+            { x: -65.0, z: 55.0, radius: 14.0 },    // Логово Громового Когтя
+            { x: -88.0, z: -14.0, radius: 12.0 },     // Грот Яши
+            { x: -108.0, z: 50.0, radius: 12.0 },   // Драконье плато
+            { x: 68.0, z: 52.0, radius: 12.0 },   // Южный мыс
+            { x: -42.0, z: -28.0, radius: 14.0 },     // Стадо анкилозавров
+            { x: 30.0, z: -10.0, radius: 14.0 }     // Луг трицератопсов
         ],
 
         groups: [
-            // Хвойный пояс на северных высотах
-            { id: 'pv_north_conifers', type: 'forest', x: 15.0, z: -72.0, rx: 110.0, rz: 12.0, count: 44, seed: 5101, types: ['evergreen', 'fir_a', 'evergreen', 'fir_b', 'fir_c'] },
+            // Хвойный пояс на южных высотах
+            { id: 'pv_south_conifers', type: 'forest', x: -15.0, z: 72.0, rx: 110.0, rz: 12.0, count: 44, seed: 5101, types: ['evergreen', 'fir_a', 'evergreen', 'fir_b', 'fir_c'] },
             // Южные хвойные рощи
-            { id: 'pv_south_conifers_w', type: 'forest', x: -62.0, z: 72.0, rx: 44.0, rz: 10.0, count: 20, seed: 5102, types: ['evergreen', 'fir_a', 'fir_b'] },
-            { id: 'pv_south_conifers_e', type: 'forest', x: 62.0, z: 72.0, rx: 44.0, rz: 10.0, count: 20, seed: 5103, types: ['evergreen', 'fir_b', 'fir_c'] },
-            { id: 'pv_south_conifers_c', type: 'forest', x: 0.0, z: 78.0, rx: 18.0, rz: 5.0, count: 6, seed: 5104, types: ['evergreen', 'fir_a'] },
+            { id: 'pv_north_conifers_w', type: 'forest', x: 62.0, z: -72.0, rx: 44.0, rz: 10.0, count: 20, seed: 5102, types: ['evergreen', 'fir_a', 'fir_b'] },
+            { id: 'pv_north_conifers_e', type: 'forest', x: -62.0, z: -72.0, rx: 44.0, rz: 10.0, count: 20, seed: 5103, types: ['evergreen', 'fir_b', 'fir_c'] },
+            { id: 'pv_north_conifers_c', type: 'forest', x: 0.0, z: -78.0, rx: 18.0, rz: 5.0, count: 6, seed: 5104, types: ['evergreen', 'fir_a'] },
             // Восточные горные сосны
-            { id: 'pv_east_conifers', type: 'forest', x: 125.0, z: 0.0, rx: 12.0, rz: 65.0, count: 32, seed: 5106, types: ['evergreen', 'fir_a', 'fir_b', 'fir_c'] },
+            { id: 'pv_west_conifers', type: 'forest', x: -125.0, z: 0.0, rx: 12.0, rz: 65.0, count: 32, seed: 5106, types: ['evergreen', 'fir_a', 'fir_b', 'fir_c'] },
             // Древние реликтовые деревья вокруг озера
-            { id: 'pv_cycads_lake_n', type: 'forest', grass: false, x: 10.0, z: -30.0, rx: 24.0, rz: 8.0, count: 7, spacing: 6.0, scaleMin: 0.8, scaleMax: 1.2, treeType: 'quiver', undergrowth: false, seed: 5110 },
-            { id: 'pv_cycads_lake_s', type: 'forest', grass: false, x: 10.0, z: 20.0, rx: 22.0, rz: 6.0, count: 6, spacing: 6.0, scaleMin: 0.8, scaleMax: 1.2, treeType: 'quiver', undergrowth: false, seed: 5111 },
-            { id: 'pv_cycads_east', type: 'forest', grass: false, x: 65.0, z: 12.0, rx: 22.0, rz: 24.0, count: 8, spacing: 9.0, scaleMin: 0.8, scaleMax: 1.25, treeType: 'quiver', undergrowth: false, seed: 5112 },
-            { id: 'pv_cycads_coast', type: 'forest', grass: false, x: -65.0, z: -10.0, rx: 16.0, rz: 26.0, count: 7, spacing: 9.0, scaleMin: 0.8, scaleMax: 1.25, treeType: 'quiver', undergrowth: false, seed: 5113 },
+            { id: 'pv_cycads_lake_n', type: 'forest', grass: false, x: -10.0, z: 30.0, rx: 24.0, rz: 8.0, count: 7, spacing: 6.0, scaleMin: 0.8, scaleMax: 1.2, treeType: 'quiver', undergrowth: false, seed: 5110 },
+            { id: 'pv_cycads_lake_s', type: 'forest', grass: false, x: -10.0, z: -20.0, rx: 22.0, rz: 6.0, count: 6, spacing: 6.0, scaleMin: 0.8, scaleMax: 1.2, treeType: 'quiver', undergrowth: false, seed: 5111 },
+            { id: 'pv_cycads_west', type: 'forest', grass: false, x: -65.0, z: -12.0, rx: 22.0, rz: 24.0, count: 8, spacing: 9.0, scaleMin: 0.8, scaleMax: 1.25, treeType: 'quiver', undergrowth: false, seed: 5112 },
+            { id: 'pv_cycads_coast', type: 'forest', grass: false, x: 65.0, z: 10.0, rx: 16.0, rz: 26.0, count: 7, spacing: 9.0, scaleMin: 0.8, scaleMax: 1.25, treeType: 'quiver', undergrowth: false, seed: 5113 },
             // Меловые цветущие магнолии у воды (sakura в роли древней цветущей магнолии)
-            { id: 'pv_magnolia_lake', type: 'forest', grass: false, x: -14.0, z: -6.0, rx: 12.0, rz: 14.0, count: 4, spacing: 7.0, scaleMin: 0.9, scaleMax: 1.15, treeType: 'sakura', undergrowth: false, seed: 5114 },
+            { id: 'pv_magnolia_lake', type: 'forest', grass: false, x: 14.0, z: 6.0, rx: 12.0, rz: 14.0, count: 4, spacing: 7.0, scaleMin: 0.9, scaleMax: 1.15, treeType: 'sakura', undergrowth: false, seed: 5114 },
             // Папоротниковые ковры
-            { id: 'pv_ferns_1', type: 'fernPatch', x: -45.0, z: 32.0, radius: 10.0, count: 18, seed: 5120 },
-            { id: 'pv_ferns_2', type: 'fernPatch', x: -28.0, z: -28.0, radius: 12.0, count: 20, seed: 5121 },
-            { id: 'pv_ferns_3', type: 'fernPatch', x: 38.0, z: -26.0, radius: 10.0, count: 16, seed: 5122 },
-            { id: 'pv_ferns_4', type: 'fernPatch', x: 42.0, z: 14.0, radius: 12.0, count: 20, seed: 5123 },
-            { id: 'pv_ferns_5', type: 'fernPatch', x: -68.0, z: 24.0, radius: 10.0, count: 16, seed: 5124 },
-            { id: 'pv_ferns_lake', type: 'fernPatch', x: 10.0, z: 18.0, radius: 12.0, count: 22, seed: 5125 },
+            { id: 'pv_ferns_1', type: 'fernPatch', x: 45.0, z: -32.0, radius: 10.0, count: 18, seed: 5120 },
+            { id: 'pv_ferns_2', type: 'fernPatch', x: 28.0, z: 28.0, radius: 12.0, count: 20, seed: 5121 },
+            { id: 'pv_ferns_3', type: 'fernPatch', x: -38.0, z: 26.0, radius: 10.0, count: 16, seed: 5122 },
+            { id: 'pv_ferns_4', type: 'fernPatch', x: -42.0, z: -14.0, radius: 12.0, count: 20, seed: 5123 },
+            { id: 'pv_ferns_5', type: 'fernPatch', x: 68.0, z: -24.0, radius: 10.0, count: 16, seed: 5124 },
+            { id: 'pv_ferns_lake', type: 'fernPatch', x: -10.0, z: -18.0, radius: 12.0, count: 22, seed: 5125 },
             // Камыши / хвощи у озера и океанских отмелей
-            { id: 'pv_reeds_lake_w', type: 'reeds', x: -12.0, z: -5.0, rx: 4.0, rz: 18.0, count: 28, seed: 5130 },
-            { id: 'pv_reeds_lake_e', type: 'reeds', x: 32.0, z: -4.0, rx: 4.0, rz: 18.0, count: 28, seed: 5131 },
-            { id: 'pv_reeds_coast', type: 'reeds', x: -84.0, z: 10.0, rx: 4.0, rz: 22.0, count: 24, seed: 5132 },
+            { id: 'pv_reeds_lake_e', type: 'reeds', x: 12.0, z: 5.0, rx: 4.0, rz: 18.0, count: 28, seed: 5130 },
+            { id: 'pv_reeds_lake_w', type: 'reeds', x: -32.0, z: 4.0, rx: 4.0, rz: 18.0, count: 28, seed: 5131 },
+            { id: 'pv_reeds_coast', type: 'reeds', x: 84.0, z: -10.0, rx: 4.0, rz: 22.0, count: 24, seed: 5132 },
             // Скалы и валуны
-            { id: 'pv_rocks_coast', type: 'rocks', x: -96.0, z: -15.0, radius: 12.0, count: 7, scaleMin: 1.0, scaleMax: 2.4, seed: 5139 },
-            { id: 'pv_rocks_coast_s', type: 'rocks', x: -92.0, z: 30.0, radius: 10.0, count: 6, scaleMin: 1.0, scaleMax: 2.2, seed: 5140 },
-            { id: 'pv_rocks_1', type: 'rocks', x: 65.0, z: -55.0, radius: 12.0, count: 8, scaleMin: 0.9, scaleMax: 2.4, seed: 5141 },
-            { id: 'pv_rocks_2', type: 'rocks', x: 88.0, z: 14.0, radius: 10.0, count: 6, scaleMin: 0.9, scaleMax: 2.4, seed: 5142 },
-            { id: 'pv_rocks_3', type: 'rocks', x: 105.0, z: -45.0, radius: 12.0, count: 7, scaleMin: 1.0, scaleMax: 2.5, seed: 5143 },
-            { id: 'pv_rocks_4', type: 'rocks', x: -20.0, z: 28.0, radius: 7.0, count: 4, scaleMin: 0.8, scaleMax: 1.9, seed: 5144 },
+            { id: 'pv_rocks_coast', type: 'rocks', x: 96.0, z: 15.0, radius: 12.0, count: 7, scaleMin: 1.0, scaleMax: 2.4, seed: 5139 },
+            { id: 'pv_rocks_coast_s', type: 'rocks', x: 92.0, z: -30.0, radius: 10.0, count: 6, scaleMin: 1.0, scaleMax: 2.2, seed: 5140 },
+            { id: 'pv_rocks_1', type: 'rocks', x: -65.0, z: 55.0, radius: 12.0, count: 8, scaleMin: 0.9, scaleMax: 2.4, seed: 5141 },
+            { id: 'pv_rocks_2', type: 'rocks', x: -88.0, z: -14.0, radius: 10.0, count: 6, scaleMin: 0.9, scaleMax: 2.4, seed: 5142 },
+            { id: 'pv_rocks_3', type: 'rocks', x: -105.0, z: 45.0, radius: 12.0, count: 7, scaleMin: 1.0, scaleMax: 2.5, seed: 5143 },
+            { id: 'pv_rocks_4', type: 'rocks', x: 20.0, z: -28.0, radius: 7.0, count: 4, scaleMin: 0.8, scaleMax: 1.9, seed: 5144 },
 
             // Рудные валуны для добычи (ores)
-            { id: 'pv_ores_coast', type: 'oreCluster', x: -88.0, z: -10.0, radius: 10.0, count: 5, seed: 5201 },
-            { id: 'pv_ores_northeast', type: 'oreCluster', x: 72.0, z: -50.0, radius: 11.0, count: 6, seed: 5202 },
-            { id: 'pv_ores_east', type: 'oreCluster', x: 95.0, z: 10.0, radius: 10.0, count: 5, seed: 5203 },
-            { id: 'pv_ores_lake_s', type: 'oreCluster', x: -14.0, z: 32.0, radius: 8.0, count: 4, seed: 5204 },
+            { id: 'pv_ores_coast', type: 'oreCluster', x: 88.0, z: 10.0, radius: 10.0, count: 5, seed: 5201 },
+            { id: 'pv_ores_southwest', type: 'oreCluster', x: -72.0, z: 50.0, radius: 11.0, count: 6, seed: 5202 },
+            { id: 'pv_ores_west', type: 'oreCluster', x: -95.0, z: -10.0, radius: 10.0, count: 5, seed: 5203 },
+            { id: 'pv_ores_lake_s', type: 'oreCluster', x: 14.0, z: -32.0, radius: 8.0, count: 4, seed: 5204 },
             // Кустарники и валежник
-            { id: 'pv_shrubs_1', type: 'shrubCluster', x: 30.0, z: 0.0, radius: 20.0, count: 8, spacing: 5.0, seed: 5150 },
-            { id: 'pv_shrubs_2', type: 'shrubCluster', x: -50.0, z: 0.0, radius: 20.0, count: 8, spacing: 5.0, seed: 5151 },
-            { id: 'pv_branches', type: 'branches', x: 10.0, z: -10.0, radius: 45.0, count: 22, seed: 5152 }
+            { id: 'pv_shrubs_1', type: 'shrubCluster', x: -30.0, z: 0.0, radius: 20.0, count: 8, spacing: 5.0, seed: 5150 },
+            { id: 'pv_shrubs_2', type: 'shrubCluster', x: 50.0, z: 0.0, radius: 20.0, count: 8, spacing: 5.0, seed: 5151 },
+            { id: 'pv_branches', type: 'branches', x: -10.0, z: 10.0, radius: 45.0, count: 22, seed: 5152 }
         ],
 
         pickups: [],
 
         props: [
-            { id: 'primevalValley.stone_pass', prop: 'stone_pass', x: 0.0, z: 93.0, r: Math.PI, dy: 0.26 },
-            { id: 'primevalValley.bones_1', prop: 'bone_pile', x: 60.0, z: -58.0, r: 0.7 },
-            { id: 'primevalValley.bones_2', prop: 'bone_pile', x: 92.0, z: 8.0, r: 2.1 },
-            { id: 'primevalValley.bones_3', prop: 'bone_pile', x: -88.0, z: 2.0, r: 4.0 },
-            { id: 'primevalValley.bones_4', prop: 'bone_pile', x: 102.0, z: -40.0, r: 5.1 },
-            { id: 'primevalValley.log_1', prop: 'fallen_log', x: 14.0, z: 30.0, r: 0.5 },
-            { id: 'primevalValley.log_2', prop: 'fallen_log', x: -36.0, z: 34.0, r: 2.2 },
-            { id: 'primevalValley.log_3', prop: 'fallen_log', x: 38.0, z: -12.0, r: 1.3 }
+            { id: 'primevalValley.stone_pass', prop: 'stone_pass', x: 0.0, z: -93.0, r: 0.00, dy: 0.26 },
+            { id: 'primevalValley.twinstone_pass', prop: 'twinstone_pass', x: -145.0, z: 0.0, r: Math.PI / 2, yFrom: [-120.0, 0.0], dy: 0.10 },
+            { id: 'primevalValley.bones_1', prop: 'bone_pile', x: -60.0, z: 58.0, r: 3.84 },
+            { id: 'primevalValley.bones_2', prop: 'bone_pile', x: -92.0, z: -8.0, r: 5.24 },
+            { id: 'primevalValley.bones_3', prop: 'bone_pile', x: 88.0, z: -2.0, r: 0.86 },
+            { id: 'primevalValley.bones_4', prop: 'bone_pile', x: -102.0, z: 40.0, r: 1.96 },
+            { id: 'primevalValley.log_1', prop: 'fallen_log', x: -14.0, z: -30.0, r: 3.64 },
+            { id: 'primevalValley.log_2', prop: 'fallen_log', x: 36.0, z: -34.0, r: 5.34 },
+            { id: 'primevalValley.log_3', prop: 'fallen_log', x: -38.0, z: 12.0, r: 4.44 }
         ],
 
         creatures: [
             // Западный берег океана и приливные отмели — гигантский эвриптерид в естественной среде обитания
-            { id: 'pv_jaekelopterus_1', type: 'jaekelopterus', level: 10, x: -102.0, z: -6.0, r: 1.57 },
-            { id: 'pv_jaekelopterus_2', type: 'jaekelopterus', level: 10, x: -94.0, z: 24.0, r: 2.80 },
+            { id: 'pv_jaekelopterus_1', type: 'jaekelopterus', level: 10, x: 102.0, z: 6.0, r: 4.71 },
+            { id: 'pv_jaekelopterus_2', type: 'jaekelopterus', level: 10, x: 94.0, z: -24.0, r: 5.94 },
 
             // Песчаный пляж внутреннего озера — греющийся на солнце древний крокодил Саркозух
-            { id: 'pv_sarcosuchus', type: 'sarcosuchus', level: 11, x: 26.0, z: 6.0, r: -1.90 },
+            { id: 'pv_sarcosuchus', type: 'sarcosuchus', level: 11, x: -26.0, z: -6.0, r: 1.24 },
 
             // Луг между морем и озером — стадо Трицератопсов
-            { id: 'pv_triceratops_1', type: 'triceratops', level: 10, x: -24.0, z: 12.0, r: -1.57 },
-            { id: 'pv_triceratops_2', type: 'triceratops', level: 10, x: -36.0, z: -18.0, r: 0.60 },
+            { id: 'pv_triceratops_1', type: 'triceratops', level: 10, x: 24.0, z: -12.0, r: 1.57 },
+            { id: 'pv_triceratops_2', type: 'triceratops', level: 10, x: 36.0, z: 18.0, r: 3.74 },
 
             // Южная папоротниковая пойма — панцирные Анкилозавры
-            { id: 'pv_ankylo_1', type: 'ankylosaurus', level: 12, x: 38.0, z: 32.0, r: 2.00 },
-            { id: 'pv_ankylo_2', type: 'ankylosaurus', level: 12, x: 52.0, z: 22.0, r: 4.00 },
-            { id: 'pv_ankylo_3', type: 'ankylosaurus', level: 12, x: -28.0, z: 42.0, r: 1.00 },
+            { id: 'pv_ankylo_1', type: 'ankylosaurus', level: 12, x: -38.0, z: -32.0, r: 5.14 },
+            { id: 'pv_ankylo_2', type: 'ankylosaurus', level: 12, x: -52.0, z: -22.0, r: 0.86 },
+            { id: 'pv_ankylo_3', type: 'ankylosaurus', level: 12, x: 28.0, z: -42.0, r: 4.14 },
 
-            // Северные скалы и каньоны — Громовой Коготь
-            { id: 'pv_thunderclaw', type: 'thunderclaw', level: 10, rank: 'boss', x: 65.0, z: -55.0, r: 0.60 },
+            // Южные скалы и каньоны — Громовой Коготь
+            { id: 'pv_thunderclaw', type: 'thunderclaw', level: 10, rank: 'boss', x: -65.0, z: 55.0, r: 3.74 },
 
             // Восточный горный грот — Медведь Яша
-            { id: 'pv_yasha', type: 'yasha', level: 8, rank: 'boss', x: 88.0, z: 14.0, r: -2.89 },
+            { id: 'pv_yasha', type: 'yasha', level: 8, rank: 'boss', x: -88.0, z: -14.0, r: 0.25 },
 
             // Восточные утёсы — Драконы
-            { id: 'pv_dragon', type: 'dragon', level: 22, rank: 'boss', x: 108.0, z: -50.0, r: 3.60 },
-            { id: 'pv_red_dragon', type: 'red_dragon', level: 25, rank: 'boss', x: -68.0, z: -52.0, r: 1.20 },
+            { id: 'pv_dragon', type: 'dragon', level: 22, rank: 'boss', x: -108.0, z: 50.0, r: 0.46 },
+            { id: 'pv_red_dragon', type: 'red_dragon', level: 25, rank: 'boss', x: 68.0, z: 52.0, r: 4.34 },
 
             // Птеродактили в небе над морем, озером и скалами
-            { id: 'pv_ptero_1', type: 'pterodactyl', level: 9, x: -95.0, z: 5.0, r: 2.03 },
-            { id: 'pv_ptero_2', type: 'pterodactyl', level: 9, x: 10.0, z: -10.0, r: 0.95 },
-            { id: 'pv_ptero_3', type: 'pterodactyl', level: 9, x: 45.0, z: 20.0, r: 4.09 },
-            { id: 'pv_ptero_4', type: 'pterodactyl', level: 9, x: -20.0, z: -35.0, r: 0.45 },
-            { id: 'pv_ptero_5', type: 'pterodactyl', level: 9, x: 85.0, z: -25.0, r: 3.37 },
+            { id: 'pv_ptero_1', type: 'pterodactyl', level: 9, x: 95.0, z: -5.0, r: 5.17 },
+            { id: 'pv_ptero_2', type: 'pterodactyl', level: 9, x: -10.0, z: 10.0, r: 4.09 },
+            { id: 'pv_ptero_3', type: 'pterodactyl', level: 9, x: -45.0, z: -20.0, r: 0.95 },
+            { id: 'pv_ptero_4', type: 'pterodactyl', level: 9, x: 20.0, z: 35.0, r: 3.59 },
+            { id: 'pv_ptero_5', type: 'pterodactyl', level: 9, x: -85.0, z: 25.0, r: 0.23 },
 
             // Бабочки над цветущими полянами
-            { id: 'pv_butterfly_1', type: 'butterfly', level: 1, x: 11.2, z: -2.4, r: 3.19 },
-            { id: 'pv_butterfly_2', type: 'butterfly', level: 1, x: -65.0, z: 18.1, r: 0.44 },
-            { id: 'pv_butterfly_3', type: 'butterfly', level: 1, x: 33.5, z: -24.1, r: 5.19 },
-            { id: 'pv_butterfly_4', type: 'butterfly', level: 1, x: -30.5, z: 32.3, r: 3.94 },
-            { id: 'pv_butterfly_5', type: 'butterfly', level: 1, x: 27.5, z: 12.2, r: 2.49 },
-            { id: 'pv_butterfly_6', type: 'butterfly', level: 1, x: -38.7, z: 7.3, r: 5.39 },
-            { id: 'pv_butterfly_7', type: 'butterfly', level: 1, x: 39.1, z: -32.0, r: 0.74 },
-            { id: 'pv_butterfly_8', type: 'butterfly', level: 1, x: -25.4, z: 48.9, r: 1.13 },
-            { id: 'pv_butterfly_9', type: 'butterfly', level: 1, x: 17.3, z: 13.9, r: 2.34 },
-            { id: 'pv_butterfly_10', type: 'butterfly', level: 1, x: -50.7, z: 7.8, r: 0.37 }
+            { id: 'pv_butterfly_1', type: 'butterfly', level: 1, x: -11.2, z: 2.4, r: 0.05 },
+            { id: 'pv_butterfly_2', type: 'butterfly', level: 1, x: 65.0, z: -18.1, r: 3.58 },
+            { id: 'pv_butterfly_3', type: 'butterfly', level: 1, x: -33.5, z: 24.1, r: 2.05 },
+            { id: 'pv_butterfly_4', type: 'butterfly', level: 1, x: 30.5, z: -32.3, r: 0.80 },
+            { id: 'pv_butterfly_5', type: 'butterfly', level: 1, x: -27.5, z: -12.2, r: 5.63 },
+            { id: 'pv_butterfly_6', type: 'butterfly', level: 1, x: 38.7, z: -7.3, r: 2.25 },
+            { id: 'pv_butterfly_7', type: 'butterfly', level: 1, x: -39.1, z: 32.0, r: 3.88 },
+            { id: 'pv_butterfly_8', type: 'butterfly', level: 1, x: 25.4, z: -48.9, r: 4.27 },
+            { id: 'pv_butterfly_9', type: 'butterfly', level: 1, x: -17.3, z: -13.9, r: 5.48 },
+            { id: 'pv_butterfly_10', type: 'butterfly', level: 1, x: 50.7, z: -7.8, r: 3.51 }
         ]
     },
 
@@ -1263,13 +1269,16 @@ window.LOCATIONS = {
             landFloor: 0.85,
             mountainRim: { width: 16.0, height: 7.5 },
             mountainPasses: [],
-            northCover: { x: 0.0, cutZ: -99.0, cz: -95.0, R: 9.5 },   // горки и подход у северного ущелья в саванну (terrain.js)
-            rimDip: [{ side: 'north', axis: 'x', x: 0.0, k0: 0.85, w: 30.0, cragK: 0.0 }],
+            northCover: { x: 0.0, cutZ: -99.0, cz: -95.0, R: 9.5 },
+            westCover: { z: 0.0, cutX: -149.0, cx: -145.0, R: 9.5, flip: true },   // горки у среза восточного ущелья в долину (оси -x,-z, terrain.js)   // горки и подход у северного ущелья в саванну (terrain.js)
+            rimDip: [{ side: 'north', axis: 'x', x: 0.0, k0: 0.85, w: 30.0, cragK: 0.0 }, { side: 'west', axis: 'z', z: 0.0, k0: 0.85, w: 30.0, cragK: 0.0, flip: true }],
             flatSpots: [
                 // центральная трещина: ровное плато под вулканическую расщелину
                 { x: -13.0, z: 0.0, radius: 7.0, blend: 9.0, hFrom: [0.0, 0.0] }, { x: -6.5, z: 0.0, radius: 8.0, blend: 9.0, hFrom: [0.0, 0.0] }, { x: 0.0, z: 0.0, radius: 9.0, blend: 9.0, hFrom: [0.0, 0.0] }, { x: 6.5, z: 0.0, radius: 8.0, blend: 9.0, hFrom: [0.0, 0.0] }, { x: 13.0, z: 0.0, radius: 7.0, blend: 9.0, hFrom: [0.0, 0.0] },
                 // северное ущелье в саванну (те же площадки, что были у южного прохода саванны до разворота)
-                { x: 0.0, z: -80.0, radius: 2.2, blend: 2.5, hFrom: [0.0, -70.0] }, { x: 0.0, z: -86.5, radius: 2.2, blend: 3.0, hFrom: [0.0, -70.0], dh: 0.0 }, { x: 0.0, z: -90.5, radius: 2.2, blend: 3.5, hFrom: [0.0, -70.0], dh: 0.22 }, { x: 0.0, z: -94.0, radius: 2.2, blend: 4.5, hFrom: [0.0, -70.0], dh: 0.6 }, { x: 0.0, z: -97.0, radius: 2.2, blend: 4.5, hFrom: [0.0, -70.0], dh: 0.6 }
+                { x: 0.0, z: -80.0, radius: 2.2, blend: 2.5, hFrom: [0.0, -70.0] }, { x: 0.0, z: -86.5, radius: 2.2, blend: 3.0, hFrom: [0.0, -70.0], dh: 0.0 }, { x: 0.0, z: -90.5, radius: 2.2, blend: 3.5, hFrom: [0.0, -70.0], dh: 0.22 }, { x: 0.0, z: -94.0, radius: 2.2, blend: 4.5, hFrom: [0.0, -70.0], dh: 0.6 }, { x: 0.0, z: -97.0, radius: 2.2, blend: 4.5, hFrom: [0.0, -70.0], dh: 0.6 },
+                // восточное ущелье в Долину Забытых Эпох
+                { x: 130.0, z: 0.0, radius: 2.2, blend: 2.5, hFrom: [120.0, 0.0] }, { x: 136.5, z: 0.0, radius: 2.2, blend: 3.0, hFrom: [120.0, 0.0], dh: 0.00 }, { x: 140.5, z: 0.0, radius: 2.2, blend: 3.5, hFrom: [120.0, 0.0], dh: 0.22 }, { x: 144.0, z: 0.0, radius: 2.2, blend: 4.0, hFrom: [120.0, 0.0], dh: 0.60 }, { x: 147.0, z: 0.0, radius: 2.0, blend: 4.5, hFrom: [120.0, 0.0], dh: 0.60 }
             ],
             hills: { amplitude: 3.2, inclineX: 0.0, inclineZ: 0.1 },
             paths: [
@@ -1284,12 +1293,14 @@ window.LOCATIONS = {
 
         spawns: {
             default:      { x: 0.0, z: -78.5, r: 3.14 },
-            fromSavanna:  { x: 0.0, z: -78.5, r: 3.14 },      // выход из северного ущелья, лицом на юг
+            fromSavanna:  { x: 0.0, z: -78.5, r: 3.14 },
+            fromValley:   { x: 128.0, z: 0.0, r: 1.57 },      // выход из восточного ущелья, лицом на запад      // выход из северного ущелья, лицом на юг
             fromDepths:   { x: 0.0, z: 12.0, r: Math.PI }      // подъём из недр у южного края трещины, лицом на юг (от трещины)
         },
 
         exits: [
             { id: 'toSavanna', x: 0.0, z: -96.0, radius: 2.0, to: 'savanna', spawn: 'fromBurnt', label: 'Золотая саванна', color: 0xffc9a0, height: 5.0, track: true, noRing: true, r: Math.PI, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xcbb3a4 } },
+            { id: 'toValley', x: 146.0, z: 0.0, radius: 2.0, to: 'primevalValley', spawn: 'fromBurnt', label: 'Долина Забытых Эпох', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, r: 1.57, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc } },
             // Спуск в недра вулкана у южного края трещины (заготовка под будущий данж: пока пустая локация-заглушка)
             { id: 'toDepths', x: 0.0, z: 8.6, radius: 1.5, height: 2.4, color: 0xff7a30, to: 'magmaDepths', spawn: 'entrance', label: 'Спуск в недра' }
         ],
@@ -1358,6 +1369,7 @@ window.LOCATIONS = {
             { id: 'burntLands.dead_39', prop: 'charred_tree', x: -69.4, z: 23.6, r: 3.94, s: 1.40 },
             { id: 'burntLands.dead_40', prop: 'charred_tree', x: -59.5, z: 8.1, r: 4.73, s: 1.17 },
             { id: 'burntLands.crack', prop: 'volcano_crack', x: 0.0, z: 0.0, r: 0.0 },   // гигантская вулканическая трещина (позже — вход в данж)
+            { id: 'burntLands.east_pass', prop: 'twinstone_pass', x: 145.0, z: 0.0, r: 4.71, yFrom: [120.0, 0.0], dy: 0.10 },
             { id: 'burntLands.north_pass', prop: 'twinstone_pass', x: 0.0, z: -95.0, r: 0.0, yFrom: [0.0, -70.0], dy: 0.10 }
         ],
 

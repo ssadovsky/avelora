@@ -342,12 +342,13 @@ class LakesideTerrain {
         }
         // Небольшие горки по краям среза модели ущелья (z = 96.5) до южного края локации: закрывают торцы обрезанной скалы
         const rt = this.locTerrain.rockTint;
-        if (rt && z > 93.5 && Math.abs(x - rt.x) < 10.0) {
-            if (this._passBaseY === undefined) this._passBaseY = this._getRawHeightBase(rt.x, 79.0) + 0.24;
+        const zr = (rt && rt.north) ? -z : z;   // rockTint.north: ущелье у северного края (зеркало южного)
+        if (rt && zr > 93.5 && Math.abs(x - rt.x) < 10.0) {
+            if (this._passBaseY === undefined) this._passBaseY = this._getRawHeightBase(rt.x, rt.north ? -79.0 : 79.0) + 0.24;
             const ss = (a, b, v) => { const u = Math.min(1.0, Math.max(0.0, (v - a) / (b - a))); return u * u * (3.0 - 2.0 * u); };
             const dx = x - rt.x;
-            const wz = (0.75 * ss(92.5, 96.6, z) + 0.18 * ss(92.5, 99.4, z)) * (1.0 + 0.01 * ss(98.0, 99.8, z));   // у края локации выше, к скале плавный спуск
-            const z1 = ss(96.0, 97.0, z);
+            const wz = (0.75 * ss(92.5, 96.6, zr) + 0.18 * ss(92.5, 99.4, zr)) * (1.0 + 0.01 * ss(98.0, 99.8, zr));   // у края локации выше, к скале плавный спуск
+            const z1 = ss(96.0, 97.0, zr);
             let ly = -99.0;
             if (dx <= -1.0) {
                 ly = -0.35 + 5.95 * ss(-1.1, -2.3, dx) * (1.0 - ss(-6.8, -10.0, dx));   // зеркально правой
@@ -366,11 +367,14 @@ class LakesideTerrain {
         // Западное ущелье (twinstone_pass): плавные горки по краям среза скалы до края локации, закрывают торцы обрезанной модели.
         // Тот же профиль, что у южного прохода, в осях: глубина zz = -qx - 50 (срез qx = cutX → 96.5), боковое смещение dx = qz - z0.
         const wc = this.locTerrain.westCover;
-        if (wc && qx < -133.0 && Math.abs(qz - wc.z) < 10.0) {
-            if (this._westBaseY === undefined) this._westBaseY = this._rawQ(-125.0, wc.z) + 0.08;
+        // westCover.flip: это ущелье физически на востоке (оси -x,-z) независимо от coverFlip локации
+        const _wf = (wc && wc.flip) ? -_cf : _cf;
+        const wqx = x * _wf, wqz = z * _wf;
+        if (wc && wqx < -133.0 && Math.abs(wqz - wc.z) < 10.0) {
+            if (this._westBaseY === undefined) this._westBaseY = this._getRawHeightBase(-125.0 * _wf, wc.z * _wf) + 0.08;
             const ss = (a, b, v) => { const u = Math.min(1.0, Math.max(0.0, (v - a) / (b - a))); return u * u * (3.0 - 2.0 * u); };
-            const dx = qz - wc.z;
-            const zz = 96.5 + (-qx) + wc.cutX;
+            const dx = wqz - wc.z;
+            const zz = 96.5 + (-wqx) + wc.cutX;
             const wz = (0.75 * ss(94.5, 96.6, zz) + 0.25 * ss(96.2, 99.4, zz)) * (1.0 + 0.14 * ss(98.0, 99.8, zz));
             let ly = -99.0;
             if (dx <= -1.0) {
@@ -385,11 +389,11 @@ class LakesideTerrain {
         }
 
         // Подход к западному ущелью: земля плавно поднимается до пола модели (диск скалы), без ступеньки у входа.
-        // Пол модели относительно уровня луга H: H + 0.08 + f(lz), lz = qx - cx (вглубь прохода f = 0.72, к кромке диска плавно до 0.1).
-        if (wc && wc.cx !== undefined && qx < wc.cx + wc.R + 5.0 && qx > wc.cx - 6.0) {
-            const dxa = qx - wc.cx, dza = qz - wc.z, da = Math.hypot(dxa, dza);
+        // Пол модели относительно уровня луга H: H + 0.08 + f(lz), lz = wqx - cx (вглубь прохода f = 0.72, к кромке диска плавно до 0.1).
+        if (wc && wc.cx !== undefined && wqx < wc.cx + wc.R + 5.0 && wqx > wc.cx - 6.0) {
+            const dxa = wqx - wc.cx, dza = wqz - wc.z, da = Math.hypot(dxa, dza);
             if (da < wc.R + 5.0) {
-                if (this._westH === undefined) this._westH = this._rawQ(-120.0, wc.z);
+                if (this._westH === undefined) this._westH = this._getRawHeightBase(-120.0 * _wf, wc.z * _wf);
                 const ssa = (a, b, v) => { const u = Math.min(1.0, Math.max(0.0, (v - a) / (b - a))); return u * u * (3.0 - 2.0 * u); };
                 const f = 0.72 - 0.62 * ssa(1.0, 8.5, dxa);
                 const wa = 1.0 - ssa(wc.R - 0.2, wc.R + 4.0, da);
@@ -493,8 +497,11 @@ class LakesideTerrain {
             waterDepth = (this.waterConfig.depth !== undefined) ? this.waterConfig.depth : -2.2;
             beachWidth = (this.waterConfig.beachWidth !== undefined) ? this.waterConfig.beachWidth : 16.0;
 
-            const curve = shoreLine + this.noise.noise2D(nz * 2.5, 0.5) * 7.5 + this.noise.noise2D(nz * 6.0, 1.2) * 3.0;
-            const distCoast = x - curve;
+            // side: 'east' — океан у восточного края (shoreLine задаётся положительной), по умолчанию — у западного
+            const coastEast = this.waterConfig.side === 'east';
+            const coastNoise = this.noise.noise2D(nz * 2.5, 0.5) * 7.5 + this.noise.noise2D(nz * 6.0, 1.2) * 3.0;
+            const curve = coastEast ? shoreLine - coastNoise : shoreLine + coastNoise;
+            const distCoast = coastEast ? curve - x : x - curve;
 
             const lakeX = (this.waterConfig.lakeX !== undefined) ? this.waterConfig.lakeX : 15.0;
             const lakeZ = (this.waterConfig.lakeZ !== undefined) ? this.waterConfig.lakeZ : -5.0;
@@ -582,7 +589,8 @@ class LakesideTerrain {
             const rimWidth = (this.locTerrain.mountainRim && this.locTerrain.mountainRim.width) || 16.0;
 
             const noWest = !!(this.locTerrain.mountainRim && this.locTerrain.mountainRim.noWest);
-            const distFromEdgeX = noWest ? (this.halfX - x) : (this.halfX - Math.abs(x));
+            const noEast = !!(this.locTerrain.mountainRim && this.locTerrain.mountainRim.noEast);
+            const distFromEdgeX = noWest ? (this.halfX - x) : (noEast ? (this.halfX + x) : (this.halfX - Math.abs(x)));
             const distFromEdgeZ = this.halfZ - Math.abs(z);
             const distFromEdge = Math.min(distFromEdgeX, distFromEdgeZ);
 
