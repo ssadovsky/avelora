@@ -25,7 +25,12 @@
     }
   },
   "shop": {
-    "buy": [],
+    "buy": [
+      {
+        "item": "staff",
+        "price": 20
+      }
+    ],
     "sell": true
   },
   "teach": {

@@ -29,5 +29,8 @@
     "cooldown": 1.1,
     "chop": 1,
     "stat": "str"
-  }
-}
+  },
+  "value": 15,
+  "sellPrice": 7,
+  "sellable": true
+}

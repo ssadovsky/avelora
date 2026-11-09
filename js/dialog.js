@@ -113,6 +113,7 @@
             if (!def) def = window.AveloraItems.get(itemId);
             if (!def) return false;
             if (def.category === 'quest' || def.questItem) return true;
+            if (def.sellable) return false;   // инструмент квеста, который кузнец продаёт сам (топор, кирка): героя можно продать
             const quests = (window.GAME_CONTENT && window.GAME_CONTENT.quests) || {};
             for (const qid of Object.keys(quests)) {
                 const q = quests[qid];

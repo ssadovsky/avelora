@@ -43,5 +43,7 @@
   "glow": {
     "color": "#b57bff",
     "y": 0.64
-  }
+  },
+  "value": 20,
+  "sellPrice": 10
 }
