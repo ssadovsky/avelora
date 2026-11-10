@@ -1273,6 +1273,8 @@ window.LOCATIONS = {
             westCover: { z: 0.0, cutX: -149.0, cx: -145.0, R: 9.5, flip: true },   // горки у среза восточного ущелья в долину (оси -x,-z, terrain.js)   // горки и подход у северного ущелья в саванну (terrain.js)
             rimDip: [{ side: 'north', axis: 'x', x: 0.0, k0: 0.85, w: 30.0, cragK: 0.0 }, { side: 'west', axis: 'z', z: 0.0, k0: 0.85, w: 30.0, cragK: 0.0, flip: true }],
             flatSpots: [
+                // площадка под цитадель (у западного края): ровно на уровне луга, чтобы замок не «парил», и без лавовых жил (terrain.lavaFree)
+                { x: -126.0, z: -24.0, radius: 7.0, blend: 3.0, hFrom: [-100.0, 0.0] }, { x: -112.0, z: -24.0, radius: 8.0, blend: 6.0, hFrom: [-100.0, 0.0] }, { x: -126.0, z: -12.0, radius: 7.0, blend: 3.0, hFrom: [-100.0, 0.0] }, { x: -112.0, z: -12.0, radius: 8.0, blend: 6.0, hFrom: [-100.0, 0.0] }, { x: -126.0, z: 0.0, radius: 7.0, blend: 3.0, hFrom: [-100.0, 0.0] }, { x: -112.0, z: 0.0, radius: 8.0, blend: 6.0, hFrom: [-100.0, 0.0] }, { x: -126.0, z: 12.0, radius: 7.0, blend: 3.0, hFrom: [-100.0, 0.0] }, { x: -112.0, z: 12.0, radius: 8.0, blend: 6.0, hFrom: [-100.0, 0.0] }, { x: -126.0, z: 24.0, radius: 7.0, blend: 3.0, hFrom: [-100.0, 0.0] }, { x: -112.0, z: 24.0, radius: 8.0, blend: 6.0, hFrom: [-100.0, 0.0] },
                 // центральная трещина: ровное плато под вулканическую расщелину
                 { x: -13.0, z: 0.0, radius: 7.0, blend: 9.0, hFrom: [0.0, 0.0] }, { x: -6.5, z: 0.0, radius: 8.0, blend: 9.0, hFrom: [0.0, 0.0] }, { x: 0.0, z: 0.0, radius: 9.0, blend: 9.0, hFrom: [0.0, 0.0] }, { x: 6.5, z: 0.0, radius: 8.0, blend: 9.0, hFrom: [0.0, 0.0] }, { x: 13.0, z: 0.0, radius: 7.0, blend: 9.0, hFrom: [0.0, 0.0] },
                 // северное ущелье в саванну (те же площадки, что были у южного прохода саванны до разворота)
@@ -1280,6 +1282,7 @@ window.LOCATIONS = {
                 // восточное ущелье в Долину Забытых Эпох
                 { x: 130.0, z: 0.0, radius: 2.2, blend: 2.5, hFrom: [120.0, 0.0] }, { x: 136.5, z: 0.0, radius: 2.2, blend: 3.0, hFrom: [120.0, 0.0], dh: 0.00 }, { x: 140.5, z: 0.0, radius: 2.2, blend: 3.5, hFrom: [120.0, 0.0], dh: 0.22 }, { x: 144.0, z: 0.0, radius: 2.2, blend: 4.0, hFrom: [120.0, 0.0], dh: 0.60 }, { x: 147.0, z: 0.0, radius: 2.0, blend: 4.5, hFrom: [120.0, 0.0], dh: 0.60 }
             ],
+            lavaFree: [{ x: -122.0, z: 0.0, hx: 34.0, hz: 34.0 }],
             hills: { amplitude: 3.2, inclineX: 0.0, inclineZ: 0.1 },
             paths: [
                 { type: 'dirt', width: 2.4, thin: true, clearMargin: 1.6, points: [[0.0, -78.0], [0.0, -60.0], [8.0, -40.0], [6.0, -28.0]] }
@@ -1308,7 +1311,8 @@ window.LOCATIONS = {
         clearings: [
             { x: 0.0, z: 0.0, radius: 22.0 },   // трещина
             { x: 0.0, z: -84.0, radius: 9.0 },
-            { x: 0.0, z: -93.0, radius: 8.0 }
+            { x: 0.0, z: -93.0, radius: 8.0 },
+            { x: -125.0, z: 0.0, radius: 34.0 }   // цитадель у западного края
         ],
 
         groups: [
@@ -1317,7 +1321,7 @@ window.LOCATIONS = {
             { id: 'bl_rocks_2', type: 'rocks', x: 52.0, z: 12.0, radius: 7.0, count: 4, scaleMin: 0.9, scaleMax: 2.4, seed: 2102 },
             { id: 'bl_rocks_3', type: 'rocks', x: -20.0, z: 52.0, radius: 8.0, count: 5, scaleMin: 0.9, scaleMax: 2.4, seed: 2103 },
             { id: 'bl_rocks_4', type: 'rocks', x: 24.0, z: 40.0, radius: 6.0, count: 3, scaleMin: 0.9, scaleMax: 2.2, seed: 2104 },
-            { id: 'bl_rocks_5', type: 'rocks', x: -110.0, z: -10.0, radius: 9.0, count: 5, scaleMin: 0.9, scaleMax: 2.4, seed: 2105 },
+            { id: 'bl_rocks_5', type: 'rocks', x: -92.0, z: -30.0, radius: 9.0, count: 5, scaleMin: 0.9, scaleMax: 2.4, seed: 2105 },
             { id: 'bl_rocks_6', type: 'rocks', x: 112.0, z: 12.0, radius: 9.0, count: 5, scaleMin: 0.9, scaleMax: 2.4, seed: 2106 },
             { id: 'bl_rocks_7', type: 'rocks', x: 20.0, z: -40.0, radius: 7.0, count: 3, scaleMin: 0.9, scaleMax: 2.2, seed: 2107 },
             // Рудные валуны у лагерей кобольдов-рудокопов
@@ -1328,6 +1332,8 @@ window.LOCATIONS = {
         pickups: [],
 
         props: [
+            // Цитадель Эмберстоун: задом к западному краю (тыл обрезан и уходит в горный пояс), фасадом на восток; низ — на уровне луга
+            { id: 'burntLands.ember_citadel', prop: 'ember_citadel', x: -136.0, z: 0.0, r: Math.PI / 2, s: 28.0, yFrom: [-100.0, 0.0], dy: -0.2 },
             { id: 'burntLands.dead_1', prop: 'charred_tree', x: -85.3, z: -24.5, r: 3.74, s: 1.62 },
             { id: 'burntLands.dead_2', prop: 'charred_tree', x: -94.9, z: -27.5, r: 4.86, s: 1.36 },
             { id: 'burntLands.dead_3', prop: 'charred_tree', x: -87.7, z: -17.3, r: 4.61, s: 1.41 },

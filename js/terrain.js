@@ -863,6 +863,7 @@ class LakesideTerrain {
             shader.uniforms.uBurnCinder = { value: burnCinder || grassDiff };
             shader.uniforms.uBurnCrack = { value: burnCrack || grassDiff };
             shader.uniforms.uBurnAsh = { value: burnAsh || grassDiff };
+            { const lf = (this.locTerrain && this.locTerrain.lavaFree && this.locTerrain.lavaFree[0]) || { x: 1e5, z: 1e5, hx: 1, hz: 1 }; shader.uniforms.uLavaFree = { value: new THREE.Vector4(lf.x, lf.z, lf.hx, lf.hz) }; }   // lavaFree: [{x,z,hx,hz}] — прямоугольник без лавовых жил (под цитадель)
             shader.uniforms.uBiome = { value: biomeId };
             shader.uniforms.uWaterType = { value: waterTypeId };
             shader.uniforms.uGrass2Diff = { value: grass2Diff };
@@ -949,6 +950,7 @@ class LakesideTerrain {
                 uniform sampler2D uBurnCinder;
                 uniform sampler2D uBurnCrack;
                 uniform sampler2D uBurnAsh;
+                uniform vec4 uLavaFree;
                 float avLava = 0.0;
                 uniform float uBiome;
                 uniform float uWaterType;
@@ -1091,6 +1093,7 @@ class LakesideTerrain {
                         groundCol = mix(groundCol, scorch, scM * 0.85);
                         groundCol = mix(groundCol, ashC, smoothstep(0.58, 0.78, nB) * 0.70);
                         float lavaZone = smoothstep(0.40, 0.58, avNoise(gxz * 0.022 + 41.0) * 0.70 + avNoise(gxz * 0.07) * 0.30);
+                        { vec2 lfd = abs(gxz - uLavaFree.xy) - uLavaFree.zw; lavaZone *= smoothstep(0.0, 12.0, max(lfd.x, lfd.y)); }
                         // лавовые жилы: извилистые линии (искажённый ridge-шум), только в «горячих» зонах; сердцевина жилы ярче краёв
                         if (lavaZone > 0.015) {   // жилы считаем только в «горячих» зонах (остальное — без лишних шумов)
                         vec2 vwp = gxz + vec2(avNoise(gxz * 0.06) * 10.0, avNoise(gxz * 0.06 + 9.0) * 10.0);

@@ -95,6 +95,7 @@ window.AVELORA_ASSET_INDEX = {
   "props/campfire": ["m/props__campfire.js", "8af39b4f43"],
   "props/chest": ["m/props__chest.js", "0ec9dbe92a"],
   "props/cottage": ["m/props__cottage.js", "e0e76f41d4"],
+  "props/ember_citadel": ["m/props__ember_citadel.js", "55958e486a"],
   "props/ember_forge": ["m/props__ember_forge.js", "9bbd9c4cec"],
   "props/fallen_log": ["m/props__fallen_log.js", "d36e53cf49"],
   "props/gazebo": ["m/props__gazebo.js", "9a7cde23d4"],
