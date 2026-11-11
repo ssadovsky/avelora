@@ -1,0 +1,6 @@
+{
+  "id": "npc_ironbeard",
+  "name": "Железнобородый страж",
+  "obstacle": 0.6,
+  "npc": "ironbeard"
+}

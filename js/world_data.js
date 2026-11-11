@@ -1334,6 +1334,8 @@ window.LOCATIONS = {
         props: [
             // Цитадель Эмберстоун: задом к западному краю (тыл обрезан и уходит в горный пояс), фасадом на восток; низ — на уровне луга
             { id: 'burntLands.ember_citadel', prop: 'ember_citadel', x: -136.0, z: 0.0, r: Math.PI / 2, s: 28.0, yFrom: [-100.0, 0.0], dy: -0.2 },
+            { id: 'burntLands.malakar', prop: 'npc_malakar', x: -112.0, z: -5.0, r: Math.PI / 2 },
+            { id: 'burntLands.ironbeard', prop: 'npc_ironbeard', x: -112.0, z: 5.0, r: Math.PI / 2 },
             { id: 'burntLands.dead_1', prop: 'charred_tree', x: -85.3, z: -24.5, r: 3.74, s: 1.62 },
             { id: 'burntLands.dead_2', prop: 'charred_tree', x: -94.9, z: -27.5, r: 4.86, s: 1.36 },
             { id: 'burntLands.dead_3', prop: 'charred_tree', x: -87.7, z: -17.3, r: 4.61, s: 1.41 },
@@ -1380,6 +1382,9 @@ window.LOCATIONS = {
         ],
 
         creatures: [
+            // Полудракон и псевдодракон у входа в недра: ходят, смотрим анимации (расставим позже)
+            { id: 'bl_wyrmguard_1', type: 'wyrmguard', x: -15.0, z: 17.0, r: 0.6, level: 22 },
+            { id: 'bl_skywyrm_1', type: 'skywyrm', x: 15.0, z: 19.0, r: 5.5, level: 20 },
             { id: 'bl_lava_spider_1', type: 'lava_spider', x: -30.0, z: -20.0, r: 0.00, level: 16 },
             { id: 'bl_lava_spider_2', type: 'lava_spider', x: 28.0, z: -24.0, r: 1.10, level: 17 },
             { id: 'bl_lava_spider_3', type: 'lava_spider', x: -34.0, z: 6.0, r: 2.20, level: 18 },

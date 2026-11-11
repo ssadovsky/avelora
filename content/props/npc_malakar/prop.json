@@ -1,0 +1,6 @@
+{
+  "id": "npc_malakar",
+  "name": "Эмберлорд Малакар",
+  "obstacle": 0.6,
+  "npc": "malakar"
+}
