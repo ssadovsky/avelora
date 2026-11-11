@@ -1,0 +1,47 @@
+{
+  "id": "lava_salamander",
+  "name": "Лавовая саламандра",
+  "level": 16,
+  "hp": 170,
+  "damage": [
+    16,
+    24
+  ],
+  "attackRange": 1.7,
+  "attackCooldown": 1.4,
+  "walkSpeed": 1.2,
+  "runSpeed": 3.2,
+  "behavior": "retaliate",
+  "aggroRadius": 0,
+  "leashRadius": 20,
+  "wanderRadius": 8,
+  "respawnMinutes": 6,
+  "hitRadius": 1.0,
+  "scale": 1.0,
+  "hpBarHeight": 1.0,
+  "gold": [
+    8,
+    14
+  ],
+  "xp": 220,
+  "statMultiplier": 1.2,
+  "goldDrop": true,
+  "lootTiers": {
+    "20": [
+      {
+        "item": "element_crystal",
+        "chance": 0.3,
+        "rankChance": {
+          "elite": 0.6,
+          "boss": 1
+        }
+      }
+    ]
+  },
+  "drops": [
+    {
+      "item": "meat",
+      "count": 2
+    }
+  ]
+}

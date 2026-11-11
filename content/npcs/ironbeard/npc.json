@@ -35,6 +35,11 @@
   },
   "quests": [
     "bl_kobold_raid",
-    "bl_provisions"
+    "bl_lava_spiders",
+    "bl_provisions",
+    "bl_dragonborn",
+    "bl_stone_elementals",
+    "bl_ash_hounds",
+    "bl_scorpions"
   ]
 }

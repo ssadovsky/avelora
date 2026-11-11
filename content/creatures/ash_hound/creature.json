@@ -1,0 +1,52 @@
+{
+  "id": "ash_hound",
+  "name": "Пепельная гончая",
+  "level": 17,
+  "hp": 190,
+  "damage": [
+    20,
+    30
+  ],
+  "attackRange": 1.9,
+  "attackCooldown": 1.2,
+  "walkSpeed": 1.65,
+  "runSpeed": 4.4,
+  "behavior": "retaliate",
+  "aggroRadius": 0,
+  "leashRadius": 22,
+  "wanderRadius": 10,
+  "respawnMinutes": 6,
+  "hitRadius": 1.0,
+  "scale": 1.0,
+  "hpBarHeight": 1.8,
+  "gold": [
+    10,
+    18
+  ],
+  "xp": 260,
+  "statMultiplier": 1.25,
+  "goldDrop": true,
+  "lootTiers": {
+    "20": [
+      {
+        "item": "element_crystal",
+        "chance": 0.3,
+        "rankChance": {
+          "elite": 0.6,
+          "boss": 1
+        }
+      }
+    ]
+  },
+  "drops": [
+    {
+      "item": "meat",
+      "count": 2
+    },
+    {
+      "item": "wolf_hide",
+      "count": 1,
+      "chance": 0.6
+    }
+  ]
+}

@@ -51,6 +51,12 @@
     }
   },
   "quests": [
-    "bl_firewood"
+    "bl_firewood",
+    "bl_golem",
+    "bl_fire_elementals",
+    "bl_skywyrms",
+    "bl_salamanders",
+    "bl_wyrmguards",
+    "bl_guardians"
   ]
 }

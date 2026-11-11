@@ -1,0 +1,52 @@
+{
+  "id": "obsidian_scorpion",
+  "name": "Обсидиановый скорпион",
+  "level": 18,
+  "hp": 230,
+  "damage": [
+    22,
+    32
+  ],
+  "attackRange": 2.0,
+  "attackCooldown": 1.5,
+  "walkSpeed": 1.2,
+  "runSpeed": 3.0,
+  "behavior": "retaliate",
+  "aggroRadius": 0,
+  "leashRadius": 22,
+  "wanderRadius": 9,
+  "respawnMinutes": 6,
+  "hitRadius": 1.4,
+  "scale": 1.0,
+  "hpBarHeight": 1.8,
+  "gold": [
+    12,
+    20
+  ],
+  "xp": 300,
+  "statMultiplier": 1.3,
+  "goldDrop": true,
+  "lootTiers": {
+    "20": [
+      {
+        "item": "element_crystal",
+        "chance": 0.3,
+        "rankChance": {
+          "elite": 0.6,
+          "boss": 1
+        }
+      }
+    ]
+  },
+  "drops": [
+    {
+      "item": "meat",
+      "count": 1
+    },
+    {
+      "item": "iron_ore",
+      "count": 1,
+      "chance": 0.6
+    }
+  ]
+}
