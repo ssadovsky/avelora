@@ -1,0 +1,268 @@
+/**
+ * lava.js — лавовые реки локации (terrain.lavaRivers / terrain.lavaPools в world_data.js).
+ *
+ * Что делает:
+ *  1) bake(): по ломаным из world_data строит плавные извилистые русла и запекает их ОДИН раз при загрузке локации
+ *     в текстуру поля расстояний (R — расстояние до кромки лавы со знаком, G/B — направление течения).
+ *     Шейдер земли (terrain.js, groundSet 'burnt') читает её одной выборкой: лава, корка берега, светящиеся трещины,
+ *     тёплый отсвет на земле. Циклов по отрезкам в пикселе нет — нагрузка на GPU не растёт с числом рек.
+ *  2) dh(x, z): небольшой рельеф — русло чуть утоплено, по берегам наплывы застывшей корки (terrain.getRawHeightAt).
+ *  3) createFX(): искры над лавой и дым/жар — два THREE.Points (2 вызова отрисовки), вся анимация в вершинном шейдере.
+ *
+ * Формат world_data:
+ *   lavaRivers: [{ w: 3.2, meander: 1.6, seed: 1, from: 0.5, to: 1.0, points: [[x, z], ...] }]
+ *       w — средняя ширина (м); meander — боковые изгибы (м); from/to — доля ширины в начале/конце (0 = сходит на нет);
+ *       точки идут ПО ТЕЧЕНИЮ (от истока к устью).
+ *   lavaPools:  [{ x, z, r }] — лавовые озёра.
+ */
+(function () {
+    const PX = 3;              // пикселей текстуры на метр
+    const SD_IN = 4.0;         // кодируемая глубина внутрь русла (м)
+    const SD_RANGE = 16.0;     // весь кодируемый диапазон (м): от -4 до +12
+    const SD_FAR = SD_RANGE - SD_IN;
+
+    const time = { value: 0 };   // общее время для шейдера земли и частиц (обновляет terrain.mesh.onBeforeRender)
+
+    function hash(n) { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }
+    function noise1(t, seed) {
+        const i = Math.floor(t), f = t - i, u = f * f * (3 - 2 * f);
+        return hash(i + seed * 57.0) * (1 - u) + hash(i + 1 + seed * 57.0) * u;
+    }
+    function ss(a, b, v) { const u = Math.min(1, Math.max(0, (v - a) / (b - a))); return u * u * (3 - 2 * u); }
+
+    /** Ломаная → плавная кривая (Catmull-Rom) с шагом ~1 м, боковыми изгибами и переменной шириной. */
+    function buildRiver(r, idx) {
+        const P = r.points, seed = (r.seed !== undefined ? r.seed : idx + 1);
+        const raw = [];
+        for (let i = 0; i + 1 < P.length; i++) {
+            const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
+            const len = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]);
+            const n = Math.max(2, Math.ceil(len));
+            for (let k = 0; k < n; k++) {
+                const t = k / n, t2 = t * t, t3 = t2 * t;
+                raw.push([
+                    0.5 * ((2 * p1[0]) + (-p0[0] + p2[0]) * t + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3),
+                    0.5 * ((2 * p1[1]) + (-p0[1] + p2[1]) * t + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3)
+                ]);
+            }
+        }
+        raw.push([P[P.length - 1][0], P[P.length - 1][1]]);
+        const N = raw.length, out = [];
+        const A = (r.meander !== undefined) ? r.meander : 1.5;
+        const w = r.w || 3.0, kFrom = (r.from !== undefined) ? r.from : 0.55, kTo = (r.to !== undefined) ? r.to : 1.0;
+        let s = 0;
+        for (let i = 0; i < N; i++) {
+            const a = raw[Math.max(0, i - 1)], b = raw[Math.min(N - 1, i + 1)];
+            let tx = b[0] - a[0], tz = b[1] - a[1]; const tl = Math.hypot(tx, tz) || 1; tx /= tl; tz /= tl;
+            if (i > 0) s += Math.hypot(raw[i][0] - raw[i - 1][0], raw[i][1] - raw[i - 1][1]);
+            const u = i / (N - 1);
+            const endFade = ss(0, 7, i) * ss(0, 7, N - 1 - i);   // у концов изгибов нет: русла сходятся точно в заданных точках
+            const off = A * endFade * ((noise1(s * 0.085, seed) - 0.5) * 2.0 + (noise1(s * 0.26, seed + 9) - 0.5) * 0.7);
+            const hw = 0.5 * w * (kFrom + (kTo - kFrom) * u) * (0.78 + 0.5 * noise1(s * 0.12, seed + 21));
+            out.push({ x: raw[i][0] - tz * off, z: raw[i][1] + tx * off, hw });
+        }
+        return out;
+    }
+
+    function bake(locTerrain, sizeX, sizeZ) {
+        const rivers = locTerrain.lavaRivers || [], pools = locTerrain.lavaPools || [];
+        if (!rivers.length && !pools.length) return null;
+        const minX = -sizeX / 2, minZ = -sizeZ / 2;
+        const W = Math.min(2048, Math.round(sizeX * PX)), H = Math.min(2048, Math.round(sizeZ * PX));
+        const sx = sizeX / W, sz = sizeZ / H;
+        const sd = new Float32Array(W * H).fill(SD_FAR), dX = new Float32Array(W * H), dZ = new Float32Array(W * H);
+        const curves = rivers.map(buildRiver);
+        const R = SD_FAR;
+        curves.forEach(c => {
+            for (let q = 0; q + 1 < c.length; q++) {
+                const a = c[q], b = c[q + 1];
+                const abx = b.x - a.x, abz = b.z - a.z, ab2 = Math.max(abx * abx + abz * abz, 1e-4), al = Math.sqrt(ab2);
+                const fx = abx / al, fz = abz / al, hwM = Math.max(a.hw, b.hw);
+                const i0 = Math.max(0, Math.floor((Math.min(a.x, b.x) - R - hwM - minX) / sx)), i1 = Math.min(W - 1, Math.ceil((Math.max(a.x, b.x) + R + hwM - minX) / sx));
+                const j0 = Math.max(0, Math.floor((Math.min(a.z, b.z) - R - hwM - minZ) / sz)), j1 = Math.min(H - 1, Math.ceil((Math.max(a.z, b.z) + R + hwM - minZ) / sz));
+                for (let j = j0; j <= j1; j++) {
+                    const pz = minZ + (j + 0.5) * sz;
+                    for (let i = i0; i <= i1; i++) {
+                        const px = minX + (i + 0.5) * sx;
+                        let t = ((px - a.x) * abx + (pz - a.z) * abz) / ab2; t = t < 0 ? 0 : (t > 1 ? 1 : t);
+                        const ex = px - (a.x + abx * t), ez = pz - (a.z + abz * t);
+                        const v = Math.sqrt(ex * ex + ez * ez) - (a.hw + (b.hw - a.hw) * t);
+                        const k = j * W + i;
+                        if (v < sd[k]) { sd[k] = v; dX[k] = fx; dZ[k] = fz; }
+                    }
+                }
+            }
+        });
+        pools.forEach((p, pi) => {
+            const rr = p.r + R + 2;
+            const i0 = Math.max(0, Math.floor((p.x - rr - minX) / sx)), i1 = Math.min(W - 1, Math.ceil((p.x + rr - minX) / sx));
+            const j0 = Math.max(0, Math.floor((p.z - rr - minZ) / sz)), j1 = Math.min(H - 1, Math.ceil((p.z + rr - minZ) / sz));
+            for (let j = j0; j <= j1; j++) {
+                const pz = minZ + (j + 0.5) * sz;
+                for (let i = i0; i <= i1; i++) {
+                    const px = minX + (i + 0.5) * sx, ex = px - p.x, ez = pz - p.z, d = Math.hypot(ex, ez) || 1e-3;
+                    const ang = Math.atan2(ez, ex);
+                    const lobes = 1.0 + 0.10 * Math.sin(ang * 2.0 + pi * 1.7) + 0.06 * Math.sin(ang * 3.0 + pi * 4.1) + 0.03 * Math.sin(ang * 7.0 + pi);
+                    const v = d - p.r * lobes;
+                    const k = j * W + i;
+                    if (v < sd[k]) { sd[k] = v; dX[k] = Math.cos(pi * 2.1 + 0.7) * 0.22; dZ[k] = Math.sin(pi * 2.1 + 0.7) * 0.22; }   // в озере — медленный дрейф корки в одну сторону
+                }
+            }
+        });
+        const data = new Uint8Array(W * H * 4);
+        for (let k = 0; k < W * H; k++) {
+            data[k * 4] = Math.round(Math.min(1, Math.max(0, (sd[k] + SD_IN) / SD_RANGE)) * 255);
+            data[k * 4 + 1] = Math.round((dX[k] * 0.5 + 0.5) * 255);
+            data[k * 4 + 2] = Math.round((dZ[k] * 0.5 + 0.5) * 255);
+            data[k * 4 + 3] = 255;
+        }
+        const tex = new THREE.DataTexture(data, W, H, THREE.RGBAFormat);
+        tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false;
+        tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping; tex.needsUpdate = true;
+
+        const field = {
+            texture: tex, rect: new THREE.Vector4(minX, minZ, 1 / sizeX, 1 / sizeZ), W, H, sd, curves, pools,
+            /** расстояние до кромки лавы, м (отрицательное — внутри русла); билинейно */
+            sdAt(x, z) {
+                const u = (x - minX) / sx - 0.5, v = (z - minZ) / sz - 0.5;
+                if (u < 0 || v < 0 || u >= W - 1 || v >= H - 1) return SD_FAR;
+                const i = u | 0, j = v | 0, fu = u - i, fv = v - j, k = j * W + i;
+                return (sd[k] * (1 - fu) + sd[k + 1] * fu) * (1 - fv) + (sd[k + W] * (1 - fu) + sd[k + W + 1] * fu) * fv;
+            },
+            /** добавка к высоте земли: русло утоплено, по берегам — валики застывшей корки */
+            dh(x, z) {
+                const d = this.sdAt(x, z);
+                if (d > 2.6) return 0;
+                const e = (d - 0.75) / 0.75;
+                return 0.24 * Math.exp(-e * e) - 0.30 * ss(0.35, -0.9, d);
+            },
+            /** случайные точки на лаве (для частиц): [x, z, глубина] */
+            samplePoints(n, seed) {
+                const out = []; let tries = 0, s = seed || 1;
+                const rnd = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+                const inside = [];
+                for (let k = 0; k < W * H; k += 7) if (sd[k] < -0.35) inside.push(k);
+                if (!inside.length) return out;
+                while (out.length < n && tries++ < n * 4) {
+                    const k = inside[(rnd() * inside.length) | 0];
+                    out.push([minX + ((k % W) + rnd()) * sx, minZ + (((k / W) | 0) + rnd()) * sz, -sd[k]]);
+                }
+                return out;
+            },
+            dispose() { tex.dispose(); }
+        };
+        return field;
+    }
+
+    /** Искры и дым над лавой. parent — корень локации; terrain — для высоты земли. */
+    function createFX(parent, field, terrain) {
+        const low = !!(window.GFX && window.GFX.mobile);
+        const nEmb = low ? 260 : 620, nSmk = low ? 50 : 130;
+        const scale = { value: 600 };
+        const objs = [];
+
+        // --- искры ---
+        {
+            const pts = field.samplePoints(nEmb, 7);
+            const pos = new Float32Array(pts.length * 3), seedA = new Float32Array(pts.length * 4);
+            pts.forEach((p, i) => {
+                pos[i * 3] = p[0]; pos[i * 3 + 1] = terrain.getHeightAt(p[0], p[1], null) + 0.05; pos[i * 3 + 2] = p[1];
+                seedA[i * 4] = hash(i * 1.37 + 3);                    // фаза
+                seedA[i * 4 + 1] = 0.10 + 0.16 * hash(i * 2.11 + 5);  // скорость цикла (1/с)
+                seedA[i * 4 + 2] = 1.6 + 4.6 * hash(i * 3.71 + 8);    // высота подъёма (м)
+                seedA[i * 4 + 3] = 0.05 + 0.08 * hash(i * 5.03 + 1);  // размер (м)
+            });
+            const g = new THREE.BufferGeometry();
+            g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            g.setAttribute('aSeed', new THREE.BufferAttribute(seedA, 4));
+            const m = new THREE.ShaderMaterial({
+                uniforms: { uTime: time, uScale: scale },
+                vertexShader: `
+                    attribute vec4 aSeed; uniform float uTime; uniform float uScale; varying float vA; varying float vT;
+                    void main() {
+                        float t = fract(uTime * aSeed.y + aSeed.x);
+                        vec3 p = position;
+                        float w = aSeed.x * 40.0;
+                        p.y += t * aSeed.z;
+                        p.x += (sin(t * 7.0 + w) * 0.35 + t * 0.9) * t * 1.6;
+                        p.z += cos(t * 5.3 + w * 1.7) * 0.45 * t * 1.6;
+                        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+                        gl_Position = projectionMatrix * mv;
+                        float px = aSeed.w * uScale / max(0.5, -mv.z);
+                        gl_PointSize = clamp(px, 1.6, 14.0);
+                        float flick = 0.65 + 0.35 * sin(uTime * (9.0 + aSeed.x * 11.0) + w);
+                        vA = sin(3.14159 * t) * flick * clamp(px / 1.6, 0.25, 1.0) * (1.0 - smoothstep(110.0, 170.0, -mv.z));
+                        vT = t;
+                    }`,
+                fragmentShader: `
+                    varying float vA; varying float vT;
+                    void main() {
+                        vec2 c = gl_PointCoord - 0.5; float d = dot(c, c) * 4.0;
+                        float a = (1.0 - smoothstep(0.0, 1.0, d)) * vA;
+                        vec3 col = mix(vec3(1.0, 0.72, 0.28), vec3(1.0, 0.22, 0.03), smoothstep(0.1, 0.8, vT));
+                        gl_FragColor = vec4(col * a * 1.6, 1.0);
+                    }`,
+                blending: THREE.AdditiveBlending, depthWrite: false, transparent: true
+            });
+            const o = new THREE.Points(g, m); o.frustumCulled = false; o.renderOrder = 6; objs.push(o);
+        }
+
+        // --- дым и жар ---
+        {
+            const pts = field.samplePoints(nSmk, 23);
+            const pos = new Float32Array(pts.length * 3), seedA = new Float32Array(pts.length * 4);
+            pts.forEach((p, i) => {
+                pos[i * 3] = p[0]; pos[i * 3 + 1] = terrain.getHeightAt(p[0], p[1], null) + 0.4; pos[i * 3 + 2] = p[1];
+                seedA[i * 4] = hash(i * 1.91 + 13);
+                seedA[i * 4 + 1] = 0.050 + 0.035 * hash(i * 2.77 + 2);
+                seedA[i * 4 + 2] = 5.0 + 5.0 * hash(i * 3.13 + 6);
+                seedA[i * 4 + 3] = 3.2 + 3.4 * hash(i * 4.41 + 4);
+            });
+            const g = new THREE.BufferGeometry();
+            g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            g.setAttribute('aSeed', new THREE.BufferAttribute(seedA, 4));
+            const m = new THREE.ShaderMaterial({
+                uniforms: { uTime: time, uScale: scale },
+                vertexShader: `
+                    attribute vec4 aSeed; uniform float uTime; uniform float uScale; varying float vA; varying float vT; varying float vR;
+                    void main() {
+                        float t = fract(uTime * aSeed.y + aSeed.x);
+                        vec3 p = position;
+                        float w = aSeed.x * 31.0;
+                        p.y += t * aSeed.z;
+                        p.x += t * 2.6 + sin(t * 3.0 + w) * 0.7;
+                        p.z += cos(t * 2.3 + w) * 0.7;
+                        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+                        gl_Position = projectionMatrix * mv;
+                        gl_PointSize = min(aSeed.w * (0.55 + 0.9 * t) * uScale / max(1.0, -mv.z), 260.0);
+                        vA = smoothstep(0.0, 0.18, t) * (1.0 - smoothstep(0.45, 1.0, t)) * exp(mv.z * 0.011) * smoothstep(2.5, 7.0, -mv.z);
+                        vT = t; vR = w;
+                    }`,
+                fragmentShader: `
+                    varying float vA; varying float vT; varying float vR;
+                    void main() {
+                        vec2 c = gl_PointCoord - 0.5;
+                        float cs = cos(vR), sn = sin(vR); c = vec2(c.x * cs - c.y * sn, c.x * sn + c.y * cs);
+                        float d = length(c) * 2.0;
+                        float puff = (1.0 - smoothstep(0.15, 1.0, d)) * (0.75 + 0.25 * sin(c.x * 9.0 + vR) * sin(c.y * 7.0 - vR));
+                        vec3 col = mix(vec3(0.80, 0.28, 0.08), vec3(0.22, 0.17, 0.16), smoothstep(0.0, 0.42, vT));   // снизу подсвечен лавой
+                        gl_FragColor = vec4(col, puff * vA * 0.36);
+                    }`,
+                blending: THREE.NormalBlending, depthWrite: false, transparent: true
+            });
+            const o = new THREE.Points(g, m); o.frustumCulled = false; o.renderOrder = 5; objs.push(o);
+        }
+
+        objs.forEach(o => parent.add(o));
+        objs[0].onBeforeRender = (renderer, scene, camera) => {
+            const h = renderer.getDrawingBufferSize(new THREE.Vector2()).y;
+            scale.value = h * 0.5 / Math.tan((camera.fov || 50) * Math.PI / 360);
+        };
+        return {
+            objects: objs,
+            dispose() { objs.forEach(o => { if (o.parent) o.parent.remove(o); o.geometry.dispose(); o.material.dispose(); }); }
+        };
+    }
+
+    window.AveloraLava = { bake, createFX, time };
+})();

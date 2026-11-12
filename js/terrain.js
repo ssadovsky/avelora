@@ -60,6 +60,8 @@ class LakesideTerrain {
         this.bridges = locTerrain.bridges || null; // [{x, z, length (along Z), width, deckY}]
         this.platforms = [];                       // building.js: raised plank decks with a ramp (see addPlatform)
         this.noise = new SimplexNoise(locTerrain.seed !== undefined ? locTerrain.seed : 4242);
+        // Лавовые реки (lava.js): поле расстояний до русел — для шейдера земли, рельефа берегов и частиц
+        this.lava = ((locTerrain.lavaRivers || locTerrain.lavaPools) && window.AveloraLava) ? window.AveloraLava.bake(locTerrain, this.sizeX, this.sizeZ) : null;
 
         this.mesh = null;
         this.material = null;
@@ -327,7 +329,7 @@ class LakesideTerrain {
         let h = this._getRawHeightBase(x, z);
         if (this.paths && this._rs !== null) { h = this._roadSmoothedH(x, z, h); if (this._rs && !this._rs.length) this._rs = null; }
         const fs = this.locTerrain.flatSpots;
-        if (!fs || !fs.length) return h;
+        if (!fs || !fs.length) return this.lava ? h + this.lava.dh(x, z) : h;
         if (!this._flatH) this._flatH = [];
         let out = h;
         for (let i = 0; i < fs.length; i++) {
@@ -435,6 +437,7 @@ class LakesideTerrain {
             }
         }
 
+        if (this.lava) out += this.lava.dh(x, z);   // русла лавы: утопленное дно и валики корки по берегам
         return out;
     }
 
@@ -849,7 +852,7 @@ class LakesideTerrain {
 
         // КРИТИЧНО для Three.js: без customProgramCacheKey движок повторно использует
         // скомпилированный шейдер первой локации для всех последующих!
-        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v47_${this.groundSet}_mix${mixGround ? groundMode : 0}${holeSig}`;
+        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v48_${this.groundSet}_mix${mixGround ? groundMode : 0}${holeSig}`;
 
         const biomeId = (this.biome === 'goldshire') ? 1.0 : ((this.biome === 'volcanic') ? 2.0 : 0.0);
         const waterTypeId = (curWType === 'coast') ? 1.0 : ((curWType === 'river') ? 2.0 : 0.0);
@@ -872,7 +875,10 @@ class LakesideTerrain {
             shader.uniforms.uGrass2Diff = { value: grass2Diff };
             shader.uniforms.uGroundMix = { value: mixGround ? groundMode : 0.0 };
             shader.uniforms.uAO = { value: this.contactAO || [] };
-            shader.uniforms.uForestMap = this.forestUniform;
+            shader.uniforms.uForestMap = this.lava ? { value: this.lava.texture } : this.forestUniform;   // burnt: вместо маски леса (там не нужна) — поле лавовых рек; новый сэмплер не добавляем (лимит 16 на телефонах)
+            shader.uniforms.uLavaOn = { value: this.lava ? 1.0 : 0.0 };
+            shader.uniforms.uLavaRect = { value: this.lava ? this.lava.rect : new THREE.Vector4(0, 0, 1, 1) };
+            shader.uniforms.uLavaTime = (window.AveloraLava && window.AveloraLava.time) || { value: 0 };
             shader.uniforms.uCaveRock = this.caveRockUniform;
             shader.uniforms.uRockTint = this.rockTintUniform;
             shader.uniforms.uForestRect = this.forestRectUniform;
@@ -957,6 +963,10 @@ class LakesideTerrain {
                 uniform float uBurnLavaOn;
                 uniform vec4 uLavaFree;
                 float avLava = 0.0;
+                vec3 avLavaE = vec3(0.0);
+                uniform float uLavaOn;
+                uniform float uLavaTime;
+                uniform vec4 uLavaRect;
                 uniform float uBiome;
                 uniform float uWaterType;
                 uniform int uDirtCount;
@@ -982,7 +992,7 @@ class LakesideTerrain {
                 ${shader.fragmentShader}
             `;
 
-            shader.fragmentShader = shader.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n                totalEmissiveRadiance += vec3(1.0, 0.36, 0.07) * avLava * 2.4;');
+            shader.fragmentShader = shader.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n                totalEmissiveRadiance += vec3(1.0, 0.36, 0.07) * avLava * 2.4 + avLavaE;');
             shader.fragmentShader = shader.fragmentShader.replace(
                 '#include <map_fragment>',
                 `
@@ -1100,6 +1110,7 @@ class LakesideTerrain {
                         float lavaZone = smoothstep(0.40, 0.58, avNoise(gxz * 0.022 + 41.0) * 0.70 + avNoise(gxz * 0.07) * 0.30);
                         { vec2 lfd = abs(gxz - uLavaFree.xy) - uLavaFree.zw; lavaZone *= smoothstep(0.0, 12.0, max(lfd.x, lfd.y)); }
                         // лавовые жилы: извилистые линии (искажённый ridge-шум), только в «горячих» зонах; сердцевина жилы ярче краёв
+                        if (uLavaOn > 0.5) lavaZone = 0.0;   // есть настоящие реки (lava.js) — случайные жилы не рисуем
                         if (lavaZone > 0.015) {   // жилы считаем только в «горячих» зонах (остальное — без лишних шумов)
                         vec2 vwp = gxz + vec2(avNoise(gxz * 0.06) * 10.0, avNoise(gxz * 0.06 + 9.0) * 10.0);
                         float vn1 = abs(avNoise(vwp * 0.040) - 0.5);
@@ -1121,6 +1132,53 @@ class LakesideTerrain {
                         }
                         float bv = avNoise(gxz * 0.017 + 3.0) - 0.5;
                         groundCol *= vec3(1.0 + bv * 0.10, 1.0, 1.0 - bv * 0.10);
+                        // === ЛАВОВЫЕ РЕКИ (lava.js): одна выборка поля расстояний, всё остальное — только рядом с руслом ===
+                        if (uLavaOn > 0.5) {
+                            vec4 lm = texture2D(uForestMap, (gxz - uLavaRect.xy) * uLavaRect.zw);
+                            float lsd = lm.r * 16.0 - 4.0;   // м до кромки лавы (внутри русла — меньше нуля)
+                            if (lsd < 10.5) {
+                                vec3 lumW = vec3(0.30, 0.59, 0.11);
+                                float en = avNoise(gxz * 0.85) * 0.65 + avNoise(gxz * 2.9 + 11.0) * 0.35;
+                                float sdn = lsd + (en - 0.5) * 1.3 * smoothstep(-2.5, 0.5, lsd);   // рваная кромка
+                                float pulse = 0.84 + 0.16 * sin(uLavaTime * 0.9 + avNoise(gxz * 0.11) * 12.0);   // лава «дышит»
+                                // берег: застывшая базальтовая корка с огненными швами (швы гаснут с расстоянием)
+                                vec3 crT = texture2D(uBurnLava, gxz * 0.21 + vec2(0.37, 0.61)).rgb;
+                                float crHeat = clamp((crT.r - crT.b - 0.10) * 2.2, 0.0, 1.0);
+                                float crL = dot(crT, lumW);
+                                vec3 basalt = vec3(crL) * vec3(0.66, 0.58, 0.56) * (1.0 - crHeat) + vec3(0.015);
+                                float bank = 1.0 - smoothstep(0.4, 3.4, sdn);
+                                groundCol = mix(groundCol, basalt, bank * 0.90);
+                                float seam = crHeat * (1.0 - smoothstep(0.1, 3.6, sdn)) * pulse;
+                                groundCol = mix(groundCol, vec3(1.0, 0.36, 0.06), seam * 0.85);
+                                avLavaE += mix(vec3(1.0, 0.34, 0.05), vec3(0.85, 0.10, 0.01), smoothstep(0.4, 3.0, sdn)) * seam * 1.5;
+                                // тёплый отсвет лавы на земле вокруг
+                                float spill = exp(-max(sdn, 0.0) * 0.40);
+                                avLavaE += vec3(1.0, 0.27, 0.05) * spill * (0.05 + 0.16 * dot(groundCol, lumW)) * pulse;
+                                if (sdn < 0.3) {
+                                    // сама лава: корка-плоты плывут по течению (flow map, две фазы), сердцевина раскалена
+                                    vec2 fdir = lm.gb * 2.0 - 1.0;
+                                    float depth = -sdn;
+                                    float core = smoothstep(-0.1, 1.3, depth) * (1.0 - 0.5 * smoothstep(2.2, 4.5, depth));   // в глубине озёр корка возвращается
+                                    float ph = uLavaTime * 0.07;
+                                    float p0 = fract(ph), p1 = fract(ph + 0.5);
+                                    vec2 fl = fdir * 3.4;
+                                    vec3 tA = texture2D(uBurnLava, (gxz - fl * p0) * 0.23).rgb;
+                                    vec3 tB = texture2D(uBurnLava, (gxz - fl * p1) * 0.23 + vec2(0.43, 0.27)).rgb;
+                                    vec3 tt = mix(tA, tB, abs(1.0 - 2.0 * p0));
+                                    float th = clamp((tt.r - tt.b - 0.08) * 2.4, 0.0, 1.0);
+                                    float tv = avNoise(gxz * 0.30 - fdir * uLavaTime * 0.22) * 0.65 + avNoise(gxz * 0.9 - fdir * uLavaTime * 0.35 + 5.0) * 0.35;
+                                    float T = core * 0.50 + th * 0.60 + tv * core * 0.55 - (1.0 - th) * (1.0 - tv) * (0.58 - 0.24 * core);
+                                    T = clamp(T * pulse, 0.0, 1.0);
+                                    vec3 crustC = vec3(dot(tt, lumW)) * vec3(0.34, 0.24, 0.22);
+                                    vec3 hot = mix(vec3(0.50, 0.04, 0.0), vec3(1.0, 0.33, 0.03), smoothstep(0.12, 0.55, T));
+                                    hot = mix(hot, vec3(1.0, 0.64, 0.17), smoothstep(0.62, 1.0, T));
+                                    float molten = smoothstep(0.10, 0.42, T);
+                                    float lavaMask = smoothstep(0.3, -0.2, sdn);
+                                    groundCol = mix(groundCol, mix(crustC, hot, molten), lavaMask);
+                                    avLavaE = mix(avLavaE, hot * (0.25 + 1.8 * T) * molten * (0.78 + 0.45 * tv), lavaMask);
+                                }
+                            }
+                        }
                     } else if (uGroundMix > 4.5) {
                         // === GROUND: SAVANNA (golden dry grass, patches of red earth, fresh green near water) ===
                         vec2 gxz = vWorldPosition.xz;
@@ -1315,6 +1373,10 @@ class LakesideTerrain {
         this.mesh.castShadow = false;
         if (this.locTerrain.hidden) this.mesh.visible = false;
         this.scene.add(this.mesh);
+        if (this.lava) {
+            this.mesh.onBeforeRender = () => { window.AveloraLava.time.value = (performance.now() * 0.001) % 3600.0; };
+            this.lavaFX = window.AveloraLava.createFX(this.scene, this.lava, this);
+        }
     }
 
     /**
@@ -1386,6 +1448,8 @@ class LakesideTerrain {
     dispose() {
         (this.textures || []).forEach(t => t.dispose());
         if (this._pathTex) { this._pathTex.texture.dispose(); this._pathTex = null; }
+        if (this.lavaFX) { this.lavaFX.dispose(); this.lavaFX = null; }
+        if (this.lava) { this.lava.dispose(); this.lava = null; }
     }
 }
 
