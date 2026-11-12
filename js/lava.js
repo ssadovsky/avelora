@@ -14,6 +14,9 @@
  *       w — средняя ширина (м); meander — боковые изгибы (м); from/to — доля ширины в начале/конце (0 = сходит на нет);
  *       точки идут ПО ТЕЧЕНИЮ (от истока к устью).
  *   lavaPools:  [{ x, z, r }] — лавовые озёра.
+ *   lavaPits:   [{ x, z, rx, rz, depth, wall, lip, flow: [dx, dz] }] — разлом: яма с лавой на дне (rx/rz — полуоси зеркала лавы,
+ *       wall — ширина склона, depth — глубина, lip — вздыбленная кромка, flow — куда течёт лава на дне).
+ *   lavaCracks: [{ x, z, rx, rz }] — пятно растрескавшейся корки с огненными швами БЕЗ расплава и без рельефа (ходить можно ровно).
  */
 (function () {
     const PX = 3;              // пикселей текстуры на метр
@@ -65,8 +68,8 @@
     }
 
     function bake(locTerrain, sizeX, sizeZ) {
-        const rivers = locTerrain.lavaRivers || [], pools = locTerrain.lavaPools || [];
-        if (!rivers.length && !pools.length) return null;
+        const rivers = locTerrain.lavaRivers || [], pools = locTerrain.lavaPools || [], cracks = locTerrain.lavaCracks || [], pits = locTerrain.lavaPits || [];
+        if (!rivers.length && !pools.length && !cracks.length && !pits.length) return null;
         const minX = -sizeX / 2, minZ = -sizeZ / 2;
         const W = Math.min(2048, Math.round(sizeX * PX)), H = Math.min(2048, Math.round(sizeZ * PX));
         const sx = sizeX / W, sz = sizeZ / H;
@@ -109,6 +112,54 @@
                 }
             }
         });
+        // разломы: зеркало лавы на дне ямы + склоны; рельеф ямы хранится отдельно (extra), чтобы не зависеть от профиля рек
+        const extra = new Float32Array(W * H);
+        pits.forEach((p, pi) => {
+            const rx = p.rx || 3, rz = p.rz || 5, wall = p.wall || 2.4, depth = p.depth || 2.0, lip = (p.lip !== undefined) ? p.lip : 0.22;
+            const fl = p.flow || [0, -0.5], rmin = Math.min(rx, rz), rm = Math.max(rx, rz) + wall + R + 3;
+            const i0 = Math.max(0, Math.floor((p.x - rm - minX) / sx)), i1 = Math.min(W - 1, Math.ceil((p.x + rm - minX) / sx));
+            const j0 = Math.max(0, Math.floor((p.z - rm - minZ) / sz)), j1 = Math.min(H - 1, Math.ceil((p.z + rm - minZ) / sz));
+            for (let j = j0; j <= j1; j++) {
+                const pz = minZ + (j + 0.5) * sz;
+                for (let i = i0; i <= i1; i++) {
+                    const px = minX + (i + 0.5) * sx, ex = (px - p.x) / rx, ez = (pz - p.z) / rz;
+                    const ang = Math.atan2(ez, ex);
+                    // рваный контур: крупные выступы + мелкие зубцы
+                    const lobes = 1.0 + 0.13 * Math.sin(ang * 3.0 + pi * 2.3 + 0.6) + 0.09 * Math.sin(ang * 5.0 + 1.9) + 0.06 * Math.sin(ang * 11.0 + 0.4) + 0.04 * Math.sin(ang * 17.0 + 2.2);
+                    const kk = Math.hypot(ex, ez) || 1e-3;
+                    const v = (kk - lobes) / kk * Math.hypot(px - p.x, pz - p.z);   // расстояние до контура в метрах по любому направлению (а не сжатое вдоль длинной оси)
+                    const k = j * W + i;
+                    if (v < sd[k]) { sd[k] = v; dX[k] = fl[0]; dZ[k] = fl[1]; }
+                    if (v < wall + 2.2) {
+                        const t = Math.max(0, v) / wall;
+                        // склон с уступом посередине (намёк на ступени), выше — вздыбленная кромка
+                        const down = -depth * (1.0 - (0.55 * ss(0.0, 0.42, t) + 0.45 * ss(0.58, 1.0, t)));
+                        const e = (v - wall - 0.5) / 0.75;
+                        const hh = down + lip * Math.exp(-e * e) * (0.6 + 0.8 * noise1(ang * 2.2 + 40, pi + 3));
+                        if (hh < extra[k] || extra[k] === 0) extra[k] = hh;
+                    }
+                }
+            }
+        });
+        // пятна трещин: расстояние держится около 1 м от «кромки» — шейдер рисует корку и швы, но не расплав
+        const flat = new Uint8Array(W * H);
+        const CRACK_SD = 1.05;
+        cracks.forEach((p, pi) => {
+            const rx = p.rx || p.r || 4, rz = p.rz || p.r || 4, rm = Math.max(rx, rz) + R;
+            const i0 = Math.max(0, Math.floor((p.x - rm - minX) / sx)), i1 = Math.min(W - 1, Math.ceil((p.x + rm - minX) / sx));
+            const j0 = Math.max(0, Math.floor((p.z - rm - minZ) / sz)), j1 = Math.min(H - 1, Math.ceil((p.z + rm - minZ) / sz));
+            for (let j = j0; j <= j1; j++) {
+                const pz = minZ + (j + 0.5) * sz;
+                for (let i = i0; i <= i1; i++) {
+                    const px = minX + (i + 0.5) * sx, ex = (px - p.x) / rx, ez = (pz - p.z) / rz;
+                    const ang = Math.atan2(ez, ex);
+                    const lobes = 1.0 + 0.14 * Math.sin(ang * 3.0 + pi * 2.3) + 0.08 * Math.sin(ang * 5.0 + pi * 1.1);
+                    const v = CRACK_SD + Math.max(0, (Math.hypot(ex, ez) - lobes) * Math.min(rx, rz));
+                    const k = j * W + i;
+                    if (v < sd[k]) { sd[k] = v; flat[k] = 1; }
+                }
+            }
+        });
         const data = new Uint8Array(W * H * 4);
         for (let k = 0; k < W * H; k++) {
             data[k * 4] = Math.round(Math.min(1, Math.max(0, (sd[k] + SD_IN) / SD_RANGE)) * 255);
@@ -131,10 +182,21 @@
             },
             /** добавка к высоте земли: русло утоплено, по берегам — валики застывшей корки */
             dh(x, z) {
+                {   // разлом: свой рельеф (билинейно)
+                    const u = (x - minX) / sx - 0.5, v = (z - minZ) / sz - 0.5;
+                    if (u >= 0 && v >= 0 && u < W - 1 && v < H - 1) {
+                        const i = u | 0, j = v | 0, fu = u - i, fv = v - j, k = j * W + i;
+                        const e = (extra[k] * (1 - fu) + extra[k + 1] * fu) * (1 - fv) + (extra[k + W] * (1 - fu) + extra[k + W + 1] * fu) * fv;
+                        if (e !== 0) return e;
+                    }
+                }
                 const d = this.sdAt(x, z);
-                if (d > 2.6) return 0;
-                const e = (d - 0.75) / 0.75;
-                return 0.24 * Math.exp(-e * e) - 0.30 * ss(0.35, -0.9, d);
+                if (d > 3.6) return 0;
+                const fi = Math.round((x - minX) / sx - 0.5), fj = Math.round((z - minZ) / sz - 0.5);
+                if (fi >= 0 && fj >= 0 && fi < W && fj < H && flat[fj * W + fi]) return 0;   // пятна трещин — без рельефа
+                // пологий профиль (маунт и существа не «клюют носом»): валик 7 см шириной ~3 м, дно утоплено на 12 см плавно за 2+ м
+                const e = (d - 1.0) / 1.3;
+                return 0.07 * Math.exp(-e * e) - 0.12 * ss(0.8, -1.6, d);
             },
             /** случайные точки на лаве (для частиц): [x, z, глубина] */
             samplePoints(n, seed) {

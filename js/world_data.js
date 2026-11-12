@@ -1309,11 +1309,20 @@ window.LOCATIONS = {
                 { w: 1.7, meander: 1.0, seed: 97, from: 0.7, to: 1.0, points: [[151.0, -29.0], [140.0, -31.0], [130.0, -37.0], [119.0, -42.0]] },
                 { w: 1.6, meander: 0.9, seed: 101, from: 1.0, to: 0.0, points: [[124.0, -62.0], [115.0, -65.0], [108.0, -71.0], [100.0, -70.0]] },
                 { w: 1.6, meander: 0.9, seed: 103, from: 1.0, to: 0.0, points: [[106.0, -31.0], [99.0, -36.0], [94.0, -44.0], [95.0, -52.0]] },
+                // разлом у входа в недра: приток с восточной реки и расходящиеся трещины
+                { w: 2.2, meander: 1.0, seed: 113, from: 1.0, to: 0.9, points: [[30.0, 16.0], [22.0, 14.0], [14.0, 15.0], [6.0, 13.0], [2.0, 12.0]] },
+                { w: 1.1, meander: 0.6, seed: 127, from: 1.0, to: 0.0, points: [[-4.0, 15.0], [-9.0, 18.0], [-13.0, 17.0], [-17.0, 20.0]] },
+                { w: 1.1, meander: 0.6, seed: 131, from: 1.0, to: 0.0, points: [[-2.0, 18.0], [-3.0, 23.0], [-1.0, 27.0]] },
+                { w: 1.0, meander: 0.5, seed: 137, from: 1.0, to: 0.0, points: [[-4.0, 7.0], [-9.0, 3.0], [-14.0, 3.0], [-17.0, -1.0]] },
+                { w: 1.0, meander: 0.5, seed: 139, from: 1.0, to: 0.0, points: [[4.0, 6.0], [8.0, 1.0], [13.0, 0.0], [15.0, -4.0]] },
                 { w: 1.5, meander: 0.8, seed: 107, from: 1.0, to: 0.0, points: [[130.0, -37.0], [126.0, -28.0], [118.0, -22.0], [114.0, -14.0]] }
             ],
             lavaPools: [{ x: -51.0, z: -32.0, r: 6.5 }, { x: 40.0, z: -33.0, r: 5.5 }, { x: 27.0, z: -49.0, r: 4.5 }, { x: 105.0, z: -30.0, r: 3.0 }],
-            // пятна растрескавшейся корки с огненными швами по бокам от пещеры (без расплава и без рельефа)
-            lavaCracks: [{ x: -8.5, z: 5.0, rx: 5.0, rz: 4.4 }, { x: 8.5, z: 5.0, rx: 5.0, rz: 4.4 }],
+            // Разлом — вход в недра вулкана (вместо пещеры): яма с лавой на дне, лава течёт к порталу на северном краю
+            // огненное кольцо портала в недра на ровном месте перед разломом: круг корки с трещинами (lavaCracks) + светящееся кольцо (lavaRing, рисует шейдер земли)
+            lavaCracks: [{ x: 0.0, z: -7.0, rx: 2.7, rz: 2.7 }],
+            lavaRing: { x: 0.0, z: -7.0, r: 1.9 },
+            lavaPits: [{ x: 0.0, z: 11.0, rx: 2.9, rz: 7.2, depth: 2.7, wall: 2.3, lip: 0.42, flow: [0.0, -0.55] }],
             hills: { amplitude: 3.2, inclineX: 0.0, inclineZ: 0.1 },
             paths: [
                 { type: 'dirt', width: 2.4, thin: true, clearMargin: 1.6, points: [[0.0, -78.0], [0.0, -60.0], [8.0, -40.0], [6.0, -28.0]] },
@@ -1330,14 +1339,14 @@ window.LOCATIONS = {
             default:      { x: 0.0, z: -78.5, r: 3.14 },
             fromSavanna:  { x: 0.0, z: -78.5, r: 3.14 },
             fromValley:   { x: 128.0, z: 0.0, r: 1.57 },      // выход из восточного ущелья, лицом на запад      // выход из северного ущелья, лицом на юг
-            fromDepths:   { x: 0.0, z: -1.6, r: 0.0 }      // подъём из недр у южного края трещины, лицом на юг (от трещины)
+            fromDepths:   { x: 0.0, z: -11.5, r: 0.0 }      // подъём из недр у южного края трещины, лицом на юг (от трещины)
         },
 
         exits: [
             { id: 'toSavanna', x: 0.0, z: -96.0, radius: 2.0, to: 'savanna', spawn: 'fromBurnt', label: 'Золотая саванна', color: 0xffc9a0, height: 5.0, track: true, noRing: true, r: Math.PI, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xcbb3a4 } },
             { id: 'toValley', x: 146.0, z: 0.0, radius: 2.0, to: 'primevalValley', spawn: 'fromBurnt', label: 'Долина Забытых Эпох', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, r: 1.57, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc } },
             // Спуск в недра вулкана у южного края трещины (заготовка под будущий данж: пока пустая локация-заглушка)
-            { id: 'toDepths', x: 0.0, z: 3.7, radius: 1.3, height: 2.4, noRing: true, color: 0x6e8fff, to: 'magmaDepths', spawn: 'entrance', label: 'Спуск в недра' }
+            { id: 'toDepths', x: 0.0, z: -7.0, radius: 1.5, height: 2.6, noRing: true, color: 0x6e8fff, to: 'magmaDepths', spawn: 'entrance', label: 'Спуск в недра' }
         ],
 
         clearings: [
@@ -1428,7 +1437,7 @@ window.LOCATIONS = {
             { id: 'burntLands.dead_38', prop: 'charred_tree', x: -63.6, z: 10.1, r: 6.12, s: 1.22 },
             { id: 'burntLands.dead_39', prop: 'charred_tree', x: -69.4, z: 23.6, r: 3.94, s: 1.40 },
             { id: 'burntLands.dead_40', prop: 'charred_tree', x: -59.5, z: 8.1, r: 4.73, s: 1.17 },
-            { id: 'burntLands.cavern', prop: 'ember_cavern', x: 0.0, z: 3.2, r: 3.1416 },   // гигантская вулканическая трещина (позже — вход в данж)
+            // пещера ember_cavern убрана: вход в недра — разлом (terrain.lavaPits). Откат: { id: 'burntLands.cavern', prop: 'ember_cavern', x: 0.0, z: 3.2, r: 3.1416 }   // гигантская вулканическая трещина (позже — вход в данж)
             // Лавовые плиты (Meshy) по бокам от входа в недра
             // лавовые плиты-меши (lava_rift, lava_plateau) у пещеры убраны: вместо них пятна трещин в шейдере земли (terrain.lavaCracks)
             { id: 'burntLands.east_pass', prop: 'twinstone_pass', x: 145.0, z: 0.0, r: 4.71, yFrom: [120.0, 0.0], dy: 0.10 },

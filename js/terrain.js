@@ -61,7 +61,7 @@ class LakesideTerrain {
         this.platforms = [];                       // building.js: raised plank decks with a ramp (see addPlatform)
         this.noise = new SimplexNoise(locTerrain.seed !== undefined ? locTerrain.seed : 4242);
         // Лавовые реки (lava.js): поле расстояний до русел — для шейдера земли, рельефа берегов и частиц
-        this.lava = ((locTerrain.lavaRivers || locTerrain.lavaPools) && window.AveloraLava) ? window.AveloraLava.bake(locTerrain, this.sizeX, this.sizeZ) : null;
+        this.lava = ((locTerrain.lavaRivers || locTerrain.lavaPools || locTerrain.lavaPits || locTerrain.lavaCracks) && window.AveloraLava) ? window.AveloraLava.bake(locTerrain, this.sizeX, this.sizeZ) : null;
 
         this.mesh = null;
         this.material = null;
@@ -852,7 +852,7 @@ class LakesideTerrain {
 
         // КРИТИЧНО для Three.js: без customProgramCacheKey движок повторно использует
         // скомпилированный шейдер первой локации для всех последующих!
-        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v48_${this.groundSet}_mix${mixGround ? groundMode : 0}${holeSig}`;
+        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v49_${this.groundSet}_mix${mixGround ? groundMode : 0}${holeSig}`;
 
         const biomeId = (this.biome === 'goldshire') ? 1.0 : ((this.biome === 'volcanic') ? 2.0 : 0.0);
         const waterTypeId = (curWType === 'coast') ? 1.0 : ((curWType === 'river') ? 2.0 : 0.0);
@@ -876,6 +876,7 @@ class LakesideTerrain {
             shader.uniforms.uGroundMix = { value: mixGround ? groundMode : 0.0 };
             shader.uniforms.uAO = { value: this.contactAO || [] };
             shader.uniforms.uForestMap = this.lava ? { value: this.lava.texture } : this.forestUniform;   // burnt: вместо маски леса (там не нужна) — поле лавовых рек; новый сэмплер не добавляем (лимит 16 на телефонах)
+            { const lr = this.locTerrain.lavaRing; shader.uniforms.uLavaRing = { value: lr ? new THREE.Vector4(lr.x, lr.z, lr.r || 1.8, 1.0) : new THREE.Vector4(0, 0, 1, 0) }; }   // огненное кольцо портала (одно на локацию)
             shader.uniforms.uLavaOn = { value: this.lava ? 1.0 : 0.0 };
             shader.uniforms.uLavaRect = { value: this.lava ? this.lava.rect : new THREE.Vector4(0, 0, 1, 1) };
             shader.uniforms.uLavaTime = (window.AveloraLava && window.AveloraLava.time) || { value: 0 };
@@ -967,6 +968,7 @@ class LakesideTerrain {
                 uniform float uLavaOn;
                 uniform float uLavaTime;
                 uniform vec4 uLavaRect;
+                uniform vec4 uLavaRing;
                 uniform float uBiome;
                 uniform float uWaterType;
                 uniform int uDirtCount;
@@ -1176,6 +1178,18 @@ class LakesideTerrain {
                                     float lavaMask = smoothstep(0.3, -0.2, sdn);
                                     groundCol = mix(groundCol, mix(crustC, hot, molten), lavaMask);
                                     avLavaE = mix(avLavaE, hot * (0.25 + 1.8 * T) * molten * (0.78 + 0.45 * tv), lavaMask);
+                                }
+                                if (uLavaRing.w > 0.5) {
+                                    // кольцо портала: ровная светящаяся окружность + тонкая внутренняя, поверх корки с трещинами
+                                    float rd = length(gxz - uLavaRing.xy);
+                                    if (rd < uLavaRing.z + 1.2) {
+                                        float ro = abs(rd - uLavaRing.z), ri = abs(rd - uLavaRing.z * 0.62);
+                                        float rl = max(1.0 - smoothstep(0.07, 0.17, ro), (1.0 - smoothstep(0.03, 0.09, ri)) * 0.7);
+                                        float rh = exp(-ro * 4.5) * 0.55 + exp(-ri * 7.0) * 0.20;
+                                        float rp = 0.80 + 0.20 * sin(uLavaTime * 1.7);
+                                        groundCol = mix(groundCol, vec3(1.0, 0.50, 0.10), rl);
+                                        avLavaE += vec3(1.0, 0.42, 0.07) * (rl * 2.4 + rh) * rp;
+                                    }
                                 }
                             }
                         }
