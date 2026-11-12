@@ -38,15 +38,9 @@ window.GAME_CONTENT = {
      "iron_cuirass",
      "iron_gauntlets",
      "iron_greaves",
-     "steel_helm",
-     "steel_cuirass",
-     "steel_gauntlets",
-     "steel_greaves",
      "war_hammer",
      "bow",
-     "staff",
-     "apprentice_staff",
-     "elven_bow"
+     "staff"
     ]
    },
    "shop": {
@@ -531,6 +525,23 @@ window.GAME_CONTENT = {
    "teach": {
     "price": 10,
     "only": [
+     "plank",
+     "beam",
+     "iron_ingot",
+     "iron_ring",
+     "iron_helm",
+     "iron_cuirass",
+     "iron_gauntlets",
+     "iron_greaves",
+     "steel_helm",
+     "steel_cuirass",
+     "steel_gauntlets",
+     "steel_greaves",
+     "war_hammer",
+     "bow",
+     "staff",
+     "apprentice_staff",
+     "elven_bow",
      "ring_stoneheart",
      "ring_galewind",
      "ring_livingflame",

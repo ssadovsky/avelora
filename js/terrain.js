@@ -802,7 +802,8 @@ class LakesideTerrain {
         const burnCinder = burntMode ? texLoader.load(assets.burntCinderDiff) : null;
         const burnCrack = burntMode ? texLoader.load(assets.burntCrackDiff || assets.burntCinderDiff) : null;
         const burnAsh = burntMode ? texLoader.load(assets.burntAshDiff || assets.burntCinderDiff) : null;
-        [burnCinder, burnCrack, burnAsh].forEach(t => { if (t) { t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.RepeatWrapping; t.anisotropy = (window.GFX && window.GFX.aniso) || 8; } });
+        const burnLava = burntMode && assets.burntLavaDiff ? texLoader.load(assets.burntLavaDiff) : null;   // жилы лавы: текстура трещин с огнём
+        [burnCinder, burnCrack, burnAsh, burnLava].forEach(t => { if (t) { t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.RepeatWrapping; t.anisotropy = (window.GFX && window.GFX.aniso) || 8; } });
         const stoneTrailDiff = texLoader.load((this.locTerrain.stoneTexture && assets[this.locTerrain.stoneTexture]) || assets.stoneTrailDiff || assets.gravelDiff || assets.beachDiff);
         // groundMode:
         // 0: default single texture
@@ -863,6 +864,8 @@ class LakesideTerrain {
             shader.uniforms.uBurnCinder = { value: burnCinder || grassDiff };
             shader.uniforms.uBurnCrack = { value: burnCrack || grassDiff };
             shader.uniforms.uBurnAsh = { value: burnAsh || grassDiff };
+            shader.uniforms.uBurnLava = { value: burnLava || grassDiff };
+            shader.uniforms.uBurnLavaOn = { value: burnLava ? 1.0 : 0.0 };
             { const lf = (this.locTerrain && this.locTerrain.lavaFree && this.locTerrain.lavaFree[0]) || { x: 1e5, z: 1e5, hx: 1, hz: 1 }; shader.uniforms.uLavaFree = { value: new THREE.Vector4(lf.x, lf.z, lf.hx, lf.hz) }; }   // lavaFree: [{x,z,hx,hz}] — прямоугольник без лавовых жил (под цитадель)
             shader.uniforms.uBiome = { value: biomeId };
             shader.uniforms.uWaterType = { value: waterTypeId };
@@ -950,6 +953,8 @@ class LakesideTerrain {
                 uniform sampler2D uBurnCinder;
                 uniform sampler2D uBurnCrack;
                 uniform sampler2D uBurnAsh;
+                uniform sampler2D uBurnLava;
+                uniform float uBurnLavaOn;
                 uniform vec4 uLavaFree;
                 float avLava = 0.0;
                 uniform float uBiome;
@@ -1104,7 +1109,15 @@ class LakesideTerrain {
                         avLava = vein * lavaZone;
                         groundCol *= 1.0 - 0.55 * veinHalo * lavaZone;
                         groundCol = mix(groundCol, vec3(1.0, 0.30, 0.04), veinHalo * lavaZone * 0.10);
+                        if (uBurnLavaOn > 0.5) {
+                            // жила = кусок текстуры «трещины с лавой»: тёмная корка и яркие огненные швы; свечение идёт по швам
+                            vec3 lvT = texture2D(uBurnLava, gxz * 0.30 + vec2(0.37, 0.61)).rgb;
+                            float lvHeat = clamp((lvT.r - lvT.b - 0.10) * 2.2, 0.0, 1.0);
+                            avLava = vein * lavaZone * (0.30 + 0.70 * lvHeat);
+                            groundCol = mix(groundCol, lvT * vec3(1.35, 1.0, 0.8), clamp(vein * lavaZone * 0.92, 0.0, 1.0));
+                        } else {
                         groundCol = mix(groundCol, vec3(1.0, 0.42, 0.08), avLava * 0.7);
+                        }
                         }
                         float bv = avNoise(gxz * 0.017 + 3.0) - 0.5;
                         groundCol *= vec3(1.0 + bv * 0.10, 1.0, 1.0 - bv * 0.10);

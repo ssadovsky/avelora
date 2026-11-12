@@ -34,15 +34,9 @@
       "iron_cuirass",
       "iron_gauntlets",
       "iron_greaves",
-      "steel_helm",
-      "steel_cuirass",
-      "steel_gauntlets",
-      "steel_greaves",
       "war_hammer",
       "bow",
-      "staff",
-      "apprentice_staff",
-      "elven_bow"
+      "staff"
     ]
   },
   "shop": {
