@@ -396,7 +396,7 @@
                 if (this.disposed) return null;
                 const v = variants[(p.variant || 0) % variants.length];
                 const obj = v.clone();
-                obj.position.set(p.x, underCel ? underCel.F - 0.02 + (p.dy || 0) : (p.yFrom ? this.terrain._getRawHeightBase(p.yFrom[0], p.yFrom[1]) : this.terrain.getHeightAt(p.x, p.z)) - 0.02 + (p.dy || 0), p.z);   // yFrom: высота берётся в другой точке (уровень луга)
+                obj.position.set(p.x, underCel ? underCel.F - 0.02 + (p.dy || 0) : (p.yFrom ? this.terrain._getRawHeightBase(p.yFrom[0], p.yFrom[1]) : (def.walkSurface && this.terrain.getRawHeightAt ? this.terrain.getRawHeightAt(p.x, p.z) : this.terrain.getHeightAt(p.x, p.z))) - 0.02 + (p.dy || 0), p.z);   // walkSurface: земля без самой ходимой поверхности, иначе меш поднимается вместе с ней; yFrom: высота берётся в другой точке (уровень луга)
                 obj.rotation.y = p.r || 0;
                 obj.scale.setScalar(s);
                 obj.name = `prop:${p.id || p.prop}`;

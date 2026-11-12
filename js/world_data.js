@@ -1005,7 +1005,7 @@ window.LOCATIONS = {
             { id: 'savanna.lizard_fire', prop: 'campfire', x: -96.0, z: -46.0, r: 3.14 },
             { id: 'savanna.lizard_drum_1', prop: 'lizard_drum', x: -94.0, z: -42.5, r: 3.94 },
             { id: 'savanna.lizard_drum_2', prop: 'lizard_drum', x: -99.0, z: -43.5, r: 2.54 },
-            { id: 'savanna.bones_1', prop: 'bone_pile', x: -90.0, z: -46.0, r: 3.54 },
+            { id: 'savanna.bones_1', prop: 'bone_pile_4', x: -90.0, z: -46.0, r: 3.54 },
 
             // Шатры (рассредоточены от центра на восток к краю карты)
             { id: 'savanna.lizard_tent_1', prop: 'lizard_tent', x: -86.0, z: -50.0, r: 3.94 },
@@ -1044,9 +1044,9 @@ window.LOCATIONS = {
             { id: 'savanna.lizard_barricade_s5', prop: 'lizard_barricade', x: -126.0, z: -60.0, r: 0.29 },
 
             // Кости в других зонах
-            { id: 'savanna.bones_2', prop: 'bone_pile', x: -20.0, z: 62.0, r: 5.04 },
-            { id: 'savanna.bones_3', prop: 'bone_pile', x: 8.0, z: 70.0, r: 3.84 },
-            { id: 'savanna.bones_4', prop: 'bone_pile', x: 100.0, z: 18.0, r: 5.64 }
+            { id: 'savanna.bones_2', prop: 'bone_pile_1', x: -20.0, z: 62.0, r: 5.04 },
+            { id: 'savanna.bones_3', prop: 'bone_pile_3', x: 8.0, z: 70.0, r: 3.84 },
+            { id: 'savanna.bones_4', prop: 'bone_pile_2', x: 100.0, z: 18.0, r: 5.64 }
         ],
 
         decorations: {
@@ -1190,10 +1190,10 @@ window.LOCATIONS = {
         props: [
             { id: 'primevalValley.stone_pass', prop: 'stone_pass', x: 0.0, z: -93.0, r: 0.00, dy: 0.26 },
             { id: 'primevalValley.twinstone_pass', prop: 'twinstone_pass', x: -145.0, z: 0.0, r: Math.PI / 2, yFrom: [-120.0, 0.0], dy: 0.10 },
-            { id: 'primevalValley.bones_1', prop: 'bone_pile', x: -60.0, z: 58.0, r: 3.84 },
-            { id: 'primevalValley.bones_2', prop: 'bone_pile', x: -92.0, z: -8.0, r: 5.24 },
-            { id: 'primevalValley.bones_3', prop: 'bone_pile', x: 88.0, z: -2.0, r: 0.86 },
-            { id: 'primevalValley.bones_4', prop: 'bone_pile', x: -102.0, z: 40.0, r: 1.96 },
+            { id: 'primevalValley.bones_1', prop: 'bone_pile_2', x: -60.0, z: 58.0, r: 3.84 },
+            { id: 'primevalValley.bones_2', prop: 'bone_pile_5', x: -92.0, z: -8.0, r: 5.24 },
+            { id: 'primevalValley.bones_3', prop: 'bone_pile_1', x: 88.0, z: -2.0, r: 0.86 },
+            { id: 'primevalValley.bones_4', prop: 'bone_pile_4', x: -102.0, z: 40.0, r: 1.96 },
             { id: 'primevalValley.log_1', prop: 'fallen_log', x: -14.0, z: -30.0, r: 3.64 },
             { id: 'primevalValley.log_2', prop: 'fallen_log', x: 36.0, z: -34.0, r: 5.34 },
             { id: 'primevalValley.log_3', prop: 'fallen_log', x: -38.0, z: 12.0, r: 4.44 }
@@ -1301,14 +1301,14 @@ window.LOCATIONS = {
             default:      { x: 0.0, z: -78.5, r: 3.14 },
             fromSavanna:  { x: 0.0, z: -78.5, r: 3.14 },
             fromValley:   { x: 128.0, z: 0.0, r: 1.57 },      // выход из восточного ущелья, лицом на запад      // выход из северного ущелья, лицом на юг
-            fromDepths:   { x: 0.0, z: 12.0, r: Math.PI }      // подъём из недр у южного края трещины, лицом на юг (от трещины)
+            fromDepths:   { x: 0.0, z: -1.6, r: 0.0 }      // подъём из недр у южного края трещины, лицом на юг (от трещины)
         },
 
         exits: [
             { id: 'toSavanna', x: 0.0, z: -96.0, radius: 2.0, to: 'savanna', spawn: 'fromBurnt', label: 'Золотая саванна', color: 0xffc9a0, height: 5.0, track: true, noRing: true, r: Math.PI, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xcbb3a4 } },
             { id: 'toValley', x: 146.0, z: 0.0, radius: 2.0, to: 'primevalValley', spawn: 'fromBurnt', label: 'Долина Забытых Эпох', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, r: 1.57, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc } },
             // Спуск в недра вулкана у южного края трещины (заготовка под будущий данж: пока пустая локация-заглушка)
-            { id: 'toDepths', x: 0.0, z: 8.6, radius: 1.5, height: 2.4, color: 0xff7a30, to: 'magmaDepths', spawn: 'entrance', label: 'Спуск в недра' }
+            { id: 'toDepths', x: 0.0, z: 3.7, radius: 1.3, height: 2.4, noRing: true, color: 0x6e8fff, to: 'magmaDepths', spawn: 'entrance', label: 'Спуск в недра' }
         ],
 
         clearings: [
@@ -1332,7 +1332,8 @@ window.LOCATIONS = {
             { id: 'bl_ores_w', type: 'oreCluster', x: -72.0, z: -38.0, radius: 8.0, count: 5, seed: 2201 },
             { id: 'bl_ores_e', type: 'oreCluster', x: 68.0, z: -46.0, radius: 8.0, count: 5, seed: 2202 },
             { id: 'bl_ores_s', type: 'oreCluster', x: 36.0, z: 62.0, radius: 8.0, count: 4, seed: 2203 },
-            { id: 'bl_nest_rocks', type: 'rocks', x: -116.0, z: 70.0, radius: 13.0, count: 6, scaleMin: 1.0, scaleMax: 2.6, seed: 2301 }
+            { id: 'bl_nest_rocks', type: 'rocks', x: -116.0, z: 70.0, radius: 13.0, count: 6, scaleMin: 1.0, scaleMax: 2.6, seed: 2301 },
+            { id: 'bl_harpy_rocks', type: 'rocks', x: 90.0, z: 54.0, radius: 15.0, count: 6, scaleMin: 1.0, scaleMax: 2.4, seed: 2302 }
         ],
         pickups: [],
 
@@ -1348,10 +1349,16 @@ window.LOCATIONS = {
             { id: 'burntLands.malakar', prop: 'npc_malakar', x: -46.6, z: -85.0, r: 0.25 },
             { id: 'burntLands.ironbeard', prop: 'npc_ironbeard', x: -43.4, z: -85.0, r: -0.25 },
             // Гнездо псевдодраконов: кости у кладок
-            { id: 'burntLands.nest_bones_1', prop: 'bone_pile', x: -111.0, z: 66.0, r: 0.4 },
-            { id: 'burntLands.nest_bones_2', prop: 'bone_pile', x: -121.0, z: 74.0, r: 2.1 },
-            { id: 'burntLands.nest_bones_3', prop: 'bone_pile', x: -110.0, z: 76.0, r: 4.0 },
-            { id: 'burntLands.nest_bones_4', prop: 'bone_pile', x: -122.0, z: 61.0, r: 5.2 },
+            { id: 'burntLands.nest_bones_1', prop: 'bone_pile_4', x: -111.0, z: 66.0, r: 0.4 },
+            { id: 'burntLands.nest_bones_2', prop: 'bone_pile_2', x: -121.0, z: 74.0, r: 2.1 },
+            { id: 'burntLands.nest_bones_3', prop: 'bone_pile_5', x: -110.0, z: 76.0, r: 4.0 },
+            { id: 'burntLands.nest_bones_4', prop: 'bone_pile_3', x: -122.0, z: 61.0, r: 5.2 },
+            // Гнездо пепельных гарпий (юго-восток)
+            { id: 'burntLands.harpy_bones_1', prop: 'bone_pile_4', x: 86.0, z: 58.0, r: 1.3 },
+            { id: 'burntLands.harpy_bones_2', prop: 'bone_pile_1', x: 100.0, z: 62.0, r: 3.1 },
+            { id: 'burntLands.harpy_bones_3', prop: 'bone_pile_2', x: 94.0, z: 44.0, r: 5.0 },
+            { id: 'burntLands.harpy_bones_4', prop: 'bone_pile_5', x: 70.0, z: 58.0, r: 0.6 },
+
             { id: 'burntLands.dead_1', prop: 'charred_tree', x: -85.3, z: -24.5, r: 3.74, s: 1.62 },
             { id: 'burntLands.dead_2', prop: 'charred_tree', x: -94.9, z: -27.5, r: 4.86, s: 1.36 },
             { id: 'burntLands.dead_3', prop: 'charred_tree', x: -87.7, z: -17.3, r: 4.61, s: 1.41 },
@@ -1392,7 +1399,10 @@ window.LOCATIONS = {
             { id: 'burntLands.dead_38', prop: 'charred_tree', x: -63.6, z: 10.1, r: 6.12, s: 1.22 },
             { id: 'burntLands.dead_39', prop: 'charred_tree', x: -69.4, z: 23.6, r: 3.94, s: 1.40 },
             { id: 'burntLands.dead_40', prop: 'charred_tree', x: -59.5, z: 8.1, r: 4.73, s: 1.17 },
-            { id: 'burntLands.crack', prop: 'volcano_crack', x: 0.0, z: 0.0, r: 0.0 },   // гигантская вулканическая трещина (позже — вход в данж)
+            { id: 'burntLands.cavern', prop: 'ember_cavern', x: 0.0, z: 3.2, r: 3.1416 },   // гигантская вулканическая трещина (позже — вход в данж)
+            // Лавовые плиты (Meshy) по бокам от входа в недра
+            { id: 'burntLands.lava_rift_1', prop: 'lava_rift', x: 8.0, z: 5.0, r: 0.0, dy: -0.02 },
+            { id: 'burntLands.lava_plateau_1', prop: 'lava_plateau', x: -8.0, z: 5.0, r: 0.0, dy: -0.02 },
             { id: 'burntLands.east_pass', prop: 'twinstone_pass', x: 145.0, z: 0.0, r: 4.71, yFrom: [120.0, 0.0], dy: 0.10 },
             { id: 'burntLands.north_pass', prop: 'twinstone_pass', x: 0.0, z: -95.0, r: 0.0, yFrom: [0.0, -70.0], dy: 0.10 }
         ],
@@ -1455,11 +1465,12 @@ window.LOCATIONS = {
             { id: 'bl_lava_salamander_4', type: 'lava_salamander', x: 56.0, z: 24.0, r: 4.68, level: 16 },
             { id: 'bl_lava_salamander_5', type: 'lava_salamander', x: 110.0, z: -34.0, r: 6.05, level: 17 },
             { id: 'bl_lava_salamander_6', type: 'lava_salamander', x: 40.0, z: -44.0, r: 1.14, level: 15 },
-            { id: 'bl_obsidian_scorpion_1', type: 'obsidian_scorpion', x: 58.9, z: 52.2, r: 2.51, level: 18 },
-            { id: 'bl_obsidian_scorpion_2', type: 'obsidian_scorpion', x: 78.0, z: 66.0, r: 3.88, level: 19 },
-            { id: 'bl_obsidian_scorpion_3', type: 'obsidian_scorpion', x: 98.0, z: 50.0, r: 5.25, level: 17 },
-            { id: 'bl_obsidian_scorpion_4', type: 'obsidian_scorpion', x: 112.0, z: 68.0, r: 0.34, level: 18 },
-            { id: 'bl_obsidian_scorpion_5', type: 'obsidian_scorpion', x: 88.0, z: 40.0, r: 1.71, level: 19 },
+            { id: 'bl_ash_harpy_1', type: 'ash_harpy', x: 58.9, z: 52.2, r: 2.51, level: 18 },
+            { id: 'bl_ash_harpy_2', type: 'ash_harpy', x: 78.0, z: 66.0, r: 3.88, level: 19 },
+            { id: 'bl_ash_harpy_3', type: 'ash_harpy', x: 96.0, z: 50.0, r: 5.25, level: 17 },
+            { id: 'bl_ash_harpy_4', type: 'ash_harpy', x: 112.0, z: 68.0, r: 0.34, level: 18 },
+            { id: 'bl_ash_harpy_5', type: 'ash_harpy', x: 88.0, z: 40.0, r: 1.71, level: 19 },
+            { id: 'bl_ash_harpy_6', type: 'ash_harpy', x: 106.0, z: 56.0, r: 4.40, level: 18 },
             { id: 'bl_obsidian_guardian_1', type: 'obsidian_guardian', x: -14.0, z: 22.0, r: 3.08, level: 21, rank: 'elite' },
             { id: 'bl_obsidian_guardian_2', type: 'obsidian_guardian', x: 14.7, z: 19.1, r: 4.45, level: 22, rank: 'elite' },
             { id: 'bl_obsidian_guardian_3', type: 'obsidian_guardian', x: -96.0, z: 26.0, r: 5.82, level: 20, rank: 'elite' },
