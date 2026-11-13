@@ -169,6 +169,9 @@ class DiabloPathfinder {
             }
         }
 
+        // Лавовый разлом (lava.js, terrain.lavaPits): яма целиком непроходима — в неё нельзя ни зайти, ни съехать
+        if (this.terrain.lava && this.terrain.lava.blocked(wx, wz)) return true;
+
         // Cliffs too steep to walk (slope > 0.36 = angle > ~35 deg)
         if (!skipSlope && this.terrain.getSlopeAt(wx, wz) > 0.36) return true;
 

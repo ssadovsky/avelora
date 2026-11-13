@@ -1350,7 +1350,9 @@ class AveloraGame {
         this.grottos = (loc.grottos && loc.grottos.length && window.AveloraGrotto)
             ? loc.grottos.map(cfg => new AveloraGrotto(this.locationRoot, cfg, this.terrain, this.pathfinder))
             : [];
-        this.dungeon = (loc.dungeon && loc.dungeon.kind === 'temple' && window.AveloraTemple)
+        this.dungeon = (loc.dungeon && loc.dungeon.kind === 'depths' && window.AveloraDepths)
+            ? new AveloraDepths(this.locationRoot, loc.dungeon, this.terrain, this.pathfinder)    // depths.js: природные пещеры (Недра вулкана)
+            : (loc.dungeon && loc.dungeon.kind === 'temple' && window.AveloraTemple)
             ? new AveloraTemple(this.locationRoot, loc.dungeon, this.terrain, this.pathfinder)    // temple.js: Храм Стихий
             : ((loc.dungeon && window.AveloraDungeon)
                 ? new AveloraDungeon(this.locationRoot, loc.dungeon, this.terrain, this.pathfinder)

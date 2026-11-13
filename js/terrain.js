@@ -61,7 +61,7 @@ class LakesideTerrain {
         this.platforms = [];                       // building.js: raised plank decks with a ramp (see addPlatform)
         this.noise = new SimplexNoise(locTerrain.seed !== undefined ? locTerrain.seed : 4242);
         // Лавовые реки (lava.js): поле расстояний до русел — для шейдера земли, рельефа берегов и частиц
-        this.lava = ((locTerrain.lavaRivers || locTerrain.lavaPools || locTerrain.lavaPits || locTerrain.lavaCracks) && window.AveloraLava) ? window.AveloraLava.bake(locTerrain, this.sizeX, this.sizeZ) : null;
+        this.lava = ((locTerrain.lavaRivers || locTerrain.lavaPools || locTerrain.lavaPits || locTerrain.lavaCracks || locTerrain.lavaCrust) && window.AveloraLava) ? window.AveloraLava.bake(locTerrain, this.sizeX, this.sizeZ) : null;
 
         this.mesh = null;
         this.material = null;
@@ -852,7 +852,7 @@ class LakesideTerrain {
 
         // КРИТИЧНО для Three.js: без customProgramCacheKey движок повторно использует
         // скомпилированный шейдер первой локации для всех последующих!
-        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v49_${this.groundSet}_mix${mixGround ? groundMode : 0}${holeSig}`;
+        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v52_${this.groundSet}_mix${mixGround ? groundMode : 0}${holeSig}`;
 
         const biomeId = (this.biome === 'goldshire') ? 1.0 : ((this.biome === 'volcanic') ? 2.0 : 0.0);
         const waterTypeId = (curWType === 'coast') ? 1.0 : ((curWType === 'river') ? 2.0 : 0.0);
@@ -1138,6 +1138,22 @@ class LakesideTerrain {
                         if (uLavaOn > 0.5) {
                             vec4 lm = texture2D(uForestMap, (gxz - uLavaRect.xy) * uLavaRect.zw);
                             float lsd = lm.r * 16.0 - 4.0;   // м до кромки лавы (внутри русла — меньше нуля)
+                            if (lm.a > 0.02) {
+                                // поле застывшей корки (lavaCrust): текстура как есть — серо-синий базальт с огненными швами; у рек остаётся их кромка
+                                float cm = smoothstep(0.30, 0.70, lm.a + (avNoise(gxz * 0.45 + 31.0) - 0.5) * 0.55) * smoothstep(0.6, 3.6, lsd);
+                                if (cm > 0.003) {
+                                    // два рисунка корки (разный масштаб и поворот), выбор по крупному шуму — плитка не читается сеткой
+                                    vec2 cq = gxz + vec2(avNoise(gxz * 0.075 + 7.0), avNoise(gxz * 0.075 + 23.0)) * 3.4;   // плавный изгиб рисунка: ряды плитки не выстраиваются в линии
+                                    vec3 cT1 = texture2D(uBurnLava, cq * 0.235 + vec2(0.37, 0.61)).rgb;
+                                    vec3 cT2 = texture2D(uBurnLava, vec2(cq.x * 0.8 - cq.y * 0.6, cq.x * 0.6 + cq.y * 0.8) * 0.285 + vec2(0.11, 0.83)).rgb;
+                                    vec3 cT = mix(cT1, cT2, smoothstep(0.44, 0.56, avNoise(gxz * 0.13 + 3.0)));
+                                    float cH = clamp((cT.r - cT.b - 0.10) * 2.2, 0.0, 1.0);
+                                    cH *= 0.12 + 0.95 * smoothstep(0.35, 0.80, avNoise(gxz * 0.06 + 19.0));   // местами швы остыли, местами горят
+                                    float cP = 0.84 + 0.16 * sin(uLavaTime * 0.9 + avNoise(gxz * 0.11) * 12.0);
+                                    groundCol = mix(groundCol, mix(cT * vec3(0.92, 0.96, 1.05) * (1.0 - 0.6 * clamp((cT.r - cT.b - 0.10) * 2.2, 0.0, 1.0)), vec3(1.0, 0.38, 0.06), cH), cm);
+                                    avLavaE += vec3(1.0, 0.32, 0.05) * cH * cm * 1.5 * cP;
+                                }
+                            }
                             if (lsd < 10.5) {
                                 vec3 lumW = vec3(0.30, 0.59, 0.11);
                                 float en = avNoise(gxz * 0.85) * 0.65 + avNoise(gxz * 2.9 + 11.0) * 0.35;

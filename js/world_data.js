@@ -1322,6 +1322,8 @@ window.LOCATIONS = {
             // огненное кольцо портала в недра на ровном месте перед разломом: круг корки с трещинами (lavaCracks) + светящееся кольцо (lavaRing, рисует шейдер земли)
             lavaCracks: [{ x: 0.0, z: -7.0, rx: 2.7, rz: 2.7 }],
             lavaRing: { x: 0.0, z: -7.0, r: 1.9 },
+            // поле застывшей корки (серо-синий базальт со швами, как на исходной картинке): всё за разломом до реки-перемычки на юге и до восточной реки
+            lavaCrust: [{ soft: 3.0, points: [[-16.0, 14.0], [5.0, 15.0], [29.0, 17.0], [33.0, 30.0], [37.0, 41.0], [24.0, 46.0], [13.0, 56.0], [-2.0, 62.0], [-16.0, 58.0], [-23.0, 45.0], [-21.0, 28.0]] }],
             lavaPits: [{ x: 0.0, z: 11.0, rx: 2.9, rz: 7.2, depth: 2.7, wall: 2.3, lip: 0.42, flow: [0.0, -0.55] }],
             hills: { amplitude: 3.2, inclineX: 0.0, inclineZ: 0.1 },
             paths: [
@@ -1339,6 +1341,7 @@ window.LOCATIONS = {
             default:      { x: 0.0, z: -78.5, r: 3.14 },
             fromSavanna:  { x: 0.0, z: -78.5, r: 3.14 },
             fromValley:   { x: 128.0, z: 0.0, r: 1.57 },      // выход из восточного ущелья, лицом на запад      // выход из северного ущелья, лицом на юг
+            fromForges:   { x: -125.0, z: -69.5, r: 3.14 },   // выход из Кузен Эмберстоуна, лицом на юг (от портала)
             fromDepths:   { x: 0.0, z: -11.5, r: 0.0 }      // подъём из недр у южного края трещины, лицом на юг (от трещины)
         },
 
@@ -1346,7 +1349,9 @@ window.LOCATIONS = {
             { id: 'toSavanna', x: 0.0, z: -96.0, radius: 2.0, to: 'savanna', spawn: 'fromBurnt', label: 'Золотая саванна', color: 0xffc9a0, height: 5.0, track: true, noRing: true, r: Math.PI, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xcbb3a4 } },
             { id: 'toValley', x: 146.0, z: 0.0, radius: 2.0, to: 'primevalValley', spawn: 'fromBurnt', label: 'Долина Забытых Эпох', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, r: 1.57, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc } },
             // Спуск в недра вулкана у южного края трещины (заготовка под будущий данж: пока пустая локация-заглушка)
-            { id: 'toDepths', x: 0.0, z: -7.0, radius: 1.5, height: 2.6, noRing: true, color: 0x6e8fff, to: 'magmaDepths', spawn: 'entrance', label: 'Спуск в недра' }
+            { id: 'toDepths', x: 0.0, z: -7.0, radius: 1.5, height: 2.6, noRing: true, color: 0x6e8fff, to: 'volcanoDepths', spawn: 'entrance', label: 'Спуск в недра' },
+            // Кузни Эмберстоуна (бывший данж «Недра вулкана», локация magmaDepths): чёрный ход цитадели на северо-западе
+            { id: 'toForges', x: -125.0, z: -75.0, radius: 1.5, height: 2.6, color: 0x6e8fff, to: 'magmaDepths', spawn: 'entrance', label: 'Кузни Эмберстоуна' }
         ],
 
         clearings: [
@@ -1354,7 +1359,8 @@ window.LOCATIONS = {
             { x: 0.0, z: -84.0, radius: 9.0 },
             { x: 0.0, z: -93.0, radius: 8.0 },
             { x: -125.0, z: 0.0, radius: 34.0 },   // цитадель у западного края
-            { x: -45.0, z: -80.0, radius: 11.0 }   // лагерь экспедиции
+            { x: -45.0, z: -80.0, radius: 11.0 },   // лагерь экспедиции
+            { x: -125.0, z: -73.0, radius: 8.0 }   // портал в Кузни Эмберстоуна
         ],
 
         groups: [
@@ -1557,10 +1563,10 @@ window.LOCATIONS = {
     // ------------------------------------------------------------------
     magmaDepths: {
         id: 'magmaDepths',
-        name: 'Недра вулкана',
+        name: 'Кузни Эмберстоуна',   // бывшие «Недра вулкана»: id локации прежний (сохранения, счётчики убийств), новые недра — volcanoDepths
         isDungeon: true,
         surfaceLocation: 'burntLands',
-        surfaceSpawn: 'fromDepths',
+        surfaceSpawn: 'fromForges',
         noMount: true,
 
         terrain: { size: 150, seed: 9901, biome: 'forest', flat: true, hidden: true, segments: 4, waterBody: { type: 'none' }, hills: { amplitude: 0.0, inclineX: 0.0, inclineZ: 0.0 }, baseHeight: 0.0, border: 0 },
@@ -1574,7 +1580,7 @@ window.LOCATIONS = {
             entrance: { x: 0.0, z: -56.0, r: Math.PI }
         },
         exits: [
-            { id: 'toSurface', x: 0.0, z: -58.6, y: 0.02, radius: 1.2, height: 2.2, color: 0xff7a30, to: 'burntLands', spawn: 'fromDepths', label: 'Подъём на поверхность' }
+            { id: 'toSurface', x: 0.0, z: -58.6, y: 0.02, radius: 1.2, height: 2.2, color: 0x6e8fff, to: 'burntLands', spawn: 'fromForges', label: 'Выход на поверхность' }
         ],
 
         dungeon: {
@@ -1584,7 +1590,7 @@ window.LOCATIONS = {
             // ступени мобов по 5 уровней: герой 19–23 → 20, 24–28 → 25 …
             bossId: 'md_boss_dragon',
             bossArena: [-26, 22, 22, 58],     // [x0, z0, x1, z1]: в этом прямоугольнике (Логово) босс держит бой без сброса
-            bossExit: { id: 'bossExit', x: -1.0, z: 26.0, y: 0.02, radius: 1.2, height: 2.2, color: 0xff7a30, to: 'burntLands', spawn: 'fromDepths', label: 'Выход из недр' },
+            bossExit: { id: 'bossExit', x: -1.0, z: 26.0, y: 0.02, radius: 1.2, height: 2.2, color: 0x6e8fff, to: 'burntLands', spawn: 'fromForges', label: 'Выход из кузен' },
             resetSeconds: 60,   // тест; до конца разработки не возвращать
             rooms: [
                 { id: 'vestibule', x0: -4, z0: -60, x1: 4, z1: -50, h: 4.5, theme: 'magma', flames: [] },
@@ -1619,7 +1625,7 @@ window.LOCATIONS = {
         },
 
         creatures: [
-            // --- Недра вулкана: уровень мобов задаёт dungeonMobLevel (ступень 20) ---
+            // --- Кузни Эмберстоуна: уровень мобов задаёт dungeonMobLevel (ступень 20) ---
             { id: 'md_cave_1', type: 'fire_elemental', x: -6, z: -33, r: 0.5, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'normal' },
             { id: 'md_cave_2', type: 'fire_elemental', x: 6, z: -30, r: 3.6, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'normal' },
             { id: 'md_cave_3', type: 'magma_golem', x: 0, z: -27, r: 3.14, behavior: 'aggressive', aggroRadius: 8.0, leashRadius: 26.0, rank: 'normal' },
@@ -1654,6 +1660,34 @@ window.LOCATIONS = {
         ],
         decorations: [],
         groups: []
+    },
+
+    // Недра вулкана (новые): природные пещеры под разломом — depths.js (dungeon.kind 'depths'). Пока каркас: залы, лава, камера; мобов и босса ещё нет.
+    volcanoDepths: {
+        id: 'volcanoDepths',
+        name: 'Недра вулкана',
+        isDungeon: true,
+        surfaceLocation: 'burntLands',
+        surfaceSpawn: 'fromDepths',
+        noMount: true,
+
+        terrain: { size: 350, seed: 9911, biome: 'forest', flat: true, hidden: true, segments: 4, waterBody: { type: 'none' }, hills: { amplitude: 0.0, inclineX: 0.0, inclineZ: 0.0 }, baseHeight: 0.0, border: 0 },
+        atmosphere: { sky: 0x140705, skyTop: 0x070303, fogColor: 0x1c0b07, fogDensity: 0.0075 },
+        lighting: { hemiSky: 0x8a8084, hemiGround: 0x74645f, hemiIntensity: 1.5, sunColor: 0x806050, sunIntensity: 0.10 },
+        cameraAngle: Math.PI,
+        cameraDistance: 9.5, minDistance: 3.8, maxDistance: 22.0, pitchZoomedIn: 0.24, pitchZoomedOut: 0.62,
+
+        spawns: {
+            default:  { x: 0.0, z: -141.5, r: Math.PI },
+            entrance: { x: 0.0, z: -141.5, r: Math.PI }
+        },
+        exits: [
+            { id: 'toSurface', x: 0.0, z: -148.0, y: 0.02, radius: 1.3, height: 2.4, color: 0xff7a30, to: 'burntLands', spawn: 'fromDepths', label: 'Подъём на поверхность' }
+        ],
+
+        dungeon: { kind: 'depths', id: 'volcano_depths', minLevel: 20, resetSeconds: 60 },
+        creatures: [],
+        groups: [], pickups: [], props: []
     },
 
     homeCamp: {

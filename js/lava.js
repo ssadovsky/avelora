@@ -16,6 +16,8 @@
  *   lavaPools:  [{ x, z, r }] — лавовые озёра.
  *   lavaPits:   [{ x, z, rx, rz, depth, wall, lip, flow: [dx, dz] }] — разлом: яма с лавой на дне (rx/rz — полуоси зеркала лавы,
  *       wall — ширина склона, depth — глубина, lip — вздыбленная кромка, flow — куда течёт лава на дне).
+ *   lavaCrust:  [{ points: [[x, z], ...], soft: 3 }] — многоугольник сплошной застывшей корки (текстура как есть: серо-синий базальт
+ *       с огненными швами), без рельефа; у рек их собственная кромка остаётся. Пишется в альфа-канал поля.
  *   lavaCracks: [{ x, z, rx, rz }] — пятно растрескавшейся корки с огненными швами БЕЗ расплава и без рельефа (ходить можно ровно).
  */
 (function () {
@@ -68,8 +70,8 @@
     }
 
     function bake(locTerrain, sizeX, sizeZ) {
-        const rivers = locTerrain.lavaRivers || [], pools = locTerrain.lavaPools || [], cracks = locTerrain.lavaCracks || [], pits = locTerrain.lavaPits || [];
-        if (!rivers.length && !pools.length && !cracks.length && !pits.length) return null;
+        const rivers = locTerrain.lavaRivers || [], pools = locTerrain.lavaPools || [], cracks = locTerrain.lavaCracks || [], pits = locTerrain.lavaPits || [], crusts = locTerrain.lavaCrust || [];
+        if (!rivers.length && !pools.length && !cracks.length && !pits.length && !crusts.length) return null;
         const minX = -sizeX / 2, minZ = -sizeZ / 2;
         const W = Math.min(2048, Math.round(sizeX * PX)), H = Math.min(2048, Math.round(sizeZ * PX));
         const sx = sizeX / W, sz = sizeZ / H;
@@ -160,14 +162,39 @@
                 }
             }
         });
+        // поля застывшей корки: маска 0..1 (мягкий край шириной soft м внутрь многоугольника)
+        const crustM = new Float32Array(W * H);
+        crusts.forEach(c => {
+            const P = c.points || [], n = P.length, soft = c.soft || 3.0;
+            if (n < 3) return;
+            let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+            P.forEach(q => { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); z0 = Math.min(z0, q[1]); z1 = Math.max(z1, q[1]); });
+            const i0 = Math.max(0, Math.floor((x0 - minX) / sx)), i1 = Math.min(W - 1, Math.ceil((x1 - minX) / sx));
+            const j0 = Math.max(0, Math.floor((z0 - minZ) / sz)), j1 = Math.min(H - 1, Math.ceil((z1 - minZ) / sz));
+            for (let j = j0; j <= j1; j++) {
+                const pz = minZ + (j + 0.5) * sz;
+                for (let i = i0; i <= i1; i++) {
+                    const px = minX + (i + 0.5) * sx;
+                    let inside = false, dmin = Infinity;
+                    for (let a = 0, b = n - 1; a < n; b = a++) {
+                        const ax = P[a][0], az = P[a][1], bx = P[b][0], bz = P[b][1];
+                        if ((az > pz) !== (bz > pz) && px < (bx - ax) * (pz - az) / (bz - az) + ax) inside = !inside;
+                        const ex = bx - ax, ez = bz - az; let t = ((px - ax) * ex + (pz - az) * ez) / Math.max(ex * ex + ez * ez, 1e-6); t = t < 0 ? 0 : (t > 1 ? 1 : t);
+                        const d = Math.hypot(px - (ax + ex * t), pz - (az + ez * t)); if (d < dmin) dmin = d;
+                    }
+                    if (inside) { const m = Math.min(1, dmin / soft), k = j * W + i; if (m > crustM[k]) crustM[k] = m; }
+                }
+            }
+        });
         const data = new Uint8Array(W * H * 4);
         for (let k = 0; k < W * H; k++) {
             data[k * 4] = Math.round(Math.min(1, Math.max(0, (sd[k] + SD_IN) / SD_RANGE)) * 255);
             data[k * 4 + 1] = Math.round((dX[k] * 0.5 + 0.5) * 255);
             data[k * 4 + 2] = Math.round((dZ[k] * 0.5 + 0.5) * 255);
-            data[k * 4 + 3] = 255;
+            data[k * 4 + 3] = Math.round(crustM[k] * 255);   // A — маска поля корки (lavaCrust)
         }
         const tex = new THREE.DataTexture(data, W, H, THREE.RGBAFormat);
+        tex.premultiplyAlpha = false;
         tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false;
         tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping; tex.needsUpdate = true;
 
@@ -197,6 +224,11 @@
                 // пологий профиль (маунт и существа не «клюют носом»): валик 7 см шириной ~3 м, дно утоплено на 12 см плавно за 2+ м
                 const e = (d - 1.0) / 1.3;
                 return 0.07 * Math.exp(-e * e) - 0.12 * ss(0.8, -1.6, d);
+            },
+            /** true внутри разлома (склон и дно): для навигации — туда нельзя */
+            blocked(x, z) {
+                const i = Math.round((x - minX) / sx - 0.5), j = Math.round((z - minZ) / sz - 0.5);
+                return i >= 0 && j >= 0 && i < W && j < H && extra[j * W + i] < -0.12;
             },
             /** случайные точки на лаве (для частиц): [x, z, глубина] */
             samplePoints(n, seed) {
