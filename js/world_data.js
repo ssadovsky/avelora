@@ -172,11 +172,11 @@ window.LOCATIONS = {
 
         exits: [
             // Рунный портал (47, 16) в Рунные земли: вход в центре арки (ступени смотрят на север)
-            { id: 'toRuneLands', x: -80.0, z: 60.0, radius: 1.5, to: 'runeLands', spawn: 'fromForest', label: 'Рунные земли', color: 0x6be3c0, height: 4.6, track: true },
+            { id: 'toRuneLands', x: -80.0, z: 60.0, radius: 1.5, to: 'runeLands', spawn: 'fromForest', label: 'Рунные земли', color: 0x6be3c0, height: 4.6, track: true, minLevel: 5 },
             // Проход в Золотую саванну через горный каньон на западе
-            { id: 'toLake', x: -146.0, z: 8.0, radius: 2.0, to: 'savanna', spawn: 'fromForest', label: 'Золотая саванна', color: 0xffd285, height: 5.0, track: true, noRing: true, r: -Math.PI / 2, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.25, color: 0xdec08a } },
+            { id: 'toLake', x: -146.0, z: 8.0, radius: 2.0, to: 'savanna', spawn: 'fromForest', label: 'Золотая саванна', color: 0xffd285, height: 5.0, track: true, noRing: true, r: -Math.PI / 2, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.25, color: 0xdec08a }, minLevel: 5 },
             // Каменный проход в горах на юге, за лесом: в Долину Забытых Эпох (в конце ущелья — дымка)
-            { id: 'toPrimeval', x: 0.0, z: 95.0, radius: 1.4, to: 'primevalValley', spawn: 'fromForest', label: 'Долина Забытых Эпох', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc } },
+            { id: 'toPrimeval', x: 0.0, z: 95.0, radius: 1.4, to: 'primevalValley', spawn: 'fromForest', label: 'Долина Забытых Эпох', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc }, minLevel: 5 },
             // Тайный рунический портал в глубине пещеры (переход в подземелье)
             {
                 id: 'toDungeon',
@@ -188,7 +188,8 @@ window.LOCATIONS = {
                 color: 0x6e8fff,  // мистический сине-фиолетовый рунный свет
                 to: 'ancientCatacombs',
                 spawn: 'entrance',
-                label: 'В глубины подземелья'
+                label: 'В глубины подземелья',
+                minLevel: 5
             }
         ],
 

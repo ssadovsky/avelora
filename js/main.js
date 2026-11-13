@@ -1730,7 +1730,7 @@ class AveloraGame {
                 const lock = ((this.hero && this.hero.level) || 1) < ex.data.minLevel;
                 if (!!ex.locked !== lock) {
                     ex.locked = lock;
-                    if (ex.labelEl) ex.labelEl.textContent = (ex.data.label || '') + (lock ? ' — нужен ' + ex.data.minLevel + '-й уровень' : '');
+                    if (ex.labelEl) ex.labelEl.textContent = (ex.data.label || '') + (lock ? ' [ур. ' + ex.data.minLevel + '+]' : '');
                     if (this.town && this.town.setGateLocked) this.town.setGateLocked(lock || !!ex.disabled);
                 }
                 if (lock) { ex.armed = false; continue; }

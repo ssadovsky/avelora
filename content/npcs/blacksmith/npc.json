@@ -81,5 +81,13 @@
       }
     ],
     "sell": true
-  }
+  },
+  "quests": [
+    "meet_blacksmith",
+    "log_gathering",
+    "stone_gathering",
+    "sawmill_build",
+    "forge_build",
+    "storage_build"
+  ]
 }

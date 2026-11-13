@@ -69,8 +69,7 @@
   "height": 1.75,
   "quests": [
     "fern_gathering",
-    "log_gathering",
-    "stone_gathering",
+    "meet_blacksmith",
     "home_camp_visit",
     "potion_trial",
     "spark_trial",
@@ -81,7 +80,6 @@
     "fox_hunt",
     "boar_hunt",
     "bear_hunt",
-    "minotaur_hunt",
-    "sawmill_build"
+    "minotaur_hunt"
   ]
 }

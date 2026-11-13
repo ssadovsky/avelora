@@ -1341,8 +1341,26 @@
                 }
             }
 
+            // 3b. If ALL unready quests require manual action (e.g. type 'talk', 'home_recall', etc.)
+            // AND we have ready quests to turn in — treat as if unready list is empty: go turn them in!
+            const autoUnready = unreadyList.filter(q => {
+                const obj = q.def.objective;
+                return obj && (obj.type === 'kill' || obj.type === 'gather' || obj.type === 'collect');
+            });
+            if (autoUnready.length === 0 && readyList.length > 0) {
+                readyList.sort((a, b) => {
+                    const locA = this.findNpcLocation(a.def.turnInNpc || a.def.giver);
+                    const locB = this.findNpcLocation(b.def.turnInNpc || b.def.giver);
+                    const sameA = (locA && locA.locId === this.curLocId()) ? 0 : 1;
+                    const sameB = (locB && locB.locId === this.curLocId()) ? 0 : 1;
+                    return sameA - sameB;
+                });
+                this.executeTurnInQuest(readyList[0].def);
+                return;
+            }
+
             // Execute objectives for all unready quests in parallel (closest mob / resource first)
-            this.executeMultiQuestObjectives(unreadyList.map(q => q.def), delta);
+            this.executeMultiQuestObjectives(autoUnready.length > 0 ? autoUnready.map(q => q.def) : unreadyList.map(q => q.def), delta);
         }
 
         /** Returns list of all currently active quests with their ready status */
