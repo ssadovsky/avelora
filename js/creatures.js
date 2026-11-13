@@ -75,6 +75,42 @@
         return clone;
     }
 
+    // Существа, у которых клип Idle — одна застывшая поза (напр. магмовый голем: последняя поза «Arise», руки хватают воздух).
+    // Для них Idle собирается из Walk: средняя поза за цикл шага = спокойная стойка, плюс медленное «дыхание» корпуса и рук.
+    // Включается списком ниже или полем creature.json "idleFromWalk": true.
+    const IDLE_FROM_WALK = { magma_golem: true };
+    function synthIdleFromWalk(type, def, clips) {
+        if (!clips || !(IDLE_FROM_WALK[type] || (def && def.idleFromWalk))) return clips;
+        const walk = findClip(clips, 'Walk'); if (!walk) return clips;
+        const DUR = 4.0, T = [0, 1, 2, 3, 4], tracks = [];
+        const qA = new THREE.Quaternion(), qB = new THREE.Quaternion(), ax = new THREE.Vector3();
+        walk.tracks.forEach(tr => {
+            const v = tr.values, n = tr.times.length, name = tr.name;
+            if (/\.quaternion$/.test(name)) {
+                // средний кватернион за цикл (со сведением знаков)
+                let x = 0, y = 0, z = 0, w = 0;
+                for (let i = 0; i < n; i++) { const s = (v[i * 4] * v[0] + v[i * 4 + 1] * v[1] + v[i * 4 + 2] * v[2] + v[i * 4 + 3] * v[3]) < 0 ? -1 : 1; x += v[i * 4] * s; y += v[i * 4 + 1] * s; z += v[i * 4 + 2] * s; w += v[i * 4 + 3] * s; }
+                qA.set(x, y, z, w).normalize();
+                // «дыхание»: корпус чуть наклоняется, плечи и руки покачиваются, голова медленно ведёт
+                let amp = 0, phase = 0; ax.set(1, 0, 0);
+                if (/Spine2|Spine1|chest/i.test(name)) amp = 0.022; else if (/Spine|spine/i.test(name)) amp = 0.012;
+                else if (/Shoulder/i.test(name)) { amp = 0.02; ax.set(0, 0, 1); }
+                else if (/ForeArm/i.test(name)) { amp = 0.03; phase = 0.6; }
+                else if (/Arm/i.test(name)) { amp = 0.025; phase = 0.3; ax.set(0, 0, 1); }
+                else if (/Head$|Neck/i.test(name)) { amp = 0.02; phase = 1.3; ax.set(0, 1, 0); }
+                const out = [];
+                T.forEach(t => { const a = amp * Math.sin(t / DUR * Math.PI * 2 + phase); qB.setFromAxisAngle(ax, a); qB.premultiply(qA); out.push(qB.x, qB.y, qB.z, qB.w); });
+                tracks.push(new THREE.QuaternionKeyframeTrack(name, T, out));
+            } else if (/\.(position|scale)$/.test(name)) {
+                const m = [0, 0, 0]; for (let i = 0; i < n; i++) { m[0] += v[i * 3]; m[1] += v[i * 3 + 1]; m[2] += v[i * 3 + 2]; } m[0] /= n; m[1] /= n; m[2] /= n;
+                const out = []; T.forEach(() => out.push(m[0], m[1], m[2]));
+                tracks.push(new THREE.VectorKeyframeTrack(name, T, out));
+            }
+        });
+        const idle = new THREE.AnimationClip('Idle', DUR, tracks);
+        return clips.filter(c => c !== findClip(clips, 'Idle')).concat([idle]);
+    }
+
     function findClip(clips, name) {
         const lower = name.toLowerCase();
         return clips.find(c => c.name === name)
@@ -337,6 +373,7 @@
                 const buffer = def.modelKey && window.LakesideEnvironment
                     ? window.LakesideEnvironment.getModelBuffer(def.modelKey) : null;
                 const finish = (scene, clips) => {
+                    clips = synthIdleFromWalk(type, def, clips);
                     if (!scene) scene = AveloraCreatures.makeFallback(def);
                     scene.traverse(o => {
                         if (o.isMesh) {

@@ -1685,8 +1685,22 @@ window.LOCATIONS = {
             { id: 'toSurface', x: 0.0, z: -148.0, y: 0.02, radius: 1.3, height: 2.4, color: 0xff7a30, to: 'burntLands', spawn: 'fromDepths', label: 'Подъём на поверхность' }
         ],
 
-        dungeon: { kind: 'depths', id: 'volcano_depths', minLevel: 20, resetSeconds: 60 },
-        creatures: [],
+        dungeon: { kind: 'depths', id: 'volcano_depths', minLevel: 20, resetSeconds: 60,
+            bossId: 'vd_boss_heart', bossArena: [28.0, 104.0, 88.0, 162.0],
+            bossExit: { id: 'bossExit', x: 57.2, z: 147.0, y: 0.02, radius: 1.3, height: 2.4, color: 0xff7a30, to: 'burntLands', spawn: 'fromDepths', label: 'Выход из недр' } },
+        creatures: [
+            // Босс: Сердце горы — в центре Печати (центр зала босса, depths.js _seal)
+            { id: 'vd_boss_heart', type: 'element_heart', name: 'Сердце горы', rank: 'boss', scale: 3.0, x: 57.2, z: 132.6, r: Math.PI, behavior: 'aggressive', aggroRadius: 16, leashRadius: 44 },
+            // «Горло»: магмовые големы-привратники
+            { id: 'vd_throat_golem_1', type: 'magma_golem', x: -6.6, z: -107.8, r: 3.14, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
+            { id: 'vd_throat_golem_2', type: 'magma_golem', x: -2.7, z: -86.7, r: 3.14, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
+            // «Гнездовье»: псевдодраконы стерегут кладки, у остова — багровый полудракон (элита)
+            { id: 'vd_nest_wyrm_1', type: 'skywyrm', x: -25.3, z: 111.8, r: 0.6, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'normal' },
+            { id: 'vd_nest_wyrm_2', type: 'skywyrm', x: -14.6, z: 108.8, r: 3.9, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'normal' },
+            { id: 'vd_nest_wyrm_3', type: 'skywyrm', x: -17.9, z: 122.1, r: 2.2, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'normal' },
+            { id: 'vd_nest_wyrm_4', type: 'skywyrm', x: -39.7, z: 114.9, r: 5.1, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'normal' },
+            { id: 'vd_nest_guard', type: 'wyrmguard', x: -46.6, z: 118.4, r: 1.2, behavior: 'aggressive', aggroRadius: 10, leashRadius: 32, rank: 'elite' }
+        ],
         groups: [], pickups: [], props: []
     },
 
