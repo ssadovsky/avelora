@@ -114,10 +114,22 @@ class LakesideWater {
                 posX = 0; posZ = shoreLine + sizeZ / 2 - 2;
             }
         } else if (wType === 'coast_lake') {
-            sizeX = (locTerrain.sizeX || 300) + 140;
-            sizeZ = (locTerrain.sizeZ || 200) + 140;
-            posX = -20;
-            posZ = 0;
+            // Вода закрывает ровно карту (озеро внутри) + океан ЗА краем только со стороны берега (side), остальные края — туман (фон сцены).
+            // Раньше плоскость торчала на 70–90 м за все края и «океан» был виден с горной стороны.
+            const hx = (locTerrain.sizeX || 300) / 2, hz = (locTerrain.sizeZ || 200) / 2;
+            const E = waterConfig.oceanExtent !== undefined ? waterConfig.oceanExtent : 500.0;   // длина океана за краем (в тумане далеко не виден край воды)
+            const sd = waterConfig.side || 'east';
+            let poly;   // контур в мировых (x, z)
+            if (sd === 'east') poly = [[-hx, -hz], [hx, -hz], [hx, -hz - E], [hx + E, -hz - E], [hx + E, hz + E], [hx, hz + E], [hx, hz], [-hx, hz]];
+            else if (sd === 'west') poly = [[hx, -hz], [hx, hz], [-hx, hz], [-hx, hz + E], [-hx - E, hz + E], [-hx - E, -hz - E], [-hx, -hz - E], [-hx, -hz]];
+            else if (sd === 'north') poly = [[-hx, hz], [-hx, -hz], [-hx - E, -hz], [-hx - E, -hz - E], [hx + E, -hz - E], [hx + E, -hz], [hx, -hz], [hx, hz]];
+            else poly = [[-hx, -hz], [hx, -hz], [hx, hz], [hx + E, hz], [hx + E, hz + E], [-hx - E, hz + E], [-hx - E, hz], [-hx, hz]];
+            // плоскость воды повёрнута rotation.x = -PI/2: локальная y = -z мира
+            const shape = new THREE.Shape(poly.map(p => new THREE.Vector2(p[0], -p[1])));
+            this.water.geometry.dispose();
+            this.water.geometry = new THREE.ShapeGeometry(shape);
+            this.water.position.set(0, 0.0, 0);
+            return;
         } else if (wType === 'island') {
             sizeX = mapSize * 1.8;
             sizeZ = mapSize * 1.8;

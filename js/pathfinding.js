@@ -38,6 +38,10 @@ class MinHeap {
     }
 }
 
+// Глобальный край мира (одно место для всех локаций): ближе этого расстояния (м) к краю карты герой/мобы не подходят.
+// Навигационная сетка блокирует полосу, а main.js enforceWorldBounds() жёстко держит всех внутри даже при толчках и телепортах.
+window.AVELORA_EDGE_MARGIN = 2.0;
+
 class DiabloPathfinder {
     constructor(terrain, gridSizeX = 160, gridSizeZ = null, worldSizeX = 120, worldSizeZ = null) {
         this.terrain = terrain;
@@ -61,6 +65,11 @@ class DiabloPathfinder {
         this.cellHeight = this.worldSizeZ / this.gridSizeZ;
         this.halfWorldX = this.worldSizeX / 2;
         this.halfWorldZ = this.worldSizeZ / 2;
+        // Пределы высоты проходимой земли (terrain.maxWalkH / minWalkH в world_data.js): по умолчанию гора > 4.2 м и глубина < -0.42 м непроходимы;
+        // горная/водная локация ставит maxWalkH: 999 (горы ходимы, крутые склоны всё равно держит порог уклона 0.36).
+        const _lt = (terrain && terrain.locTerrain) || {};
+        this.maxWalkH = (_lt.maxWalkH !== undefined) ? _lt.maxWalkH : 4.2;
+        this.minWalkH = (_lt.minWalkH !== undefined) ? _lt.minWalkH : -0.42;
 
         // 0: Walkable, 1: Blocked (Water or Obstacle)
         this.grid = new Uint8Array(this.gridSizeX * this.gridSizeZ);
@@ -146,14 +155,14 @@ class DiabloPathfinder {
 
     isBaseBlocked(wx, wz, preHeight, skipSlope) {
         // Keep a safe non-walkable rim along the map edge (player cannot reach the world edge)
-        const edgeMargin = 4.0;
+        const edgeMargin = window.AVELORA_EDGE_MARGIN;
         if (Math.abs(wx) > this.halfWorldX - edgeMargin || Math.abs(wz) > this.halfWorldZ - edgeMargin) return true;
 
         const height = preHeight !== undefined ? preHeight : this.terrain.getHeightAt(wx, wz);
 
         // Water level is at Y = 0.0; shallow wading allowed down to -0.42m (walk through shore and reeds)
-        // Mountain barrier > 4.2m
-        if (height < -0.42 || height > 4.2) return true;
+        // Mountain barrier > maxWalkH (по умолчанию 4.2 м)
+        if (height < this.minWalkH || height > this.maxWalkH) return true;
 
         // Bridge railings: along the deck only the strip between the rails is walkable
         const br = this.terrain.bridges;
@@ -291,7 +300,7 @@ class DiabloPathfinder {
         const nx = this.gridSizeX;
         const nz = this.gridSizeZ;
         const heights = new Float32Array(nx * nz);
-        const edgeMargin = 4.0;
+        const edgeMargin = window.AVELORA_EDGE_MARGIN;
         const maxX = this.halfWorldX - edgeMargin;
         const maxZ = this.halfWorldZ - edgeMargin;
 
@@ -316,7 +325,7 @@ class DiabloPathfinder {
             for (let gx = 0; gx < nx; gx++) {
                 const idx = rowOff + gx;
                 const h = heights[idx];
-                if (h < -0.42 || h > 4.2) {
+                if (h < this.minWalkH || h > this.maxWalkH) {
                     this.grid[idx] = 1;
                     continue;
                 }

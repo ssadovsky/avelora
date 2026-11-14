@@ -143,6 +143,7 @@ window.LOCATIONS = {
             fromSavanna:  { x: -128.0, z: 8.0, r: 4.71 },  // выход из портала: в 14 м от рунного вепря (aggro 9), лицом на восток в долину
             waterfall: { x: 104.0,  z: 6.0, r: 4.71 },  // с видом на восточный каскадный водопад
             fromPrimeval: { x: 0.0, z: 78.5, r: 0.0 },    // выход из горного прохода на юге (лицом на север)
+            fromFrost:    { x: 0.0, z: 78.5, r: 0.0 },    // выход из Морозного хребта (лицом на север)
             fromDungeon: { x: 135.0, z: -18.0, r: 1.57 } // площадка перед входом в пещеру (лицом на запад к долине)
         },
 
@@ -175,8 +176,8 @@ window.LOCATIONS = {
             { id: 'toRuneLands', x: -80.0, z: 60.0, radius: 1.5, to: 'runeLands', spawn: 'fromForest', label: 'Рунные земли', color: 0x6be3c0, height: 4.6, track: true, minLevel: 5 },
             // Проход в Золотую саванну через горный каньон на западе
             { id: 'toLake', x: -146.0, z: 8.0, radius: 2.0, to: 'savanna', spawn: 'fromForest', label: 'Золотая саванна', color: 0xffd285, height: 5.0, track: true, noRing: true, r: -Math.PI / 2, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.25, color: 0xdec08a }, minLevel: 5 },
-            // Каменный проход в горах на юге, за лесом: в Долину Забытых Эпох (в конце ущелья — дымка)
-            { id: 'toPrimeval', x: 0.0, z: 95.0, radius: 1.4, to: 'primevalValley', spawn: 'fromForest', label: 'Долина Забытых Эпох', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc }, minLevel: 5 },
+            // Каменный проход в горах на юге, за лесом: в Морозный хребет (в конце ущелья — дымка)
+            { id: 'toFrost', x: 0.0, z: 95.0, radius: 1.4, to: 'frostRidge', spawn: 'fromForest', label: 'Морозный хребет', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc } },
             // Тайный рунический портал в глубине пещеры (переход в подземелье)
             {
                 id: 'toDungeon',
@@ -1064,6 +1065,96 @@ window.LOCATIONS = {
     // Долина Забытых Эпох — затерянный мир, где от триаса до мела рядом живут динозавры
     // и драконы. Попасть сюда можно через рунный портал на юге Лесной опушки (x=0, z=74).
     // ------------------------------------------------------------------
+    // -------------------------------------------------------------
+    // ЛОКАЦИЯ: Морозный хребет (id `frostRidge`)
+    // 300×200 м. Заснеженное высокогорье, вечные снега, ледяные перевалы.
+    // Соединяет:
+    //   - Север (z: -95): Лесная опушка (toForest)
+    //   - Запад (x: -146): Выжженная земля (toBurnt)
+    //   - Восток (x: 146): Долина Забытых Эпох (toValley)
+    // -------------------------------------------------------------
+    frostRidge: {
+        id: 'frostRidge',
+        name: 'Морозный хребет',
+
+        terrain: {
+            sizeX: 300,
+            sizeZ: 200,
+            seed: 8812,
+            biome: 'forest',
+            groundSet: 'snow',
+            waterBody: { type: 'lake', x: 5000.0, z: 5000.0, radius: 10.0, depth: -1.0, beachWidth: 4.0 }, // жидкой воды нет
+            segmentsX: 300,
+            segmentsZ: 200,
+            border: 0,
+            baseHeight: 2.2,
+            landFloor: 1.1,
+            maxWalkH: 999.0,   // горы ходимы (крутые склоны держит порог уклона 0.36); край мира держит глобальный AVELORA_EDGE_MARGIN
+            mountainRim: { width: 18.0, height: 7.5 },
+            mountainPasses: [],
+            westCover: { z: 0.0, cutX: -149.0, cx: -145.0, R: 9.5 },
+            eastCover: { z: 0.0, cutX: -149.0, cx: -145.0, R: 9.5 },   // горки и подход у восточного ущелья в Долину (зеркало westCover, оси -x,-z)
+            northCover: { x: 0.0, cutZ: -99.0, cz: -95.0, R: 9.5, hRef: [4.0, -77.0] },
+            rimDip: [
+                { side: 'north', axis: 'x', x: 0.0, k0: 0.85, w: 30.0, cragK: 0.0 },
+                { side: 'west', axis: 'z', z: 0.0, k0: 0.85, w: 30.0, cragK: 0.0 },
+                { side: 'west', axis: 'z', z: 0.0, k0: 0.85, w: 30.0, cragK: 0.0, flip: true }
+            ],
+            flatSpots: [
+                // Северное ущелье (в Лесную опушку)
+                { x: 0.0, z: -80.0, radius: 2.2, blend: 7.0, hFrom: [4.0, -77.0] }, { x: 0.0, z: -86.5, radius: 2.2, blend: 7.0, hFrom: [4.0, -77.0], dh: 0.0 }, { x: 0.0, z: -90.5, radius: 2.2, blend: 5.0, hFrom: [4.0, -77.0], dh: 0.22 }, { x: 0.0, z: -94.0, radius: 2.2, blend: 4.5, hFrom: [4.0, -77.0], dh: 0.6 }, { x: 0.0, z: -97.0, radius: 2.2, blend: 4.5, hFrom: [4.0, -77.0], dh: 0.6 },
+                // Западное ущелье (в Выжженную землю)
+                { x: -130.0, z: 0.0, radius: 2.2, blend: 2.5, hFrom: [-120.0, 0.0] }, { x: -136.5, z: 0.0, radius: 2.2, blend: 3.0, hFrom: [-120.0, 0.0], dh: 0.00 }, { x: -140.5, z: 0.0, radius: 2.2, blend: 3.5, hFrom: [-120.0, 0.0], dh: 0.22 }, { x: -144.0, z: 0.0, radius: 2.2, blend: 4.0, hFrom: [-120.0, 0.0], dh: 0.60 }, { x: -147.0, z: 0.0, radius: 2.0, blend: 4.5, hFrom: [-120.0, 0.0], dh: 0.60 },
+                // Восточное ущелье (в Долину Забытых Эпох)
+                { x: 130.0, z: 0.0, radius: 2.2, blend: 2.5, hFrom: [120.0, 0.0] }, { x: 136.5, z: 0.0, radius: 2.2, blend: 3.0, hFrom: [120.0, 0.0], dh: 0.00 }, { x: 140.5, z: 0.0, radius: 2.2, blend: 3.5, hFrom: [120.0, 0.0], dh: 0.22 }, { x: 144.0, z: 0.0, radius: 2.2, blend: 4.0, hFrom: [120.0, 0.0], dh: 0.60 }, { x: 147.0, z: 0.0, radius: 2.0, blend: 4.5, hFrom: [120.0, 0.0], dh: 0.60 }
+            ],
+            hills: { amplitude: 3.5, inclineX: 0.0, inclineZ: 0.15 },
+            paths: [
+                // Горная снежная тропа, связывающая все 3 прохода
+                { type: 'dirt', width: 2.6, thin: true, points: [[0.0, -95.0], [0.0, -60.0], [-20.0, -30.0], [-60.0, -10.0], [-100.0, -5.0], [-146.0, 0.0]] },
+                { type: 'dirt', width: 2.6, thin: true, points: [[-20.0, -30.0], [20.0, -20.0], [60.0, -10.0], [100.0, -5.0], [146.0, 0.0]] }
+            ]
+        },
+
+        atmosphere: { sky: 0xd8e6f2, skyTop: 0x4a7eb5, fogColor: 0xcfe0ee, fogDensity: 0.0055 },
+        lighting: { hemiSky: 0xebf4ff, hemiGround: 0x8aa2b8, hemiIntensity: 1.6, sunColor: 0xfff8f0, sunIntensity: 1.15 },
+        cameraAngle: 0.0,
+
+        spawns: {
+            default:    { x: 0.0, z: -78.0, r: Math.PI },
+            fromForest: { x: 0.0, z: -78.0, r: Math.PI },
+            fromBurnt:  { x: -128.0, z: 0.0, r: -Math.PI / 2 },
+            fromValley: { x: 128.0, z: 0.0, r: Math.PI / 2 }
+        },
+
+        exits: [
+            // Северный проход в Лесную опушку
+            { id: 'toForest', x: 0.0, z: -96.0, radius: 2.0, to: 'forestEdge', spawn: 'fromFrost', label: 'Лесная опушка', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, r: Math.PI, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.25, color: 0x9bc2a4 } },
+            // Западный проход в Выжженную землю
+            { id: 'toBurnt', x: -146.0, z: 0.0, radius: 2.0, to: 'burntLands', spawn: 'fromFrost', label: 'Выжженная земля', color: 0xffc9a0, height: 5.0, track: true, noRing: true, r: -Math.PI / 2, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xcbb3a4 } },
+            // Восточный проход в Долину Забытых Эпох
+            { id: 'toValley', x: 146.0, z: 0.0, radius: 2.0, to: 'primevalValley', spawn: 'fromFrost', label: 'Долина Забытых Эпох', color: 0x8fe3c0, height: 5.0, track: true, noRing: true, r: Math.PI / 2, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc }, minLevel: 25 }
+        ],
+
+        clearings: [
+            { x: 0.0, z: -84.0, radius: 9.0 },
+            { x: 0.0, z: -93.0, radius: 8.0 },
+            { x: -130.0, z: 0.0, radius: 9.0 },
+            { x: 130.0, z: 0.0, radius: 9.0 }
+        ],
+
+        groups: [],
+
+        props: [
+            // Скальные арки ущелий
+            { id: 'frostRidge.north_pass', prop: 'twinstone_pass', x: 0.0, z: -95.0, r: 0.0, yFrom: [4.0, -77.0], dy: 0.10, snow: true },
+            { id: 'frostRidge.west_pass', prop: 'twinstone_pass', x: -145.0, z: 0.0, r: Math.PI / 2, yFrom: [-120.0, 0.0], dy: 0.10, snow: true },
+            { id: 'frostRidge.east_pass', prop: 'twinstone_pass', x: 145.0, z: 0.0, r: 4.71, yFrom: [120.0, 0.0], dy: 0.10, snow: true }
+        ],
+
+        creatures: []
+    },
+
     primevalValley: {
         id: 'primevalValley',
         name: 'Долина Забытых Эпох',
@@ -1094,7 +1185,7 @@ window.LOCATIONS = {
             ],
             waterBody: {
                 type: 'coast_lake',
-                shoreLine: 85.0, side: 'east',
+                shoreLine: 117.0, side: 'east',   // океан у восточного края (было 85: +32 м суши у берега)
                 lakeX: -10.0,
                 lakeZ: 5.0,
                 radius: 22.0,
@@ -1106,7 +1197,7 @@ window.LOCATIONS = {
             stoneTexture: 'pebbleTrailDiff',
             paths: [
                 { type: 'dirt', width: 2.4, thin: true, clearMargin: 1.6, points: [[0.0, -78.0], [0.0, -70.0], [0.0, -50.0], [-6.0, -32.0], [-10.0, -18.0]] },
-                { type: 'dirt', width: 2.4, thin: true, clearMargin: 1.6, points: [[0.0, -50.0], [18.0, -42.0], [42.0, -30.0], [68.0, -15.0], [84.0, -4.0]] }
+                { type: 'dirt', width: 2.4, thin: true, clearMargin: 1.6, points: [[0.0, -50.0], [18.0, -42.0], [42.0, -30.0], [68.0, -15.0], [84.0, -4.0], [100.0, -2.0]] }
             ]
         },
 
@@ -1115,14 +1206,17 @@ window.LOCATIONS = {
         noFerns: [{ x: 0.0, z: -89.0, rx: 10.0, rz: 10.0 }],
 
         spawns: {
-            default:    { x: 0.0, z: -78.5, r: 3.14 },
+            default:    { x: -128.0, z: 0.0, r: 4.71 },
             fromForest: { x: 0.0, z: -78.5, r: 3.14 },
-            fromBurnt:  { x: -128.0, z: 0.0, r: 4.71 }      // выход из западного ущелья, лицом на восток в долину
+            fromBurnt:  { x: -128.0, z: 0.0, r: 4.71 },     // выход из западного ущелья, лицом на восток в долину
+            fromFrost:  { x: -128.0, z: 0.0, r: 4.71 }      // выход из Морозного хребта
         },
 
         exits: [
-            { id: 'toForest', x: 0.0, z: -95.0, radius: 1.4, to: 'forestEdge', spawn: 'fromPrimeval', label: 'Лесная опушка', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, r: Math.PI, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc } },
-            { id: 'toBurnt', x: -146.0, z: 0.0, radius: 2.0, to: 'burntLands', spawn: 'fromValley', label: 'Выжженная земля', color: 0xffc9a0, height: 5.0, track: true, noRing: true, r: -Math.PI / 2, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xcbb3a4 } }
+            // Портал в Лесную опушку временно заглушен (проход завален / закрыт)
+            // { id: 'toForest', x: 0.0, z: -95.0, radius: 1.4, to: 'forestEdge', spawn: 'fromPrimeval', label: 'Лесная опушка' ... },
+            // Западный проход в Морозный хребет
+            { id: 'toFrost', x: -146.0, z: 0.0, radius: 2.0, to: 'frostRidge', spawn: 'fromValley', label: 'Морозный хребет', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, r: -Math.PI / 2, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc } }
         ],
 
         clearings: [
@@ -1166,10 +1260,9 @@ window.LOCATIONS = {
             // Камыши / хвощи у озера и океанских отмелей
             { id: 'pv_reeds_lake_e', type: 'reeds', x: 12.0, z: 5.0, rx: 4.0, rz: 18.0, count: 28, seed: 5130 },
             { id: 'pv_reeds_lake_w', type: 'reeds', x: -32.0, z: 4.0, rx: 4.0, rz: 18.0, count: 28, seed: 5131 },
-            { id: 'pv_reeds_coast', type: 'reeds', x: 84.0, z: -10.0, rx: 4.0, rz: 22.0, count: 24, seed: 5132 },
             // Скалы и валуны
-            { id: 'pv_rocks_coast', type: 'rocks', x: 96.0, z: 15.0, radius: 12.0, count: 7, scaleMin: 1.0, scaleMax: 2.4, seed: 5139 },
-            { id: 'pv_rocks_coast_s', type: 'rocks', x: 92.0, z: -30.0, radius: 10.0, count: 6, scaleMin: 1.0, scaleMax: 2.2, seed: 5140 },
+            { id: 'pv_rocks_coast', type: 'rocks', x: 106.0, z: 15.0, radius: 12.0, count: 7, scaleMin: 1.0, scaleMax: 2.4, seed: 5139 },
+            { id: 'pv_rocks_coast_s', type: 'rocks', x: 103.0, z: -30.0, radius: 10.0, count: 6, scaleMin: 1.0, scaleMax: 2.2, seed: 5140 },
             { id: 'pv_rocks_1', type: 'rocks', x: -65.0, z: 55.0, radius: 12.0, count: 8, scaleMin: 0.9, scaleMax: 2.4, seed: 5141 },
             { id: 'pv_rocks_2', type: 'rocks', x: -88.0, z: -14.0, radius: 10.0, count: 6, scaleMin: 0.9, scaleMax: 2.4, seed: 5142 },
             { id: 'pv_rocks_3', type: 'rocks', x: -105.0, z: 45.0, radius: 12.0, count: 7, scaleMin: 1.0, scaleMax: 2.5, seed: 5143 },
@@ -1202,8 +1295,8 @@ window.LOCATIONS = {
 
         creatures: [
             // Западный берег океана и приливные отмели — гигантский эвриптерид в естественной среде обитания
-            { id: 'pv_jaekelopterus_1', type: 'jaekelopterus', level: 10, x: 102.0, z: 6.0, r: 4.71 },
-            { id: 'pv_jaekelopterus_2', type: 'jaekelopterus', level: 10, x: 94.0, z: -24.0, r: 5.94 },
+            { id: 'pv_jaekelopterus_1', type: 'jaekelopterus', level: 10, x: 104.0, z: 6.0, r: 4.71 },
+            { id: 'pv_jaekelopterus_2', type: 'jaekelopterus', level: 10, x: 104.0, z: -24.0, r: 5.94 },
 
             // Песчаный пляж внутреннего озера — греющийся на солнце древний крокодил Саркозух
             { id: 'pv_sarcosuchus', type: 'sarcosuchus', level: 11, x: -26.0, z: -6.0, r: 1.24 },
@@ -1342,13 +1435,15 @@ window.LOCATIONS = {
             default:      { x: 0.0, z: -78.5, r: 3.14 },
             fromSavanna:  { x: 0.0, z: -78.5, r: 3.14 },
             fromValley:   { x: 128.0, z: 0.0, r: 1.57 },      // выход из восточного ущелья, лицом на запад      // выход из северного ущелья, лицом на юг
+            fromFrost:    { x: 128.0, z: 0.0, r: 1.57 },      // выход из Морозного хребта
             fromForges:   { x: -125.0, z: -69.5, r: 3.14 },   // выход из Кузен Эмберстоуна, лицом на юг (от портала)
             fromDepths:   { x: 0.0, z: -11.5, r: 0.0 }      // подъём из недр у южного края трещины, лицом на юг (от трещины)
         },
 
         exits: [
             { id: 'toSavanna', x: 0.0, z: -96.0, radius: 2.0, to: 'savanna', spawn: 'fromBurnt', label: 'Золотая саванна', color: 0xffc9a0, height: 5.0, track: true, noRing: true, r: Math.PI, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xcbb3a4 } },
-            { id: 'toValley', x: 146.0, z: 0.0, radius: 2.0, to: 'primevalValley', spawn: 'fromBurnt', label: 'Долина Забытых Эпох', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, r: 1.57, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc } },
+            // Восточный проход в Морозный хребет
+            { id: 'toFrost', x: 146.0, z: 0.0, radius: 2.0, to: 'frostRidge', spawn: 'fromBurnt', label: 'Морозный хребет', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, r: 1.57, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc } },
             // Спуск в недра вулкана у южного края трещины (заготовка под будущий данж: пока пустая локация-заглушка)
             { id: 'toDepths', x: 0.0, z: -7.0, radius: 1.5, height: 2.6, noRing: true, color: 0x6e8fff, to: 'volcanoDepths', spawn: 'entrance', label: 'Спуск в недра', minLevel: 15 },
             // Кузни Эмберстоуна (бывший данж «Недра вулкана», локация magmaDepths): чёрный ход цитадели на северо-западе

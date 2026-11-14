@@ -400,6 +400,7 @@
                 obj.rotation.y = p.r || 0;
                 obj.scale.setScalar(s);
                 obj.name = `prop:${p.id || p.prop}`;
+                if (p.snow) AveloraWorldObjects.applySnow(obj, p.snow);   // заснеженная локация: верхние грани и пол ущелья белеют, склоны — холодный серо-голубой камень
                 this.root.add(obj);
                 // ходимая платформа (prop.json "platform": {oct|hx,hz, y, rampLen, rampHx}): герой поднимается на настил по ступенькам
                 if (def.platform && this.terrain.addPlatform && !underCel) {
@@ -761,6 +762,32 @@
                         m.needsUpdate = true;
                     }
                 });
+            });
+        }
+
+        /** Снег на модели (prop `snow: true`): по мировой нормали — белый наст на верхних гранях (в т.ч. пол ущелья), холодный камень на склонах.
+         *  Материалы клонируются, чтобы не трогать исходный проп в других локациях. */
+        static applySnow(obj, opt) {
+            const k = (typeof opt === 'number') ? opt : 1.0;
+            obj.traverse(o => {
+                if (!o.isMesh || !o.material) return;
+                const one = (m) => {
+                    if (!m || !m.isMeshStandardMaterial) return m;
+                    const c = m.clone();
+                    c.onBeforeCompile = (sh) => {
+                        sh.uniforms.uSnowK = { value: k };
+                        sh.vertexShader = sh.vertexShader
+                            .replace('#include <common>', '#include <common>\nvarying float vSnowUp;')
+                            .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nvSnowUp = normalize(mat3(modelMatrix) * objectNormal).y;');
+                        sh.fragmentShader = sh.fragmentShader
+                            .replace('#include <common>', '#include <common>\nvarying float vSnowUp;\nuniform float uSnowK;')
+                            .replace('#include <color_fragment>', '#include <color_fragment>\n{ float sn = smoothstep(0.35, 0.78, vSnowUp) * uSnowK; vec3 cold = diffuseColor.rgb * vec3(0.84, 0.90, 1.0); diffuseColor.rgb = mix(cold, vec3(0.93, 0.96, 1.0), sn * 0.92); }');
+                    };
+                    c.customProgramCacheKey = () => 'avSnow';
+                    c.needsUpdate = true;
+                    return c;
+                };
+                o.material = Array.isArray(o.material) ? o.material.map(one) : one(o.material);
             });
         }
 

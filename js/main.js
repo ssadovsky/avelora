@@ -1520,7 +1520,17 @@ class AveloraGame {
             this.creatures ? (this.creatures.allReady || this.creatures.ready) : null
         ]).then(() => window.AveloraAssets ? window.AveloraAssets.idle() : null)
           .then(() => { if (window.AveloraAssets) window.AveloraAssets.evictUnused(); });
-        await nextFrame();
+        // Прогрев под экраном загрузки: компиляция шейдеров новой локации (при первом входе — например, снежная земля Морозного хребта)
+        // и загрузка её текстур в GPU. Без этого компиляция шла уже после снятия загрузочного экрана — на секунду чёрный кадр.
+        for (let w = 0; w < 2; w++) {
+            try {
+                if (this.renderer && this.scene && this.camera) {
+                    if (w === 0 && typeof this.renderer.compile === 'function') this.renderer.compile(this.scene, this.camera);
+                    this.renderer.render(this.scene, this.camera);
+                }
+            } catch (e) { console.warn('[Avelora] Shader warmup warning:', e); }
+            await nextFrame();
+        }
 
         this.clock.getDelta(); // don't count loading time as game time
         this.isTransitioning = false;
@@ -3327,7 +3337,7 @@ class AveloraGame {
         let k = 1;
 
         // 1. Край мира (с запасом): дальше только пустота за горами
-        const mg = 2.0;
+        const mg = 0.5;
         const hx = (t.halfX !== undefined ? t.halfX : (t.sizeX || 120) / 2) - mg;
         const hz = (t.halfZ !== undefined ? t.halfZ : (t.sizeZ || 120) / 2) - mg;
         if (dx > 0 && head.x + dx * k > hx) k = Math.min(k, Math.max(0, (hx - head.x) / dx));
@@ -3751,6 +3761,35 @@ class AveloraGame {
      * once per frame with the real, clamped delta; debugAdvance() (tests) calls it
      * repeatedly with a fixed step to fast-forward on slow headless GPUs.
      */
+    /**
+     * Глобальная защита от падения за край (одинакова для всех локаций, ничего настраивать в новой локации не нужно).
+     * Навигационная сетка уже блокирует полосу у края (AVELORA_EDGE_MARGIN), но толчок, телепорт или «стою в закрытой клетке»
+     * обходят сетку — поэтому каждый кадр координаты героя и существ принудительно зажимаются в границы карты.
+     * Подземелья пропускаются (у них свои стены). Прячущийся вдали край мира за горами/террейном-юбкой не виден.
+     */
+    enforceWorldBounds() {
+        const t = this.terrain;
+        if (!t || t.halfX === undefined || (this.location && this.location.isDungeon)) return;
+        const m = window.AVELORA_EDGE_MARGIN || 2.0;
+        const hx = t.halfX - m, hz = t.halfZ - m;
+        const ch = this.character;
+        if (ch && ch.position) {
+            const p = ch.position;
+            if (p.x > hx) p.x = hx; else if (p.x < -hx) p.x = -hx;
+            if (p.z > hz) p.z = hz; else if (p.z < -hz) p.z = -hz;
+        }
+        const cr = this.creatures && this.creatures.list;
+        if (cr) {
+            for (let i = 0; i < cr.length; i++) {
+                const r = cr[i];
+                if (!(r.x > hx || r.x < -hx || r.z > hz || r.z < -hz)) continue;
+                r.x = Math.max(-hx, Math.min(hx, r.x)); r.z = Math.max(-hz, Math.min(hz, r.z));
+                if (r.kbT) r.kbT = 0;   // толчок упёрся в край
+                if (r.group && r.group.position) r.group.position.x = r.x, r.group.position.z = r.z;
+            }
+        }
+    }
+
     simulate(delta) {
         // Advance game time & fire due game timers
         this.gameTime += delta;
@@ -3794,6 +3833,7 @@ class AveloraGame {
         if (this.worldObjects) this.worldObjects.update(delta); // auto-pickup on arrival
         if (this.building) this.building.update(delta);         // placement ghost, roof fade near/inside buildings
         if (this.mount) this.mount.update(delta);               // mounts: riding, animation sync, terrain tilt
+        this.enforceWorldBounds();                              // жёсткая защита от выхода за край карты (герой и все существа)
         if (this.skills) this.skills.update(delta);             // casts, projectiles, VFX
         if (this.ui) this.ui.update(delta);                     // cooldown sweeps, floating texts
 
