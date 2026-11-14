@@ -59,7 +59,7 @@ window.AVELORA_ASSET_INDEX = {
   "creatures/thunderclaw": ["m/creatures__thunderclaw.js", "9d4ca583dc"],
   "creatures/triceratops": ["m/creatures__triceratops.js", "229339c3e3"],
   "creatures/water_elemental": ["m/creatures__water_elemental.js", "1ace80cb53"],
-  "creatures/wolf": ["m/creatures__wolf.js", "887ceee998"],
+  "creatures/wolf": ["m/creatures__wolf.js", "bdfd179e5b"],
   "creatures/wyrmguard": ["m/creatures__wyrmguard.js", "41e3c9d521"],
   "creatures/yasha": ["m/creatures__yasha.js", "626727a291"],
   "fern": ["m/fern.js", "d59385f229"],
