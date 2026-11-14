@@ -1,0 +1,47 @@
+{
+  "id": "lava_bat",
+  "name": "Лавовый нетопырь",
+  "level": 20,
+  "hp": 260,
+  "damage": [
+    26,
+    36
+  ],
+  "attackRange": 3.0,
+  "attackCooldown": 1.4,
+  "walkSpeed": 1.4,
+  "runSpeed": 4.2,
+  "behavior": "retaliate",
+  "aggroRadius": 0,
+  "leashRadius": 18,
+  "wanderRadius": 8,
+  "respawnMinutes": 6,
+  "hitRadius": 2.0,
+  "scale": 1.4,
+  "hpBarHeight": 3.9,
+  "gold": [
+    14,
+    24
+  ],
+  "xp": 330,
+  "statMultiplier": 1.25,
+  "goldDrop": true,
+  "lootTiers": {
+    "20": [
+      {
+        "item": "element_crystal",
+        "chance": 0.3,
+        "rankChance": {
+          "elite": 0.6,
+          "boss": 1
+        }
+      }
+    ]
+  },
+  "drops": [
+    {
+      "item": "meat",
+      "count": 1
+    }
+  ]
+}

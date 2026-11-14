@@ -1693,14 +1693,61 @@ window.LOCATIONS = {
             // Босс: Сердце горы — в центре Печати (центр зала босса, depths.js _seal)
             { id: 'vd_boss_heart', type: 'element_heart', name: 'Сердце горы', rank: 'boss', scale: 3.0, x: 57.2, z: 132.6, r: Math.PI, behavior: 'aggressive', aggroRadius: 16, leashRadius: 44 },
             // «Горло»: магмовые големы-привратники
-            { id: 'vd_throat_golem_1', type: 'magma_golem', x: -6.6, z: -107.8, r: 3.14, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
+            { id: 'vd_throat_golem_1', type: 'magma_golem', x: -6.6, z: -107.8, r: 3.14, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'elite' },
             { id: 'vd_throat_golem_2', type: 'magma_golem', x: -2.7, z: -86.7, r: 3.14, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
             // «Гнездовье»: псевдодраконы стерегут кладки, у остова — багровый полудракон (элита)
-            { id: 'vd_nest_wyrm_1', type: 'skywyrm', x: -25.3, z: 111.8, r: 0.6, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'normal' },
+            { id: 'vd_nest_wyrm_1', type: 'skywyrm', x: -25.3, z: 111.8, r: 0.6, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'elite' },
             { id: 'vd_nest_wyrm_2', type: 'skywyrm', x: -14.6, z: 108.8, r: 3.9, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'normal' },
-            { id: 'vd_nest_wyrm_3', type: 'skywyrm', x: -17.9, z: 122.1, r: 2.2, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'normal' },
+            { id: 'vd_nest_wyrm_3', type: 'skywyrm', x: -17.9, z: 122.1, r: 2.2, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'elite' },
             { id: 'vd_nest_wyrm_4', type: 'skywyrm', x: -39.7, z: 114.9, r: 5.1, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'normal' },
-            { id: 'vd_nest_guard', type: 'wyrmguard', x: -46.6, z: 118.4, r: 1.2, behavior: 'aggressive', aggroRadius: 10, leashRadius: 32, rank: 'elite' }
+            { id: 'vd_nest_guard', type: 'wyrmguard', x: -46.6, z: 118.4, r: 1.2, behavior: 'aggressive', aggroRadius: 10, leashRadius: 32, rank: 'elite' },
+            // «Гнездовье», у входа в зал: пара пепельных гарпий
+            { id: 'vd_nest_harpy_1', type: 'ash_harpy', x: -17.9, z: 100.7, r: 3.5, behavior: 'aggressive', aggroRadius: 10, leashRadius: 28, rank: 'normal' },
+            { id: 'vd_nest_harpy_2', type: 'ash_harpy', x: -42.7, z: 96.6, r: 0.4, behavior: 'aggressive', aggroRadius: 10, leashRadius: 28, rank: 'elite' },
+            // «Столпы»: огнеклешневые скорпионы среди базальта, над залом кружит нетопырь
+            { id: 'vd_pillar_scorp_1', type: 'ember_scorpion', x: 0.1, z: -72.9, r: 3.14, behavior: 'aggressive', aggroRadius: 9, leashRadius: 26, rank: 'normal' },
+            { id: 'vd_pillar_scorp_2', type: 'ember_scorpion', x: 12.7, z: -41.7, r: 1.2, behavior: 'aggressive', aggroRadius: 9, leashRadius: 26, rank: 'elite' },
+            { id: 'vd_pillar_scorp_3', type: 'ember_scorpion', x: -16.1, z: -41.9, r: 4.6, behavior: 'aggressive', aggroRadius: 9, leashRadius: 26, rank: 'normal' },
+            { id: 'vd_pillar_bat_1', type: 'lava_bat', x: 12.3, z: -28.5, r: 2.0, behavior: 'aggressive', aggroRadius: 11, leashRadius: 28, rank: 'normal' },
+            // «Огнепад»: нетопыри над лавой, скорпионы у воды
+            { id: 'vd_fall_bat_1', type: 'lava_bat', x: 27.1, z: 23.2, r: 2.5, behavior: 'aggressive', aggroRadius: 11, leashRadius: 28, rank: 'normal' },
+            { id: 'vd_fall_bat_2', type: 'lava_bat', x: 36.1, z: 20.6, r: 4.0, behavior: 'aggressive', aggroRadius: 11, leashRadius: 28, rank: 'normal' },
+            { id: 'vd_fall_scorp_1', type: 'ember_scorpion', x: 22.3, z: 31.2, r: 1.0, behavior: 'aggressive', aggroRadius: 9, leashRadius: 26, rank: 'normal' },
+            { id: 'vd_fall_scorp_2', type: 'ember_scorpion', x: 30.6, z: 12.7, r: 5.0, behavior: 'aggressive', aggroRadius: 9, leashRadius: 26, rank: 'elite' },
+            // «Жеода»: хранитель — крупный скорпион-элита, рядом два нетопыря
+            { id: 'vd_geode_scorp_elite', type: 'ember_scorpion', x: -41.6, z: 52.3, r: 0.8, behavior: 'aggressive', aggroRadius: 9, leashRadius: 32, rank: 'elite', scale: 1.9 },
+            { id: 'vd_geode_bat_1', type: 'lava_bat', x: -30.5, z: 48.8, r: 5.5, behavior: 'aggressive', aggroRadius: 11, leashRadius: 28, rank: 'elite' },
+            { id: 'vd_geode_bat_2', type: 'lava_bat', x: -48.5, z: 60.2, r: 1.5, behavior: 'aggressive', aggroRadius: 11, leashRadius: 28, rank: 'normal' },
+            // ── Население (усиление): элитные мобы и дозоры ──
+            // «Горло»: пауки в коридоре, один — элита
+            { id: 'vd_throat_spider_1', type: 'lava_spider', x: 1.8, z: -125.0, r: 3.14, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
+            { id: 'vd_throat_spider_2', type: 'lava_spider', x: 9.4, z: -99.9, r: 3.14, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'elite' },
+            { id: 'vd_throat_spider_3', type: 'lava_spider', x: 4.9, z: -94.1, r: 3.14, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
+            // «Столпы»: драконорождённый дозор с командиром, обсидиановый страж, ещё скорпион
+            { id: 'vd_pillar_dbw_1', type: 'dragonborn_warrior', x: -27.3, z: -43.1, r: 0.5, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
+            { id: 'vd_pillar_dbw_2', type: 'dragonborn_warrior', x: -21.1, z: -36.8, r: 0.5, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
+            { id: 'vd_pillar_dbw_3', type: 'dragonborn_warrior', x: 20.0, z: -58.4, r: 4.0, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
+            { id: 'vd_pillar_cmd', type: 'dragonborn_commander', x: 28.1, z: -40.3, r: 4.7, behavior: 'aggressive', aggroRadius: 10, leashRadius: 32, rank: 'elite' },
+            { id: 'vd_pillar_guard', type: 'obsidian_guardian', x: -8.6, z: -66.2, r: 1.0, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'elite' },
+            { id: 'vd_pillar_scorp_4', type: 'ember_scorpion', x: -17.9, z: -72.7, r: 2.0, behavior: 'aggressive', aggroRadius: 9, leashRadius: 26, rank: 'normal' },
+            // между Столпами и Огнепадом — пауки
+            { id: 'vd_mid_spider_1', type: 'lava_spider', x: 19.0, z: -10.7, r: 1.5, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
+            { id: 'vd_mid_spider_2', type: 'lava_spider', x: 13.6, z: -2.1, r: 3.0, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
+            // «Огнепад»: дозор у воды и страж у берега
+            { id: 'vd_fall_dbw_1', type: 'dragonborn_warrior', x: 31.3, z: 37.6, r: 3.14, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
+            { id: 'vd_fall_dbw_2', type: 'dragonborn_warrior', x: 20.7, z: 39.1, r: 3.14, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
+            { id: 'vd_fall_guard', type: 'obsidian_guardian', x: 23.0, z: 13.8, r: 5.0, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'elite' },
+            // «Жеода»: пауки в кристаллах, один — элита
+            { id: 'vd_geode_spider_1', type: 'lava_spider', x: -26.1, z: 67.7, r: 4.0, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
+            { id: 'vd_geode_spider_2', type: 'lava_spider', x: -49.4, z: 49.7, r: 1.0, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
+            { id: 'vd_geode_spider_3', type: 'lava_spider', x: -45.0, z: 69.9, r: 2.0, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'elite' },
+            // «Гнездовье»: страж у остова и ещё псевдодраконы
+            { id: 'vd_nest_guard_2', type: 'wyrmguard', x: -34.2, z: 92.9, r: 1.5, behavior: 'aggressive', aggroRadius: 10, leashRadius: 32, rank: 'elite' },
+            { id: 'vd_nest_wyrm_5', type: 'skywyrm', x: -22.2, z: 133.5, r: 0.2, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'normal' },
+            { id: 'vd_nest_wyrm_6', type: 'skywyrm', x: -47.2, z: 125.0, r: 6.0, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'normal' },
+            // у входа в зал босса: два командира-часовых
+            { id: 'vd_arena_cmd_1', type: 'dragonborn_commander', x: 25.1, z: 120.2, r: 4.7, behavior: 'aggressive', aggroRadius: 11, leashRadius: 34, rank: 'elite' },
+            { id: 'vd_arena_cmd_2', type: 'dragonborn_commander', x: 17.2, z: 125.6, r: 3.9, behavior: 'aggressive', aggroRadius: 11, leashRadius: 34, rank: 'elite' }
         ],
         groups: [], pickups: [], props: []
     },

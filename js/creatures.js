@@ -111,6 +111,46 @@
         return clips.filter(c => c !== findClip(clips, 'Idle')).concat([idle]);
     }
 
+    // Летуны на «спецификационном» риге (кости wing_L/R_0..3, leg_*, tail_*): ходьба по земле у них выглядит неестественно
+    // (пепельная гарпия — это летучая мышь с короткими лапами: лапы под брюхом почти не видны, тело «скользит»).
+    // Для таких существ Idle / Walk / Run собираются заново как полёт: взмахи крыльев с запаздыванием к кончикам, лапы поджаты,
+    // хвост волной, в погоне корпус наклонён вперёд. Высота полёта — flyHeight (см. applyFlightDefs).
+    const FLIGHT = { ash_harpy: { flyHeight: 1.15, flap: 1.0 }, lava_bat: { flyHeight: 1.0, flap: 1.0 } };
+    function applyFlightDefs(defs) { if (!defs) return; Object.keys(FLIGHT).forEach(k => { if (defs[k] && !defs[k].flyHeight) defs[k].flyHeight = FLIGHT[k].flyHeight; }); }
+    function synthFlight(type, scene, clips) {
+        const F = FLIGHT[type]; if (!F || !scene || !clips) return clips;
+        const bones = {}; scene.traverse(o => { if (o.isBone || /^(wing|leg|tail)_|^(pelvis|chest|neck|head|spine_1)$/.test(o.name)) bones[o.name] = o; });
+        if (!bones.wing_L_0 || !bones.wing_R_0) return clips;
+        const X = new THREE.Vector3(1, 0, 0), Z = new THREE.Vector3(0, 0, 1), q = new THREE.Quaternion(), q2 = new THREE.Quaternion();
+        const make = (name, dur, amp, pitch, tuck) => {
+            const N = 16, T = []; for (let i = 0; i <= N; i++) T.push(dur * i / N);
+            const tracks = [];
+            const rot = (bone, fn) => { const b = bones[bone]; if (!b) return; const out = []; T.forEach(t => { const r = fn(t / dur * Math.PI * 2); q.setFromAxisAngle(r[0], r[1]); if (r[2]) { q2.setFromAxisAngle(r[2], r[3]); q.multiply(q2); } q.multiply(b.quaternion); out.push(q.x, q.y, q.z, q.w); }); tracks.push(new THREE.QuaternionKeyframeTrack(bone + '.quaternion', T, out)); };
+            const WA = [0.60, 0.36, 0.30, 0.24], lag = 0.55;
+            for (let k = 0; k < 4; k++) {
+                // взмах: вниз быстрее, вверх медленнее (sin со сдвигом), кончики запаздывают; лёгкий постоянный подъём крыла
+                const f = ph => Math.sin(ph - k * lag) + 0.22 * Math.sin(2 * (ph - k * lag));
+                rot('wing_L_' + k, ph => [Z, (WA[k] * f(ph) + (k === 0 ? 0.10 : 0)) * amp * F.flap]);
+                rot('wing_R_' + k, ph => [Z, -(WA[k] * f(ph) + (k === 0 ? 0.10 : 0)) * amp * F.flap]);
+            }
+            ['FL', 'FR', 'BL', 'BR'].forEach((s, i) => {
+                const back = (s[0] === 'B') ? 1 : 0.7;
+                rot('leg_' + s + '_0', ph => [X, tuck * back + 0.06 * Math.sin(ph + i)]);
+                rot('leg_' + s + '_1', ph => [X, -tuck * 1.3 * back + 0.05 * Math.sin(ph + i + 1)]);
+            });
+            rot('tail_0', ph => [X, 0.05 * Math.sin(ph + 0.4) - pitch * 0.4]);
+            rot('tail_1', ph => [X, 0.10 * Math.sin(ph - 0.3)]);
+            rot('tail_2', ph => [X, 0.16 * Math.sin(ph - 1.0)]);
+            rot('pelvis', ph => [X, pitch + 0.03 * Math.sin(ph + 1.2)]);
+            rot('chest', ph => [X, 0.05 * Math.sin(ph + 2.0)]);
+            rot('neck', ph => [X, -pitch * 0.6 + 0.03 * Math.sin(ph + 2.4)]);
+            const pv = bones.pelvis; if (pv) { const out = []; T.forEach(t => out.push(pv.position.x, pv.position.y - 0.05 * amp * Math.sin(t / dur * Math.PI * 2 + 0.6), pv.position.z)); tracks.push(new THREE.VectorKeyframeTrack('pelvis.position', T, out)); }
+            return new THREE.AnimationClip(name, dur, tracks);
+        };
+        const made = { Idle: make('Idle', 0.95, 0.85, 0.0, 0.5), Walk: make('Walk', 0.80, 1.0, 0.12, 0.6), Run: make('Run', 0.52, 1.25, 0.30, 0.75) };
+        return clips.filter(c => !made[c.name]).concat(Object.values(made));
+    }
+
     function findClip(clips, name) {
         const lower = name.toLowerCase();
         return clips.find(c => c.name === name)
@@ -240,6 +280,7 @@
 
         def(type) {
             const defs = (window.GAME_CONTENT && window.GAME_CONTENT.creatures) || {};
+            applyFlightDefs(defs);
             return Object.prototype.hasOwnProperty.call(defs, type) ? defs[type] : null;
         }
 
@@ -374,6 +415,7 @@
                     ? window.LakesideEnvironment.getModelBuffer(def.modelKey) : null;
                 const finish = (scene, clips) => {
                     clips = synthIdleFromWalk(type, def, clips);
+                    clips = synthFlight(type, scene, clips);
                     if (!scene) scene = AveloraCreatures.makeFallback(def);
                     scene.traverse(o => {
                         if (o.isMesh) {
