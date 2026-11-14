@@ -1350,9 +1350,9 @@ window.LOCATIONS = {
             { id: 'toSavanna', x: 0.0, z: -96.0, radius: 2.0, to: 'savanna', spawn: 'fromBurnt', label: 'Золотая саванна', color: 0xffc9a0, height: 5.0, track: true, noRing: true, r: Math.PI, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xcbb3a4 } },
             { id: 'toValley', x: 146.0, z: 0.0, radius: 2.0, to: 'primevalValley', spawn: 'fromBurnt', label: 'Долина Забытых Эпох', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, r: 1.57, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xb4c2cc } },
             // Спуск в недра вулкана у южного края трещины (заготовка под будущий данж: пока пустая локация-заглушка)
-            { id: 'toDepths', x: 0.0, z: -7.0, radius: 1.5, height: 2.6, noRing: true, color: 0x6e8fff, to: 'volcanoDepths', spawn: 'entrance', label: 'Спуск в недра' },
+            { id: 'toDepths', x: 0.0, z: -7.0, radius: 1.5, height: 2.6, noRing: true, color: 0x6e8fff, to: 'volcanoDepths', spawn: 'entrance', label: 'Спуск в недра', minLevel: 15 },
             // Кузни Эмберстоуна (бывший данж «Недра вулкана», локация magmaDepths): чёрный ход цитадели на северо-западе
-            { id: 'toForges', x: -125.0, z: -75.0, radius: 1.5, height: 2.6, color: 0x6e8fff, to: 'magmaDepths', spawn: 'entrance', label: 'Кузни Эмберстоуна' }
+            { id: 'toForges', x: -125.0, z: -75.0, radius: 1.5, height: 2.6, color: 0x6e8fff, to: 'magmaDepths', spawn: 'entrance', label: 'Кузни Эмберстоуна', minLevel: 15 }
         ],
 
         clearings: [
@@ -1587,8 +1587,8 @@ window.LOCATIONS = {
         dungeon: {
             kind: 'temple',
             id: 'magma_depths',
-            minLevel: 20,
-            // ступени мобов по 5 уровней: герой 19–23 → 20, 24–28 → 25 …
+            minLevel: 15,
+            // ступени мобов по 5 уровней: герой 14–18 → 15, 19–23 → 20 …
             bossId: 'md_boss_dragon',
             bossArena: [-26, 22, 22, 58],     // [x0, z0, x1, z1]: в этом прямоугольнике (Логово) босс держит бой без сброса
             bossExit: { id: 'bossExit', x: -1.0, z: 26.0, y: 0.02, radius: 1.2, height: 2.2, color: 0x6e8fff, to: 'burntLands', spawn: 'fromForges', label: 'Выход из кузен' },
@@ -1686,7 +1686,7 @@ window.LOCATIONS = {
             { id: 'toSurface', x: 0.0, z: -148.0, y: 0.02, radius: 1.3, height: 2.4, color: 0xff7a30, to: 'burntLands', spawn: 'fromDepths', label: 'Подъём на поверхность' }
         ],
 
-        dungeon: { kind: 'depths', id: 'volcano_depths', minLevel: 20, resetSeconds: 60,
+        dungeon: { kind: 'depths', id: 'volcano_depths', minLevel: 15, resetSeconds: 60,
             bossId: 'vd_boss_heart', bossArena: [28.0, 104.0, 88.0, 162.0],
             bossExit: { id: 'bossExit', x: 57.2, z: 147.0, y: 0.02, radius: 1.3, height: 2.4, color: 0xff7a30, to: 'burntLands', spawn: 'fromDepths', label: 'Выход из недр' } },
         creatures: [
