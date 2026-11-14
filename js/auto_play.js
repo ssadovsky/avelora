@@ -344,22 +344,8 @@
         }
 
         initHotkeys() {
-            window.addEventListener('keydown', (e) => {
-                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-                const g = this.game;
-                if (!g || !g.isReady || g.isPaused) return;
-
-                if (e.code === 'KeyZ') { // Z key - Auto Combat
-                    e.preventDefault();
-                    this.toggleCombat();
-                } else if (e.code === 'KeyX') { // X key - Auto Quest
-                    e.preventDefault();
-                    this.toggleQuest();
-                } else if (e.code === 'BracketRight' || e.key === ']' || e.key === 'ъ' || e.key === 'Ъ') { // ] key - Auto Gather
-                    e.preventDefault();
-                    this.toggleGather();
-                }
-            });
+            // Горячих клавиш у автобоя / автоквеста / автосбора нет (раньше Z / X / ]):
+            // Alt+Z / Alt+X на панели умений включали их случайно. Только кнопки.
         }
 
         toggleGather(force) {

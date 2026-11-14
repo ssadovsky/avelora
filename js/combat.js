@@ -53,7 +53,7 @@
         'spotted_fawn': '🦌', 'forest_doe': '🦌', 'rooster': '🐓', 'fire_fox': '🦊',
         'red_panda': '🐼', 'hyena': '🐕', 'cave_lion': '🦁', 'komodo': '🦎',
         'lizard': '🦎', 'lizard_soldier': '🦎', 'kobold': '⛏️', 'minotaur': '🐂',
-        'thunderclaw': '🦖', 'yasha': '🐊', 'sarcosuchus': '🐊', 'rhino': '🦏', 'duck': '🦆', 'midnight_dancer': '💃', 'midnight_dancer2': '💃', 'midnight_dancer3': '💃', 'forest_dancer': '💃', 'jaekelopterus': '🦂', 'triceratops': '🦕', 'fire_elemental': '🔥',
+        'thunderclaw': '🦖', 'yasha': '🐊', 'sarcosuchus': '🐊', 'rhino': '🦏', 'emberwing': '🐲', 'musk_ox': '🐂', 'frostfang': '🐯', 'frostfang_brute': '👹', 'frostwing_owl': '🦉', 'snowbound_mammoth': '🦣', 'duck': '🦆', 'midnight_dancer': '💃', 'midnight_dancer2': '💃', 'midnight_dancer3': '💃', 'forest_dancer': '💃', 'jaekelopterus': '🦂', 'triceratops': '🦕', 'fire_elemental': '🔥',
         'water_elemental': '💧', 'air_elemental': '💨', 'stone_elemental': '🗿'
     };
 

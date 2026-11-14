@@ -1152,7 +1152,14 @@ window.LOCATIONS = {
             { id: 'frostRidge.east_pass', prop: 'twinstone_pass', x: 145.0, z: 0.0, r: 4.71, yFrom: [120.0, 0.0], dy: 0.10, snow: true }
         ],
 
-        creatures: []
+        creatures: [
+            // Оценочная расстановка (по одному, не агрессивные: бьют в ответ). Модели: content/creatures/frostfang*, frostwing_owl, snowbound_mammoth
+            { id: 'fr_frostfang_1', type: 'frostfang', x: -45.0, z: -22.0, r: 1.0 },
+            { id: 'fr_owl_1', type: 'frostwing_owl', x: 35.0, z: -30.0, r: 3.5 },
+            { id: 'fr_brute_1', type: 'frostfang_brute', x: 75.0, z: -28.0, r: 3.9 },
+            { id: 'fr_mammoth_1', type: 'snowbound_mammoth', x: -85.0, z: -30.0, r: 0.5 },
+            { id: 'fr_musk_ox_1', type: 'musk_ox', x: -55.0, z: 5.0, r: 2.0 }
+        ]
     },
 
     primevalValley: {
@@ -1547,6 +1554,8 @@ window.LOCATIONS = {
         ],
 
         creatures: [
+            // Огненное крыло на тропе от входа к Малакару (оценка модели, не агрессивное)
+            { id: 'bl_emberwing_1', type: 'emberwing', x: -22.0, z: -76.2, r: 1.57 },
             // Гнездо изумрудных псевдодраконов (-116, 70)
             { id: 'bl_skywyrm_1', type: 'skywyrm', x: -111.7, z: 70.8, r: 0.00, level: 19 },
             { id: 'bl_skywyrm_2', type: 'skywyrm', x: -104.3, z: 60.0, r: 0.80, level: 20 },
