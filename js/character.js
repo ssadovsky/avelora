@@ -1255,6 +1255,16 @@ class MedievalCharacter {
 
     /** Continuous cylinder-cylinder obstacle resolution (smooth slide along rocks, trees, pillars). */
     resolveObstacleCollisions(playerRadius = 0.15) {
+        // Перила процедурных мостиков (terrain.bridges): непрерывный зажим, чтобы герой не пролезал сквозь, даже если оказался в заблокированной клетке сетки
+        const brs = this.game && this.game.terrain && this.game.terrain.bridges || (window.game && window.game.terrain && window.game.terrain.bridges);
+        if (brs && this.position.y > 0.35) {
+            for (let i = 0; i < brs.length; i++) {
+                const b = brs[i];
+                if (Math.abs(this.position.z - b.z) >= b.length / 2) continue;
+                const lim = 1.1, dx = this.position.x - b.x;
+                if (Math.abs(dx) > lim && Math.abs(dx) < b.width / 2 + 0.4) this.position.x = b.x + Math.sign(dx) * lim;
+            }
+        }
         const pf = (this.game && this.game.pathfinder) || (window.game && window.game.pathfinder);
         if (!pf || !pf.obstacles || pf.obstacles.length === 0) return;
         const px = this.position.x, pz = this.position.z;

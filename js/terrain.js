@@ -182,10 +182,24 @@ class LakesideTerrain {
             const deckY = b.deckY;
             return h + (deckY - h) * k;
         }
+        // ходимые поверхности моделей (walkSurface: камни, мостик) считаются ДО настилов построек: иначе при наличии
+        // хотя бы одного настила (homeCamp) ранний возврат ниже отдавал землю, и герой шёл «сквозь» мостик
+        let sfY = null;
+        const sf = this.surfaces;
+        if (sf && sf.length) {
+            for (let i = 0; i < sf.length; i++) {
+                const q = sf[i];
+                const dx = x - q.x, dz = z - q.z;
+                if (dx * dx + dz * dz > q.reach2) continue;
+                const v = this._surfAt(q, (dx * q.cos - dz * q.sin) / q.s, (dx * q.sin + dz * q.cos) / q.s);
+                if (v > -1e8) { const y = q.y + v * q.s; if (y > h && (sfY === null || y > sfY)) sfY = y; }
+            }
+        }
         const pl = this.platforms;
         if (pl && pl.length) {
             const hasReference = Number.isFinite(referenceY);
-            let bestAcc = -Infinity;   // самая высокая поверхность, на которую можно шагнуть от referenceY
+            let bestAcc = -Infinity;
+            if (sfY !== null) { if (!hasReference) bestAcc = sfY; else if (sfY <= referenceY + PLATFORM_STEP) bestAcc = sfY; }   // самая высокая поверхность, на которую можно шагнуть от referenceY
             for (let i = 0; i < pl.length; i++) {
                 const p = pl[i];
                 const dx = x - p.x, dz = z - p.z;
@@ -207,24 +221,16 @@ class LakesideTerrain {
                     surfaceY = plane > h ? plane : h;
                 }
                 if (surfaceY === null || surfaceY <= h + 1e-4) continue;
-                if (!hasReference) return surfaceY;
+                if (!hasReference) return sfY !== null && sfY > surfaceY ? sfY : surfaceY;
                 if (surfaceY <= referenceY + PLATFORM_STEP && surfaceY > bestAcc) bestAcc = surfaceY;
             }
             // Раньше брали поверхность, ближайшую по высоте: лестница над настилом 1 этажа не давала подняться
             // (герой оставался на настиле «под» ступенями), а под лестницей герой подпрыгивал на ступени.
             // Теперь: самая высокая поверхность в пределах шага вверх; нет такой (под настилом/лестницей) — земля.
             if (hasReference) return bestAcc > -Infinity ? bestAcc : h;
+            if (sfY !== null) return sfY;
         }
-        const sf = this.surfaces;
-        if (sf && sf.length) {   // ходимая поверхность низких камней у подножия скал (prop.json "walkSurface"): герой поднимается по ним как на пень
-            for (let i = 0; i < sf.length; i++) {
-                const q = sf[i];
-                const dx = x - q.x, dz = z - q.z;
-                if (dx * dx + dz * dz > q.reach2) continue;
-                const v = this._surfAt(q, (dx * q.cos - dz * q.sin) / q.s, (dx * q.sin + dz * q.cos) / q.s);
-                if (v > -1e8) { const y = q.y + v * q.s; if (y > h) return y; }
-            }
-        }
+        if (sfY !== null) return sfY;
         return h;
     }
 
@@ -249,6 +255,7 @@ class LakesideTerrain {
 
     /** Ходимая поверхность модели: {id, x, z, cos, sin, s, y, c, x0, z0, nx, nz, d:Int16Array(мм), reach2}. */
     addSurface(q) {
+        if (q.noRamp) { if (!this.surfaces) this.surfaces = []; this.surfaces.push(q); return; }   // мостик над водой: настил не прижимается к земле (края — обрыв, не склон)
         // пологий въезд: высота над землёй растёт не круче G (считается по реальному рельефу этой локации; стены -32767 не участвуют, нет поверхности -32768 = земля)
         const nx = q.nx, nz = q.nz, c = q.c, d = q.d, N = nx * nz, G = 0.8 * c * q.s, G2 = G * 1.414;
         const D = new Float32Array(N), Q = new Float32Array(N);

@@ -262,30 +262,30 @@
                 const W = b.width, L = b.length, Y = b.deckY;
                 const add = (cx, cy, cz, sx, sy, sz, col) => boxes.push({ cx, cy, cz, sx, sy, sz, col });
                 const rnd = rngFor(`bridge${bi}`);
-                // planks
+                // planks (цвета затемнены и приведены к тону выгнутого мостика, 2026-11-14)
                 const step = 0.31;
                 const n = Math.floor(L / step);
                 for (let i = 0; i < n; i++) {
                     const z = -L / 2 + step * (i + 0.5);
                     const k = 0.86 + rnd() * 0.22;
-                    add(0, Y - 0.06, z, W, 0.12, step - 0.035, [0.52 * k, 0.37 * k, 0.22 * k]);
+                    add(0, Y - 0.06, z, W, 0.12, step - 0.035, [0.45 * k, 0.27 * k, 0.13 * k]);
                 }
                 // stringers under the deck and end piers into the river bed
                 const sx = W / 2 - 0.22;
                 [-1, 1].forEach(side => {
-                    add(side * sx, Y - 0.27, 0, 0.2, 0.22, L, [0.36, 0.25, 0.15]);
+                    add(side * sx, Y - 0.27, 0, 0.2, 0.22, L, [0.29, 0.17, 0.085]);
                     for (let j = 0; j <= 4; j++) {
                         const z = -L / 2 + 1.0 + (L - 2.0) * j / 4;
-                        add(side * sx, (Y - 0.3 - 1.4) / 2 - 0.0, z, 0.22, Y + 1.1, 0.22, [0.3, 0.21, 0.12]);
+                        add(side * sx, (Y - 0.3 - 1.4) / 2 - 0.0, z, 0.22, Y + 1.1, 0.22, [0.25, 0.15, 0.075]);
                     }
                     // rails: posts every ~1.6 m, two horizontal rails
                     const posts = Math.max(2, Math.round(L / 1.6));
                     for (let j = 0; j <= posts; j++) {
                         const z = -L / 2 + 0.15 + (L - 0.3) * j / posts;
-                        add(side * (W / 2 - 0.08), Y + 0.5, z, 0.14, 1.0, 0.14, [0.34, 0.24, 0.14]);
+                        add(side * (W / 2 - 0.08), Y + 0.5, z, 0.14, 1.0, 0.14, [0.28, 0.17, 0.085]);
                     }
-                    add(side * (W / 2 - 0.08), Y + 0.95, 0, 0.11, 0.11, L, [0.45, 0.32, 0.19]);
-                    add(side * (W / 2 - 0.08), Y + 0.5, 0, 0.09, 0.09, L, [0.4, 0.28, 0.17]);
+                    add(side * (W / 2 - 0.08), Y + 0.95, 0, 0.11, 0.11, L, [0.38, 0.23, 0.11]);
+                    add(side * (W / 2 - 0.08), Y + 0.5, 0, 0.09, 0.09, L, [0.34, 0.2, 0.1]);
                 });
                 const pos = [], nor = [], col = [];
                 boxes.forEach(bx => {
@@ -387,10 +387,19 @@
                 for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
                 const py = (p.yFrom ? this.terrain._getRawHeightBase(p.yFrom[0], p.yFrom[1]) : this.terrain.getHeightAt(p.x, p.z)) - 0.02 + (p.dy || 0);
                 this.terrain.addSurface({
-                    id: 'prop:' + (p.id || p.prop), x: p.x, z: p.z, cos: Math.cos(p.r || 0), sin: Math.sin(p.r || 0), s: s,
+                    id: 'prop:' + (p.id || p.prop), x: p.x, z: p.z, cos: Math.cos(p.r || 0), sin: Math.sin(p.r || 0), s: s, noRamp: !!w.nav,
                     y: py + (w.y0 || 0) * s, c: w.c, x0: w.x0, z0: w.z0, nx: w.nx, nz: w.nz, d: new Int16Array(u8.buffer),
                     reach2: Math.pow(Math.hypot(Math.max(Math.abs(w.x0), Math.abs(w.x0 + w.nx * w.c)), Math.max(Math.abs(w.z0), Math.abs(w.z0 + w.nz * w.c))) * s + 1, 2)
                 });
+                if (w.nav && this.pathfinder && this.pathfinder.refreshSurfaceCells) {   // мостик над водой: открыть клетки навигации под настилом
+                    const cr = Math.cos(p.r || 0), sr = Math.sin(p.r || 0), xs = [], zs = [];
+                    [w.x0, w.x0 + w.nx * w.c].forEach(lx => [w.z0, w.z0 + w.nz * w.c].forEach(lz => {
+                        xs.push(p.x + (lx * cr + lz * sr) * s); zs.push(p.z + (-lx * sr + lz * cr) * s);
+                    }));
+                    const hw = w.navHw || 99;
+                    this.pathfinder.refreshSurfaceCells(Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs),
+                        (wx, wz) => Math.abs(((wx - p.x) * cr - (wz - p.z) * sr) / s) <= hw);
+                }
             }
             const loadAndPlace = () => this.loadTemplates('props', p.prop, def).then(variants => {
                 if (this.disposed) return null;

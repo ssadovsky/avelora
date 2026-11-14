@@ -170,7 +170,7 @@ class DiabloPathfinder {
             for (let i = 0; i < br.length; i++) {
                 const b = br[i];
                 if (Math.abs(wz - b.z) < b.length / 2) {
-                    const inner = b.width / 2 - 0.3;
+                    const inner = b.width / 2 - 0.55;   // клетки 0.75 м: центр клетки ≤ inner → герой (до края клетки) остаётся между перилами
                     const reach = b.width / 2 + 0.6 + this.cellWidth;
                     const dx = Math.abs(wx - b.x);
                     if (dx > inner && dx <= reach) return true;
@@ -344,12 +344,42 @@ class DiabloPathfinder {
         }
     }
 
+    /**
+     * Ходимая поверхность модели над водой/обрывом (prop.json walkSurface + "nav": true, мостик): сетка строится до расстановки
+     * пропов, поэтому клетки под настилом остаются «водой». Здесь клетки прямоугольника, где высота поднята настилом над землёй,
+     * пересчитываются заново (без проверки крутизны: у края настила резкий обрыв), круглые/многоугольные препятствия учитываются.
+     */
+    refreshSurfaceCells(wx0, wz0, wx1, wz1, allow) {
+        const lo = this.worldToGrid(Math.min(wx0, wx1), Math.min(wz0, wz1));
+        const hi = this.worldToGrid(Math.max(wx0, wx1), Math.max(wz0, wz1));
+        for (let gz = lo.z; gz <= hi.z; gz++) {
+            for (let gx = lo.x; gx <= hi.x; gx++) {
+                if (gx < 0 || gz < 0 || gx >= this.gridSizeX || gz >= this.gridSizeZ) continue;
+                const pos = this.gridToWorld(gx, gz);
+                const h = this.terrain.getHeightAt(pos.x, pos.z);
+                const raw = this.terrain.getRawHeightAt ? this.terrain.getRawHeightAt(pos.x, pos.z) : h;
+                if (h <= raw + 0.05) continue;               // не под настилом — как было
+                let blocked = (allow && !allow(pos.x, pos.z)) || this.isBaseBlocked(pos.x, pos.z, h, true);   // allow: узкая полоса между перилами
+                for (let j = 0; !blocked && j < this.obstacles.length; j++) {
+                    const ob = this.obstacles[j];
+                    if (ob.type === 'polygon') {
+                        if (this._insidePolygon(pos.x, pos.z, ob.points) || (ob.padding > 0 && this._polygonEdgeDistanceSq(pos.x, pos.z, ob.points) <= ob.padding * ob.padding)) blocked = true;
+                        continue;
+                    }
+                    const odx = pos.x - ob.x, odz = pos.z - ob.z;
+                    if (odx * odx + odz * odz <= ob.r * ob.r) blocked = true;
+                }
+                this.grid[this.getIndex(gx, gz)] = blocked ? 1 : 0;
+            }
+        }
+    }
+
     /** Bridge railings: along the deck only the strip between the rails is walkable. */
     blockBridgeRails() {
         const br = this.terrain.bridges;
         if (!br) return;
         br.forEach(b => {
-            const inner = b.width / 2 - 0.3;   // rails stand at width/2 - 0.08
+            const inner = b.width / 2 - 0.55;   // клетки 0.75 м: центр клетки ≤ inner → герой (до края клетки) остаётся между перилами   // rails stand at width/2 - 0.08
             const reach = b.width / 2 + 0.6 + this.cellWidth;
             const lo = this.worldToGrid(b.x - reach, b.z - b.length / 2);
             const hi = this.worldToGrid(b.x + reach, b.z + b.length / 2);
