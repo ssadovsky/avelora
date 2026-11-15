@@ -3311,6 +3311,19 @@ class AveloraGame {
                 const score = reach - 3.0 * Math.abs(dyaws[yi]) - 2.2 * dpits[pi] + (k === this._lastOutCamCand ? 0.5 : 0);
                 if (score > bestScore) { bestScore = score; best = r; bestIdx = k; }
             }
+            // Герой вплотную к зданию (под крыльцом, свесом): все ракурсы ±63° смотрят в препятствие — пробуем сторону за героем
+            // (мягкий штраф за поворот; берём, только если там заметно больше места, иначе дрожь).
+            if ((best._k === undefined ? 1 : best._k) * R < 1.0) {
+                const bestReach = (best._k === undefined ? 1 : best._k) * R;
+                let bs = bestScore;
+                for (const yo of [1.45, -1.45, 1.8, -1.8, 2.2, -2.2, 2.6, -2.6, Math.PI]) for (const po of dpits) {
+                    const yaw = yaw0 + yo, pit = Math.min(1.25, pit0 + po), cp = Math.cos(pit);
+                    const r = this._constrainCameraRay({ x: head.x + Math.sin(yaw) * cp * R, y: head.y + Math.sin(pit) * R, z: head.z + Math.cos(yaw) * cp * R }, head);
+                    const reach = (r._k === undefined ? 1 : r._k) * R;
+                    const score = reach - 0.9 * Math.abs(yo) - 1.1 * po;
+                    if (reach > bestReach + 1.5 && score > bs) { bs = score; best = r; bestIdx = -1; }
+                }
+            }
             this._lastOutCamCand = bestIdx;
             const L = Math.hypot(best.x - head.x, best.y - head.y, best.z - head.z);
             if (L > 0.01 && L < 0.9) { const f = 0.9 / L; best.x = head.x + (best.x - head.x) * f; best.y = head.y + (best.y - head.y) * f; best.z = head.z + (best.z - head.z) * f; }
@@ -3407,8 +3420,16 @@ class AveloraGame {
     /** Дальность луча от головы без выхода из объёма подвала: шаг 0.2 м, затем деление отрезка пополам (непрерывно, без скачков). */
     _cellarReach(cel, head, dx, dy, dz, r) {
         const st = 0.2;
-        let prev = 0;
-        for (let s = st; ; s += st) {
+        let prev = 0, s0 = st;
+        if (!cel.camOk(head.x, head.y, head.z)) {
+            // Голова героя внутри запретной коробки (стоит под свесом или в запасе 0.5 м у стены здания): камера может выйти
+            // из неё вдоль луча, но только если выход близко (≤3 м); иначе луч идёт вглубь здания — дальность 0.
+            let ex = -1;
+            for (let t = st; t <= 3.0 && t <= r; t += st) if (cel.camOk(head.x + dx * t, head.y + dy * t, head.z + dz * t)) { ex = t; break; }
+            if (ex < 0) return 0;
+            s0 = ex; prev = ex;
+        }
+        for (let s = s0; ; s += st) {
             const d = Math.min(s, r);
             if (!cel.camOk(head.x + dx * d, head.y + dy * d, head.z + dz * d)) {
                 let lo = prev, hi = d;
@@ -3427,7 +3448,8 @@ class AveloraGame {
         const direct = this._cellarReach(cel, head, vx / r, vy / r, vz / r, r);
         if (direct >= r - 0.01) { if (slide) this._lastCelCand = -1; return cam; }
         if (!slide) {   // второй проход после сглаживания: только подрезка вдоль луча (без выбора нового варианта — иначе дрожь)
-            const k = Math.max(0.9, direct) / r;
+            // не проталкивать камеру на 0.9 м, если до стены/колонны ближе (иначе она оказывается внутри текстур)
+            const k = Math.max(0, direct - 0.1) / r;
             cam.x = head.x + vx * k; cam.y = head.y + vy * k; cam.z = head.z + vz * k;
             return cam;
         }
@@ -3441,8 +3463,19 @@ class AveloraGame {
             const score = reach - 3.0 * Math.abs(dyaws[yi]) - 2.2 * dpits[pi] + (k === this._lastCelCand ? 0.5 : 0);
             if (score > bestScore) { bestScore = score; bestD = [dx, dy, dz, reach]; bestIdx = k; }
         }
+        // Герой вплотную к стене/зданию: все ракурсы ±63° смотрят в препятствие. Пробуем сторону за героем (мягкий штраф за поворот).
+        if (bestD[3] < 1.0) {
+            let bs = bestScore;
+            for (const yawOffset of [1.45, -1.45, 1.8, -1.8, 2.2, -2.2, 2.6, -2.6, Math.PI]) for (const pitchOffset of dpits) {
+                const pit = Math.min(1.25, pit0 + pitchOffset), cp = Math.cos(pit), yaw = yaw0 + yawOffset;
+                const dx = Math.sin(yaw) * cp, dy = Math.sin(pit), dz = Math.cos(yaw) * cp;
+                const reach = this._cellarReach(cel, head, dx, dy, dz, r);
+                const score = reach - 0.9 * Math.abs(yawOffset) - 1.1 * pitchOffset;
+                if (reach > bestD[3] + 1.5 && score > bs) { bs = score; bestD = [dx, dy, dz, reach]; bestIdx = -1; }
+            }
+        }
         this._lastCelCand = bestIdx;
-        const reach = Math.max(0.9, bestD[3]);
+        const reach = Math.max(0, bestD[3] - 0.1);   // то же: без принудительных 0.9 м сквозь стену
         cam.x = head.x + bestD[0] * reach; cam.y = head.y + bestD[1] * reach; cam.z = head.z + bestD[2] * reach;
         return cam;
     }
