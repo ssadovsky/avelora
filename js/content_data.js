@@ -7438,6 +7438,295 @@ window.GAME_CONTENT = {
    ],
    "modelKey": "props/rune_portal"
   },
+  "sapphire_academy": {
+   "id": "sapphire_academy",
+   "name": "Академия магии",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": -8.0,
+     "cz": -5.625,
+     "hx": 0.25,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -5.375,
+     "cz": -5.375,
+     "hx": 3.375,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -4.0,
+     "cz": -5.125,
+     "hx": 4.75,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -3.75,
+     "cz": -4.875,
+     "hx": 5.0,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -3.375,
+     "cz": -4.625,
+     "hx": 5.125,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -0.75,
+     "cz": -4.375,
+     "hx": 7.75,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -0.5,
+     "cz": -4.0,
+     "hx": 8.0,
+     "hz": 0.25,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -0.625,
+     "cz": -3.625,
+     "hx": 8.125,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -0.5,
+     "cz": -3.375,
+     "hx": 8.25,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -0.375,
+     "cz": -2.875,
+     "hx": 8.375,
+     "hz": 0.375,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -0.5,
+     "cz": -2.375,
+     "hx": 8.25,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -0.625,
+     "cz": -1.875,
+     "hx": 8.375,
+     "hz": 0.375,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -0.5,
+     "cz": -1.375,
+     "hx": 8.5,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -0.25,
+     "cz": -1.125,
+     "hx": 8.75,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 0.0,
+     "cz": 0.0,
+     "hx": 8.75,
+     "hz": 1.0,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -0.125,
+     "cz": 1.25,
+     "hx": 8.625,
+     "hz": 0.25,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -0.25,
+     "cz": 1.625,
+     "hx": 8.75,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -0.125,
+     "cz": 2.125,
+     "hx": 8.875,
+     "hz": 0.375,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -0.25,
+     "cz": 2.625,
+     "hx": 8.75,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -0.5,
+     "cz": 2.875,
+     "hx": 8.25,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -0.5,
+     "cz": 3.125,
+     "hx": 8.0,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -1.75,
+     "cz": 3.375,
+     "hx": 6.75,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -1.625,
+     "cz": 3.625,
+     "hx": 6.625,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 1.125,
+     "cz": 4.125,
+     "hx": 3.875,
+     "hz": 0.375,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 1.25,
+     "cz": 4.625,
+     "hx": 3.75,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 1.125,
+     "cz": 4.875,
+     "hx": 3.625,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 1.0,
+     "cz": 5.125,
+     "hx": 3.0,
+     "hz": 0.125,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 1.375,
+     "cz": 5.625,
+     "hx": 2.625,
+     "hz": 0.375,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/sapphire_academy"
+  },
   "sawmill": {
    "id": "sawmill",
    "name": "Пильня",

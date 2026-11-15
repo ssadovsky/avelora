@@ -130,6 +130,7 @@ window.AVELORA_ASSET_INDEX = {
   "props/moonlit_tailor": ["m/props__moonlit_tailor.js", "236ca23e5f"],
   "props/rune_chapel": ["m/props__rune_chapel.js", "56f40fea3d"],
   "props/rune_portal": ["m/props__rune_portal.js", "e51a1d387f"],
+  "props/sapphire_academy": ["m/props__sapphire_academy.js", "9d30188732"],
   "props/smithy": ["m/props__smithy.js", "0155832e1f"],
   "props/starlit_castle_gate": ["m/props__starlit_castle_gate.js", "4aab3e57e8"],
   "props/stone_cottage": ["m/props__stone_cottage.js", "7f866c9001"],
