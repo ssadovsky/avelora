@@ -13316,9 +13316,9 @@ window.GAME_CONTENT = {
    "leashRadius": 22,
    "wanderRadius": 8,
    "respawnMinutes": 6,
-   "hitRadius": 1.7,
-   "scale": 1.0,
-   "hpBarHeight": 1.9,
+   "hitRadius": 1.3,
+   "scale": 1.35,
+   "hpBarHeight": 2.2,
    "gold": [
     14,
     24
@@ -13928,8 +13928,8 @@ window.GAME_CONTENT = {
    "wanderRadius": 7,
    "respawnMinutes": 8,
    "hitRadius": 2.2,
-   "scale": 1.0,
-   "hpBarHeight": 3.2,
+   "scale": 1.45,
+   "hpBarHeight": 4.5,
    "gold": [
     22,
     36
