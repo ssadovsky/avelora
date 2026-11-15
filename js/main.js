@@ -3293,7 +3293,8 @@ class AveloraGame {
         const t = this.terrain;
         if (!t) return cam;
         const cel0 = this._cellarNear(head.x, head.z);
-        if (cel0) return this._cellarCamera(cel0, cam, head, slide);   // подвал: то же правило, что в подземельях (dungeon.constrainCamera)
+        const heroY = this.character && this.character.position ? this.character.position.y : head.y;
+        if (cel0 && (cel0.below || heroY < cel0.y0 - 0.3)) return this._cellarCamera(cel0, cam, head, slide);   // фактическая высота героя (как в сохранении), не высота головы камеры
         const r0 = this._constrainCameraRay({ x: cam.x, y: cam.y, z: cam.z }, head);
         let best = r0;
         if (slide && r0._byModel && r0._k < 0.85) {

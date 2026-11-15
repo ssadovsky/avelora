@@ -325,7 +325,7 @@
                         const pr = R.h > 6.5 ? 0.85 : 0.62; this._cyl(pr, pr + 0.1, R.h, 14, this.darkMat, lx, F + R.h / 2, lz);
                         this._boxAt(lx - 0.9, lx + 0.9, F, F + 0.4, lz - 0.9, lz + 0.9, this.darkMat);
                         this._boxAt(lx - 0.9, lx + 0.9, F + R.h - 0.4, F + R.h, lz - 0.9, lz + 0.9, this.darkMat);
-                        this.underBlocks.push({ lx, lz, r: 1.05 });
+                        this.underBlocks.push({ lx, lz, r: 1.05, cameraH: R.h });
                         if ((i + (sx > 0 ? 1 : 0)) % 2 === 0) this._sconce(lx - sx * (R.h > 6.5 ? 0.85 : 0.62), F + 2.6, lz, -sx, 0);
                     }
                 }
@@ -555,6 +555,8 @@
         camOk(x, y, z) {
             const n = this.n, q = n.toLocal(x, z), lx = q.lx, lz = q.lz;
             const G = n.cfg.gate;   // здание над траншеей (town.js runeGate): под крышей камера в пределах нефа, снаружи — не внутри его стен/крыши/башни
+            // Высокие опорные колонны зала блокируют камеру на всю высоту; underBlocks уже держит их радиус для героя.
+            for (const o of this.underBlocks) if (o.cameraH && y >= this.F - 0.1 && y <= this.F + o.cameraH && Math.hypot(lx - o.lx, lz - o.lz) <= o.r + 0.4) return false;
             if (Math.abs(lx) <= n.hw - 0.15 && lz >= 0 && lz <= n.open && y >= this.ramp(lz) + 0.3) return !(G && lz >= G.lz0 && lz <= G.lz1 && (y > this.y0 + G.top || (y > this.y0 - 0.3 && (Math.abs(lx) > G.hw || lz > (G.nz1 !== undefined ? G.nz1 : G.lz1)))));   // под зданием: не ближе hw к его стенам и nz1 к задней стене   // траншея открыта сверху
             if (Math.abs(lx) <= n.hw - 0.15 && lz > n.open && lz <= n.L) { const r = this.ramp(lz); if (y >= r + 0.25 && y <= r + n.H - 0.25) return true; }
             for (const R of n.rooms) {
