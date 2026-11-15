@@ -1520,17 +1520,13 @@ class AveloraGame {
             this.creatures ? (this.creatures.allReady || this.creatures.ready) : null
         ]).then(() => window.AveloraAssets ? window.AveloraAssets.idle() : null)
           .then(() => { if (window.AveloraAssets) window.AveloraAssets.evictUnused(); });
-        // Прогрев под экраном загрузки: компиляция шейдеров новой локации (при первом входе — например, снежная земля Морозного хребта)
-        // и загрузка её текстур в GPU. Без этого компиляция шла уже после снятия загрузочного экрана — на секунду чёрный кадр.
-        for (let w = 0; w < 2; w++) {
-            try {
-                if (this.renderer && this.scene && this.camera) {
-                    if (w === 0 && typeof this.renderer.compile === 'function') this.renderer.compile(this.scene, this.camera);
-                    this.renderer.render(this.scene, this.camera);
-                }
-            } catch (e) { console.warn('[Avelora] Shader warmup warning:', e); }
-            await nextFrame();
-        }
+        // Рендерим первый кадр под экраном загрузки: компиляция шейдеров и текстур в GPU
+        // завершается до снятия оверлея, поэтому экран загрузки открывает уже готовый кадр без задержек и чёрных вспышек
+        try {
+            if (this.renderer && this.scene && this.camera) {
+                this.renderer.render(this.scene, this.camera);
+            }
+        } catch (e) { console.warn('[Avelora] Warmup frame warning:', e); }
 
         this.clock.getDelta(); // don't count loading time as game time
         this.isTransitioning = false;
