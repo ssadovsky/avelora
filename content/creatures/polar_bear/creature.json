@@ -1,0 +1,47 @@
+{
+  "id": "polar_bear",
+  "name": "Полярный медведь",
+  "level": 24,
+  "rank": "normal",
+  "hp": 420,
+  "damage": [
+    28,
+    42
+  ],
+  "attackRange": 2.0,
+  "attackCooldown": 1.8,
+  "walkSpeed": 1.2,
+  "runSpeed": 5.6,
+  "behavior": "aggressive",
+  "aggroRadius": 11,
+  "leashRadius": 22,
+  "wanderRadius": 6,
+  "respawnMinutes": 8,
+  "hitRadius": 1.5,
+  "scale": 1.3,
+  "hpBarHeight": 1.8,
+  "modelKey": "creatures/bear",
+  "textureKey": "creatures/polar_bear",
+  "gold": [
+    14,
+    24
+  ],
+  "xp": 480,
+  "tiltSpan": [
+    -0.65,
+    0.55,
+    0.25
+  ],
+  "statMultiplier": 1.25,
+  "goldDrop": true,
+  "drops": [
+    {
+      "item": "meat",
+      "count": 8
+    },
+    {
+      "item": "bear_hide",
+      "count": 1
+    }
+  ]
+}

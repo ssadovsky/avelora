@@ -1,0 +1,43 @@
+{
+  "id": "woolly_rhino",
+  "name": "Шерстистый носорог",
+  "level": 23,
+  "rank": "elite",
+  "hp": 580,
+  "damage": [
+    32,
+    48
+  ],
+  "attackRange": 2.0,
+  "attackCooldown": 2.4,
+  "walkSpeed": 1.2,
+  "runSpeed": 5.8,
+  "behavior": "aggressive",
+  "aggroRadius": 10,
+  "leashRadius": 24,
+  "wanderRadius": 7,
+  "respawnMinutes": 10,
+  "hitRadius": 1.4,
+  "scale": 1.15,
+  "hpBarHeight": 2.0,
+  "modelKey": "creatures/rhino",
+  "textureKey": "creatures/woolly_rhino",
+  "gold": [
+    18,
+    30
+  ],
+  "xp": 540,
+  "tiltSpan": [
+    -1.1,
+    1.0,
+    0.4
+  ],
+  "statMultiplier": 1.4,
+  "goldDrop": true,
+  "drops": [
+    {
+      "item": "meat",
+      "count": 6
+    }
+  ]
+}

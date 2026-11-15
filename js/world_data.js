@@ -1159,7 +1159,10 @@ window.LOCATIONS = {
             { id: 'fr_brute_1', type: 'frostfang_brute', x: 75.0, z: -28.0, r: 3.9 },
             { id: 'fr_mammoth_1', type: 'snowbound_mammoth', x: -85.0, z: -30.0, r: 0.5 },
             { id: 'fr_musk_ox_1', type: 'musk_ox', x: -55.0, z: 5.0, r: 2.0 },
-            { id: 'fr_snow_tiger_1', type: 'snow_tiger', x: 4.0, z: 25.0, r: 1.2 }
+            { id: 'fr_snow_tiger_1', type: 'snow_tiger', x: 4.0, z: 25.0, r: 1.2 },
+            { id: 'fr_polar_bear_1', type: 'polar_bear', x: -20.0, z: 40.0, r: 0.4 },
+            { id: 'fr_polar_bear_2', type: 'polar_bear', x: 50.0, z: 55.0, r: 2.1 },
+            { id: 'fr_woolly_rhino_1', type: 'woolly_rhino', x: -70.0, z: 45.0, r: 3.1 }
         ]
     },
 
