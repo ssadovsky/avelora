@@ -1,0 +1,91 @@
+{
+  "id": "infernal_emberlord",
+  "name": "Владыка Расплавленной Короны",
+  "level": 20,
+  "hp": 620,
+  "damage": [
+    34,
+    48
+  ],
+  "attackRange": 3.2,
+  "attackCooldown": 2.0,
+  "walkSpeed": 1.0,
+  "runSpeed": 3.8,
+  "behavior": "aggressive",
+  "aggroRadius": 16,
+  "leashRadius": 24,
+  "wanderRadius": 0,
+  "respawnMinutes": 120,
+  "hitRadius": 2.4,
+  "scale": 1.0,
+  "modelGroundAlign": true,
+  "hpBarHeight": 5.6,
+  "gold": [
+    80,
+    140
+  ],
+  "xp": 800,
+  "statMultiplier": 1.5,
+  "rank": "boss",
+  "goldDrop": true,
+  "lootTiers": {
+    "15": [
+      {
+        "pool": [
+          "ring_mountain_lord",
+          "ring_storm_lord",
+          "ring_flame_lord"
+        ],
+        "forClass": true
+      },
+      {
+        "pool": [
+          "amulet_mountain_lord",
+          "amulet_storm_lord",
+          "amulet_flame_lord"
+        ],
+        "chance": 0.3,
+        "forClass": true
+      },
+      {
+        "pool": [
+          "infernal_axe",
+          "bow_dawnflame",
+          "staff_ember_heart"
+        ],
+        "chance": 0.45,
+        "forClass": true
+      },
+      {
+        "pool": [
+          "adamant_helm",
+          "adamant_cuirass",
+          "adamant_gauntlets",
+          "adamant_greaves",
+          "ether_hood",
+          "ether_robe",
+          "ether_gloves",
+          "ether_shoes",
+          "storm_cap",
+          "storm_jerkin",
+          "storm_gloves",
+          "storm_boots"
+        ],
+        "chance": 0.6,
+        "forClass": true
+      },
+      {
+        "item": "primordial_core",
+        "count": 2
+      },
+      {
+        "item": "primordial_core",
+        "chance": 0.5
+      },
+      {
+        "item": "element_crystal",
+        "count": 6
+      }
+    ]
+  }
+}

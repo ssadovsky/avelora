@@ -1158,7 +1158,8 @@ window.LOCATIONS = {
             { id: 'fr_owl_1', type: 'frostwing_owl', x: 35.0, z: -30.0, r: 3.5 },
             { id: 'fr_brute_1', type: 'frostfang_brute', x: 75.0, z: -28.0, r: 3.9 },
             { id: 'fr_mammoth_1', type: 'snowbound_mammoth', x: -85.0, z: -30.0, r: 0.5 },
-            { id: 'fr_musk_ox_1', type: 'musk_ox', x: -55.0, z: 5.0, r: 2.0 }
+            { id: 'fr_musk_ox_1', type: 'musk_ox', x: -55.0, z: 5.0, r: 2.0 },
+            { id: 'fr_snow_tiger_1', type: 'snow_tiger', x: 4.0, z: 25.0, r: 1.2 }
         ]
     },
 
@@ -1554,8 +1555,6 @@ window.LOCATIONS = {
         ],
 
         creatures: [
-            // Огненное крыло на тропе от входа к Малакару (оценка модели, не агрессивное)
-            { id: 'bl_emberwing_1', type: 'emberwing', x: -22.0, z: -76.2, r: 1.57 },
             // Гнездо изумрудных псевдодраконов (-116, 70)
             { id: 'bl_skywyrm_1', type: 'skywyrm', x: -111.7, z: 70.8, r: 0.00, level: 19 },
             { id: 'bl_skywyrm_2', type: 'skywyrm', x: -104.3, z: 60.0, r: 0.80, level: 20 },
@@ -1791,16 +1790,20 @@ window.LOCATIONS = {
         ],
 
         dungeon: { kind: 'depths', id: 'volcano_depths', minLevel: 15, resetSeconds: 60,
-            bossId: 'vd_boss_heart', bossArena: [28.0, 104.0, 88.0, 162.0],
+            bossId: 'vd_boss_emberlord', bossArena: [28.0, 104.0, 88.0, 162.0],
             bossExit: { id: 'bossExit', x: 57.2, z: 147.0, y: 0.02, radius: 1.3, height: 2.4, color: 0xff7a30, to: 'burntLands', spawn: 'fromDepths', label: 'Выход из недр' } },
         creatures: [
-            // Босс: Сердце горы — в центре Печати (центр зала босса, depths.js _seal)
-            { id: 'vd_boss_heart', type: 'element_heart', name: 'Сердце горы', rank: 'boss', scale: 3.0, x: 57.2, z: 132.6, r: Math.PI, behavior: 'aggressive', aggroRadius: 16, leashRadius: 44 },
+            // Босс: Владыка Расплавленной Короны (раньше Сердце горы) — в центре Печати (центр зала босса, depths.js _seal)
+            { id: 'vd_boss_emberlord', type: 'infernal_emberlord', name: 'Владыка Расплавленной Короны', rank: 'boss', scale: 1.35, x: 57.2, z: 132.6, r: Math.PI, behavior: 'aggressive', aggroRadius: 16, leashRadius: 44 },
             // «Горло»: магмовые големы-привратники
             { id: 'vd_throat_golem_1', type: 'magma_golem', x: -6.6, z: -107.8, r: 3.14, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'elite' },
             { id: 'vd_throat_golem_2', type: 'magma_golem', x: -2.7, z: -86.7, r: 3.14, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },
             // «Гнездовье»: псевдодраконы стерегут кладки, у остова — багровый полудракон (элита)
             { id: 'vd_nest_wyrm_1', type: 'skywyrm', x: -25.3, z: 111.8, r: 0.6, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'elite' },
+            // Детёныши у кладок; внутри данжа их уровень автоматически совпадает со ступенью уровня героя.
+            { id: 'vd_nest_hatchling_1', type: 'emberwing', x: -11.2, z: 114.5, r: 0.4, behavior: 'aggressive', aggroRadius: 8, leashRadius: 20, wanderRadius: 0, rank: 'normal' },
+            { id: 'vd_nest_hatchling_2', type: 'emberwing', x: -35.8, z: 98.1, r: 2.4, behavior: 'aggressive', aggroRadius: 8, leashRadius: 20, wanderRadius: 0, rank: 'normal' },
+            { id: 'vd_nest_hatchling_3', type: 'emberwing', x: -22.1, z: 124.9, r: 5.2, behavior: 'aggressive', aggroRadius: 8, leashRadius: 20, wanderRadius: 0, rank: 'normal' },
             { id: 'vd_nest_wyrm_2', type: 'skywyrm', x: -14.6, z: 108.8, r: 3.9, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'normal' },
             { id: 'vd_nest_wyrm_3', type: 'skywyrm', x: -17.9, z: 122.1, r: 2.2, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'elite' },
             { id: 'vd_nest_wyrm_4', type: 'skywyrm', x: -39.7, z: 114.9, r: 5.1, behavior: 'aggressive', aggroRadius: 10, leashRadius: 30, rank: 'normal' },

@@ -309,6 +309,12 @@
                     }
                     level = this._dungeonLevel;
                 }
+            } else if (sp.levelFromHero || def.levelFromHero) {
+                // Opt-in overworld scaling for named encounters: snapshot hero level on entry.
+                const heroLvl = (this.game && this.game.hero && this.game.hero.level)
+                    || (window.AveloraProgress && this.state && window.AveloraProgress.levelForXp(this.state.xp))
+                    || 1;
+                level = Math.max(1, Math.floor(Number(heroLvl) || 1));
             }
             const rank = sp.rank || def.rank || 'normal';
             const RANK_MULTS = cfg.ranks || {
@@ -427,7 +433,9 @@
                     scene.updateMatrixWorld(true);
                     const box = new THREE.Box3().setFromObject(scene);
                     const s = def.scale || 1;
-                    const height = Math.max(0.3, (box.max.y - Math.max(0, box.min.y)) * s);
+                    const groundAlign = !!def.modelGroundAlign;
+                    const height = Math.max(0.3, (box.max.y - (groundAlign ? box.min.y : Math.max(0, box.min.y))) * s);
+                    const groundOffsetY = groundAlign ? -box.min.y * s : 0;
                     // body footprint (for the hit cylinder): geometric mean of width/length, as a radius
                     const bodyR = 0.5 * Math.sqrt(Math.max(1e-4, (box.max.x - box.min.x) * s) * Math.max(1e-4, (box.max.z - box.min.z) * s));
                     if (def.textureKey && window.GAME_ASSETS && window.GAME_ASSETS.textures && window.GAME_ASSETS.textures[def.textureKey]) {
@@ -436,13 +444,13 @@
                         texLoader.load(texData, (newTex) => {
                             newTex.flipY = false;
                             newTex.encoding = THREE.sRGBEncoding;
-                            resolve({ scene, clips: clips || [], height, bodyR, fallback: !buffer, customMap: newTex });
+                            resolve({ scene, clips: clips || [], height, bodyR, groundOffsetY, fallback: !buffer, customMap: newTex });
                         }, undefined, () => {
-                            resolve({ scene, clips: clips || [], height, bodyR, fallback: !buffer });
+                            resolve({ scene, clips: clips || [], height, bodyR, groundOffsetY, fallback: !buffer });
                         });
                         return;
                     }
-                    resolve({ scene, clips: clips || [], height, bodyR, fallback: !buffer });
+                    resolve({ scene, clips: clips || [], height, bodyR, groundOffsetY, fallback: !buffer });
                 };
                 if (!buffer) { finish(null, null); return; }
                 try {
@@ -485,6 +493,7 @@
                 group.name = `creature:${rec.id}`;
                 const model = tpl.fallback ? tpl.scene.clone() : cloneSkinned(tpl.scene);
                 model.scale.setScalar(def.scale || 1);
+                model.position.y = tpl.groundOffsetY || 0;
                 // Per-instance materials (hit flash); shared geometry/textures
                 rec.materials.length = 0;
                 model.traverse(o => {
