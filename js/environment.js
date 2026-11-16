@@ -540,6 +540,7 @@ class LakesideEnvironment {
             const al = window.AVELORA_ASSET_ALIASES || {};
             const farKey = (al[modelKey] || modelKey) + '_far';
             const hasFar = !!(window.AveloraAssets && window.AveloraAssets.known(farKey));
+            const isSnowLoc = !!(this.location && this.location.terrain && this.location.terrain.groundSet === 'snow');
             const extractParts = (gltf) => {
                 const treeScene = gltf.scene;
                 treeScene.updateMatrixWorld(true);
@@ -554,6 +555,21 @@ class LakesideEnvironment {
                             c.material.alphaTest = 0.22;
                             c.material.alphaToCoverage = true;   // MSAA-сглаживание краёв листвы (на телефоне нужно против ряби; у GFX нет поля `low`)
                             c.material.depthWrite = true;
+                        }
+                        if (isSnowLoc && c.material.isMeshStandardMaterial) {
+                            const cm = c.material.clone();
+                            cm.onBeforeCompile = (sh) => {
+                                sh.uniforms.uSnowK = { value: 1.0 };
+                                sh.vertexShader = sh.vertexShader
+                                    .replace('#include <common>', '#include <common>\nvarying float vSnowUp;')
+                                    .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nvSnowUp = normalize(objectNormal).y;');
+                                sh.fragmentShader = sh.fragmentShader
+                                    .replace('#include <common>', '#include <common>\nvarying float vSnowUp;\nuniform float uSnowK;')
+                                    .replace('#include <color_fragment>', '#include <color_fragment>\n{ float sn = smoothstep(0.35, 0.78, vSnowUp) * uSnowK; vec3 cold = diffuseColor.rgb * vec3(0.84, 0.90, 1.0); diffuseColor.rgb = mix(cold, vec3(0.93, 0.96, 1.0), sn * 0.92); }');
+                            };
+                            cm.customProgramCacheKey = () => 'avSnowTree_' + (c.material.name || 'tree');
+                            cm.needsUpdate = true;
+                            c.material = cm;
                         }
                     }
                     const fruitMats = FRUIT_TREE_TYPES[typeKey] && FRUIT_TREE_TYPES[typeKey].fruitMaterials;
@@ -682,7 +698,24 @@ class LakesideEnvironment {
             const boulderMesh = gltf.scene.children[0];
             if (!boulderMesh) return;
 
-            this.buildInstanced('boulders', [{ geometry: boulderMesh.geometry, material: boulderMesh.material }],
+            let bMat = boulderMesh.material;
+            const isSnowLoc = !!(this.location && this.location.terrain && this.location.terrain.groundSet === 'snow');
+            if (isSnowLoc && bMat && bMat.isMeshStandardMaterial) {
+                bMat = bMat.clone();
+                bMat.onBeforeCompile = (sh) => {
+                    sh.uniforms.uSnowK = { value: 1.0 };
+                    sh.vertexShader = sh.vertexShader
+                        .replace('#include <common>', '#include <common>\nvarying float vSnowUp;')
+                        .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nvSnowUp = normalize(objectNormal).y;');
+                    sh.fragmentShader = sh.fragmentShader
+                        .replace('#include <common>', '#include <common>\nvarying float vSnowUp;\nuniform float uSnowK;')
+                        .replace('#include <color_fragment>', '#include <color_fragment>\n{ float sn = smoothstep(0.35, 0.78, vSnowUp) * uSnowK; vec3 cold = diffuseColor.rgb * vec3(0.84, 0.90, 1.0); diffuseColor.rgb = mix(cold, vec3(0.93, 0.96, 1.0), sn * 0.92); }');
+                };
+                bMat.customProgramCacheKey = () => 'avSnowBoulder';
+                bMat.needsUpdate = true;
+            }
+
+            this.buildInstanced('boulders', [{ geometry: boulderMesh.geometry, material: bMat }],
                 boulderPlacements, (p, idx, d) => {
                     const groundY = this.terrain.getHeightAt(p.x, p.z);
                     const scale = p.s || 1.8;

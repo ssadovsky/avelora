@@ -1143,7 +1143,37 @@ window.LOCATIONS = {
             { x: 130.0, z: 0.0, radius: 9.0 }
         ],
 
-        groups: [],
+        groups: [
+            // Хвойный лес: вечнозелёные ели со снегом вдоль горных склонов и хребтов
+            // Северо-западный склон (между северным ущельем и западным)
+            { id: 'fr_forest_nw_1', type: 'forest', x: -65.0, z: -68.0, rx: 42.0, rz: 16.0, count: 24, spacing: 8.0, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3101 },
+            { id: 'fr_forest_nw_2', type: 'forest', x: -110.0, z: -50.0, rx: 25.0, rz: 22.0, count: 18, spacing: 8.0, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3102 },
+
+            // Северо-восточный склон (между северным ущельем и восточным)
+            { id: 'fr_forest_ne_1', type: 'forest', x: 65.0, z: -68.0, rx: 42.0, rz: 16.0, count: 24, spacing: 8.0, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3103 },
+            { id: 'fr_forest_ne_2', type: 'forest', x: 110.0, z: -50.0, rx: 25.0, rz: 22.0, count: 18, spacing: 8.0, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3104 },
+
+            // Западная горная стена к югу от западного прохода
+            { id: 'fr_forest_sw', type: 'forest', x: -118.0, z: 45.0, rx: 22.0, rz: 34.0, count: 22, spacing: 8.5, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3105 },
+
+            // Восточная горная стена к югу от восточного прохода
+            { id: 'fr_forest_se', type: 'forest', x: 118.0, z: 45.0, rx: 22.0, rz: 34.0, count: 22, spacing: 8.5, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3106 },
+
+            // Южная горная стена (задний план хребта)
+            { id: 'fr_forest_s_1', type: 'forest', x: -50.0, z: 76.0, rx: 45.0, rz: 14.0, count: 26, spacing: 8.0, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3107 },
+            { id: 'fr_forest_s_2', type: 'forest', x: 50.0, z: 76.0, rx: 45.0, rz: 14.0, count: 26, spacing: 8.0, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3108 },
+
+            // Одиночные рощицы в центре у подножия холмов
+            { id: 'fr_forest_mid_w', type: 'forest', x: -28.0, z: -12.0, rx: 14.0, rz: 14.0, count: 8, spacing: 8.0, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3109 },
+            { id: 'fr_forest_mid_e', type: 'forest', x: 25.0, z: -5.0, rx: 14.0, rz: 14.0, count: 8, spacing: 8.0, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3110 },
+
+            // Скальные валуны со снегом по хребту
+            { id: 'fr_rocks_nw', type: 'rocks', x: -80.0, z: -40.0, radius: 9.0, count: 5, scaleMin: 1.1, scaleMax: 2.2, seed: 3201 },
+            { id: 'fr_rocks_ne', type: 'rocks', x: 80.0, z: -40.0, radius: 9.0, count: 5, scaleMin: 1.1, scaleMax: 2.2, seed: 3202 },
+            { id: 'fr_rocks_sw', type: 'rocks', x: -60.0, z: 35.0, radius: 8.0, count: 4, scaleMin: 1.0, scaleMax: 2.0, seed: 3203 },
+            { id: 'fr_rocks_se', type: 'rocks', x: 60.0, z: 35.0, radius: 8.0, count: 4, scaleMin: 1.0, scaleMax: 2.0, seed: 3204 },
+            { id: 'fr_rocks_c', type: 'rocks', x: 0.0, z: 10.0, radius: 7.0, count: 3, scaleMin: 1.0, scaleMax: 1.8, seed: 3205 }
+        ],
 
         props: [
             // Скальные арки ущелий
