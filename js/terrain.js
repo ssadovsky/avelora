@@ -1493,6 +1493,12 @@ class LakesideTerrain {
                     }
                 }
             });
+            // выемки без камня и тропы (locTerrain.stoneHoles: [[x0, z0, x1, z1], ...] в метрах): загоны с травой, место под городской стеной
+            for (const h of ((this.locTerrain && this.locTerrain.stoneHoles) || [])) {
+                const i0 = Math.max(0, Math.floor((h[0] - minX) / sx)), i1 = Math.min(W - 1, Math.ceil((h[2] - minX) / sx) - 1);
+                const j0 = Math.max(0, Math.floor((h[1] - minZ) / sz)), j1 = Math.min(H - 1, Math.ceil((h[3] - minZ) / sz) - 1);
+                for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) { dist[0][j * W + i] = PATH_DIST_MAX; dist[1][j * W + i] = PATH_DIST_MAX; }
+            }
             for (let k = 0; k < W * H; k++) {
                 data[k * 4] = Math.round(Math.min(1, dist[0][k] / PATH_DIST_MAX) * 255);
                 data[k * 4 + 1] = Math.round(Math.min(1, dist[1][k] / PATH_DIST_MAX) * 255);
