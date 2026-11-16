@@ -1112,7 +1112,9 @@ window.LOCATIONS = {
             paths: [
                 // Горная снежная тропа, связывающая все 3 прохода
                 { type: 'dirt', width: 2.6, thin: true, points: [[0.0, -95.0], [0.0, -60.0], [-20.0, -30.0], [-60.0, -10.0], [-100.0, -5.0], [-146.0, 0.0]] },
-                { type: 'dirt', width: 2.6, thin: true, points: [[-20.0, -30.0], [20.0, -20.0], [60.0, -10.0], [100.0, -5.0], [146.0, 0.0]] }
+                { type: 'dirt', width: 2.6, thin: true, points: [[-20.0, -30.0], [20.0, -20.0], [60.0, -10.0], [100.0, -5.0], [146.0, 0.0]] },
+                // Ответвление к стоянке охотника
+                { type: 'dirt', width: 2.2, thin: true, points: [[0.0, -64.0], [-10.0, -61.0], [-18.0, -57.0], [-26.0, -53.0]] }
             ]
         },
 
@@ -1140,7 +1142,8 @@ window.LOCATIONS = {
             { x: 0.0, z: -84.0, radius: 9.0 },
             { x: 0.0, z: -93.0, radius: 8.0 },
             { x: -130.0, z: 0.0, radius: 9.0 },
-            { x: 130.0, z: 0.0, radius: 9.0 }
+            { x: 130.0, z: 0.0, radius: 9.0 },
+            { x: -28.0, z: -52.0, radius: 10.0 }
         ],
 
         groups: [
@@ -1179,7 +1182,15 @@ window.LOCATIONS = {
             // Скальные арки ущелий
             { id: 'frostRidge.north_pass', prop: 'twinstone_pass', x: 0.0, z: -95.0, r: 0.0, yFrom: [4.0, -77.0], dy: 0.10, snow: true },
             { id: 'frostRidge.west_pass', prop: 'twinstone_pass', x: -145.0, z: 0.0, r: Math.PI / 2, yFrom: [-120.0, 0.0], dy: 0.10, snow: true },
-            { id: 'frostRidge.east_pass', prop: 'twinstone_pass', x: 145.0, z: 0.0, r: 4.71, yFrom: [120.0, 0.0], dy: 0.10, snow: true }
+            { id: 'frostRidge.east_pass', prop: 'twinstone_pass', x: 145.0, z: 0.0, r: 4.71, yFrom: [120.0, 0.0], dy: 0.10, snow: true },
+
+            // Стоянка охотника Эйрика
+            { id: 'frostRidge.hunter_tent', prop: 'lizard_tent', x: -32.0, z: -53.0, r: 0.8, snow: true },
+            { id: 'frostRidge.hunter_fire', prop: 'campfire', x: -27.0, z: -51.0, r: 0.0 },
+            { id: 'frostRidge.hunter_log', prop: 'fallen_log', x: -25.5, z: -49.5, r: 2.3, s: 1.8, snow: true },
+            { id: 'frostRidge.hunter_rack', prop: 'drying_rack', x: -33.5, z: -47.5, r: 0.5, snow: true },
+            { id: 'frostRidge.hunter_bones', prop: 'bone_pile_2', x: -34.0, z: -57.0, r: 1.2, snow: true },
+            { id: 'frostRidge.hunter', prop: 'npc_frost_hunter', x: -27.0, z: -53.2, r: 0.2 }
         ],
 
         creatures: [

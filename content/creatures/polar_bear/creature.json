@@ -20,28 +20,18 @@
   "hitRadius": 1.5,
   "scale": 1.3,
   "hpBarHeight": 1.8,
-  "modelKey": "creatures/bear",
-  "textureKey": "creatures/polar_bear",
+  "modelKey": "creatures/polar_bear",
   "gold": [
     14,
     24
   ],
   "xp": 480,
   "tiltSpan": [
-    -0.65,
-    0.55,
-    0.25
+    -0.88,
+    0.33,
+    0.17
   ],
   "statMultiplier": 1.25,
   "goldDrop": true,
-  "drops": [
-    {
-      "item": "meat",
-      "count": 8
-    },
-    {
-      "item": "bear_hide",
-      "count": 1
-    }
-  ]
+  "drops": []
 }

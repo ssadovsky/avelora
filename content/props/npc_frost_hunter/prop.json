@@ -1,0 +1,6 @@
+{
+  "id": "npc_frost_hunter",
+  "name": "Эйрик",
+  "obstacle": 0.6,
+  "npc": "frost_hunter"
+}
