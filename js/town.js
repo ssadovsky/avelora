@@ -358,6 +358,29 @@
         M.mbeam = mb ? std(mb, null, { roughness: 0.85 }) : M.wood;
         M.mdoor = md ? new THREE.MeshStandardMaterial({ map: md, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x2a1806, emissiveMap: md, emissiveIntensity: 0.25 }) : M.wood;
         M.mwin = mw ? new THREE.MeshStandardMaterial({ map: mw, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x3a2508, emissiveMap: mw, emissiveIntensity: 0.35 }) : M.glass;
+        // окно без цветочного ящика для первого этажа: верх картинки (рама, ставни, стекло) + каменная стена и деревянный подоконник, собранные на canvas
+        if (mw && A.townMeshWindow) {
+            const cv = document.createElement('canvas'); cv.width = 512; cv.height = 332;
+            const tex = new THREE.CanvasTexture(cv);
+            tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping; tex.anisotropy = 4;
+            if (THREE.SRGBColorSpace !== undefined && 'colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace;
+            else if (THREE.sRGBEncoding !== undefined) tex.encoding = THREE.sRGBEncoding;
+            const img = new Image();
+            img.onload = () => {
+                const g = cv.getContext('2d');
+                g.drawImage(img, 0, 0, 512, 290, 0, 0, 512, 290);                                              // рама, ставни, стекло
+                for (let x = 0, k = 0; x < 512; x += 85, k++) {                                               // каменная стена под ставнями
+                    g.save(); g.translate(k % 2 ? x + 85 : x, 0); if (k % 2) g.scale(-1, 1);
+                    g.drawImage(img, 0, 322, 85, 52, 0, 290, 85, 42); g.restore();
+                }
+                g.drawImage(img, 112, 8, 294, 50, 108, 270, 300, 34);                                          // подоконник из бруса перемычки
+                g.fillStyle = 'rgba(30,16,6,0.35)'; g.fillRect(108, 304, 300, 4);
+                g.fillStyle = 'rgba(30,16,6,0.28)'; g.fillRect(10, 288, 125, 3); g.fillRect(376, 288, 130, 3);   // нижний край ставней
+                tex.needsUpdate = true;
+            };
+            img.src = A.townMeshWindow;
+            M.mwinnf = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x3a2508, emissiveMap: tex, emissiveIntensity: 0.35 });
+        } else M.mwinnf = M.mwin || M.glass;
         // Стена: тот же камень, что у башен (sRGB-режим, как у GLB ворот и башни)
         M.wallstone = mws ? new THREE.MeshStandardMaterial({ map: mws, roughness: 0.9, metalness: 0, vertexColors: true }) : M.mstone;
         // верх стены: тот же кирпич, но с повтором по обеим осям (боковая текстура на верхней грани тянется полосами)
@@ -443,7 +466,8 @@
                 const idx = [];
                 for (const s of F.v) {
                     const lx = s[0] * hx, ly = s[1] * hy, lz = s[2] * hz, loc = [lx, ly, lz];
-                    const u = ((c3[F.u[0]] + loc[F.u[0]]) * F.u[1]) * us + ox, v = ((c3[F.w[0]] + loc[F.w[0]]) * F.w[1]) * us + oy;
+                    let u = ((c3[F.u[0]] + loc[F.u[0]]) * F.u[1]) * us + ox, v = ((c3[F.w[0]] + loc[F.w[0]]) * F.w[1]) * us + oy;
+                    if (o.vert && !F.top && !F.bottom) { const t = u; u = v - oy + ox; v = t - ox + oy; }   // вертикальный брус: узор вдоль стойки (по u идёт высота)
                     let px = lx, py = ly, pz = lz, nx = F.n[0], ny = F.n[1], nz = F.n[2];
                     if (rot) {
                         vec.set(lx, ly, lz).applyMatrix4(rot); px = vec.x; py = vec.y; pz = vec.z;
@@ -610,87 +634,116 @@
         return { rects, platform: null, w: W, d: D, h: yR + 1.2 };
     }
 
-    // Процедурная версия большого коттеджа со штатными plaster/wood/slate текстурами.
+    // Процедурный коттедж в духе Meshy «Старинного дома с синими крышами»: два этажа с выносом верха (jetty), фахверк, левая пристройка,
+    // слуховое окно, навес над дверью и крытая терраса справа. Текстуры те же, что у домика и таверны с meshTex: камень mstone, цоколь mplinth,
+    // брус mbeam, дверь mdoor, окна-картинки mwin (с цветочным ящиком — только на втором этаже и выше) и mwinnf (без цветов — первый этаж);
+    // штукатурка, сланец и настил — штатные. Если Meshy-текстур нет, материалы откатываются на процедурные.
+    // Локально: фасад +Z, главный корпус x ±4.5, z ±4.1; пристройка слева (x до −9.4), терраса справа (x до 9.7).
     function buildHearthCottage(B, cfg) {
         const rect = (x0, x1, z0, z1) => ({ x0, x1, z0, z1 });
-        const rects = [rect(-4.8, 4.8, -4.5, 4.5), rect(4.1, 9.7, -4.8, 4.8)];
-        const beam = (x, y, z, sx, sy, sz, tint) => B.box('wood', x, y, z, sx, sy, sz, { t: tint || 1.0, uv: 2.4 });
-        const roof = (width, depth, eave, angle) => {
-            const tan = Math.tan(angle), over = 0.65, run = depth / 2 + over;
-            const yE = eave - over * tan, yR = eave + (depth / 2) * tan;
-            const len = run / Math.cos(angle) + 0.12, yc = (yE + yR) / 2 + 0.1, zc = run / 2;
-            B.box('slate', 0, yc, zc, width + 1.2, 0.22, len, { rx: angle, bottom: true });
-            B.box('slate', 0, yc, -zc, width + 1.2, 0.22, len, { rx: -angle, bottom: true });
-            beam(0, yR + 0.18, 0, width + 1.35, 0.16, 0.38, 0.72);
-            for (const sz of [-1, 1]) beam(0, yE, sz * run, width + 1.2, 0.18, 0.18, 0.72);
-            return { yR, tan, yE };
-        };
-        const window = (x, z, yaw, y, w) => B.frame({ x, z, yaw }, () => {
-            B.box('dark', 0, y, 0.025, w, 1.42, 0.06, {});
-            B.box('glass', 0, y, 0.075, w - 0.22, 1.18, 0.045, {});
-            for (const sx of [-1, 1]) B.box('wood', sx * (w / 2 - 0.05), y, 0.14, 0.12, 1.52, 0.16, { t: 1.05, uv: 2.4 });
-            for (const sy of [-1, 1]) B.box('wood', 0, y + sy * 0.7, 0.14, w + 0.08, 0.13, 0.16, { t: 1.05, uv: 2.4 });
-            B.box('wood', 0, y, 0.2, 0.055, 1.2, 0.07, { t: 0.92, uv: 2.4 });
-            B.box('wood', 0, y, 0.2, w - 0.22, 0.055, 0.07, { t: 0.92, uv: 2.4 });
-            // Ставни без цветочных ящиков и широкого подоконника.
-            for (const sx of [-1, 1]) {
-                B.box('wood', sx * (w / 2 + 0.28), y, 0.1, 0.42, 1.35, 0.12, { t: [0.82, 0.78, 0.7], uv: 2.4 });
-                for (const sy of [-0.38, 0, 0.38]) B.box('wood', sx * (w / 2 + 0.28), y + sy, 0.18, 0.36, 0.045, 0.035, { t: 0.82, uv: 2.4 });
-            }
-            B.box('stone', 0, y - 0.8, 0.13, w + 0.2, 0.1, 0.28, { t: [0.9, 0.88, 0.82] });
+        const rects = [rect(-4.9, 4.9, -4.6, 4.6), rect(-9.7, -4.4, -3.3, 3.9), rect(4.1, 9.7, -4.8, 4.8), rect(-1.4, 1.4, 4.4, 5.9)];
+        const ST = 'mstone', PL = 'mplinth', UVS = 0.851, UVP = 0.303;
+        const beam = (x, y, z, sx, sy, sz, tint, o) => B.box('mbeam', x, y, z, sx, sy, sz, Object.assign({ t: tint === undefined ? 1.0 : Math.min(1.15, 0.45 + tint * 0.7), uv: 1.36, vert: !(o && (o.rx || o.ry || o.rz)) && sy > sx && sy > sz }, o || {}));   // стойки (высота больше ширины и длины): узор бруса вертикальный
+        // окно-картинка (рама, ставни, стекло); flowers — с цветочным ящиком (второй этаж, мансарда), иначе без ящика
+        const window = (x, z, yaw, y, scale, flowers) => B.frame({ x, z, yaw }, () => {
+            const k = scale || 1;
+            if (flowers) B.sign('mwin', 0, y - 0.05, 0.02, 2.3 * k, 1.87 * k);
+            else B.sign('mwinnf', 0, y + 0.14 * k, 0.02, 2.3 * k, 1.49 * k);
         });
-        const wallBlock = (cx, cz, w, d, top, lowerY, splitY) => {
-            B.box('stone', cx, 0.02, cz, w + 0.45, 1.05, d + 0.45, { t: [1.0, 0.92, 0.82] });
-            if (splitY > lowerY) B.box('stone', cx, (lowerY + splitY) / 2, cz, w, splitY - lowerY, d, { uv: 1.0, t: [1.48, 1.38, 1.22] });
-            if (top > splitY) B.box('plaster', cx, (splitY + top) / 2, cz, w, top - splitY, d, { uv: 1.0, t: [1.03, 1.0, 0.93] });
-            beam(cx, lowerY, cz, w + 0.22, 0.22, d + 0.22, 0.7);
-            beam(cx, top - 0.12, cz, w + 0.22, 0.22, d + 0.22, 0.7);
-            for (const sx of [-1, 1]) for (const sz of [-1, 1]) beam(cx + sx * (w / 2 - 0.18), (lowerY + top) / 2, cz + sz * (d / 2 + 0.04), 0.2, top - lowerY, 0.14, 0.8);
+        // двускатная крыша: ось вдоль X (axis 'x') или вдоль Z (axis 'z'); half — полуширина по скату, len — длина вдоль конька
+        const gable = (cx, cz, half, len, eave, ang, axis, over) => {
+            const tan = Math.tan(ang), ov = over === undefined ? 0.6 : over, run = half + ov, yE = eave - ov * tan, yR = eave + half * tan;
+            const slope = run / Math.cos(ang) + 0.12, yc = (yE + yR) / 2 + 0.1, c = run / 2;
+            for (const s of [-1, 1]) {   // торцы скатов, коньковый и карнизные брусья — в разных плоскостях (иначе мерцают на стыках)
+                const L = len + (s > 0 ? 0.03 : 0);
+                if (axis === 'x') B.box('slate', cx, yc, cz + s * c, L, 0.22, slope, { rx: s * ang, bottom: true });
+                else B.box('slate', cx + s * c, yc, cz, slope, 0.22, L, { rz: -s * ang, bottom: true });
+            }
+            if (axis === 'x') { beam(cx, yR + 0.17, cz, len + 0.16, 0.16, 0.38, 0.72); for (const s of [-1, 1]) beam(cx, yE, cz + s * run, len + 0.09, 0.18, 0.18, 0.72); }
+            else { beam(cx, yR + 0.17, cz, 0.38, 0.16, len + 0.16, 0.72); for (const s of [-1, 1]) beam(cx + s * run, yE, cz, 0.18, 0.18, len + 0.09, 0.72); }
+            return { yR, yE, tan };
         };
 
-        // Главный двухэтажный корпус с фахверком и фронтоном.
-        wallBlock(0, 0, 9.0, 8.2, 6.7, 0.58, 3.82);
-        beam(0, 3.82, 4.16, 9.15, 0.24, 0.2, 0.72);
-        beam(0, 3.82, -4.16, 9.15, 0.24, 0.2, 0.72);
-        for (const sx of [-1, 1]) {
-            beam(sx * 2.6, 5.15, 4.18, 0.14, 2.35, 0.11, 0.76);
-            beam(sx * 2.6, 5.15, -4.18, 0.14, 2.35, 0.11, 0.76);
-            B.box('wood', sx * 3.5, 5.25, 4.18, 1.8, 0.12, 0.1, { rz: sx * -0.55, t: 1.05, uv: 2.4 });
-            B.box('wood', sx * 3.5, 5.25, -4.18, 1.8, 0.12, 0.1, { rz: sx * 0.55, t: 1.05, uv: 2.4 });
+        // ---------- главный корпус: каменный низ, фахверковый верх с выносом 0.25
+        const yJ = 3.82, yTop = 6.7;
+        B.box(PL, 0, 0.02, 0, 9.45, 1.05, 8.65, { uv: UVP });                                                  // цоколь
+        B.box(ST, 0, (0.58 + yJ) / 2, 0, 9.0, yJ - 0.58, 8.2, { uv: UVS });
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) beam(sx * 4.46, (0.58 + yJ) / 2, sz * 4.06, 0.22, yJ - 0.58, 0.22, 0.8);   // угловые стойки низа
+        beam(0, yJ + 0.02, 0, 9.65, 0.24, 8.85, 0.7, { bottom: true });                                       // балка перекрытия (вынос)
+        B.box('plaster', 0, (yJ + 0.14 + yTop) / 2, 0, 9.5, yTop - yJ - 0.14, 8.7, { uv: 1.0, t: [1.03, 1.0, 0.93] });
+        beam(0, yTop - 0.1, 0, 9.7, 0.22, 8.9, 0.7);                                                           // верхняя обвязка
+        const zU = 4.35, xU = 4.75;
+        for (const sz of [-1, 1]) {      // стойки и раскосы верха на фасаде и тыле
+            for (const x of [-4.62, -3.85, -1.28, 1.28, 3.85, 4.62]) beam(x, (yJ + 0.14 + yTop) / 2, sz * (zU + 0.04), 0.14, yTop - yJ - 0.3, 0.1, 0.78);
         }
-        const mainRoof = roof(9.0, 8.2, 6.7, 0.62);
+        for (const sx of [-1, 1]) for (const z of [-3.85, -1.3, 1.3, 3.85]) beam(sx * (xU + 0.04), (yJ + 0.14 + yTop) / 2, z, 0.1, yTop - yJ - 0.3, 0.14, 0.78);
+        const roof = gable(0, 0, 4.35, 9.5 + 1.2, yTop, 0.62, 'x');
 
-        // Фронтон закрывает чердак на обоих торцах; деревянные накладки повторяют линию скатов.
+        // фронтоны с накладками по скату
         for (const sx of [-1, 1]) {
-            B.prism('plaster', 'x', sx * 4.62, 6.7, 4.1, mainRoof.yR - 6.7, 0.16, { uv: 1.2, t: [1.08, 1.03, 0.96] });
-            for (const sz of [-1, 1]) B.box('wood', sx * 4.72, (6.7 + mainRoof.yR) / 2, sz * 2.05, 0.18, 0.22, 5.35, { rx: -sz * 0.62, t: 1.05, uv: 2.4 });
-            B.box('wood', sx * 4.72, 6.82, 0, 0.18, 0.16, 8.2, { t: 0.92, uv: 2.4 });
+            B.prism('plaster', 'x', sx * (xU - 0.08), yTop, 4.3, roof.yR - yTop, 0.16, { uv: 1.2, t: [1.08, 1.03, 0.96] });
+            for (const sz of [-1, 1]) beam(sx * (xU + 0.05), (yTop + roof.yR) / 2 + 0.02, sz * 2.18, 0.16, 0.2, 4.35 / Math.cos(0.62), 1.0, { rx: sz * 0.62 });
+            beam(sx * (xU + 0.02), yTop + 0.1, 0, 0.12, 0.14, 8.7, 0.9);
+            beam(sx * (xU + 0.0), (yTop + roof.yR) / 2 - 0.1, 0, 0.1, (roof.yR - yTop) * 0.8, 0.14, 0.85);
         }
-        window(4.72, 0, Math.PI / 2, 8.1, 0.95);
-        window(-4.72, 0, -Math.PI / 2, 8.1, 0.95);
-        // Труба установлена на скате и выступает над коньком.
-        const chimneyX = -2.6, chimneyZ = -2.7, chimneyBottom = 7.75, chimneyTop = mainRoof.yR + 0.9;
-        B.box('stone', chimneyX, (chimneyBottom + chimneyTop) / 2, chimneyZ, 0.8, chimneyTop - chimneyBottom, 0.8, { t: [1.05, 0.98, 0.88], uv: 1.2 });
-        B.box('stone', chimneyX, chimneyTop + 0.08, chimneyZ, 1.05, 0.16, 1.05, { t: [0.96, 0.9, 0.82], uv: 1.2 });
+        window(xU + 0.02, 0, Math.PI / 2, 8.05, 0.75, true); window(-xU - 0.02, 0, -Math.PI / 2, 8.05, 0.75, true);
 
-        // Угловые окна и фасадные ряды; рамы, стекло, переплёт и ставни объёмные.
-        window(-2.45, 4.16, 0, 2.2, 1.2); window(2.45, 4.16, 0, 2.2, 1.2);
-        window(-2.55, 4.16, 0, 5.25, 1.2); window(0, 4.16, 0, 5.25, 1.2); window(2.55, 4.16, 0, 5.25, 1.2);
-        window(4.58, -2.15, Math.PI / 2, 2.2, 1.2); window(4.58, 1.8, Math.PI / 2, 2.2, 1.2);
-        window(-4.58, -2.0, -Math.PI / 2, 2.2, 1.2); window(-4.58, 2.0, -Math.PI / 2, 2.2, 1.2);
+        // труба
+        const chX = -2.7, chZ = -2.6, chB = 7.6, chT = roof.yR + 0.9;
+        B.box(ST, chX, (chB + chT) / 2, chZ, 0.85, chT - chB, 0.85, { uv: UVS });
+        B.box(PL, chX, chT + 0.08, chZ, 1.1, 0.16, 1.1, { uv: UVP });
 
-        // Дверь в главном фасаде и короткие ступени.
-        B.box('dark', 0, 1.75, 4.18, 1.65, 2.5, 0.08, {});
-        B.box('wood', 0, 1.75, 4.26, 1.42, 2.28, 0.12, { uv: 2.4, t: 1.08 });
-        for (const sx of [-1, 1]) beam(sx * 0.86, 1.82, 4.22, 0.14, 2.55, 0.16, 0.74);
-        beam(0, 3.08, 4.22, 1.9, 0.18, 0.18, 0.74);
-        B.box('stone', 0, 0.17, 4.68, 2.25, 0.34, 0.85, { t: [0.87, 0.85, 0.8] });
-        B.box('stone', 0, 0.08, 5.18, 2.25, 0.16, 0.5, { t: [0.87, 0.85, 0.8] });
+        // слуховое окно на передней стороне крыши
+        const dz0 = 3.55, dz1 = 0.95, dyB = 7.0, dyT = 8.55, dRidge = 9.15;
+        B.box('plaster', 0, (dyB + dyT) / 2, (dz0 + dz1) / 2, 2.1, dyT - dyB, dz0 - dz1, { uv: 1.0, t: [1.05, 1.0, 0.93] });
+        B.prism('plaster', 'z', dz0 - 0.02, dyT, 1.05, dRidge - dyT, 0.12, { uv: 1.2, t: [1.08, 1.03, 0.96] });
+        const dAng = Math.atan2(dRidge - dyT, 1.05), dRun = 1.05 + 0.3, dLen = (dz0 - dz1) + 0.6;
+        for (const s of [-1, 1]) B.box('slate', s * dRun / 2 * 0.95, (dyT + dRidge) / 2 + 0.2, (dz0 + dz1) / 2 + 0.22 + (s > 0 ? 0.015 : 0), dRun / Math.cos(dAng) + 0.12, 0.2, dLen + 0.2 + (s > 0 ? 0.03 : 0), { rz: -s * dAng, bottom: true });
+        beam(0, dRidge + 0.22, (dz0 + dz1) / 2 + 0.22, 0.3, 0.14, dLen + 0.3, 0.72);
+        for (const sx of [-1, 1]) beam(sx * 1.06, (dyB + 0.5 + dyT) / 2, dz0 + 0.03, 0.14, dyT - dyB - 0.5, 0.12, 0.8);
+        beam(0, dyT - 0.02, dz0 + 0.03, 2.3, 0.14, 0.14, 0.72);
+        window(0, dz0 + 0.05, 0, 7.95, 0.62, true);
 
-        // Терраса по правой стороне: настил, опоры, перила и скатная крыша.
-        B.box('stone', 6.85, 0.04, 0, 5.35, 0.42, 9.2, { t: [0.82, 0.81, 0.76] });
+        // окна главного корпуса: первый этаж без цветов, второй с ящиками
+        window(-2.45, 4.12, 0, 2.2, 1, false); window(2.45, 4.12, 0, 2.2, 1, false);
+        for (const x of [-2.55, 0, 2.55]) window(x, zU + 0.02, 0, 5.1, 1, true);
+        window(-2.45, -4.12, Math.PI, 2.2, 1, false); window(2.45, -4.12, Math.PI, 2.2, 1, false);
+        for (const x of [-2.55, 0, 2.55]) window(x, -zU - 0.02, Math.PI, 5.1, 1, true);
+        window(4.58, -2.15, Math.PI / 2, 2.2, 1, false); window(4.58, 1.9, Math.PI / 2, 2.2, 1, false);
+        window(-xU - 0.02, 2.0, -Math.PI / 2, 5.6, 0.9, true); window(-xU - 0.02, -2.0, -Math.PI / 2, 5.6, 0.9, true);
+
+        // дверь-картинка с Meshy, каменные ступени, навес на двух столбах
+        const dy = 0.55;
+        B.sign('mdoor', 0, 0.62 + 1.135, 4.14, 1.98, 2.27);
+        B.box(PL, 0, 0.31, 4.3, 2.0, 0.62, 0.34, { uv: UVP });
+        B.box(PL, 0, dy / 4, 4.65, 2.6, dy / 2, 0.45, { uv: UVP });
+        B.box(PL, 0, 0.07, 5.2, 2.8, 0.14, 0.6, { uv: UVP });
+        for (const sx of [-1, 1]) beam(sx * 1.25, 1.55, 5.55, 0.2, 3.1, 0.2, 0.82);
+        const pr = gable(0, 4.9, 1.45, 2.3, 3.15, 0.5, 'z', 0.25);
+        B.prism('plaster', 'z', 5.95, 3.15, 1.3, pr.yR - 3.15, 0.1, { uv: 1.2, t: [1.08, 1.03, 0.96] });
+        beam(0, 3.15, 5.95, 2.9, 0.16, 0.16, 0.72);
+
+        // ---------- левая пристройка: камень, фронтонная крыша конём к фасаду
+        const wx = -6.9, wz = 0.3, wHalf = 2.45, wEave = 3.05;
+        B.box(PL, wx, 0.01, wz, 5.35, 1.03, 6.85, { uv: UVP });
+        B.box(ST, wx, (0.58 + wEave) / 2, wz, 4.9, wEave - 0.58, 6.4, { uv: UVS });
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) beam(wx + sx * 2.36, (0.58 + wEave) / 2, wz + sz * 3.06, 0.22, wEave - 0.58, 0.22, 0.8);
+        beam(wx, wEave - 0.1, wz, 5.1, 0.22, 6.6, 0.7);
+        const wRoof = gable(wx, wz, wHalf, 6.4 + 0.8, wEave, 0.62, 'z', 0.5);
+        B.frame({ x: wx, z: 0, yaw: 0 }, () => B.prism('plaster', 'z', wz + 3.18, wEave, wHalf, wRoof.yR - wEave, 0.16, { uv: 1.2, t: [1.08, 1.03, 0.96] }));
+        B.frame({ x: wx, z: 0, yaw: 0 }, () => B.prism('plaster', 'z', wz - 3.18, wEave, wHalf, wRoof.yR - wEave, 0.16, { uv: 1.2, t: [1.08, 1.03, 0.96] }));   // задний фронтон
+        for (const sx of [-1, 1]) {
+            beam(wx + sx * wHalf / 2, (wEave + wRoof.yR) / 2 + 0.02, wz + 3.28, wHalf / Math.cos(0.62), 0.2, 0.16, 1.0, { rz: -sx * 0.62 });
+            beam(wx + sx * wHalf / 2, (wEave + wRoof.yR) / 2 + 0.02, wz - 3.28, wHalf / Math.cos(0.62), 0.2, 0.16, 1.0, { rz: -sx * 0.62 });
+        }
+        window(wx, wz + 3.2, 0, 1.95, 1, false);
+        window(wx, wz - 3.2, Math.PI, 1.95, 1, false);
+        window(wx - 2.45, wz, -Math.PI / 2, 1.95, 1, false);
+
+        // ---------- терраса справа: настил, столбы, перила, односкатная крыша
+        B.box(PL, 6.85, 0.04, 0, 5.35, 0.42, 9.2, { uv: UVP });
         B.box('deck', 6.85, 0.29, 0, 5.1, 0.12, 8.95, { uv: 1.0 });
-        for (const x of [4.55, 6.8, 9.15]) for (const z of [-4.25, 0, 4.25]) {
+        for (const x of [4.75, 6.8, 9.15]) for (const z of [-4.25, 0, 4.25]) {
             const postH = 5.1 - (x - 4.55) * 0.26;
             beam(x, postH / 2, z, 0.24, postH, 0.24, 0.82);
             if (z === -4.25 || z === 4.25) beam(x, 1.25, z, 0.18, 1.8, 0.18, 0.74);
@@ -698,12 +751,11 @@
         for (const z of [-4.25, 4.25]) {
             beam(6.85, 1.65, z, 4.5, 0.16, 0.16, 0.74);
             beam(6.85, 0.85, z, 4.5, 0.12, 0.12, 0.74);
-            for (let x = 4.85; x <= 8.9; x += 0.65) beam(x, 1.22, z, 0.07, 0.72, 0.07, 0.8);
+            for (let x = 4.95; x <= 8.9; x += 0.65) beam(x, 1.22, z, 0.07, 0.72, 0.07, 0.8);
         }
         B.box('slate', 6.85, 4.48, 0, 5.8, 0.2, 9.7, { rz: -0.24, bottom: true });
-        B.box('wood', 6.85, 4.48, 0, 5.9, 0.18, 0.2, { rz: -0.24, t: 0.72 });
-        const h = mainRoof.yR + 1.0;
-        return { rects, platform: null, w: 19.4, d: 10.8, h };
+        beam(6.85, 4.48, 0, 5.9, 0.18, 0.2, 0.72, { rz: -0.24 });
+        return { rects, platform: null, w: 19.4, d: 11.8, h: roof.yR + 1.0 };
     }
 
     // ------------------------------------------------------------------ белый мраморный храм (греческий периптер)
@@ -1369,7 +1421,7 @@
     }
 
     const TYPES = { templeGate: buildTempleGate, stoneHouse: buildStoneHouse, hearthCottage: buildHearthCottage, marbleTemple: buildMarbleTemple, tavern: buildTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall, buildTempleGate };
-    const CAMERA_BLOCK = { templeGate: ['stone'], stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], hearthCottage: ['stone', 'slate', 'wood', 'plaster', 'deck'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], corral: [], castleWall: ['wallstone', 'wallcap'] };
+    const CAMERA_BLOCK = { templeGate: ['stone'], stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], hearthCottage: ['stone', 'slate', 'wood', 'plaster', 'deck', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], corral: [], castleWall: ['wallstone', 'wallcap'] };
 
     // ------------------------------------------------------------------ менеджер локации
     class AveloraTown {
