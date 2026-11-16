@@ -1103,24 +1103,35 @@ window.LOCATIONS = {
             flatSpots: [
                 // Северное ущелье (в Лесную опушку)
                 { x: 0.0, z: -80.0, radius: 2.2, blend: 7.0, hFrom: [4.0, -77.0] }, { x: 0.0, z: -86.5, radius: 2.2, blend: 7.0, hFrom: [4.0, -77.0], dh: 0.0 }, { x: 0.0, z: -90.5, radius: 2.2, blend: 5.0, hFrom: [4.0, -77.0], dh: 0.22 }, { x: 0.0, z: -94.0, radius: 2.2, blend: 4.5, hFrom: [4.0, -77.0], dh: 0.6 }, { x: 0.0, z: -97.0, radius: 2.2, blend: 4.5, hFrom: [4.0, -77.0], dh: 0.6 },
+                // Площадка под пещеру-логово громил
+                { x: 112.0, z: -66.5, radius: 7.0, blend: 6.0 },
                 // Западное ущелье (в Выжженную землю)
                 { x: -130.0, z: 0.0, radius: 2.2, blend: 2.5, hFrom: [-120.0, 0.0] }, { x: -136.5, z: 0.0, radius: 2.2, blend: 3.0, hFrom: [-120.0, 0.0], dh: 0.00 }, { x: -140.5, z: 0.0, radius: 2.2, blend: 3.5, hFrom: [-120.0, 0.0], dh: 0.22 }, { x: -144.0, z: 0.0, radius: 2.2, blend: 4.0, hFrom: [-120.0, 0.0], dh: 0.60 }, { x: -147.0, z: 0.0, radius: 2.0, blend: 4.5, hFrom: [-120.0, 0.0], dh: 0.60 },
                 // Восточное ущелье (в Долину Забытых Эпох)
                 { x: 130.0, z: 0.0, radius: 2.2, blend: 2.5, hFrom: [120.0, 0.0] }, { x: 136.5, z: 0.0, radius: 2.2, blend: 3.0, hFrom: [120.0, 0.0], dh: 0.00 }, { x: 140.5, z: 0.0, radius: 2.2, blend: 3.5, hFrom: [120.0, 0.0], dh: 0.22 }, { x: 144.0, z: 0.0, radius: 2.2, blend: 4.0, hFrom: [120.0, 0.0], dh: 0.60 }, { x: 147.0, z: 0.0, radius: 2.0, blend: 4.5, hFrom: [120.0, 0.0], dh: 0.60 }
             ],
+            // Замёрзшее озеро к северу от главной тропы: ровный лёд, по нему можно ходить
+            iceLake: { x: -34.0, z: -50.0, rx: 25.0, rz: 13.0, depth: 0.30, bank: 0.24 },
             hills: { amplitude: 3.5, inclineX: 0.0, inclineZ: 0.15 },
             paths: [
-                // Горная снежная тропа, связывающая все 3 прохода
+                // Главная тропа: западное ущелье (первый вход, из Выжженной земли) -> центр -> северное ущелье; ветка на восток
                 { type: 'dirt', width: 2.6, thin: true, points: [[0.0, -95.0], [0.0, -60.0], [-20.0, -30.0], [-60.0, -10.0], [-100.0, -5.0], [-146.0, 0.0]] },
                 { type: 'dirt', width: 2.6, thin: true, points: [[-20.0, -30.0], [20.0, -20.0], [60.0, -10.0], [100.0, -5.0], [146.0, 0.0]] },
-                // Ответвление к стоянке охотника
-                { type: 'dirt', width: 2.2, thin: true, points: [[0.0, -64.0], [-10.0, -61.0], [-18.0, -57.0], [-26.0, -53.0]] }
+                // Стоянка Эйрика у западного входа
+                { type: 'dirt', width: 2.0, thin: true, points: [[-116.0, -2.5], [-113.5, -9.0], [-110.5, -15.0], [-108.0, -20.0]] },
+                // Охотничьи тропы: к мамонтам на юг, к медведям на юго-восток, к логову громил на северо-восток
+                { type: 'dirt', width: 1.6, thin: true, points: [[-60.0, -10.0], [-56.0, 15.0], [-50.0, 38.0], [-48.0, 52.0]] },
+                { type: 'dirt', width: 1.6, thin: true, points: [[60.0, -10.0], [72.0, 14.0], [86.0, 36.0], [94.0, 48.0]] },
+                { type: 'dirt', width: 1.6, thin: true, points: [[60.0, -10.0], [74.0, -26.0], [88.0, -40.0]] },
+                { type: 'dirt', width: 1.6, thin: true, points: [[-44.0, -18.0], [-40.0, -27.0], [-37.0, -34.0]] }   // к озеру
             ]
         },
 
         atmosphere: { sky: 0xd8e6f2, skyTop: 0x4a7eb5, fogColor: 0xcfe0ee, fogDensity: 0.0055 },
         lighting: { hemiSky: 0xebf4ff, hemiGround: 0x8aa2b8, hemiIntensity: 1.6, sunColor: 0xfff8f0, sunIntensity: 1.15 },
         cameraAngle: 0.0,
+        weather: { type: 'snow', density: 1.0, fall: 1.5, wind: [1.8, 0.6], drift: true },   // снегопад и позёмка (js/weather.js)
+        noFerns: [{ x: 0.0, z: 0.0, rx: 220.0, rz: 160.0 }],   // в снегу папоротники не растут (их сажает группа rocks)
 
         spawns: {
             default:    { x: 0.0, z: -78.0, r: Math.PI },
@@ -1143,7 +1154,11 @@ window.LOCATIONS = {
             { x: 0.0, z: -93.0, radius: 8.0 },
             { x: -130.0, z: 0.0, radius: 9.0 },
             { x: 130.0, z: 0.0, radius: 9.0 },
-            { x: -28.0, z: -52.0, radius: 10.0 }
+            { x: -108.0, z: -22.0, radius: 11.0 },   // стоянка Эйрика
+            { x: 31.0, z: -6.0, radius: 15.0 },     // круг Безмолвных стражей: без деревьев
+            { x: 112.0, z: -66.5, radius: 9.0 },     // пещера
+            // замёрзшее озеро: без деревьев и камней на льду
+            { x: -50.0, z: -50.0, radius: 13.5 }, { x: -34.0, z: -50.0, radius: 14.0 }, { x: -18.0, z: -50.0, radius: 13.5 }
         ],
 
         groups: [
@@ -1168,14 +1183,30 @@ window.LOCATIONS = {
 
             // Одиночные рощицы в центре у подножия холмов
             { id: 'fr_forest_mid_w', type: 'forest', x: -28.0, z: -12.0, rx: 14.0, rz: 14.0, count: 8, spacing: 8.0, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3109 },
-            { id: 'fr_forest_mid_e', type: 'forest', x: 25.0, z: -5.0, rx: 14.0, rz: 14.0, count: 8, spacing: 8.0, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3110 },
+            { id: 'fr_forest_mid_e', type: 'forest', x: 8.0, z: 14.0, rx: 12.0, rz: 10.0, count: 8, spacing: 8.0, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3110 },
 
             // Скальные валуны со снегом по хребту
             { id: 'fr_rocks_nw', type: 'rocks', x: -80.0, z: -40.0, radius: 9.0, count: 5, scaleMin: 1.1, scaleMax: 2.2, seed: 3201 },
             { id: 'fr_rocks_ne', type: 'rocks', x: 80.0, z: -40.0, radius: 9.0, count: 5, scaleMin: 1.1, scaleMax: 2.2, seed: 3202 },
             { id: 'fr_rocks_sw', type: 'rocks', x: -60.0, z: 35.0, radius: 8.0, count: 4, scaleMin: 1.0, scaleMax: 2.0, seed: 3203 },
             { id: 'fr_rocks_se', type: 'rocks', x: 60.0, z: 35.0, radius: 8.0, count: 4, scaleMin: 1.0, scaleMax: 2.0, seed: 3204 },
-            { id: 'fr_rocks_c', type: 'rocks', x: 0.0, z: 10.0, radius: 7.0, count: 3, scaleMin: 1.0, scaleMax: 1.8, seed: 3205 }
+            { id: 'fr_rocks_c', type: 'rocks', x: 0.0, z: 10.0, radius: 7.0, count: 3, scaleMin: 1.0, scaleMax: 1.8, seed: 3205 },
+
+            // Рощицы и камни по зонам зверей
+            { id: 'fr_grove_wolves', type: 'forest', x: -84.0, z: 22.0, rx: 12.0, rz: 10.0, count: 8, spacing: 7.0, treeType: 'evergreen', scaleMin: 0.8, scaleMax: 1.25, undergrowth: false, seed: 3301 },
+            { id: 'fr_grove_ox', type: 'forest', x: -78.0, z: -58.0, rx: 11.0, rz: 9.0, count: 6, spacing: 7.5, treeType: 'evergreen', scaleMin: 0.8, scaleMax: 1.25, undergrowth: false, seed: 3302 },
+            { id: 'fr_grove_fang', type: 'forest', x: -4.0, z: 36.0, rx: 12.0, rz: 10.0, count: 8, spacing: 7.0, treeType: 'evergreen', scaleMin: 0.8, scaleMax: 1.3, undergrowth: false, seed: 3303 },
+            { id: 'fr_grove_tiger', type: 'forest', x: 62.0, z: 26.0, rx: 12.0, rz: 10.0, count: 8, spacing: 7.0, treeType: 'evergreen', scaleMin: 0.8, scaleMax: 1.3, undergrowth: false, seed: 3304 },
+            { id: 'fr_grove_ne', type: 'forest', x: 80.0, z: -18.0, rx: 10.0, rz: 9.0, count: 6, spacing: 7.5, treeType: 'evergreen', scaleMin: 0.8, scaleMax: 1.25, undergrowth: false, seed: 3305 },
+            { id: 'fr_grove_n', type: 'forest', x: 14.0, z: -46.0, rx: 11.0, rz: 9.0, count: 7, spacing: 7.0, treeType: 'evergreen', scaleMin: 0.8, scaleMax: 1.25, undergrowth: false, seed: 3306 },
+            { id: 'fr_grove_e', type: 'forest', x: 112.0, z: 18.0, rx: 10.0, rz: 9.0, count: 6, spacing: 7.5, treeType: 'evergreen', scaleMin: 0.8, scaleMax: 1.25, undergrowth: false, seed: 3307 },
+            { id: 'fr_grove_mam', type: 'forest', x: -22.0, z: 62.0, rx: 10.0, rz: 8.0, count: 6, spacing: 7.5, treeType: 'evergreen', scaleMin: 0.9, scaleMax: 1.35, undergrowth: false, seed: 3308 },
+            { id: 'fr_rocks_wolves', type: 'rocks', x: -102.0, z: 38.0, radius: 7.0, count: 4, scaleMin: 1.0, scaleMax: 2.0, seed: 3401 },
+            { id: 'fr_rocks_brutes', type: 'rocks', x: 104.0, z: -58.0, radius: 12.0, count: 7, scaleMin: 1.3, scaleMax: 2.8, seed: 3402 },
+            { id: 'fr_rocks_bears', type: 'rocks', x: 108.0, z: 60.0, radius: 9.0, count: 5, scaleMin: 1.1, scaleMax: 2.4, seed: 3403 },
+            { id: 'fr_rocks_fang', type: 'rocks', x: -14.0, z: 14.0, radius: 7.0, count: 4, scaleMin: 1.0, scaleMax: 2.0, seed: 3404 },
+            { id: 'fr_rocks_tiger', type: 'rocks', x: 52.0, z: 4.0, radius: 7.0, count: 4, scaleMin: 1.0, scaleMax: 2.0, seed: 3405 },
+            { id: 'fr_rocks_rhino', type: 'rocks', x: 36.0, z: 74.0, radius: 7.0, count: 4, scaleMin: 1.0, scaleMax: 2.0, seed: 3406 }
         ],
 
         props: [
@@ -1184,26 +1215,173 @@ window.LOCATIONS = {
             { id: 'frostRidge.west_pass', prop: 'twinstone_pass', x: -145.0, z: 0.0, r: Math.PI / 2, yFrom: [-120.0, 0.0], dy: 0.10, snow: true },
             { id: 'frostRidge.east_pass', prop: 'twinstone_pass', x: 145.0, z: 0.0, r: 4.71, yFrom: [120.0, 0.0], dy: 0.10, snow: true },
 
-            // Стоянка охотника Эйрика
-            { id: 'frostRidge.hunter_tent', prop: 'lizard_tent', x: -32.0, z: -53.0, r: 0.8, snow: true },
-            { id: 'frostRidge.hunter_fire', prop: 'campfire', x: -27.0, z: -51.0, r: 0.0 },
-            { id: 'frostRidge.hunter_log', prop: 'fallen_log', x: -25.5, z: -49.5, r: 2.3, s: 1.8, snow: true },
-            { id: 'frostRidge.hunter_rack', prop: 'drying_rack', x: -33.5, z: -47.5, r: 0.5, snow: true },
-            { id: 'frostRidge.hunter_bones', prop: 'bone_pile_2', x: -34.0, z: -57.0, r: 1.2, snow: true },
-            { id: 'frostRidge.hunter', prop: 'npc_frost_hunter', x: -27.0, z: -53.2, r: 0.2 }
+            // Стоянка Эйрика у западного входа (первое, что видит герой, придя из Выжженной земли)
+            { id: 'frostRidge.hunter_tent', prop: 'hide_yurt', x: -113.0, z: -25.5, r: 0.94, snow: 0.8 },
+            { id: 'frostRidge.hunter_tent_2', prop: 'hide_tipi', x: -103.0, z: -28.5, r: -0.55, snow: 0.3 },
+            { id: 'frostRidge.hunter_fire', prop: 'campfire', x: -107.5, z: -21.5, r: 0.0, s: 1.2 },
+            { id: 'frostRidge.hunter_log', prop: 'fallen_log', x: -105.2, z: -19.6, r: 2.3, s: 1.8, snow: true },
+            { id: 'frostRidge.hunter_log_2', prop: 'fallen_log', x: -110.2, z: -19.8, r: 0.9, s: 1.6, snow: true },
+            { id: 'frostRidge.hunter_rack', prop: 'drying_rack', x: -114.0, z: -18.5, r: 0.5, snow: true },
+            { id: 'frostRidge.hunter_rack_2', prop: 'drying_rack', x: -101.5, z: -23.0, r: 2.2, snow: true },
+            { id: 'frostRidge.hunter_bones', prop: 'bone_pile_2', x: -115.5, z: -28.5, r: 1.2, snow: true },
+            { id: 'frostRidge.hunter', prop: 'npc_frost_hunter', x: -108.2, z: -24.6, r: 0.15 },
+            // Кости у логов хищников
+            { id: 'frostRidge.bones_wolf_1', prop: 'bone_pile_1', x: -99.0, z: 33.0, r: 0.7, snow: true },
+            { id: 'frostRidge.bones_wolf_2', prop: 'bone_pile_3', x: -90.0, z: 37.0, r: 2.9, snow: true },
+            { id: 'frostRidge.bones_fang_1', prop: 'bone_pile_4', x: -18.0, z: 18.0, r: 1.9, snow: true },
+            { id: 'frostRidge.bones_fang_2', prop: 'bone_pile_2', x: -30.0, z: 27.0, r: 4.4, snow: true },
+            { id: 'frostRidge.bones_bear_1', prop: 'bone_pile_5', x: 103.0, z: 57.0, r: 0.3, snow: true },
+            { id: 'frostRidge.bones_bear_2', prop: 'bone_pile_1', x: 92.0, z: 62.0, r: 3.6, snow: true },
+            { id: 'frostRidge.bones_brute_1', prop: 'bone_pile_4', x: 100.0, z: -54.0, r: 1.1, snow: true },
+            { id: 'frostRidge.bones_brute_2', prop: 'bone_pile_5', x: 108.0, z: -50.0, r: 2.6, snow: true },
+            { id: 'frostRidge.bones_brute_3', prop: 'bone_pile_3', x: 102.0, z: -64.0, r: 4.9, snow: true },
+            { id: 'frostRidge.bones_brute_4', prop: 'bone_pile_2', x: 96.0, z: -62.0, r: 5.8, snow: true },
+            // Логово громил: пещера в скалах (вход смотрит на стаю), трофейный скелет
+            { id: 'frostRidge.brute_cave', prop: 'frost_cave', x: 112.0, z: -66.5, r: -0.75, snow: 0.9 },
+            { id: 'frostRidge.skeleton_den', prop: 'mammoth_skeleton', x: 80.0, z: -35.0, r: 2.2, snow: 0.7 },
+            // Шаман Ульфгар рядом с кругом стражей (снаружи; портал portal_frost выводит в центр круга)
+            { id: 'frostRidge.shaman', prop: 'npc_frost_shaman', x: 40.5, z: -3.0, r: -1.75 },
+            // Скелет мамонта у охотничьей тропы на юг
+            { id: 'frostRidge.skeleton_trail', prop: 'mammoth_skeleton', x: -45.0, z: 28.0, r: 0.5, snow: 0.7 },
+            // Безмолвные стражи: круг менгиров на холме в центре хребта (ориентир)
+            { id: 'frostRidge.sentinel_1', prop: 'sentinel_stone_1', x: 31.3, z: 0.4, r: 2.39, s: 1.01, snow: 0.8 },
+            { id: 'frostRidge.sentinel_2', prop: 'sentinel_stone_3', x: 35.8, z: -3.0, r: 1.04, s: 1.18, snow: 0.8 },
+            { id: 'frostRidge.sentinel_3', prop: 'sentinel_stone_4', x: 35.9, z: -8.7, r: 3.63, s: 1.12, snow: 0.8 },
+            { id: 'frostRidge.sentinel_4', prop: 'sentinel_stone_2', x: 31.6, z: -12.3, r: 3.47, s: 1.05, snow: 0.8 },
+            { id: 'frostRidge.sentinel_5', prop: 'sentinel_stone_5', x: 26.1, z: -11.2, r: 4.59, s: 1.09, snow: 0.8 },
+            { id: 'frostRidge.sentinel_6', prop: 'sentinel_stone_3', x: 23.5, z: -6.2, r: 4.91, s: 1.12, snow: 0.8 },
+            { id: 'frostRidge.sentinel_7', prop: 'sentinel_stone_1', x: 25.8, z: -1.0, r: 5.27, s: 1.06, snow: 0.8 },
+            // Замёрзшее озеро: торосы по берегу и вмёрзшие в лёд
+            { id: 'frostRidge.lake_ice_1', prop: 'ice_shard_6', x: -5.5, z: -45.4, r: 4.99, s: 1.37, snow: 0.45 },
+            { id: 'frostRidge.lake_ice_2', prop: 'ice_shard_1', x: -23.1, z: -35.4, r: 5.28, s: 1.29, snow: 0.45 },
+            { id: 'frostRidge.lake_ice_3', prop: 'ice_shard_1', x: -46.0, z: -36.3, r: 5.66, s: 0.96, snow: 0.45 },
+            { id: 'frostRidge.lake_ice_4', prop: 'ice_shard_4', x: -62.6, z: -46.3, r: 2.39, s: 0.95, snow: 0.45 },
+            { id: 'frostRidge.lake_ice_5', prop: 'ice_shard_4', x: -58.5, z: -58.0, r: 2.56, s: 0.99, snow: 0.45 },
+            { id: 'frostRidge.lake_ice_6', prop: 'ice_shard_7', x: -37.4, z: -65.7, r: 1.00, s: 1.30, snow: 0.45 },
+            { id: 'frostRidge.lake_ice_7', prop: 'ice_shard_8', x: -13.7, z: -60.5, r: 0.80, s: 0.90, snow: 0.45 },
+            { id: 'frostRidge.lake_ice_c1', prop: 'ice_shard_5', x: -40.0, z: -52.0, r: 1.10, s: 1.30, snow: 0.3 },
+            { id: 'frostRidge.lake_ice_c2', prop: 'ice_shard_8', x: -37.5, z: -53.5, r: 4.00, s: 1.10, snow: 0.3 },
+            // Ледяные глыбы: у ущелий, логова, медведей и вдоль троп
+            { id: 'frostRidge.ice_1', prop: 'ice_shard_2', x: -122.6, z: 17.2, r: 1.60, s: 1.10, snow: 0.45 },
+            { id: 'frostRidge.ice_2', prop: 'ice_shard_4', x: -117.5, z: 11.2, r: 0.59, s: 0.86, snow: 0.45 },
+            { id: 'frostRidge.ice_3', prop: 'ice_shard_1', x: -124.2, z: 12.4, r: 4.37, s: 0.98, snow: 0.45 },
+            { id: 'frostRidge.ice_4', prop: 'ice_shard_1', x: -118.5, z: -8.0, r: 0.58, s: 1.03, snow: 0.45 },
+            { id: 'frostRidge.ice_5', prop: 'ice_shard_5', x: -119.0, z: -13.9, r: 1.58, s: 0.96, snow: 0.45 },
+            { id: 'frostRidge.ice_7', prop: 'ice_shard_8', x: 125.3, z: -56.4, r: 1.63, s: 0.97, snow: 0.45 },
+            { id: 'frostRidge.ice_8', prop: 'ice_shard_8', x: 117.7, z: -60.2, r: 2.49, s: 1.28, snow: 0.45 },
+            { id: 'frostRidge.ice_9', prop: 'ice_shard_7', x: 116.7, z: -56.9, r: 4.66, s: 1.19, snow: 0.45 },
+            { id: 'frostRidge.ice_10', prop: 'ice_shard_7', x: 91.4, z: -35.8, r: 3.01, s: 0.90, snow: 0.45 },
+            { id: 'frostRidge.ice_13', prop: 'ice_shard_1', x: 112.7, z: 53.9, r: 5.28, s: 1.24, snow: 0.45 },
+            { id: 'frostRidge.ice_14', prop: 'ice_shard_3', x: 114.9, z: 48.7, r: 0.71, s: 1.08, snow: 0.45 },
+            { id: 'frostRidge.ice_15', prop: 'ice_shard_4', x: 113.3, z: 43.1, r: 0.08, s: 0.96, snow: 0.45 },
+            { id: 'frostRidge.ice_17', prop: 'ice_shard_8', x: 85.3, z: 70.3, r: 4.79, s: 0.87, snow: 0.45 },
+            { id: 'frostRidge.ice_18', prop: 'ice_shard_6', x: 87.7, z: 65.4, r: 2.01, s: 0.86, snow: 0.45 },
+            { id: 'frostRidge.ice_19', prop: 'ice_shard_7', x: 81.8, z: 64.7, r: 5.72, s: 1.12, snow: 0.45 },
+            { id: 'frostRidge.ice_20', prop: 'ice_shard_1', x: -60.5, z: -71.1, r: 0.45, s: 1.12, snow: 0.45 },
+            { id: 'frostRidge.ice_22', prop: 'ice_shard_7', x: -61.6, z: -76.2, r: 0.37, s: 1.13, snow: 0.45 },
+            { id: 'frostRidge.ice_23', prop: 'ice_shard_3', x: 8.9, z: -66.2, r: 1.21, s: 0.87, snow: 0.45 },
+            { id: 'frostRidge.ice_24', prop: 'ice_shard_4', x: 11.3, z: -73.3, r: 2.52, s: 0.87, snow: 0.45 },
+            { id: 'frostRidge.ice_25', prop: 'ice_shard_3', x: 65.9, z: -31.5, r: 1.17, s: 1.19, snow: 0.45 },
+            { id: 'frostRidge.ice_26', prop: 'ice_shard_2', x: 66.4, z: -36.7, r: 2.10, s: 1.32, snow: 0.45 },
+            { id: 'frostRidge.ice_27', prop: 'ice_shard_1', x: -73.8, z: 61.3, r: 1.29, s: 1.26, snow: 0.45 },
+            { id: 'frostRidge.ice_28', prop: 'ice_shard_3', x: -71.4, z: 55.0, r: 0.22, s: 1.10, snow: 0.45 },
+            { id: 'frostRidge.ice_29', prop: 'ice_shard_6', x: -76.8, z: 54.1, r: 0.28, s: 1.28, snow: 0.45 },
+            { id: 'frostRidge.ice_30', prop: 'ice_shard_8', x: 123.9, z: 14.9, r: 2.84, s: 1.28, snow: 0.45 },
+            { id: 'frostRidge.ice_31', prop: 'ice_shard_8', x: 125.1, z: 8.6, r: 3.96, s: 1.25, snow: 0.45 },
+            { id: 'frostRidge.ice_32', prop: 'ice_shard_6', x: -6.1, z: -4.8, r: 0.90, s: 0.86, snow: 0.45 },
+            { id: 'frostRidge.ice_33', prop: 'ice_shard_8', x: -5.7, z: -10.2, r: 4.34, s: 1.15, snow: 0.45 }
         ],
 
         creatures: [
-            // Оценочная расстановка (по одному, не агрессивные: бьют в ответ). Модели: content/creatures/frostfang*, frostwing_owl, snowbound_mammoth
-            { id: 'fr_frostfang_1', type: 'frostfang', x: -45.0, z: -22.0, r: 1.0 },
-            { id: 'fr_owl_1', type: 'frostwing_owl', x: 35.0, z: -30.0, r: 3.5 },
-            { id: 'fr_brute_1', type: 'frostfang_brute', x: 75.0, z: -28.0, r: 3.9 },
-            { id: 'fr_mammoth_1', type: 'snowbound_mammoth', x: -85.0, z: -30.0, r: 0.5 },
-            { id: 'fr_musk_ox_1', type: 'musk_ox', x: -55.0, z: 5.0, r: 2.0 },
-            { id: 'fr_snow_tiger_1', type: 'snow_tiger', x: 4.0, z: 25.0, r: 1.2 },
-            { id: 'fr_polar_bear_1', type: 'polar_bear', x: -20.0, z: 40.0, r: 0.4 },
-            { id: 'fr_polar_bear_2', type: 'polar_bear', x: 50.0, z: 55.0, r: 2.1 },
-            { id: 'fr_woolly_rhino_1', type: 'woolly_rhino', x: -70.0, z: 45.0, r: 3.1 }
+            // Северные волки: стая у западного входа (-95, 30) и вторая у северного (30, -58)
+            { id: 'fr_wolf_1', type: 'frost_wolf', x: -95.3, z: 38.0, r: 5.80, level: 19 },
+            { id: 'fr_wolf_2', type: 'frost_wolf', x: -88.4, z: 34.1, r: 3.69, level: 19 },
+            { id: 'fr_wolf_3', type: 'frost_wolf', x: -87.6, z: 27.7, r: 3.96, level: 20 },
+            { id: 'fr_wolf_4', type: 'frost_wolf', x: -96.2, z: 24.2, r: 1.91, level: 19 },
+            { id: 'fr_wolf_5', type: 'frost_wolf', x: -101.3, z: 23.4, r: 4.35, level: 19 },
+            { id: 'fr_wolf_6', type: 'frost_wolf', x: -104.7, z: 32.0, r: 6.06, level: 20 },
+            { id: 'fr_wolf_alpha', type: 'frost_wolf_alpha', x: -96.0, z: 31.0, r: 0.60, level: 21 },
+            { id: 'fr_wolf_n_1', type: 'frost_wolf', x: 29.9, z: -50.4, r: 4.19, level: 20 },
+            { id: 'fr_wolf_n_2', type: 'frost_wolf', x: 34.2, z: -55.3, r: 2.35, level: 20 },
+            { id: 'fr_wolf_n_3', type: 'frost_wolf', x: 35.8, z: -63.8, r: 4.34, level: 21 },
+            { id: 'fr_wolf_n_4', type: 'frost_wolf', x: 25.4, z: -63.5, r: 4.15, level: 20 },
+            { id: 'fr_wolf_n_5', type: 'frost_wolf', x: 23.3, z: -57.6, r: 1.02, level: 20 },
+            // Стадо овцебыков на равнине к северу от тропы (-68, -42)
+            { id: 'fr_musk_ox_1', type: 'musk_ox', x: -69.9, z: -31.0, r: 4.30, level: 20 },
+            { id: 'fr_musk_ox_2', type: 'musk_ox', x: -60.1, z: -39.7, r: 1.45, level: 20 },
+            { id: 'fr_musk_ox_3', type: 'musk_ox', x: -59.9, z: -44.3, r: 4.61, level: 21 },
+            { id: 'fr_musk_ox_4', type: 'musk_ox', x: -65.4, z: -51.9, r: 1.34, level: 20 },
+            { id: 'fr_musk_ox_5', type: 'musk_ox', x: -75.6, z: -48.0, r: 5.26, level: 20 },
+            { id: 'fr_musk_ox_6', type: 'musk_ox', x: -74.0, z: -37.9, r: 1.73, level: 21 },
+            // Морозные совы над северо-западным ельником (-62, -68)
+            { id: 'fr_owl_1', type: 'frostwing_owl', x: -64.6, z: -58.8, r: 4.09, level: 21 },
+            { id: 'fr_owl_2', type: 'frostwing_owl', x: -54.6, z: -68.0, r: 1.61, level: 21 },
+            { id: 'fr_owl_3', type: 'frostwing_owl', x: -57.8, z: -76.3, r: 1.90, level: 22 },
+            { id: 'fr_owl_4', type: 'frostwing_owl', x: -67.5, z: -73.8, r: 4.88, level: 21 },
+            { id: 'fr_owl_5', type: 'frostwing_owl', x: -69.1, z: -67.7, r: 5.66, level: 21 },
+            // Саблезубы в центре, к югу от тропы (-22, 22)
+            { id: 'fr_frostfang_1', type: 'frostfang', x: -19.7, z: 28.8, r: 4.62, level: 22 },
+            { id: 'fr_frostfang_2', type: 'frostfang', x: -12.7, z: 30.9, r: 0.11, level: 22 },
+            { id: 'fr_frostfang_3', type: 'frostfang', x: -14.2, z: 14.1, r: 5.38, level: 23 },
+            { id: 'fr_frostfang_4', type: 'frostfang', x: -24.9, z: 14.0, r: 2.12, level: 22 },
+            { id: 'fr_frostfang_5', type: 'frostfang', x: -30.2, z: 18.8, r: 1.65, level: 22 },
+            { id: 'fr_frostfang_6', type: 'frostfang', x: -33.5, z: 26.0, r: 5.49, level: 23 },
+            // Снежные тигры на восточных холмах (48, 12)
+            { id: 'fr_snow_tiger_1', type: 'snow_tiger', x: 47.0, z: 21.9, r: 2.62, level: 22 },
+            { id: 'fr_snow_tiger_2', type: 'snow_tiger', x: 57.0, z: 15.3, r: 4.13, level: 23 },
+            { id: 'fr_snow_tiger_3', type: 'snow_tiger', x: 55.8, z: 4.4, r: 0.06, level: 23 },
+            { id: 'fr_snow_tiger_4', type: 'snow_tiger', x: 66.0, z: 8.0, r: 0.89, level: 22 },
+            { id: 'fr_snow_tiger_5', type: 'snow_tiger', x: 40.1, z: 16.2, r: 4.96, level: 23 },
+            // Стадо мамонтов на южном склоне (-48, 60)
+            { id: 'fr_mammoth_1', type: 'snowbound_mammoth', x: -47.8, z: 72.8, r: 6.03, level: 24 },
+            { id: 'fr_mammoth_2', type: 'snowbound_mammoth', x: -35.6, z: 61.8, r: 4.42, level: 24 },
+            { id: 'fr_mammoth_3', type: 'snowbound_mammoth', x: -48.9, z: 51.7, r: 0.17, level: 24 },
+            { id: 'fr_mammoth_4', type: 'snowbound_mammoth', x: -60.4, z: 59.0, r: 1.58, level: 24 },
+            // Шерстистые носороги на юге (28, 66)
+            { id: 'fr_woolly_rhino_1', type: 'woolly_rhino', x: 25.9, z: 75.1, r: 2.10, level: 23 },
+            { id: 'fr_woolly_rhino_2', type: 'woolly_rhino', x: 36.1, z: 63.4, r: 3.10, level: 24 },
+            { id: 'fr_woolly_rhino_3', type: 'woolly_rhino', x: 20.9, z: 61.7, r: 1.66, level: 23 },
+            // Полярные медведи на юго-востоке (98, 54)
+            { id: 'fr_polar_bear_1', type: 'polar_bear', x: 99.5, z: 65.7, r: 3.27, level: 24 },
+            { id: 'fr_polar_bear_2', type: 'polar_bear', x: 107.0, z: 56.8, r: 6.26, level: 24 },
+            { id: 'fr_polar_bear_3', type: 'polar_bear', x: 103.6, z: 48.3, r: 1.64, level: 25 },
+            { id: 'fr_polar_bear_4', type: 'polar_bear', x: 94.0, z: 45.9, r: 1.68, level: 24 },
+            { id: 'fr_polar_bear_5', type: 'polar_bear', x: 89.0, z: 54.4, r: 1.95, level: 24 },
+            // Шаманы йети: по одному в группах племени
+            { id: 'fr_yeti_shaman_1', type: 'frost_yeti_shaman', x: 89.0, z: -63.0, r: 1.25, level: 24 },
+            { id: 'fr_yeti_shaman_2', type: 'frost_yeti_shaman', x: 100.1, z: -45.6, r: 2.67, level: 24 },
+            { id: 'fr_yeti_shaman_3', type: 'frost_yeti_shaman', x: 118.4, z: -41.6, r: 1.49, level: 24 },
+            { id: 'fr_yeti_shaman_4', type: 'frost_yeti_shaman', x: 128.9, z: -68.2, r: 3.36, level: 24 },
+            { id: 'fr_yeti_shaman_5', type: 'frost_yeti_shaman', x: 113.3, z: -76.4, r: 5.89, level: 24 },
+            { id: 'fr_yeti_shaman_6', type: 'frost_yeti_shaman', x: 80.4, z: -76.2, r: 3.28, level: 24 },
+            { id: 'fr_yeti_shaman_7', type: 'frost_yeti_shaman', x: 98.5, z: -57.6, r: 4.61, level: 24 },
+            // Племя йети на северо-востоке: рядовые группами по скалам до краёв локации, 4 громилы-командира (босс будет в подземелье за пещерой)
+            { id: 'fr_brute_1', type: 'frostfang_brute', x: 104.5, z: -58.0, r: 5.02, level: 25 },
+            { id: 'fr_brute_2', type: 'frostfang_brute', x: 92.0, z: -50.0, r: 2.05, level: 25 },
+            { id: 'fr_brute_3', type: 'frostfang_brute', x: 121.0, z: -52.0, r: 1.51, level: 25 },
+            { id: 'fr_brute_4', type: 'frostfang_brute', x: 96.0, z: -70.0, r: 5.17, level: 25 },
+            { id: 'fr_yeti_1', type: 'frost_yeti', x: 87.1, z: -58.5, r: 3.50, level: 23 },
+            { id: 'fr_yeti_2', type: 'frost_yeti', x: 82.0, z: -64.4, r: 3.96, level: 24 },
+            { id: 'fr_yeti_3', type: 'frost_yeti', x: 86.2, z: -67.2, r: 0.48, level: 23 },
+            { id: 'fr_yeti_4', type: 'frost_yeti', x: 94.1, z: -40.3, r: 4.65, level: 23 },
+            { id: 'fr_yeti_5', type: 'frost_yeti', x: 102.6, z: -40.2, r: 0.50, level: 24 },
+            { id: 'fr_yeti_6', type: 'frost_yeti', x: 104.5, z: -49.0, r: 0.22, level: 23 },
+            { id: 'fr_yeti_7', type: 'frost_yeti', x: 124.1, z: -42.7, r: 2.25, level: 23 },
+            { id: 'fr_yeti_8', type: 'frost_yeti', x: 123.8, z: -37.0, r: 6.19, level: 24 },
+            { id: 'fr_yeti_9', type: 'frost_yeti', x: 118.5, z: -36.3, r: 5.80, level: 23 },
+            { id: 'fr_yeti_10', type: 'frost_yeti', x: 127.8, z: -61.7, r: 4.78, level: 23 },
+            { id: 'fr_yeti_11', type: 'frost_yeti', x: 123.4, z: -65.9, r: 0.05, level: 24 },
+            { id: 'fr_yeti_12', type: 'frost_yeti', x: 127.0, z: -72.4, r: 0.85, level: 23 },
+            { id: 'fr_yeti_13', type: 'frost_yeti', x: 118.0, z: -78.4, r: 0.54, level: 23 },
+            { id: 'fr_yeti_14', type: 'frost_yeti', x: 110.5, z: -80.4, r: 0.12, level: 24 },
+            { id: 'fr_yeti_15', type: 'frost_yeti', x: 108.1, z: -75.9, r: 1.58, level: 23 },
+            { id: 'fr_yeti_16', type: 'frost_yeti', x: 79.2, z: -71.8, r: 5.39, level: 23 },
+            { id: 'fr_yeti_17', type: 'frost_yeti', x: 89.9, z: -78.9, r: 4.87, level: 24 },
+            { id: 'fr_yeti_18', type: 'frost_yeti', x: 83.3, z: -80.7, r: 2.51, level: 23 },
+            { id: 'fr_yeti_19', type: 'frost_yeti', x: 68.9, z: -45.2, r: 4.69, level: 23 },
+            { id: 'fr_yeti_20', type: 'frost_yeti', x: 69.9, z: -53.3, r: 1.94, level: 24 },
+            { id: 'fr_yeti_21', type: 'frost_yeti', x: 112.6, z: -25.1, r: 0.91, level: 23 },
+            { id: 'fr_yeti_22', type: 'frost_yeti', x: 107.3, z: -34.3, r: 4.25, level: 23 }
         ]
     },
 

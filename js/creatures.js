@@ -284,6 +284,25 @@
             return Object.prototype.hasOwnProperty.call(defs, type) ? defs[type] : null;
         }
 
+        /** Дальняя атака моба: снаряд из верхней части модели в точку, где герой стоит в момент выстрела.
+         *  Урон проходит, только если герой к прилёту остался в радиусе dodge от точки попадания (можно отбежать или встать за дерево). */
+        rangedShot(rec, def, amount) {
+            const sk = this.game.skills, ch = this.game.character;
+            if (!ch || !ch.position) return;
+            const R = def.ranged, base = (sk.get && sk.get(R.skill)) || {};
+            const sdef = Object.assign({}, base, { id: 'enemy_' + (base.id || 'bolt'), range: (R.range || 12) + 8, speed: R.speed || 15, damage: null });
+            if (R.vfx) sdef.vfx = Object.assign({}, base.vfx || {}, R.vfx);
+            const h = Math.max(1.0, rec.height || 1.6);
+            const from = { x: rec.x + Math.sin(rec.yaw) * 0.6, y: rec.y + h * 0.85, z: rec.z + Math.cos(rec.yaw) * 0.6 };
+            const to = { x: ch.position.x, y: ch.position.y, z: ch.position.z };
+            const dodge = R.dodge || 1.7;
+            sk.spawnEnemyProjectile(sdef, from, to, (pt) => {
+                const c2 = this.game.character;
+                if (!c2 || !c2.position || !this.game.combat) return;
+                if (Math.hypot(c2.position.x - pt.x, c2.position.z - pt.z) <= dodge) this.game.combat.damagePlayer(amount, rec);
+            });
+        }
+
         respawnSeconds(def) { return Math.max(5, (Number(def.respawnMinutes) || 5) * 60); }
 
         makeRecord(sp, def) {
@@ -951,7 +970,8 @@
             const isDungeon = Boolean(this.location && this.location.isDungeon);
             const defaultLeash = isDungeon ? 36 : 24;
             const leash = rec.rallied ? 400 : Math.max(defaultLeash, def.leashRadius || defaultLeash);
-            const reach = (def.attackRange || 0.8) + (def.hitRadius || 0.4) + PLAYER_RADIUS;
+            // def.ranged = {skill, range, speed?, dodge?}: моб останавливается на range и бьёт снарядом (вид — от навыка героя skill)
+            const reach = (def.ranged ? (def.ranged.range || 12) : (def.attackRange || 0.8)) + (def.hitRadius || 0.4) + PLAYER_RADIUS;
             rec.speed = 0;
             // Оглушение (стан на 5 сек): существо парализовано, не двигается и не атакует
             if (rec.stunT > 0) {
@@ -986,10 +1006,11 @@
                 if (p) this.turnTowards(rec, p.x, p.z, dt);
                 if (!rec.attackHitDone && rec.attackT >= rec.hitAt) {
                     rec.attackHitDone = true;
-                    if (playerAlive && distP <= reach + 0.5 && this.game.combat && this.sameLevel(rec)) {
+                    if (playerAlive && distP <= reach + (def.ranged ? 6.0 : 0.5) && this.game.combat && this.sameLevel(rec)) {
                         const d = rec.scaledDamage || def.damage || [1, 2];
                         const amount = Math.round(d[0] + Math.random() * ((d[1] || d[0]) - d[0]));
-                        this.game.combat.damagePlayer(amount, rec);
+                        if (def.ranged && this.game.skills && this.game.skills.spawnEnemyProjectile) this.rangedShot(rec, def, amount);
+                        else this.game.combat.damagePlayer(amount, rec);
                     }
                 }
                 if (rec.attackT >= rec.attackDur) {

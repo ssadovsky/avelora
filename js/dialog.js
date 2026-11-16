@@ -1004,6 +1004,8 @@
                 if (!def || def.category === 'mounts') return;
                 const known = !!st && st.knowsSkill(id);
                 if (known) return; // learned skills disappear from the teach list
+                if (def.teacher && def.teacher !== this.npc.id) return;   // навык с полем teacher учит только этот NPC
+                if (this.npc.teach && Array.isArray(this.npc.teach.only) && this.npc.teach.only.indexOf(id) < 0) return;   // npc.teach.only: учитель с ограниченным списком
                 const need = def.requiresLevel || 1;
                 const locked = heroLevel < need;
                 const price = (def.price !== undefined) ? def.price : basePrice;

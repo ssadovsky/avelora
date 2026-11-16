@@ -944,6 +944,38 @@
             return true;
         }
 
+        /** Снаряд моба (creature.json ranged): летит из точки from в точку to (не наводится — можно уйти),
+         *  существ и героя сам не ранит; по прилёте вызывает onArrive({x, y, z}) — урон решает creatures.js. */
+        spawnEnemyProjectile(def, from, to, onArrive) {
+            const r = this.ensureResources();
+            const p = r.projectiles.find(q => !q.active) || r.projectiles[0];
+            p.start.set(from.x, from.y, from.z);
+            const aim = this._v1.set(to.x, to.y + 1.0, to.z);
+            p.dir.subVectors(aim, p.start);
+            p.dist = p.dir.length();
+            if (p.dist < 1e-3) { p.dir.set(0, 0, -1); p.dist = 0.01; }
+            p.dir.divideScalar(p.dist);
+            p.dist += 0.6;
+            p.pos.copy(p.start);
+            p.def = def;
+            p.targetCreature = null;
+            p.hostile = true; p.onArrive = onArrive || null;
+            p.travelled = 0; p.age = 0; p.fade = 0; p.emit = 0; p.boltTimer = 0;
+            p.seed = Math.random() * 100;
+            p.active = true; p.fading = false;
+            const vfx = def.vfx || {};
+            p.color.set(vfx.color || '#7fd4ff');
+            p.core.set(vfx.core || '#ffffff');
+            p.coreSprite.material.color.copy(p.core);
+            p.glowSprite.material.color.copy(p.color);
+            p.shadeSprite.material.color.copy(p.color).multiplyScalar(0.12);
+            this._color.copy(p.color).lerp(this._white, 0.45);
+            p.filaments.material.color.copy(this._color);
+            p.coreSprite.visible = p.glowSprite.visible = p.shadeSprite.visible = true;
+            p.filaments.visible = vfx.filaments !== false;
+            this.placeProjectileVisuals(p, 0);
+        }
+
         spawnProjectile(def, target, tgt = null) {
             const r = this.ensureResources();
             const p = r.projectiles.find(q => !q.active) || r.projectiles[0];
@@ -963,6 +995,7 @@
             p.pos.copy(start);
             p.def = def;
             p.targetCreature = (tgt && this.game.creatures && this.game.creatures.isAlive(tgt)) ? tgt : null;
+            p.hostile = false; p.onArrive = null;
             p.travelled = 0; p.age = 0; p.fade = 0; p.emit = 0; p.boltTimer = 0;
             p.seed = Math.random() * 100;
             p.active = true; p.fading = false;
@@ -1395,7 +1428,7 @@
                             p.travelled += s;
                             const gy = this.game.terrain ? this.game.terrain.getHeightAt(p.pos.x, p.pos.z) : p.pos.y;
                             if (p.pos.y < gy + 0.05) { p.pos.y = gy + 0.08; hit = true; onGround = true; }
-                            else if (cr && cr.hitTest(p.pos)) {
+                            else if (!p.hostile && cr && cr.hitTest(p.pos)) {
                                 hit = true;
                                 onGround = p.pos.y - gy < 0.6;
                             }
@@ -1405,7 +1438,7 @@
                 }
 
                 if (hit) {
-                    if (p.def && p.def.id === 'spark') {
+                    if (!p.hostile && p.def && p.def.id === 'spark') {
                         const st = this.game && this.game.gameState;
                         if (st && st.setQuestFlag) st.setQuestFlag('spark_hit_creature', true);
                         const dlg = (this.game && this.game.ui && this.game.ui.dialog);
@@ -1490,6 +1523,11 @@
             p.fading = true;
             p.fade = 0;
             this.spawnImpact(def, p.pos, p.color, onGround);
+            if (p.hostile) {   // снаряд моба: урон герою считает creatures.js
+                const cb = p.onArrive; p.onArrive = null; p.hostile = false;
+                if (cb) cb({ x: p.pos.x, y: p.pos.y, z: p.pos.z });
+                return;
+            }
             const dmg = def.damage || null;
             const amount = dmg && Number.isFinite(dmg.min) && Number.isFinite(dmg.max)
                 ? Math.max(1, Math.round((dmg.min + Math.random() * (dmg.max - dmg.min)) * (this.game.hero ? this.game.hero.skillMult(def) : 1))) : 0;

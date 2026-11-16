@@ -1,0 +1,24 @@
+{
+  "id": "portal_frost",
+  "name": "Портал: Безмолвные стражи",
+  "description": "Ледяной портал переносит вас в круг Безмолвных стражей на Морозном хребте. Движение или удар прерывают заклинание.",
+  "type": "teleport",
+  "category": "travel",
+  "destination": "frostRidge",
+  "oneWay": true,
+  "pos": {
+    "x": 30.0,
+    "z": -6.0,
+    "r": 1.57
+  },
+  "cooldown": 30,
+  "castTime": 3,
+  "vfx": {
+    "color": "#7fd4ff",
+    "core": "#f2fbff",
+    "radius": 1.7
+  },
+  "requiresLevel": 19,
+  "price": 120,
+  "teacher": "frost_shaman"
+}

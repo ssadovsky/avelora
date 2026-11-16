@@ -1,0 +1,16 @@
+{
+  "id": "mammoth_skeleton",
+  "name": "Скелет мамонта",
+  "obstacle": 0,
+  "obstacleShapes": [
+    {
+      "type": "box",
+      "hx": 0.95,
+      "hz": 3.3,
+      "cx": 0,
+      "cz": 0,
+      "r": 0,
+      "exact": true
+    }
+  ]
+}

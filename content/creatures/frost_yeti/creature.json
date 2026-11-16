@@ -1,0 +1,36 @@
+{
+  "id": "frost_yeti",
+  "name": "Ледяной йети",
+  "level": 23,
+  "rank": "normal",
+  "hp": 340,
+  "damage": [
+    30,
+    44
+  ],
+  "attackRange": 2.0,
+  "attackCooldown": 1.6,
+  "walkSpeed": 1.3,
+  "runSpeed": 6.2,
+  "behavior": "aggressive",
+  "aggroRadius": 11,
+  "leashRadius": 24,
+  "wanderRadius": 4,
+  "respawnMinutes": 6,
+  "hitRadius": 1.1,
+  "scale": 1.0,
+  "hpBarHeight": 2.9,
+  "gold": [
+    14,
+    24
+  ],
+  "goldDrop": true,
+  "xp": 420,
+  "statMultiplier": 1.25,
+  "drops": [
+    {
+      "item": "meat",
+      "count": 2
+    }
+  ]
+}

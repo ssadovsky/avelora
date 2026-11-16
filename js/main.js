@@ -1315,6 +1315,8 @@ class AveloraGame {
         if (window.AveloraTown) window.AveloraTown.prepareLocation(loc);   // town.js: ровные площадки под процедурные здания — до рельефа
         if (window.AveloraCellar) window.AveloraCellar.prepareLocation(loc);   // cellar.js: площадка, окно под траншею, чистые зоны — до рельефа
         this.terrain = new LakesideTerrain(this.locationRoot, {}, loc);
+        // погода локации (js/weather.js): снегопад и позёмка, поле loc.weather
+        this.weather = (loc.weather && window.AveloraWeather) ? new window.AveloraWeather(this.locationRoot, loc.weather, { low: !!(window.GFX && window.GFX.particles !== undefined && window.GFX.particles < 100) }) : null;
         this.pathfinder = new DiabloPathfinder(this.terrain, gridX, gridZ, sizeX, sizeZ);
         this.water.setLocation(loc);
         this.waterfall = (loc.waterfalls && loc.waterfalls.length && window.AveloraWaterfall)
@@ -1387,6 +1389,7 @@ class AveloraGame {
         if (this.grottos) { this.grottos.forEach(g => g.dispose()); this.grottos = []; }
         this.cameraBlockers = [];
         if (this.dungeon) { this.dungeon.dispose(); this.dungeon = null; }
+        if (this.weather) { this.weather.dispose(); this.weather = null; }
         if (this.cellars) { this.cellars.forEach(c => c.dispose()); this.cellars = []; }
         if (this.town) { this.town.dispose(); this.town = null; }
         if (this.skills) this.skills.clearAll(); // no projectile/impact survives into the next location
@@ -3861,6 +3864,7 @@ class AveloraGame {
             this.environment.update(delta, this.character ? this.character.position : null);
         }
         if (this.worldObjects) this.worldObjects.update(delta); // auto-pickup on arrival
+        if (this.weather) this.weather.update(delta, this.camera, this.character ? this.character.position : null, this.renderer);
         if (this.building) this.building.update(delta);         // placement ghost, roof fade near/inside buildings
         if (this.mount) this.mount.update(delta);               // mounts: riding, animation sync, terrain tilt
         this.enforceWorldBounds();                              // жёсткая защита от выхода за край карты (герой и все существа)

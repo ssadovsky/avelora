@@ -1,0 +1,47 @@
+{
+  "id": "frost_yeti_shaman",
+  "name": "Шаман йети",
+  "level": 24,
+  "rank": "normal",
+  "hp": 300,
+  "damage": [
+    30,
+    42
+  ],
+  "attackRange": 2.4,
+  "attackCooldown": 2.4,
+  "walkSpeed": 1.2,
+  "runSpeed": 5.8,
+  "behavior": "aggressive",
+  "aggroRadius": 12,
+  "leashRadius": 24,
+  "wanderRadius": 3,
+  "respawnMinutes": 7,
+  "hitRadius": 1.0,
+  "scale": 1.0,
+  "hpBarHeight": 3.3,
+  "gold": [
+    18,
+    30
+  ],
+  "goldDrop": true,
+  "xp": 480,
+  "statMultiplier": 1.3,
+  "drops": [
+    {
+      "item": "meat",
+      "count": 1
+    },
+    {
+      "item": "element_crystal",
+      "count": 1,
+      "chance": 0.25
+    }
+  ],
+  "ranged": {
+    "skill": "ice_arrow",
+    "range": 13,
+    "speed": 15,
+    "dodge": 1.7
+  }
+}

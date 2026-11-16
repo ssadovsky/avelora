@@ -332,6 +332,26 @@ class LakesideTerrain {
         return h;
     }
 
+    /** Замёрзшее озеро (locTerrain.iceLake: {x, z, rx, rz, y?, depth?, bank?}): ровный лёд внутри кромки, пологий берег шириной bank (в долях радиуса).
+     *  Кромка — эллипс с волной по углу; формула d совпадает с шейдером земли (uIceLake). */
+    _iceLakeD(x, z) {
+        const L = this.locTerrain.iceLake, qx = (x - L.x) / L.rx, qz = (z - L.z) / L.rz, ang = Math.atan2(qz, qx);
+        return Math.hypot(qx, qz) + 0.06 * Math.sin(ang * 3.0 + 1.3) + 0.04 * Math.sin(ang * 7.0 + 0.5);
+    }
+    _iceLakeH(x, z, h) {
+        const L = this.locTerrain && this.locTerrain.iceLake;
+        if (!L) return h;
+        const bank = L.bank !== undefined ? L.bank : 0.22;
+        if (Math.abs(x - L.x) > L.rx * (1.2 + bank) || Math.abs(z - L.z) > L.rz * (1.2 + bank)) return h;
+        const d = this._iceLakeD(x, z);
+        if (d >= 1.0 + bank) return h;
+        if (this._iceY === undefined) this._iceY = (L.y !== undefined) ? L.y : this._getRawHeightBase(L.x, L.z) - (L.depth !== undefined ? L.depth : 0.3);
+        const t = d <= 1.0 ? 1.0 : 1.0 - (d - 1.0) / bank;
+        return h + (this._iceY - h) * (t * t * (3.0 - 2.0 * t));
+    }
+    /** true, если точка на льду озера (для расстановки и звуков). */
+    isOnIce(x, z) { const L = this.locTerrain && this.locTerrain.iceLake; return !!L && this._iceLakeD(x, z) < 0.97; }
+
     getRawHeightAt(x, z) {
         let h = this._getRawHeightBase(x, z);
         if (this.paths && this._rs !== null) { h = this._roadSmoothedH(x, z, h); if (this._rs && !this._rs.length) this._rs = null; }
@@ -349,6 +369,7 @@ class LakesideTerrain {
             const w = t * t * (3.0 - 2.0 * t);
             out += (this._flatH[i] - out) * w;
         }
+        out = this._iceLakeH(x, z, out);
         // Небольшие горки по краям среза модели ущелья (z = 96.5) до южного края локации: закрывают торцы обрезанной скалы
         const rt = this.locTerrain.rockTint;
         const zr = (rt && rt.north) ? -z : z;   // rockTint.north: ущелье у северного края (зеркало южного)
@@ -828,6 +849,8 @@ class LakesideTerrain {
         const burnCinder = burntMode ? texLoader.load(assets.burntCinderDiff) : null;
         const burnCrack = burntMode ? texLoader.load(assets.burntCrackDiff || assets.burntCinderDiff) : null;
         const burnAsh = burntMode ? texLoader.load(assets.burntAshDiff || assets.burntCinderDiff) : null;
+        const iceTex = (isSnow && assets.frostIceDiff) ? texLoader.load(assets.frostIceDiff) : null;   // лёд замёрзшего озера
+        if (iceTex) { iceTex.wrapS = THREE.RepeatWrapping; iceTex.wrapT = THREE.RepeatWrapping; iceTex.anisotropy = (window.GFX && window.GFX.aniso) || 8; iceTex.encoding = grassDiff.encoding; }
         const burnLava = burntMode && assets.burntLavaDiff ? texLoader.load(assets.burntLavaDiff) : null;   // жилы лавы: текстура трещин с огнём
         [burnCinder, burnCrack, burnAsh, burnLava].forEach(t => { if (t) { t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.RepeatWrapping; t.anisotropy = (window.GFX && window.GFX.aniso) || 8; } });
         const stoneTrailDiff = texLoader.load((this.locTerrain.stoneTexture && assets[this.locTerrain.stoneTexture]) || assets.stoneTrailDiff || assets.gravelDiff || assets.beachDiff);
@@ -875,7 +898,7 @@ class LakesideTerrain {
 
         // КРИТИЧНО для Three.js: без customProgramCacheKey движок повторно использует
         // скомпилированный шейдер первой локации для всех последующих!
-        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v52_${this.groundSet}_mix${mixGround ? groundMode : 0}${holeSig}`;
+        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v54_${this.groundSet}_mix${mixGround ? groundMode : 0}${holeSig}`;
 
         const biomeId = (this.biome === 'goldshire') ? 1.0 : ((this.biome === 'volcanic') ? 2.0 : 0.0);
         const waterTypeId = (curWType === 'coast') ? 1.0 : ((curWType === 'river') ? 2.0 : 0.0);
@@ -888,6 +911,8 @@ class LakesideTerrain {
             shader.uniforms.uRockNor = { value: rockNor };
             shader.uniforms.uBeachDiff = { value: beachDiff };
             shader.uniforms.uBurnCinder = { value: burnCinder || grassDiff };
+            shader.uniforms.uIceTex = { value: iceTex || grassDiff };
+            { const L = (iceTex && this.locTerrain && this.locTerrain.iceLake) || null; shader.uniforms.uIceLake = { value: L ? new THREE.Vector4(L.x, L.z, L.rx, L.rz) : new THREE.Vector4(1e5, 1e5, 0, 0) }; }
             shader.uniforms.uBurnCrack = { value: burnCrack || grassDiff };
             shader.uniforms.uBurnAsh = { value: burnAsh || grassDiff };
             shader.uniforms.uBurnLava = { value: burnLava || grassDiff };
@@ -924,7 +949,7 @@ class LakesideTerrain {
                 const targetOff = isStone ? stoneOff : dirtOff;
                 // тонкая тропинка: расстояние до неё увеличивается на разницу полуширин, шейдер остаётся общим
                 const off = pp.thin ? Math.max(0, ((isStone ? stoneWidth : dirtWidth) - (pp.width || 1.0)) * 0.5) : 0;
-                for (let i = 0; i + 1 < pp.points.length && targetSegs.length < 16; i++) {
+                for (let i = 0; i + 1 < pp.points.length && targetSegs.length < 64; i++) {
                     targetSegs.push(new THREE.Vector4(pp.points[i][0], pp.points[i][1], pp.points[i + 1][0], pp.points[i + 1][1]));
                     targetOff.push(off);
                 }
@@ -935,12 +960,12 @@ class LakesideTerrain {
             while (dirtSegs.length < 16) dirtSegs.push(new THREE.Vector4(0, 0, 0, 0));
             while (stoneSegs.length < 16) stoneSegs.push(new THREE.Vector4(0, 0, 0, 0));
 
-            shader.uniforms.uDirtSeg = { value: dirtSegs };
-            shader.uniforms.uDirtCount = { value: nDirt };
+            shader.uniforms.uDirtSeg = { value: dirtSegs.slice(0, 16) };   // в шейдер уходит не больше 16; полная раскладка — в текстуре расстояний
+            shader.uniforms.uDirtCount = { value: Math.min(nDirt, 16) };
             shader.uniforms.uDirtWidth = { value: dirtWidth };
 
-            shader.uniforms.uStoneSeg = { value: stoneSegs };
-            shader.uniforms.uStoneCount = { value: nStone };
+            shader.uniforms.uStoneSeg = { value: stoneSegs.slice(0, 16) };
+            shader.uniforms.uStoneCount = { value: Math.min(nStone, 16) };
             shader.uniforms.uStoneWidth = { value: stoneWidth };
 
             // Расстояние до троп считается один раз на локацию в текстуру (раньше — циклом по 2×16 отрезкам в каждом пикселе)
@@ -981,6 +1006,8 @@ class LakesideTerrain {
                 uniform sampler2D uRockNor;
                 uniform sampler2D uBeachDiff;
                 uniform sampler2D uBurnCinder;
+                uniform sampler2D uIceTex;
+                uniform vec4 uIceLake;
                 uniform sampler2D uBurnCrack;
                 uniform sampler2D uBurnAsh;
                 uniform sampler2D uBurnLava;
@@ -1110,7 +1137,7 @@ class LakesideTerrain {
                     vec3 centerPath = (stoneMask > 0.0005) ? texture2D(uStoneTrailDiff, uvStoneTrail).rgb : vec3(0.0);
                     vec3 colDirtRgb = (passTrailMask > 0.0005 || shoulderMask > 0.0005 || uGroundMix > 4.5) ? texture2D(uTrailDiff, uvDirtTrail).rgb : vec3(0.0);
                     if (uGroundMix > 5.5 && uGroundMix < 6.5) colDirtRgb = vec3(dot(colDirtRgb, vec3(0.30, 0.59, 0.11))) * vec3(0.62, 0.56, 0.52);   // выжженная земля: тропа тёмная, не жёлтый песок
-                    else if (uGroundMix > 6.5) colDirtRgb = mix(texture2D(uGrassDiff, uvDirtTrail * 1.6).rgb * vec3(0.92, 0.95, 1.02), colDirtRgb * vec3(0.75, 0.80, 0.90), 0.12); // снежный притоптанный наст (чистый плотный снег, без коричневой грязи)
+                    else if (uGroundMix > 6.5) colDirtRgb = mix(texture2D(uGrassDiff, uvDirtTrail * 1.6).rgb * vec3(0.78, 0.83, 0.94), colDirtRgb * vec3(0.72, 0.78, 0.90), 0.22); // снежный притоптанный наст (чистый плотный снег, без коричневой грязи)
 
                     // Смешивание слоев покрытия:
                     // 1) Для 'camp' (uGroundMix > 2.5): сочная зелёная трава на полянке (где нет леса) + лесная подстилка в лесу
@@ -1124,6 +1151,21 @@ class LakesideTerrain {
                         vec3 snowTex = mix(sT1, sT2, 0.42);
                         float snN = avNoise(gxz * 0.08) * 0.5 + avNoise(gxz * 0.22) * 0.5;
                         groundCol = snowTex * vec3(0.96, 0.98, 1.05) * (0.95 + 0.10 * snN);
+                        if (uIceLake.z > 0.0) {
+                            // замёрзшее озеро: лёд внутри кромки (та же формула, что _iceLakeD), намёты снега пятнами и у берега
+                            vec2 iq = (gxz - uIceLake.xy) / uIceLake.zw;
+                            float iAng = atan(iq.y, iq.x);
+                            float iD = length(iq) + 0.06 * sin(iAng * 3.0 + 1.3) + 0.04 * sin(iAng * 7.0 + 0.5);
+                            float iM = 1.0 - smoothstep(0.95, 1.0, iD);
+                            if (iM > 0.001) {
+                                vec3 ice1 = texture2D(uIceTex, gxz * 0.050).rgb;
+                                vec3 ice2 = texture2D(uIceTex, gxz * 0.017 + vec2(0.37, 0.61)).rgb;
+                                vec3 iceCol = mix(ice1, ice2, 0.40) * vec3(0.86, 0.93, 1.02);
+                                float drift = avNoise(gxz * 0.10) * 0.6 + avNoise(gxz * 0.31 + 9.0) * 0.4;
+                                drift = smoothstep(0.56, 0.74, drift + 0.30 * smoothstep(0.70, 1.0, iD));
+                                groundCol = mix(groundCol, mix(iceCol, groundCol, drift * 0.9), iM);
+                            }
+                        }
                     } else if (uGroundMix > 5.5) {
                         // === GROUND: BURNT (угольный щебень + обожжённая растрескавшаяся глина + пепел, лавовые жилы) ===
                         vec2 gxz = vWorldPosition.xz;

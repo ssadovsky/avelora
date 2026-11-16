@@ -1,0 +1,6 @@
+{
+  "id": "npc_frost_shaman",
+  "name": "Ульфгар",
+  "obstacle": 0.6,
+  "npc": "frost_shaman"
+}
