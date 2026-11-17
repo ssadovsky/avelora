@@ -223,6 +223,13 @@
                     <span class="micromenu-label">Ремесло</span>
                     <span class="micromenu-key">N</span>
                 </button>
+                <button type="button" class="micromenu-item" id="upgrade-btn" role="menuitem" title="Усиление (U)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#efcf7a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                    <span class="micromenu-label">Усиление</span>
+                    <span class="micromenu-key">U</span>
+                </button>
                 <button type="button" class="micromenu-item" id="build-btn" role="menuitem" title="Строительство (B)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="#efcf7a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 21h18"/>
@@ -448,6 +455,21 @@
         <div class="skills-hint">Нажмите для применения или перетащите на боевую панель.</div>
     </div>
 
+    <!-- Upgrade Panel (U): enhance equipment and weapons -->
+    <div id="upgrade-panel" role="dialog" aria-labelledby="upgrade-title" aria-hidden="true">
+        <div class="inventory-header">
+            <div class="inventory-title" id="upgrade-title">Усиление снаряжения</div>
+            <button type="button" id="upgrade-close" title="Закрыть (U)" aria-label="Закрыть усиление">×</button>
+        </div>
+        <div class="upgrade-tabs">
+            <button type="button" class="upgrade-tab-btn active" data-tab="equipped" id="upgrade-tab-eq">Надето</button>
+            <button type="button" class="upgrade-tab-btn" data-tab="bag" id="upgrade-tab-bag">Сумка</button>
+        </div>
+        <div class="upgrade-item-list" id="upgrade-item-list"></div>
+        <div class="upgrade-bench" id="upgrade-bench"></div>
+        <div class="upgrade-hint" id="upgrade-hint">Выберите предмет для усиления или разбора.</div>
+    </div>
+
     <!-- Hero Profile Modal (C key) -->
     <div id="hero-panel" role="dialog" aria-modal="true" aria-labelledby="hero-panel-title" aria-hidden="true">
         <div class="panel-header">
@@ -456,7 +478,10 @@
         </div>
         <div class="hero-layout">
             <div class="hero-doll">
-                <div class="hero-col-title">Снаряжение</div>
+                <div class="hero-col-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>Снаряжение</span>
+                    <button type="button" id="hero-open-upgrade-btn" class="hero-mini-btn" title="Усиление снаряжения (U)">✨ Усиление</button>
+                </div>
                 <div class="doll-grid" id="doll-grid">
                     <div class="doll-slot" data-slot="head" style="grid-area: head"><span class="doll-label">Голова</span></div>
                     <div class="doll-slot" data-slot="neck" style="grid-area: neck"><span class="doll-label">Амулет</span></div>

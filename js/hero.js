@@ -139,23 +139,44 @@
             return this.level !== prev;
         }
 
-        /** Stat bonuses of equipped items: { str, dex, int } (item.json `stats`). */
+        /** Stat bonuses of equipped items: { str, dex, int, sta } (item.json `stats` + upgrade bonuses). */
         gearStats() {
             const out = { str: 0, dex: 0, int: 0, sta: 0 };
             const eq = this.state && this.state.equipped;
+            const ups = (this.state && this.state.equippedUpgrades) || {};
             if (!eq) return out;
             Object.keys(eq).forEach(slot => {
-                const def = eq[slot] ? window.AveloraItems.get(eq[slot]) : null;
+                const itemId = eq[slot];
+                const def = itemId ? window.AveloraItems.get(itemId) : null;
                 if (def && def.stats) STATS.forEach(k => { out[k] += Number(def.stats[k]) || 0; });
+                const up = Number(ups[slot]) || 0;
+                if (up > 0 && def && window.AveloraItems.upgradeBonus) {
+                    const b = window.AveloraItems.upgradeBonus(itemId, up);
+                    if (b && b.statKey && out[b.statKey] !== undefined) {
+                        out[b.statKey] += b.statValue;
+                    }
+                }
             });
             return out;
         }
 
-        /** Armor rating from worn items (item.json `armor`). */
+        /** Armor rating from worn items (item.json `armor` + upgrade bonuses). */
         armor() {
             const eq = this.state && this.state.equipped, M = CFG().multipliers;
+            const ups = (this.state && this.state.equippedUpgrades) || {};
             let a = 0;
-            if (eq) Object.keys(eq).forEach(slot => { const d = eq[slot] ? window.AveloraItems.get(eq[slot]) : null; if (d && d.armor) a += Number(d.armor) || 0; });
+            if (eq) {
+                Object.keys(eq).forEach(slot => {
+                    const itemId = eq[slot];
+                    const d = itemId ? window.AveloraItems.get(itemId) : null;
+                    if (d && d.armor) a += Number(d.armor) || 0;
+                    const up = Number(ups[slot]) || 0;
+                    if (up > 0 && d && window.AveloraItems.upgradeBonus) {
+                        const b = window.AveloraItems.upgradeBonus(itemId, up);
+                        if (b && b.armor) a += b.armor;
+                    }
+                });
+            }
             return a * (M.armor || 1);
         }
 

@@ -135,17 +135,153 @@
         },
 
         /**
+         * Maximum upgrade rank allowed by item quality:
+         * common / uncommon: +3
+         * rare: +5
+         * epic: +10
+         * poor / non-gear: 0
+         */
+        maxUpgrade(id) {
+            const def = this.get(id);
+            if (!def || !this.isEquippable(id)) return 0;
+            const q = this.quality(id).key;
+            // Читаем лимиты из progression.js; fallback на жёстко заданные значения
+            const cfg = window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.upgrade;
+            const limits = cfg ? cfg.maxByQuality : { poor: 0, common: 0, uncommon: 3, rare: 5, epic: 10 };
+            return limits[q] !== undefined ? limits[q] : 0;
+        },
+
+        /**
+         * Separate upgrade bonus calculations:
+         * Weapons: +2 base min & max damage per +1, +1 to profile stat per +1 (staff: int, bow/dagger: dex, axe/hammer: str).
+         * Armor: +1 armor per +1, +1 sta per +1.
+         */
+        upgradeBonus(id, up) {
+            up = Math.max(0, parseInt(up, 10) || 0);
+            if (up <= 0) return null;
+            const def = this.get(id);
+            if (!def) return null;
+
+            if (def.weapon && def.weapon.damage) {
+                let stat = (def.weapon && def.weapon.stat) || null;
+                if (!stat) {
+                    const style = def.weapon && def.weapon.style;
+                    if (style === 'staff') stat = 'int';
+                    else if (style === 'bow' || def.weaponType === 'dagger') stat = 'dex';
+                    else stat = 'str';
+                }
+                return {
+                    type: 'weapon',
+                    up,
+                    damage: up * 2,
+                    statKey: stat,
+                    statValue: up * 1
+                };
+            }
+
+            if (def.armor !== undefined) {
+                return {
+                    type: 'armor',
+                    up,
+                    armor: up * 1,
+                    statKey: 'sta',
+                    statValue: up * 1
+                };
+            }
+
+            return null;
+        },
+
+        /** Cost in materials & gold for upgrading to the next level. */
+        upgradeCost(id, currentUp) {
+            const max = this.maxUpgrade(id);
+            currentUp = Math.max(0, parseInt(currentUp, 10) || 0);
+            if (currentUp >= max) return null;
+            const nextUp = currentUp + 1; // шаг (1-based)
+
+            // Читаем конфиг из progression.js
+            const cfg = window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.upgrade;
+            const crystalCfg = cfg ? cfg.crystal : { base: 1, step: 1 };
+            const goldCfg    = cfg ? cfg.gold    : { base: 20, exp: 1.6, round: 5 };
+            const extraItem  = cfg ? cfg.extraItem  : 'primordial_core';
+            const extraCount = cfg ? cfg.extraCount : 1;
+
+            // Кристаллы: base + step * (шаг - 1) — всегда целое
+            const crystals = crystalCfg.base + crystalCfg.step * (nextUp - 1);
+
+            // Золото: round(base * шаг^exp) → ближайшее кратное goldCfg.round
+            const r = goldCfg.round || 5;
+            const rawGold = goldCfg.base * Math.pow(nextUp, goldCfg.exp);
+            const gold = Math.round(rawGold / r) * r;
+
+            const res = {
+                nextUp,
+                maxUp: max,
+                item: 'element_crystal',
+                count: crystals,
+                gold
+            };
+            // Доп. расходник только на последний шаг (например +9 → +10 для epic)
+            if (nextUp === max && max >= 10) {
+                res.extraItem  = extraItem;
+                res.extraCount = extraCount;
+            }
+            return res;
+        },
+
+        /** Total materials invested up to level `up` (for dismantle / 100% refund). */
+        upgradeInvested(id, up) {
+            up = Math.max(0, parseInt(up, 10) || 0);
+            let totalCrystals = 0, totalCores = 0;
+            for (let i = 0; i < up; i++) {
+                const cost = this.upgradeCost(id, i);
+                if (cost) {
+                    totalCrystals += cost.count;
+                    if (cost.extraItem === 'primordial_core') totalCores += cost.extraCount || 1;
+                }
+            }
+            return { crystals: totalCrystals, cores: totalCores };
+        },
+
+        /** Upgrade convenience action: upgrade('right') or upgrade(inventoryCellIndex) */
+        upgrade(slotOrIndex) {
+            const st = window.AVELORA_GAME && window.AVELORA_GAME.gameState;
+            if (!st) return { success: false, reason: 'Нет активной игры' };
+            const res = (typeof slotOrIndex === 'string') ? st.upgradeEquipped(slotOrIndex) : st.upgradeInventory(slotOrIndex);
+            if (res.success && window.AVELORA_GAME.ui && window.AVELORA_GAME.ui.hotbar) {
+                window.AVELORA_GAME.ui.hotbar.applyEquipment();
+                window.AVELORA_GAME.ui.hotbar.renderAll && window.AVELORA_GAME.ui.hotbar.renderAll();
+            }
+            return res;
+        },
+
+        /** Dismantle convenience action: returns 100% invested crystals */
+        dismantle(slotOrIndex) {
+            const st = window.AVELORA_GAME && window.AVELORA_GAME.gameState;
+            if (!st) return { success: false, reason: 'Нет активной игры' };
+            const res = (typeof slotOrIndex === 'string') ? st.dismantleEquipped(slotOrIndex) : st.dismantleInventory(slotOrIndex);
+            if (res.success && window.AVELORA_GAME.ui && window.AVELORA_GAME.ui.hotbar) {
+                window.AVELORA_GAME.ui.hotbar.applyEquipment();
+                window.AVELORA_GAME.ui.hotbar.renderAll && window.AVELORA_GAME.ui.hotbar.renderAll();
+            }
+            return res;
+        },
+
+        /**
          * Melee stats of an item (item.json `weapon`: {damage:[min,max], range (m),
          * cooldown (s), chop?, mine?}) or BARE_HANDS when the item has none / no item.
-         * Always returns a complete, sane object.
+         * Accepts optional `up` level. Always returns a complete, sane object.
          */
-        weaponOf(id) {
+        weaponOf(id, up) {
             const def = this.get(id);
             const w = def && def.weapon;
             const bh = this.BARE_HANDS;
             if (!w) return bh;
+            const bonus = this.upgradeBonus(id, up);
+            const extraDmg = (bonus && bonus.damage) || 0;
             const dmg = Array.isArray(w.damage) ? w.damage : [bh.damage[0], bh.damage[1]];
-            const lo = Math.max(0, Number(dmg[0]) || 0), hi = Math.max(lo, Number(dmg[1]) || lo);
+            const lo = Math.max(0, Number(dmg[0]) || 0) + extraDmg;
+            const hi = Math.max(lo, Number(dmg[1]) || lo) + extraDmg;
             return {
                 id: def.id, name: def.name,
                 damage: [lo, hi],
@@ -154,7 +290,8 @@
                 chop: Number(w.chop) || 0,
                 mine: Number(w.mine) || 0,
                 style: w.style || null,
-                stat: w.stat || null
+                stat: w.stat || null,
+                up: (bonus && bonus.up) || 0
             };
         },
 
@@ -1383,6 +1520,23 @@
             return added;
         }
 
+        /** Adds up to `count` with an upgrade level into empty cells. */
+        addWithUpgrade(itemId, count, up) {
+            up = Math.max(0, parseInt(up, 10) || 0);
+            if (!up) return this.add(itemId, count);
+            if (!AveloraItems.get(itemId) || !(count > 0)) return 0;
+            let left = count;
+            for (let i = 0; i < this.cells.length && left > 0; i++) {
+                if (!this.cells[i]) {
+                    this.cells[i] = { item: itemId, count: 1, up };
+                    left--;
+                }
+            }
+            const added = count - left;
+            if (added > 0) this.changed();
+            return added;
+        }
+
         /** Removes up to `count` (from the last stacks first). Returns the amount removed. */
         remove(itemId, count) {
             let left = count;
@@ -1407,7 +1561,7 @@
             if (from === to || from < 0 || to < 0 || from >= this.cells.length || to >= this.cells.length) return false;
             const a = this.cells[from], b = this.cells[to];
             if (!a) return false;
-            if (b && b.item === a.item) {
+            if (b && b.item === a.item && !a.up && !b.up) {
                 const max = AveloraItems.stackMax(a.item);
                 const k = Math.min(a.count, max - b.count);
                 if (k <= 0) { // target full: plain swap keeps behaviour predictable
@@ -1423,13 +1577,13 @@
             return true;
         }
 
-        /** Empties one cell and returns what was in it ({item, count} | null). */
+        /** Empties one cell and returns what was in it ({item, count, up} | null). */
         removeAt(index) {
             const c = this.cells[index];
             if (!c) return null;
             this.cells[index] = null;
             this.changed();
-            return { item: c.item, count: c.count };
+            return { item: c.item, count: c.count, up: c.up || 0 };
         }
 
         /**
@@ -1484,14 +1638,22 @@
          * (items keep the order of their first appearance). Returns true if anything changed.
          */
         arrange() {
+            const upgraded = [];
             const order = [], total = new Map();
             for (const c of this.cells) {
                 if (!c) continue;
+                if (c.up) {
+                    upgraded.push({ item: c.item, count: 1, up: c.up });
+                    continue;
+                }
                 if (!total.has(c.item)) { total.set(c.item, 0); order.push(c.item); }
                 total.set(c.item, total.get(c.item) + c.count);
             }
             const next = new Array(this.cells.length).fill(null);
             let i = 0;
+            for (const u of upgraded) {
+                if (i < next.length) next[i++] = u;
+            }
             for (const id of order) {
                 const max = AveloraItems.stackMax(id);
                 let left = total.get(id);
@@ -1503,7 +1665,7 @@
             }
             const same = next.every((c, j) => {
                 const o = this.cells[j];
-                return (!c && !o) || (c && o && c.item === o.item && c.count === o.count);
+                return (!c && !o) || (c && o && c.item === o.item && c.count === o.count && (c.up || 0) === (o.up || 0));
             });
             if (same) return false;
             for (let j = 0; j < next.length; j++) this.cells[j] = next[j];
@@ -1516,7 +1678,7 @@
         }
 
         toJSON() {
-            return this.cells.map(c => (c ? { item: c.item, count: c.count } : null));
+            return this.cells.map(c => (c ? (c.up ? { item: c.item, count: c.count, up: c.up } : { item: c.item, count: c.count }) : null));
         }
     }
 

@@ -99,7 +99,12 @@
             if (!c || typeof c !== 'object' || !Items.get(c.item)) continue;
             const n = Math.floor(Number(c.count));
             if (!(n >= 1)) continue;
-            out[i] = { item: c.item, count: Math.min(n, Items.stackMax(c.item)) };
+            const entry = { item: c.item, count: Math.min(n, Items.stackMax(c.item)) };
+            if (c.up) {
+                const up = parseInt(c.up, 10);
+                if (up > 0) entry.up = up;
+            }
+            out[i] = entry;
         }
         return out;
     }
@@ -117,7 +122,14 @@
                 const c = arr[i];
                 if (!c || typeof c !== 'object' || !Items.get(c.item)) continue;
                 const n = Math.floor(Number(c.count));
-                if (n >= 1) cells[i] = { item: c.item, count: Math.min(n, Items.stackMax(c.item)) };
+                if (n >= 1) {
+                    const entry = { item: c.item, count: Math.min(n, Items.stackMax(c.item)) };
+                    if (c.up) {
+                        const up = parseInt(c.up, 10);
+                        if (up > 0) entry.up = up;
+                    }
+                    cells[i] = entry;
+                }
             }
             out[key] = cells;
         });
@@ -308,15 +320,24 @@
             this.hotbar = sanitizeHotbar(data.hotbar, this.classId, this.learnedSkills);
             this.pickupsTaken = sanitizeTaken(data.pickupsTaken);
             const eq = (data.equipped && typeof data.equipped === 'object') ? data.equipped : {};
+            const eqUp = (data.equippedUpgrades && typeof data.equippedUpgrades === 'object') ? data.equippedUpgrades : {};
             this.equipped = { right: null, head: null, neck: null, cloak: null, body: null, hands: null, ring: null, ring2: null, legs: null, feet: null };
+            this.equippedUpgrades = { right: 0, head: 0, neck: 0, cloak: 0, body: 0, hands: 0, ring: 0, ring2: 0, legs: 0, feet: 0 };
             ['head', 'neck', 'cloak', 'body', 'hands', 'ring', 'ring2', 'legs', 'feet'].forEach(slot => {
-                const reqSlot = (slot === 'ring2') ? 'ring' : slot; if (window.AveloraItems.isEquippable(eq[slot]) && window.AveloraItems.equipSlot(eq[slot]) === reqSlot) this.equipped[slot] = eq[slot];
+                const reqSlot = (slot === 'ring2') ? 'ring' : slot;
+                if (window.AveloraItems.isEquippable(eq[slot]) && window.AveloraItems.equipSlot(eq[slot]) === reqSlot) {
+                    this.equipped[slot] = eq[slot];
+                    const u = parseInt(eqUp[slot], 10);
+                    if (u > 0) this.equippedUpgrades[slot] = u;
+                }
             });
             // An item in the hand (state.equipped) does NOT occupy a bag cell. Saves from before
             // that change (no equipV2 flag) kept the item in the bag too: move it out of the bag.
             if (window.AveloraItems.isEquippable(eq.right)) {
                 if (data.equipV2) {
                     this.equipped.right = eq.right;
+                    const u = parseInt(eqUp.right, 10);
+                    if (u > 0) this.equippedUpgrades.right = u;
                 } else if (this.inventory.count(eq.right) > 0) {
                     this.equipped.right = eq.right;
                     const cb = this.inventory.onChange;
@@ -526,10 +547,11 @@
         }
 
         /**
-         * Takes one `itemId` from the bag into the right hand; whatever was in the hand goes to the bag.
+         * Takes one `itemId` from the bag into the equipment slot; whatever was in the slot goes to the bag.
+         * Preserves and swaps upgrade levels.
          * Returns 'ok' | 'invalid' | 'missing' | 'full'.
          */
-        equipFromBag(itemId, preferredSlot) {
+        equipFromBag(itemId, preferredSlot, fromCellIndex) {
             if (!window.AveloraItems.isEquippable(itemId)) return 'invalid';
             if (this.inventory.count(itemId) <= 0) return 'missing';
             let slot = preferredSlot || window.AveloraItems.equipSlot(itemId);
@@ -545,25 +567,139 @@
                 }
             }
             const prev = this.equipped[slot];
-            this.inventory.remove(itemId, 1);
-            if (prev && this.inventory.add(prev, 1) < 1) {
-                this.inventory.add(itemId, 1);   // no room for the old item: roll back
-                return 'full';
+            const prevUp = (this.equippedUpgrades && this.equippedUpgrades[slot]) || 0;
+
+            let cellUp = 0;
+            if (fromCellIndex !== undefined && fromCellIndex >= 0 && this.inventory.cells[fromCellIndex] && this.inventory.cells[fromCellIndex].item === itemId) {
+                cellUp = this.inventory.cells[fromCellIndex].up || 0;
+                this.inventory.removeAt(fromCellIndex);
+            } else {
+                for (let i = this.inventory.cells.length - 1; i >= 0; i--) {
+                    const c = this.inventory.cells[i];
+                    if (c && c.item === itemId) {
+                        cellUp = c.up || 0;
+                        this.inventory.removeAt(i);
+                        break;
+                    }
+                }
+            }
+
+            if (prev) {
+                if (this.inventory.addWithUpgrade(prev, 1, prevUp) < 1) {
+                    this.inventory.addWithUpgrade(itemId, 1, cellUp);   // roll back
+                    return 'full';
+                }
             }
             this.equipped[slot] = itemId;
+            this.equippedUpgrades[slot] = cellUp;
             this.save();
             return 'ok';
         }
 
-        /** Slot (default: right hand) -> bag. Returns 'ok' | 'empty' | 'full'. */
+        /** Slot (default: right hand) -> bag, preserving upgrade level. Returns 'ok' | 'empty' | 'full'. */
         unequipToBag(slot) {
             slot = slot || 'right';
             const prev = this.equipped[slot];
             if (!prev) return 'empty';
-            if (this.inventory.add(prev, 1) < 1) return 'full';
+            const prevUp = (this.equippedUpgrades && this.equippedUpgrades[slot]) || 0;
+            if (this.inventory.addWithUpgrade(prev, 1, prevUp) < 1) return 'full';
             this.equipped[slot] = null;
+            if (this.equippedUpgrades) this.equippedUpgrades[slot] = 0;
             this.save();
             return 'ok';
+        }
+
+        /**
+         * Upgrades equipped gear in `slot`.
+         * Returns { success: boolean, reason?: string, newUp?: number }
+         */
+        upgradeEquipped(slot) {
+            const itemId = this.equipped[slot];
+            if (!itemId) return { success: false, reason: 'Слот пуст' };
+            const curUp = (this.equippedUpgrades && this.equippedUpgrades[slot]) || 0;
+            const cost = window.AveloraItems.upgradeCost(itemId, curUp);
+            if (!cost) return { success: false, reason: 'Достигнут максимальный уровень усиления' };
+
+            const crystals = this.inventory.count(cost.item);
+            if (crystals < cost.count) return { success: false, reason: `Не хватает кристаллов: нужно ${cost.count}` };
+            if (cost.extraItem) {
+                const extra = this.inventory.count(cost.extraItem);
+                if (extra < cost.extraCount) return { success: false, reason: 'Нужно Первородное ядро для финального усиления' };
+            }
+            if (this.gold < cost.gold) return { success: false, reason: `Не хватает золота: нужно ${cost.gold}` };
+
+            // Deduct
+            this.inventory.remove(cost.item, cost.count);
+            if (cost.extraItem) this.inventory.remove(cost.extraItem, cost.extraCount);
+            this.gold -= cost.gold;
+
+            this.equippedUpgrades[slot] = cost.nextUp;
+            this.save();
+            return { success: true, newUp: cost.nextUp };
+        }
+
+        /**
+         * Upgrades an item in inventory cell `index`.
+         * Returns { success: boolean, reason?: string, newUp?: number }
+         */
+        upgradeInventory(index) {
+            const c = this.inventory.cells[index];
+            if (!c) return { success: false, reason: 'Ячейка пуста' };
+            const curUp = c.up || 0;
+            const cost = window.AveloraItems.upgradeCost(c.item, curUp);
+            if (!cost) return { success: false, reason: 'Достигнут максимальный уровень усиления' };
+
+            const crystals = this.inventory.count(cost.item);
+            if (crystals < cost.count) return { success: false, reason: `Не хватает кристаллов: нужно ${cost.count}` };
+            if (cost.extraItem) {
+                const extra = this.inventory.count(cost.extraItem);
+                if (extra < cost.extraCount) return { success: false, reason: 'Нужно Первородное ядро для финального усиления' };
+            }
+            if (this.gold < cost.gold) return { success: false, reason: `Не хватает золота: нужно ${cost.gold}` };
+
+            // Deduct
+            this.inventory.remove(cost.item, cost.count);
+            if (cost.extraItem) this.inventory.remove(cost.extraItem, cost.extraCount);
+            this.gold -= cost.gold;
+
+            c.up = cost.nextUp;
+            this.inventory.changed();
+            this.save();
+            return { success: true, newUp: cost.nextUp };
+        }
+
+        /**
+         * Dismantles/resets an equipped item's upgrade and returns 100% invested crystals to bag.
+         */
+        dismantleEquipped(slot) {
+            const itemId = this.equipped[slot];
+            if (!itemId) return { success: false, reason: 'Слот пуст' };
+            const curUp = (this.equippedUpgrades && this.equippedUpgrades[slot]) || 0;
+            if (curUp <= 0) return { success: false, reason: 'Предмет не заточен' };
+
+            const inv = window.AveloraItems.upgradeInvested(itemId, curUp);
+            if (inv.crystals > 0) this.inventory.add('element_crystal', inv.crystals);
+            if (inv.cores > 0) this.inventory.add('primordial_core', inv.cores);
+
+            this.equippedUpgrades[slot] = 0;
+            this.save();
+            return { success: true, refund: inv };
+        }
+
+        /**
+         * Dismantles/resets an inventory item's upgrade and returns 100% invested crystals to bag.
+         */
+        dismantleInventory(index) {
+            const c = this.inventory.cells[index];
+            if (!c || !c.up) return { success: false, reason: 'Предмет не заточен' };
+            const inv = window.AveloraItems.upgradeInvested(c.item, c.up);
+            if (inv.crystals > 0) this.inventory.add('element_crystal', inv.crystals);
+            if (inv.cores > 0) this.inventory.add('primordial_core', inv.cores);
+
+            c.up = 0;
+            this.inventory.changed();
+            this.save();
+            return { success: true, refund: inv };
         }
 
         /**
@@ -705,6 +841,7 @@
                 hotbar: this.hotbar.map(e => (e ? { type: e.type, id: e.id } : null)),
                 pickupsTaken: this.pickupsTaken,
                 equipped: Object.keys(this.equipped).reduce((o, k) => { o[k] = this.equipped[k] || null; return o; }, {}),
+                equippedUpgrades: Object.keys(this.equippedUpgrades).reduce((o, k) => { if (this.equippedUpgrades[k]) o[k] = this.equippedUpgrades[k]; return o; }, {}),
                 equipV2: 1,
                 ground: this.ground,
                 killed: this.killed,

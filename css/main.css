@@ -2844,6 +2844,7 @@
         .dlg-lvl { color: #c98a7a; font-size: 0.78rem; white-space: nowrap; }
         .tt-req { font-size: 0.78rem; color: #8f9c9a; margin-top: 4px; }
         .tt-req.bad { color: #e0806c; }
+        .tt-upgrade { color: #ffd700 !important; font-weight: 600; text-shadow: 0 0 6px rgba(255, 215, 0, 0.4); letter-spacing: 0.2px; }
         .dlg-empty { color: #7e8a89; font-style: italic; padding: 8px; }
         .dlg-junk-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 4px 6px; background: rgba(22, 27, 29, 0.7); border: 1px solid rgba(195, 160, 95, 0.15); border-radius: 3px; flex-shrink: 0; }
         .dlg-junk { border-color: #9d9d9d; color: #d6d6d6; }
@@ -3332,6 +3333,18 @@
             color: #f3e6c8;
             text-shadow: 0 0 2px #000, 0 0 3px #000, 0 0 4px #000;
             pointer-events: none;
+        }
+        .cell-upgrade {
+            position: absolute;
+            left: 2px;
+            top: 1px;
+            font-size: 10px;
+            font-weight: bold;
+            font-family: 'Consolas', 'Courier New', monospace;
+            color: #ffd700;
+            text-shadow: 0 0 2px #000, 0 0 3px #000, 0 0 4px #000;
+            pointer-events: none;
+            z-index: 2;
         }
         .ui-icon {
             width: 100%;
@@ -3929,7 +3942,8 @@
         #skills-panel.open { display: block; }
         #skills-panel.beside-inventory { right: 324px; }
         #skills-close,
-        #crafting-close {
+        #crafting-close,
+        #upgrade-close {
             font-family: inherit;
             font-size: 1.2rem;
             line-height: 1;
@@ -3942,7 +3956,263 @@
             cursor: pointer;
         }
         #skills-close:hover,
-        #crafting-close:hover { color: #efcf7a; border-color: #efcf7a; }
+        #crafting-close:hover,
+        #upgrade-close:hover { color: #efcf7a; border-color: #efcf7a; }
+
+        .hero-mini-btn {
+            background: rgba(239, 207, 122, 0.15);
+            border: 1px solid rgba(195, 160, 95, 0.4);
+            border-radius: 3px;
+            color: #ffd700;
+            font-size: 0.72rem;
+            padding: 2px 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .hero-mini-btn:hover {
+            background: rgba(239, 207, 122, 0.3);
+            border-color: #ffd700;
+        }
+
+        /* Upgrade panel (U) */
+        #upgrade-panel {
+            position: fixed;
+            right: 14px;
+            bottom: 70px;
+            width: 320px;
+            max-height: calc(100% - 130px);
+            background: rgba(12, 16, 18, 0.94);
+            border: 1px solid rgba(195, 160, 95, 0.45);
+            border-radius: 4px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 0, 0, 0.6);
+            padding: 14px 14px 12px;
+            z-index: 150;
+            display: none;
+            cursor: default;
+            flex-direction: column;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        #upgrade-panel.open { display: flex; }
+        #upgrade-panel.beside-inventory { right: 324px; }
+
+        .upgrade-tabs {
+            display: flex;
+            gap: 6px;
+            margin: 6px 0 10px;
+            border-bottom: 1px solid rgba(195, 160, 95, 0.2);
+            padding-bottom: 6px;
+            flex-shrink: 0;
+        }
+        .upgrade-tab-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(195, 160, 95, 0.3);
+            border-radius: 3px;
+            color: #bfa882;
+            padding: 5px 8px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .upgrade-tab-btn:hover { background: rgba(239, 207, 122, 0.12); color: #efcf7a; }
+        .upgrade-tab-btn.active {
+            background: rgba(239, 207, 122, 0.2);
+            border-color: #efcf7a;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .upgrade-item-list {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 4px 2px 8px;
+            min-height: 64px;
+            max-height: 68px;
+            border-bottom: 1px solid rgba(195, 160, 95, 0.15);
+            margin-bottom: 10px;
+            scrollbar-width: thin;
+            flex-shrink: 0;
+        }
+        .upgrade-item-list:empty::before {
+            content: 'Нет предметов для усиления';
+            font-size: 0.78rem;
+            color: #7e8a89;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+        }
+        .upgrade-select-cell {
+            position: relative;
+            flex: 0 0 54px;
+            width: 54px;
+            height: 54px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(195, 160, 95, 0.3);
+            border-radius: 4px;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: transform 0.1s, border-color 0.15s;
+        }
+        .upgrade-select-cell:hover {
+            border-color: #efcf7a;
+            transform: translateY(-1px);
+        }
+        .upgrade-select-cell.selected {
+            border-color: #ffd700;
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+        }
+
+        .upgrade-bench {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: visible;
+        }
+        .upgrade-bench-hero {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(195, 160, 95, 0.2);
+            border-radius: 4px;
+            padding: 10px;
+        }
+        .upgrade-slot-big {
+            position: relative;
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(195, 160, 95, 0.5);
+            border-radius: 4px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+        .upgrade-bench-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .upgrade-bench-name {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #efcf7a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .upgrade-bench-rank {
+            font-size: 0.76rem;
+            color: #8f9c9b;
+            margin-top: 2px;
+        }
+
+        .upgrade-preview-box {
+            background: rgba(18, 24, 27, 0.8);
+            border: 1px solid rgba(195, 160, 95, 0.2);
+            border-radius: 4px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .upgrade-diff-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.84rem;
+            color: #d8c7a6;
+        }
+        .upgrade-diff-row--bonus {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        .upgrade-diff-gain {
+            color: #7fd19a;
+            font-weight: bold;
+        }
+
+        .upgrade-cost-box {
+            background: rgba(15, 19, 21, 0.7);
+            border: 1px solid rgba(195, 160, 95, 0.15);
+            border-radius: 4px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .upgrade-cost-title {
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #bfa882;
+            margin-bottom: 2px;
+        }
+        .upgrade-cost-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.84rem;
+        }
+        .upgrade-cost-row.ok { color: #a9d68c; }
+        .upgrade-cost-row.lack { color: #e0806c; }
+
+        .upgrade-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        .upgrade-btn-do {
+            background: linear-gradient(180deg, #c3a05f 0%, #8a6a2f 100%);
+            border: 1px solid #ffd700;
+            border-radius: 4px;
+            color: #121008;
+            font-weight: bold;
+            font-size: 0.92rem;
+            padding: 9px 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transition: all 0.15s ease;
+        }
+        .upgrade-btn-do:hover:not(:disabled) {
+            background: linear-gradient(180deg, #d8b472 0%, #9e7b39 100%);
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+        }
+        .upgrade-btn-do:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            border-color: rgba(195, 160, 95, 0.3);
+            background: #2a251b;
+            color: #7a6e5a;
+            box-shadow: none;
+        }
+        .upgrade-btn-dismantle {
+            background: rgba(180, 50, 50, 0.15);
+            border: 1px solid rgba(220, 90, 90, 0.35);
+            border-radius: 4px;
+            color: #e0806c;
+            font-size: 0.78rem;
+            padding: 6px 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+        }
+        .upgrade-btn-dismantle:hover {
+            background: rgba(220, 70, 70, 0.3);
+            border-color: #ff6b6b;
+            color: #ffb4a4;
+        }
+
+        .upgrade-hint {
+            font-size: 0.75rem;
+            color: #8f9c9b;
+            font-style: italic;
+            text-align: center;
+            margin-top: 8px;
+            flex-shrink: 0;
+        }
         .skill-entry {
             display: flex;
             gap: 10px;
@@ -5589,7 +5859,7 @@
                 z-index: 30 !important;
             }
             .slot-key { font-size: 7px; left: 2px; top: 0; }
-            .slot-count, .cell-count { font-size: 8px; }
+            .slot-count, .cell-count, .cell-upgrade { font-size: 8px; }
             .icon-fallback { font-size: 0.8em; }
             .death-title { font-size: 1.9rem; letter-spacing: 0.2rem; }
         }

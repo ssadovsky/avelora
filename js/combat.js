@@ -174,10 +174,11 @@
 
         get isAlive() { return !this.isDead; }
 
-        /** Weapon stats of whatever is in the right hand (or fists). */
+        /** Weapon stats of whatever is in the right hand (or fists) including upgrade level. */
         weapon() {
             const st = this.game.gameState;
-            return window.AveloraItems.weaponOf(st ? st.equipped.right : null);
+            const up = (st && st.equippedUpgrades && st.equippedUpgrades.right) || 0;
+            return window.AveloraItems.weaponOf(st ? st.equipped.right : null, up);
         }
 
         // -----------------------------------------------------------

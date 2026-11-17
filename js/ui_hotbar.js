@@ -150,6 +150,7 @@
             this.buildSlots();
             this.buildInventoryCells();
             this.setupCraftingPanel();
+            this.setupUpgradePanel();
             this.setupQuantityModal();
             this.setupMicroMenu();
             this.setupHeroModal();
@@ -376,6 +377,12 @@
                 any = true;
                 const def = window.AveloraItems.get(c.item);
                 cell.appendChild(makeIcon(def));
+                if (c.up > 0) {
+                    const u = document.createElement('span');
+                    u.className = 'cell-upgrade';
+                    u.textContent = `+${c.up}`;
+                    cell.appendChild(u);
+                }
                 if (c.count > 1) {
                     const b = document.createElement('span');
                     b.className = 'cell-count';
@@ -930,6 +937,382 @@
         }
 
         // -----------------------------------------------------------
+        // Equipment Upgrade Panel (U)
+        // -----------------------------------------------------------
+        setupUpgradePanel() {
+            this.upgradePanel = document.getElementById('upgrade-panel');
+            this.upgradeClose = document.getElementById('upgrade-close');
+            this.upgradeBtn = document.getElementById('upgrade-btn');
+            this.upgradeItemList = document.getElementById('upgrade-item-list');
+            this.upgradeBench = document.getElementById('upgrade-bench');
+            this.upgradeHint = document.getElementById('upgrade-hint');
+            this.upgradeTabEq = document.getElementById('upgrade-tab-eq');
+            this.upgradeTabBag = document.getElementById('upgrade-tab-bag');
+            this.heroUpgradeBtn = document.getElementById('hero-open-upgrade-btn');
+            this.upgradeOpen = false;
+            this.upgradeTab = 'equipped';
+            this.upgradeTarget = null;
+
+            if (this.heroUpgradeBtn) {
+                this.heroUpgradeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.setUpgradeOpen(true);
+                });
+            }
+
+            if (this.upgradePanel) {
+                ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'touchstart', 'touchend'].forEach(evt => {
+                    this.upgradePanel.addEventListener(evt, (e) => e.stopPropagation());
+                });
+                // Блокируем колёсико мыши — чтобы не менялся зум игры
+                this.upgradePanel.addEventListener('wheel', (e) => { e.stopPropagation(); }, { passive: false });
+            }
+
+            if (this.upgradeClose) {
+                this.upgradeClose.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.setUpgradeOpen(false);
+                });
+            }
+
+            if (this.upgradeTabEq) {
+                this.upgradeTabEq.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.upgradeTab = 'equipped';
+                    this.upgradeTarget = null;
+                    this.renderUpgrade();
+                });
+            }
+            if (this.upgradeTabBag) {
+                this.upgradeTabBag.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.upgradeTab = 'bag';
+                    this.upgradeTarget = null;
+                    this.renderUpgrade();
+                });
+            }
+        }
+
+        isUpgradeOpen() { return this.upgradeOpen; }
+
+        toggleUpgrade() { this.setUpgradeOpen(!this.upgradeOpen); }
+
+        setUpgradeOpen(open) {
+            this.upgradeOpen = !!open;
+            this.setPanelAria(this.upgradePanel, this.upgradeOpen);
+            if (this.upgradeBtn) this.upgradeBtn.classList.toggle('active', this.upgradeOpen);
+            if (this.upgradeOpen) {
+                if (!this.upgradeTarget) {
+                    this.upgradeTarget = { kind: 'equipped', slot: 'right' };
+                }
+                this.renderUpgrade();
+            }
+            this.layoutPanels();
+            if (!this.upgradeOpen) this.hideTooltip();
+        }
+
+        renderUpgrade() {
+            if (!this.upgradePanel || !this.upgradeOpen) return;
+            const st = this.state;
+            if (!st) return;
+
+            if (this.upgradeTabEq) this.upgradeTabEq.classList.toggle('active', this.upgradeTab === 'equipped');
+            if (this.upgradeTabBag) this.upgradeTabBag.classList.toggle('active', this.upgradeTab === 'bag');
+
+            // 1. Gather selectable items
+            const items = [];
+            if (this.upgradeTab === 'equipped') {
+                const slots = ['right', 'head', 'neck', 'cloak', 'body', 'hands', 'ring', 'ring2', 'legs', 'feet'];
+                slots.forEach(slot => {
+                    const id = st.equipped[slot];
+                    if (id && window.AveloraItems.isEquippable(id) && window.AveloraItems.maxUpgrade(id) > 0) {
+                        const up = (st.equippedUpgrades && st.equippedUpgrades[slot]) || 0;
+                        items.push({ kind: 'equipped', slot, item: id, up });
+                    }
+                });
+            } else {
+                st.inventory.cells.forEach((c, idx) => {
+                    if (c && window.AveloraItems.isEquippable(c.item) && window.AveloraItems.maxUpgrade(c.item) > 0) {
+                        items.push({ kind: 'bag', index: idx, item: c.item, up: c.up || 0 });
+                    }
+                });
+            }
+
+            // Ensure valid target strictly within the current items list
+            let currentItem = null;
+            if (this.upgradeTarget && items.length > 0) {
+                const target = this.upgradeTarget;
+                currentItem = items.find(cand =>
+                    cand.kind === target.kind &&
+                    (cand.kind === 'equipped' ? cand.slot === target.slot : cand.index === target.index)
+                ) || null;
+            }
+            if (!currentItem && items.length > 0) {
+                currentItem = items[0];
+            }
+            this.upgradeTarget = currentItem;
+
+            // 2. Render item list strip
+            if (this.upgradeItemList) {
+                this.upgradeItemList.innerHTML = '';
+                items.forEach(cand => {
+                    const cell = document.createElement('div');
+                    cell.className = 'upgrade-select-cell';
+                    applyQuality(cell, cand.item);
+                    const def = window.AveloraItems.get(cand.item);
+                    if (def) cell.appendChild(makeIcon(def));
+                    if (cand.up > 0) {
+                        const uBadge = document.createElement('span');
+                        uBadge.className = 'cell-upgrade';
+                        uBadge.textContent = `+${cand.up}`;
+                        cell.appendChild(uBadge);
+                    }
+                    const isSel = currentItem && (currentItem.kind === cand.kind) && (cand.kind === 'equipped' ? currentItem.slot === cand.slot : currentItem.index === cand.index);
+                    if (isSel) cell.classList.add('selected');
+
+                    cell.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.upgradeTarget = cand;
+                        this.renderUpgrade();
+                    });
+                    cell.addEventListener('pointerover', (e) => {
+                        if (e.pointerType !== 'mouse') return;
+                        this.showTooltipFor(cell, 'item', cand.item, undefined, false, cand.up || 0);
+                    });
+                    cell.addEventListener('pointerout', () => { this.hideTooltip(); });
+                    this.upgradeItemList.appendChild(cell);
+                });
+            }
+
+            // 3. Render workbench
+            if (!this.upgradeBench) return;
+            this.upgradeBench.innerHTML = '';
+
+            if (!currentItem) {
+                const empty = document.createElement('div');
+                empty.style.color = '#7e8a89';
+                empty.style.fontStyle = 'italic';
+                empty.style.padding = '20px 10px';
+                empty.style.textAlign = 'center';
+                empty.textContent = this.upgradeTab === 'equipped' ? 'На герое нет снаряжения для усиления' : 'В сумке нет экипировки для усиления';
+                this.upgradeBench.appendChild(empty);
+                if (this.upgradeHint) this.upgradeHint.textContent = 'Наденьте предмет или положите его в сумку.';
+                return;
+            }
+
+            const def = window.AveloraItems.get(currentItem.item);
+            if (!def) return;
+            const maxUp = window.AveloraItems.maxUpgrade(currentItem.item);
+            const curUp = currentItem.up || 0;
+            const q = window.AveloraItems.quality(currentItem.item);
+            const nm = (window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.statNames) || {};
+
+            // Workbench Hero (big slot + name + quality)
+            const heroBox = document.createElement('div');
+            heroBox.className = 'upgrade-bench-hero';
+
+            const bigSlot = document.createElement('div');
+            bigSlot.className = 'upgrade-slot-big';
+            applyQuality(bigSlot, currentItem.item);
+            bigSlot.appendChild(makeIcon(def));
+            if (curUp > 0) {
+                const bigBadge = document.createElement('span');
+                bigBadge.className = 'cell-upgrade';
+                bigBadge.textContent = `+${curUp}`;
+                bigBadge.style.fontSize = '12px';
+                bigSlot.appendChild(bigBadge);
+            }
+            bigSlot.addEventListener('pointerover', (e) => {
+                if (e.pointerType !== 'mouse') return;
+                this.showTooltipFor(bigSlot, 'item', currentItem.item, undefined, false, curUp);
+            });
+            bigSlot.addEventListener('pointerout', () => { this.hideTooltip(); });
+
+            const infoBox = document.createElement('div');
+            infoBox.className = 'upgrade-bench-info';
+
+            const nameEl = document.createElement('div');
+            nameEl.className = 'upgrade-bench-name';
+            nameEl.style.color = q.color;
+            nameEl.textContent = `${def.name} +${curUp}`;
+
+            const rankEl = document.createElement('div');
+            rankEl.className = 'upgrade-bench-rank';
+            rankEl.textContent = `Ранг: ${q.name} · Макс. усиление: +${maxUp}`;
+
+            infoBox.append(nameEl, rankEl);
+            heroBox.append(bigSlot, infoBox);
+            this.upgradeBench.appendChild(heroBox);
+
+            // Preview Box (Diff Было -> Станет)
+            const previewBox = document.createElement('div');
+            previewBox.className = 'upgrade-preview-box';
+
+            if (curUp >= maxUp) {
+                const maxRow = document.createElement('div');
+                maxRow.style.color = '#ffd700';
+                maxRow.style.fontWeight = 'bold';
+                maxRow.style.textAlign = 'center';
+                maxRow.style.padding = '6px';
+                maxRow.textContent = `★ Максимальное усиление (+${maxUp}) достигнуто! ★`;
+                previewBox.appendChild(maxRow);
+            } else {
+                const nextUp = curUp + 1;
+                if (def.weapon && def.weapon.damage) {
+                    const curBonus = window.AveloraItems.upgradeBonus(currentItem.item, curUp);
+                    const nextBonus = window.AveloraItems.upgradeBonus(currentItem.item, nextUp);
+                    const curDmg = [def.weapon.damage[0] + ((curBonus && curBonus.damage) || 0), def.weapon.damage[1] + ((curBonus && curBonus.damage) || 0)];
+                    const nextDmg = [def.weapon.damage[0] + nextBonus.damage, def.weapon.damage[1] + nextBonus.damage];
+                    const statKey = nextBonus.statKey;
+                    const statName = nm[statKey] || statKey;
+                    const curStatVal = (curBonus && curBonus.statValue) || 0;
+                    const nextStatVal = nextBonus.statValue;
+
+                    const row1 = document.createElement('div');
+                    row1.className = 'upgrade-diff-row';
+                    row1.innerHTML = `<span>Урон</span><span>${curDmg[0]}–${curDmg[1]} <span class="upgrade-diff-gain">➔ ${nextDmg[0]}–${nextDmg[1]} (+2)</span></span>`;
+
+                    const row2 = document.createElement('div');
+                    row2.className = 'upgrade-diff-row upgrade-diff-row--bonus';
+                    row2.innerHTML = `<span>⚡ Бонус к ${statName}</span><span class="upgrade-diff-gain">+${curStatVal} ➔ +${nextStatVal} (+1)</span>`;
+
+                    previewBox.append(row1, row2);
+                } else if (def.armor !== undefined) {
+                    const curBonus = window.AveloraItems.upgradeBonus(currentItem.item, curUp);
+                    const nextBonus = window.AveloraItems.upgradeBonus(currentItem.item, nextUp);
+                    const curArmor = (def.armor || 0) + ((curBonus && curBonus.armor) || 0);
+                    const nextArmor = (def.armor || 0) + nextBonus.armor;
+                    const curSta = (curBonus && curBonus.statValue) || 0;
+                    const nextSta = nextBonus.statValue;
+
+                    const row1 = document.createElement('div');
+                    row1.className = 'upgrade-diff-row';
+                    row1.innerHTML = `<span>Броня</span><span>+${curArmor} <span class="upgrade-diff-gain">➔ +${nextArmor} (+1)</span></span>`;
+
+                    const row2 = document.createElement('div');
+                    row2.className = 'upgrade-diff-row upgrade-diff-row--bonus';
+                    row2.innerHTML = `<span>⚡ Бонус к Выносливости</span><span class="upgrade-diff-gain">+${curSta} ➔ +${nextSta} (+1)</span>`;
+
+                    previewBox.append(row1, row2);
+                }
+            }
+            this.upgradeBench.appendChild(previewBox);
+
+            // Cost Box & Actions
+            const cost = window.AveloraItems.upgradeCost(currentItem.item, curUp);
+            const invested = window.AveloraItems.upgradeInvested(currentItem.item, curUp);
+
+            if (cost) {
+                const costBox = document.createElement('div');
+                costBox.className = 'upgrade-cost-box';
+                const cTitle = document.createElement('div');
+                cTitle.className = 'upgrade-cost-title';
+                cTitle.textContent = 'Требуется для усиления:';
+                costBox.appendChild(cTitle);
+
+                const haveCrystals = st.inventory.count(cost.item);
+                const hasCrystals = haveCrystals >= cost.count;
+                const rowC = document.createElement('div');
+                rowC.className = `upgrade-cost-row ${hasCrystals ? 'ok' : 'lack'}`;
+                rowC.innerHTML = `<span>🔹 Кристалл стихий</span><span>${haveCrystals} / ${cost.count}</span>`;
+                costBox.appendChild(rowC);
+
+                if (cost.extraItem) {
+                    const haveExtra = st.inventory.count(cost.extraItem);
+                    const hasExtra = haveExtra >= cost.extraCount;
+                    const rowE = document.createElement('div');
+                    rowE.className = `upgrade-cost-row ${hasExtra ? 'ok' : 'lack'}`;
+                    rowE.innerHTML = `<span>🟣 Первородное ядро</span><span>${haveExtra} / ${cost.extraCount}</span>`;
+                    costBox.appendChild(rowE);
+                }
+
+                const haveGold = st.gold || 0;
+                const hasGold = haveGold >= cost.gold;
+                const rowG = document.createElement('div');
+                rowG.className = `upgrade-cost-row ${hasGold ? 'ok' : 'lack'}`;
+                rowG.innerHTML = `<span>🪙 Золото</span><span>${haveGold} / ${cost.gold}</span>`;
+                costBox.appendChild(rowG);
+
+                this.upgradeBench.appendChild(costBox);
+
+                const actions = document.createElement('div');
+                actions.className = 'upgrade-actions';
+
+                const canAfford = hasCrystals && hasGold && (!cost.extraItem || st.inventory.count(cost.extraItem) >= cost.extraCount);
+                const btnDo = document.createElement('button');
+                btnDo.type = 'button';
+                btnDo.className = 'upgrade-btn-do';
+                btnDo.disabled = !canAfford;
+                btnDo.textContent = `УСИЛИТЬ ДО +${cost.nextUp}`;
+                btnDo.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.executeUpgrade(currentItem);
+                });
+                actions.appendChild(btnDo);
+
+                if (curUp > 0) {
+                    const btnDis = document.createElement('button');
+                    btnDis.type = 'button';
+                    btnDis.className = 'upgrade-btn-dismantle';
+                    btnDis.textContent = `Сбросить заточку (вернёт ${invested.crystals} крист.)`;
+                    btnDis.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.executeDismantle(currentItem);
+                    });
+                    actions.appendChild(btnDis);
+                }
+                this.upgradeBench.appendChild(actions);
+            } else if (curUp > 0) {
+                const actions = document.createElement('div');
+                actions.className = 'upgrade-actions';
+                const btnDis = document.createElement('button');
+                btnDis.type = 'button';
+                btnDis.className = 'upgrade-btn-dismantle';
+                btnDis.textContent = `Сбросить заточку (вернёт ${invested.crystals} крист.)`;
+                btnDis.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.executeDismantle(currentItem);
+                });
+                actions.appendChild(btnDis);
+                this.upgradeBench.appendChild(actions);
+            }
+
+            if (this.upgradeHint) {
+                this.upgradeHint.textContent = `Усиление гарантировано 100%. При сбросе возвращается 100% кристаллов.`;
+            }
+        }
+
+        executeUpgrade(target) {
+            const st = this.state;
+            if (!st || !target) return;
+            const res = (target.kind === 'equipped') ? st.upgradeEquipped(target.slot) : st.upgradeInventory(target.index);
+            if (!res.success) {
+                this.floatText(res.reason || 'Не удалось усилить', 'warn');
+                return;
+            }
+            this.floatText(`✨ Успешное усиление: +${res.newUp}!`, 'loot');
+            this.pulseInventory();
+            this.applyEquipment();
+            this.renderAll && this.renderAll();
+            this.renderUpgrade();
+        }
+
+        executeDismantle(target) {
+            const st = this.state;
+            if (!st || !target) return;
+            const res = (target.kind === 'equipped') ? st.dismantleEquipped(target.slot) : st.dismantleInventory(target.index);
+            if (!res.success) {
+                this.floatText(res.reason || 'Не удалось сбросить', 'warn');
+                return;
+            }
+            this.floatText(`♻ Заточка сброшена. Возвращено: ${res.refund.crystals} кристаллов!`, 'info');
+            this.pulseInventory();
+            this.applyEquipment();
+            this.renderAll && this.renderAll();
+            this.renderUpgrade();
+        }
+
+        // -----------------------------------------------------------
         // Panels
         // -----------------------------------------------------------
         setPanelAria(panel, open) {
@@ -966,12 +1349,16 @@
             if (this.craftingPanel && !this.craftingPanel.dataset.dragged) {
                 this.craftingPanel.classList.toggle('beside-inventory', hasInv);
             }
+            if (this.upgradePanel && !this.upgradePanel.dataset.dragged) {
+                this.upgradePanel.classList.toggle('beside-inventory', hasInv);
+            }
         }
 
         setupDraggablePanels() {
             this.makePanelDraggable(this.invPanel, '.inventory-header');
             this.makePanelDraggable(this.skillsPanel, '.inventory-header');
             this.makePanelDraggable(this.craftingPanel, '.inventory-header');
+            this.makePanelDraggable(this.upgradePanel, '.inventory-header');
             this.makePanelDraggable(this.chestPanel, '.inventory-header');
             this.makePanelDraggable(this.heroPanel, '.panel-header');
             this.makePanelDraggable(this.questsPanel, '.panel-header');
@@ -983,6 +1370,7 @@
                 this.clampPanelInsideViewport(this.invPanel);
                 this.clampPanelInsideViewport(this.skillsPanel);
                 this.clampPanelInsideViewport(this.craftingPanel);
+                this.clampPanelInsideViewport(this.upgradePanel);
                 this.clampPanelInsideViewport(this.chestPanel);
                 this.clampPanelInsideViewport(this.heroPanel);
                 this.clampPanelInsideViewport(this.questsPanel);
@@ -1677,15 +2065,22 @@
                 const slot = el.dataset.slot;
                 const key = slot === 'weapon' ? 'right' : slot;
                 const itemId = st && st.equipped ? st.equipped[key] : null;
+                const up = (st && st.equippedUpgrades && st.equippedUpgrades[key]) || 0;
                 const def = itemId ? window.AveloraItems.get(itemId) : null;
-                const shownKey = def ? itemId : '';
+                const shownKey = def ? `${itemId}_${up}` : '';
                 if (el._shown === shownKey) return;
                 el._shown = shownKey;
-                el.querySelectorAll('.ui-icon').forEach(n => n.remove());
+                el.querySelectorAll('.ui-icon, .cell-upgrade').forEach(n => n.remove());
                 el.classList.toggle('filled', !!def);
                 applyQuality(el, def ? itemId : null);
                 if (def) {
                     el.insertBefore(makeIcon(def), el.firstChild);
+                    if (up > 0) {
+                        const u = document.createElement('span');
+                        u.className = 'cell-upgrade';
+                        u.textContent = `+${up}`;
+                        el.appendChild(u);
+                    }
                     el.removeAttribute('title');
                     el.onclick = (e) => { e.stopPropagation(); this.hideTooltip(); this.unequip(key); };
                 } else {
@@ -2140,16 +2535,39 @@
             return rawSlot === dollSlot;
         }
 
-        /** Array of lines for item stats: main first (damage / armor / tool action), then stat bonuses. */
-        itemStatsLines(def) {
+        /** Array of lines for item stats: main first (damage / armor / tool action), then upgrade line, then stat bonuses. */
+        itemStatsLines(def, up) {
             if (!def) return [];
             const nm = (window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.statNames) || {};
             const lines = [];
+            const bonus = (up && window.AveloraItems && window.AveloraItems.upgradeBonus) ? window.AveloraItems.upgradeBonus(def.id, up) : null;
+            const extraDmg = (bonus && bonus.damage) || 0;
+            const extraArmor = (bonus && bonus.armor) || 0;
+
             if (def.weapon && def.weapon.damage) {
-                lines.push(`Урон ${def.weapon.damage[0]}–${def.weapon.damage[1]}`);
-            } else if (def.armor) {
-                lines.push(`Броня +${def.armor}`);
+                const lo = def.weapon.damage[0] + extraDmg;
+                const hi = def.weapon.damage[1] + extraDmg;
+                lines.push(`Урон ${lo}–${hi}`);
+            } else if (def.armor !== undefined) {
+                lines.push(`Броня +${def.armor + extraArmor}`);
             }
+
+            // Новый отдельный стат заточки: появляется дополнительно вверху после урона или брони ДО родных статов шмотки!
+            if (bonus && bonus.up > 0) {
+                const statName = nm[bonus.statKey] || bonus.statKey;
+                if (bonus.type === 'weapon') {
+                    lines.push({
+                        isUpgrade: true,
+                        text: `⚡ Заточка +${bonus.up}: +${bonus.damage} к урону, +${bonus.statValue} к ${statName}`
+                    });
+                } else if (bonus.type === 'armor') {
+                    lines.push({
+                        isUpgrade: true,
+                        text: `⚡ Заточка +${bonus.up}: +${bonus.armor} к броне, +${bonus.statValue} к ${statName}`
+                    });
+                }
+            }
+
             if (def.weapon && def.weapon.chop > 0) lines.push('Рубит деревья');
             if (def.weapon && def.weapon.mine > 0) lines.push('Добывает руду');
             if (def.stats) {
@@ -2200,7 +2618,7 @@
         }
 
         /** Rows { cls: 'up'|'down'|'same', text } comparing `def` (candidate) with `cur` (worn in the same slot). */
-        compareRows(def, cur) {
+        compareRows(def, cur, upA, upB) {
             const rows = [];
             const nm = (window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.statNames) || {};
             const fmt = v => String(Math.round(v * 10) / 10);
@@ -2211,11 +2629,26 @@
                 const u = unit || '';
                 rows.push({ cls, text: `${label}: ${fmt(b)}${u} → ${fmt(a)}${u}` + (same ? '' : ` (${d > 0 ? '+' : '−'}${fmt(Math.abs(d))}${u})`) });
             };
-            add('Броня', def.armor || 0, cur.armor || 0);
-            ['str', 'dex', 'int', 'sta'].forEach(k => add(nm[k] || k, (def.stats && def.stats[k]) || 0, (cur.stats && cur.stats[k]) || 0));
+            const bonusA = (upA && window.AveloraItems && window.AveloraItems.upgradeBonus) ? window.AveloraItems.upgradeBonus(def.id, upA) : null;
+            const bonusB = (upB && window.AveloraItems && window.AveloraItems.upgradeBonus) ? window.AveloraItems.upgradeBonus(cur.id, upB) : null;
+
+            const armorA = (def.armor || 0) + ((bonusA && bonusA.armor) || 0);
+            const armorB = (cur.armor || 0) + ((bonusB && bonusB.armor) || 0);
+            add('Броня', armorA, armorB);
+
+            ['str', 'dex', 'int', 'sta'].forEach(k => {
+                let statA = (def.stats && def.stats[k]) || 0;
+                let statB = (cur.stats && cur.stats[k]) || 0;
+                if (bonusA && bonusA.statKey === k) statA += bonusA.statValue;
+                if (bonusB && bonusB.statKey === k) statB += bonusB.statValue;
+                add(nm[k] || k, statA, statB);
+            });
+
             if (def.weapon || cur.weapon) {
-                const eff = w => (w && w.damage) ? (w.damage[0] + w.damage[1]) / 2 * this.weaponMult(w) : 0;
-                add('Средний урон (с характеристиками)', eff(def.weapon), eff(cur.weapon));
+                const dmgA = (bonusA && bonusA.damage) || 0;
+                const dmgB = (bonusB && bonusB.damage) || 0;
+                const eff = (w, extraDmg) => (w && w.damage) ? (w.damage[0] + w.damage[1] + extraDmg * 2) / 2 * this.weaponMult(w) : 0;
+                add('Средний урон (с характеристиками)', eff(def.weapon, dmgA), eff(cur.weapon, dmgB));
                 if (def.weapon && cur.weapon) {
                     add('Дальность', def.weapon.range || 0, cur.weapon.range || 0, true, ' м');
                     add('Перезарядка', def.weapon.cooldown || 0, cur.weapon.cooldown || 0, false, ' с');
@@ -2286,12 +2719,12 @@
         }
 
         /** Bag -> right hand or specific equipment slot. Returns true on success. */
-        equip(itemId, targetSlot) {
+        equip(itemId, targetSlot, fromCellIndex) {
             const st = this.state, def = window.AveloraItems.get(itemId);
             if (!st || !def) return false;
             const lack = this.unmetRequirement(def);
             if (lack) { this.floatText(lack, 'warn'); return false; }
-            const res = st.equipFromBag(itemId, targetSlot);
+            const res = st.equipFromBag(itemId, targetSlot, fromCellIndex);
             if (res === 'full') { this.floatText('Сумка полна: некуда убрать то, что в руке', 'warn'); return false; }
             if (res !== 'ok') { this.floatText('Этого нет в сумке', 'warn'); return false; }
             this.applyEquipment();
@@ -2374,7 +2807,7 @@
         // -----------------------------------------------------------
         // Tooltip (#item-tooltip)
         // -----------------------------------------------------------
-        showTooltipFor(el, kind, id, count, isDoll) {
+        showTooltipFor(el, kind, id, count, isDoll, upgrade) {
             if (!this.tooltip) return;
             this.tooltip.classList.remove('potion-tooltip');
             let def = null, meta = '';
@@ -2396,7 +2829,9 @@
             this.tooltip.innerHTML = '';
             this.tooltip.classList.remove('warn');
             const lab = kind === 'skill' ? this.game.skills.labelOf(def) : def;
-            const n = document.createElement('div'); n.className = 'tt-name'; n.textContent = lab.name;
+            const n = document.createElement('div'); n.className = 'tt-name';
+            const upTitle = (upgrade && upgrade > 0) ? ` +${upgrade}` : '';
+            n.textContent = (lab.name || '') + upTitle;
             if (kind !== 'skill') n.style.color = window.AveloraItems.quality(id).color;
             const d = document.createElement('div'); d.className = 'tt-desc'; d.textContent = lab.description || '';
             const m = document.createElement('div'); m.className = 'tt-meta'; m.textContent = meta;
@@ -2405,12 +2840,19 @@
                 const sl = this.skillStatsLine(def);
                 if (sl) { const sd = document.createElement('div'); sd.className = 'tt-req'; sd.style.color = '#a9d68c'; sd.textContent = sl; this.tooltip.appendChild(sd); }
             } else {
-                const slLines = this.itemStatsLines(def);
+                const slLines = this.itemStatsLines(def, upgrade);
                 slLines.forEach(l => {
                     const sd = document.createElement('div');
-                    sd.className = 'tt-req';
-                    sd.style.color = '#a9d68c';
-                    sd.textContent = l;
+                    if (typeof l === 'object' && l.isUpgrade) {
+                        sd.className = 'tt-req tt-upgrade';
+                        sd.style.color = '#ffd700';
+                        sd.style.fontWeight = 'bold';
+                        sd.textContent = l.text;
+                    } else {
+                        sd.className = 'tt-req';
+                        sd.style.color = '#a9d68c';
+                        sd.textContent = typeof l === 'string' ? l : l.text;
+                    }
                     this.tooltip.appendChild(sd);
                 });
                 if (isDoll) {
@@ -2426,27 +2868,34 @@
                     const mk2 = (cls, txt, color) => { const d = document.createElement('div'); d.className = cls; d.textContent = txt; if (color) d.style.color = color; this.tooltip.appendChild(d); return d; };
                     const slot = window.AveloraItems.equipSlot(id);
                     const SLOT_RU = { right: 'правая рука', head: 'голова', neck: 'амулет', cloak: 'плащ', body: 'тело', hands: 'руки', ring: 'кольцо', legs: 'ноги', feet: 'ступни' };
+                    const itemUp = upgrade || 0;
                     if (slot === 'ring') {
                         const r1 = this.state.equipped.ring, r2 = this.state.equipped.ring2;
-                        if (r1 === id || r2 === id) {
-                            mk2('tt-cmp-head', 'Сейчас надето', '#d4af37');
+                        const u1 = (this.state.equippedUpgrades && this.state.equippedUpgrades.ring) || 0;
+                        const u2 = (this.state.equippedUpgrades && this.state.equippedUpgrades.ring2) || 0;
+                        if ((r1 === id && u1 === itemUp) || (r2 === id && u2 === itemUp)) {
+                            mk2('tt-cmp-head', itemUp > 0 ? `Сейчас надето (+${itemUp})` : 'Сейчас надето', '#d4af37');
                         } else if (!r1 || !r2) {
                             mk2('tt-cmp-head', 'Слот свободен', '#7fd19a');
                         } else {
                             const cur = window.AveloraItems.get(r1);
-                            mk2('tt-cmp-head', 'Надето: ' + (cur ? cur.name : r1), '#c0a060');
-                            if (cur) this.compareRows(def, cur).forEach(r => mk2('tt-cmp ' + r.cls, r.text));
+                            const curUpStr = u1 > 0 ? ` +${u1}` : (r1 === id ? ' (без усиления)' : '');
+                            mk2('tt-cmp-head', `Надето: ${cur ? cur.name : r1}${curUpStr}`, '#c0a060');
+                            if (cur) this.compareRows(def, cur, itemUp, u1).forEach(r => mk2('tt-cmp ' + r.cls, r.text));
                         }
                     } else {
                         const curId = this.state.equipped[slot];
-                        if (curId === id) {
-                            mk2('tt-cmp-head', 'Сейчас надето', '#d4af37');
+                        const curUp = (this.state.equippedUpgrades && this.state.equippedUpgrades[slot]) || 0;
+                        if (curId === id && curUp === itemUp) {
+                            mk2('tt-cmp-head', itemUp > 0 ? `Сейчас надето (+${itemUp})` : 'Сейчас надето', '#d4af37');
                         } else if (!curId) {
                             mk2('tt-cmp-head', 'Слот свободен (' + (SLOT_RU[slot] || slot) + ')', '#7fd19a');
                         } else {
                             const cur = window.AveloraItems.get(curId);
-                            mk2('tt-cmp-head', 'Надето: ' + (cur ? cur.name : curId), '#c0a060');
-                            if (cur) this.compareRows(def, cur).forEach(r => mk2('tt-cmp ' + r.cls, r.text));
+                            const curName = cur ? cur.name : curId;
+                            const curUpStr = curUp > 0 ? ` +${curUp}` : (curId === id ? ' (без усиления)' : '');
+                            mk2('tt-cmp-head', `Надето: ${curName}${curUpStr}`, '#c0a060');
+                            if (cur) this.compareRows(def, cur, itemUp, curUp).forEach(r => mk2('tt-cmp ' + r.cls, r.text));
                         }
                     }
                 } else if (this.chestInv && el && el.closest) {
@@ -2538,7 +2987,8 @@
 
             const n = document.createElement('div');
             n.className = 'tt-name';
-            n.textContent = def.name;
+            const upTitle = (src.up && src.up > 0) ? ` +${src.up}` : '';
+            n.textContent = (def.name || '') + upTitle;
             n.style.color = window.AveloraItems.quality(src.item).color;
 
             const btnClose = document.createElement('button');
@@ -2565,12 +3015,19 @@
             if (qc.key !== 'common') m.textContent = `${qc.name} · ${m.textContent}`;
 
             this.tooltip.append(header, d, m);
-            const slLines = this.itemStatsLines(def);
+            const slLines = this.itemStatsLines(def, src.up);
             slLines.forEach(l => {
                 const sd = document.createElement('div');
-                sd.className = 'tt-req';
-                sd.style.color = '#a9d68c';
-                sd.textContent = l;
+                if (typeof l === 'object' && l.isUpgrade) {
+                    sd.className = 'tt-req tt-upgrade';
+                    sd.style.color = '#ffd700';
+                    sd.style.fontWeight = 'bold';
+                    sd.textContent = l.text;
+                } else {
+                    sd.className = 'tt-req';
+                    sd.style.color = '#a9d68c';
+                    sd.textContent = typeof l === 'string' ? l : l.text;
+                }
                 this.tooltip.appendChild(sd);
             });
             if (def.requires) {
@@ -2605,7 +3062,7 @@
                 btnEquip.addEventListener('click', (e) => {
                     e.stopPropagation();
                     this.hideTooltip();
-                    this.equip(src.item);
+                    this.equip(src.item, undefined, src.index);
                 });
                 actions.appendChild(btnEquip);
             }
@@ -3129,6 +3586,8 @@
                         if (this.inputAllowed()) this.toggleQuests();
                     } else if (e.code === 'KeyN') { // physical key: works in RU layout too (Т): Ремесло
                         if (this.inputAllowed()) this.toggleCrafting();
+                    } else if (e.code === 'KeyU') { // physical key: works in RU layout too (Г): Усиление
+                        if (this.inputAllowed()) this.toggleUpgrade();
                     }
                 }
             });
@@ -3138,6 +3597,13 @@
                     e.stopPropagation();
                     this.closeMicroMenu();
                     if (this.inputAllowed()) this.toggleSkills();
+                });
+            }
+            if (this.upgradeBtn) {
+                this.upgradeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.closeMicroMenu();
+                    if (this.inputAllowed()) this.toggleUpgrade();
                 });
             }
             const skillsClose = document.getElementById('skills-close');
@@ -3265,7 +3731,7 @@
                     const c = this.state.inventory.cells[src.index];
                     if (c && window.AveloraItems.isEquippable(c.item)) {
                         this.hideTooltip();
-                        this.equip(c.item);
+                        this.equip(c.item, undefined, src.index);
                     }
                 }
             });
@@ -3281,7 +3747,8 @@
                 const slot = doll.dataset.slot;
                 const key = slot === 'weapon' ? 'right' : slot;
                 const itemId = this.state.equipped[key];
-                return itemId ? { kind: 'doll', slot: key, item: itemId, el: doll } : null;
+                const up = (this.state.equippedUpgrades && this.state.equippedUpgrades[key]) || 0;
+                return itemId ? { kind: 'doll', slot: key, item: itemId, up, el: doll } : null;
             }
             const slot = target.closest('.hotbar-slot');
             if (slot && this.state) {
@@ -3293,13 +3760,13 @@
             if (ccell && this.chestInv) {
                 const i = parseInt(ccell.dataset.cell, 10);
                 const c = this.chestInv.cells[i];
-                return c ? { kind: 'chest', index: i, item: c.item, count: c.count, el: ccell } : null;
+                return c ? { kind: 'chest', index: i, item: c.item, count: c.count, up: c.up || 0, el: ccell } : null;
             }
             const cell = target.closest('.inventory-cell');
             if (cell && this.state) {
                 const i = parseInt(cell.dataset.cell, 10);
                 const c = this.state.inventory.cells[i];
-                return c ? { kind: 'inv', index: i, item: c.item, count: c.count, el: cell } : null;
+                return c ? { kind: 'inv', index: i, item: c.item, count: c.count, up: c.up || 0, el: cell } : null;
             }
             const skill = target.closest('.skill-entry');
             if (skill) return { kind: 'skill', id: skill.dataset.skill, el: skill };
@@ -3309,11 +3776,18 @@
         }
 
         showSourceTooltip(src) {
-            if (src.kind === 'inv' || src.kind === 'chest') this.showTooltipFor(src.el, 'item', src.item, src.count);
-            else if (src.kind === 'doll') this.showTooltipFor(src.el, 'item', src.item, undefined, true);
+            if (src.kind === 'inv' || src.kind === 'chest') this.showTooltipFor(src.el, 'item', src.item, src.count, false, src.up);
+            else if (src.kind === 'doll') this.showTooltipFor(src.el, 'item', src.item, undefined, true, src.up);
             else if (src.kind === 'skill') this.showTooltipFor(src.el, 'skill', src.id);
             else if (src.kind === 'craft') this.showTooltipFor(src.el, 'item', src.item);
-            else if (src.kind === 'slot' && src.entry) this.showTooltipFor(src.el, src.entry.type === 'skill' ? 'skill' : 'item', src.entry.id);
+            else if (src.kind === 'slot' && src.entry) {
+                let up = 0;
+                if (src.entry.type === 'item' && this.state) {
+                    const eqSlot = this.state.equippedSlotOf(src.entry.id);
+                    if (eqSlot && this.state.equippedUpgrades) up = this.state.equippedUpgrades[eqSlot] || 0;
+                }
+                this.showTooltipFor(src.el, src.entry.type === 'skill' ? 'skill' : 'item', src.entry.id, undefined, false, up);
+            }
         }
 
         sourceIconDef(src) {
@@ -3608,7 +4082,7 @@
 
             if (tgt && tgt.kind === 'doll') {
                 // bag item dragged onto the dressing-room: weapon slot takes equippable items
-                if (src.kind === 'inv' && window.AveloraItems.isEquippable(src.item) && this.canEquipInDollSlot(src.item, tgt.slot)) this.equip(src.item, tgt.slot === 'weapon' ? 'right' : tgt.slot);
+                if (src.kind === 'inv' && window.AveloraItems.isEquippable(src.item) && this.canEquipInDollSlot(src.item, tgt.slot)) this.equip(src.item, tgt.slot === 'weapon' ? 'right' : tgt.slot, src.index);
                 else if (src.kind === 'inv') this.showMessageAt(tgt.el, 'Сюда это не надеть');
                 return;
             }
@@ -3692,7 +4166,7 @@
             if (x < 0 || y < 0 || x >= window.innerWidth || y >= window.innerHeight) return false;
             const el = document.elementFromPoint(x, y);
             if (!el) return false;
-            const sel = window.AVELORA_UI_SELECTOR || '#skill-bar, #inventory-panel, #chest-panel, #dialog-panel, #skills-panel, #crafting-panel, #quantity-modal, #item-tooltip';
+            const sel = window.AVELORA_UI_SELECTOR || '#skill-bar, #inventory-panel, #chest-panel, #dialog-panel, #skills-panel, #crafting-panel, #upgrade-panel, #quantity-modal, #item-tooltip';
             return !(el.closest && el.closest(sel));
         }
 
