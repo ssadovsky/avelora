@@ -1430,6 +1430,30 @@ window.LOCATIONS = {
         dungeon: { kind: 'depths', theme: 'frost', id: 'frost_hollow', minLevel: 22, resetSeconds: 60,
             bossId: 'fh_boss', bossArena: [-26.0, 66.0, 26.0, 118.0],
             bossExit: { id: 'bossExit', x: 0.0, z: 112.0, y: 0.02, radius: 1.3, height: 2.4, color: 0x7fd4ff, to: 'frostRidge', spawn: 'fromHollow', label: 'Выход из логова' } },
+        // Антураж: стойбище йети и Чертог Хозяина (пропы из готовых моделей, без новых мешей; кострища — огонь без источников света)
+        props: [
+            // Стойбище
+            { id: 'fh.camp_fire_1', prop: 'campfire', x: 9.5, z: 34.0, r: 0.0 },
+            { id: 'fh.camp_fire_2', prop: 'campfire', x: 16.0, z: 31.0, r: 1.2 },
+            { id: 'fh.camp_yurt', prop: 'hide_yurt', x: 23.0, z: 31.5, r: 3.9 },
+            { id: 'fh.camp_bones_1', prop: 'bone_pile_2', x: 11.5, z: 31.5, r: 0.7 },
+            { id: 'fh.camp_bones_2', prop: 'bone_pile_1', x: 14.5, z: 36.0, r: 2.3 },
+            { id: 'fh.camp_bones_3', prop: 'bone_pile_5', x: 6.0, z: 31.5, r: 4.1 },
+            // Чертог: трон Хозяина из ледяных глыб и костей
+            { id: 'fh.throne_back', prop: 'ice_shard_1', x: 0.0, z: 106.6, r: 0.4, s: 1.3 },
+            { id: 'fh.throne_wing_l', prop: 'ice_shard_5', x: -2.7, z: 105.8, r: 2.1, s: 1.0 },
+            { id: 'fh.throne_wing_r', prop: 'ice_shard_5', x: 2.7, z: 105.8, r: 5.0, s: 1.0 },
+            { id: 'fh.throne_arm_l', prop: 'ice_shard_7', x: -1.8, z: 104.3, r: 3.6, s: 0.8 },
+            { id: 'fh.throne_arm_r', prop: 'ice_shard_7', x: 1.8, z: 104.3, r: 0.9, s: 0.8 },
+            { id: 'fh.throne_bones', prop: 'bone_pile_4', x: 0.0, z: 102.4, r: 0.3 },
+            { id: 'fh.hall_fire_l', prop: 'campfire', x: -7.5, z: 101.0, r: 0.0, s: 1.2 },
+            { id: 'fh.hall_fire_r', prop: 'campfire', x: 7.5, z: 101.0, r: 0.0, s: 1.2 },
+            { id: 'fh.hall_mammoth', prop: 'mammoth_skeleton', x: -11.0, z: 92.0, r: 0.15 },
+            { id: 'fh.hall_bones_1', prop: 'bone_pile_3', x: 9.0, z: 96.5, r: 3.8 },
+            { id: 'fh.hall_bones_2', prop: 'bone_pile_5', x: 5.5, z: 86.5, r: 5.6 },
+            { id: 'fh.hall_bones_3', prop: 'bone_pile_2', x: -4.5, z: 87.0, r: 1.3 },
+            { id: 'fh.hall_bones_4', prop: 'bone_pile_1', x: -8.0, z: 97.0, r: 2.6 }
+        ],
         creatures: [
             // Ледяная глотка: цепные волки и дозор йети
             { id: 'fh_throat_wolf_1', type: 'frost_wolf', x: 0.5, z: -57.4, r: 2.32 },
@@ -1476,8 +1500,15 @@ window.LOCATIONS = {
             { id: 'fh_gate_brute_2', type: 'frostfang_brute', x: 13.5, z: 71.8, r: 3.30, rank: 'elite' },
             // Чертог Хозяина
             { id: 'fh_boss', type: 'frost_behemoth', x: -1.2, z: 93.7, r: 5.35, rank: 'boss', name: 'Хозяин хребта' },
-            { id: 'fh_hall_shaman_1', type: 'frost_yeti_shaman', x: -3.0, z: 105.3, r: 5.57 },
-            { id: 'fh_hall_shaman_2', type: 'frost_yeti_shaman', x: 3.8, z: 81.8, r: 1.52 }
+            { id: 'fh_hall_shaman_1', type: 'frost_yeti_shaman', x: -9.5, z: 99.5, r: 5.57 },
+            { id: 'fh_hall_shaman_2', type: 'frost_yeti_shaman', x: 3.8, z: 81.8, r: 1.52 },
+            // Морозные совы: охотятся над озером грота, над стойбищем и в чертоге
+            { id: 'fh_grotto_owl_1', type: 'frostwing_owl', level: 22, x: -7.0, z: -33.0, r: 1.10 },
+            { id: 'fh_grotto_owl_2', type: 'frostwing_owl', level: 22, x: 14.0, z: -28.0, r: 3.90 },
+            { id: 'fh_camp_owl_1', type: 'frostwing_owl', level: 23, x: 6.0, z: 27.0, r: 2.40 },
+            { id: 'fh_gate_owl_1', type: 'frostwing_owl', level: 23, x: 21.0, z: 57.0, r: 5.10 },
+            { id: 'fh_hall_owl_1', type: 'frostwing_owl', level: 23, x: -8.5, z: 87.5, r: 0.60 },
+            { id: 'fh_hall_owl_2', type: 'frostwing_owl', level: 23, x: 9.0, z: 92.0, r: 3.70 }
         ]
     },
 
