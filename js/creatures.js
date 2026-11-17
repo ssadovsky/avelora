@@ -1009,7 +1009,7 @@
                     if (playerAlive && distP <= reach + (def.ranged ? 6.0 : 0.5) && this.game.combat && this.sameLevel(rec)) {
                         const d = rec.scaledDamage || def.damage || [1, 2];
                         const amount = Math.round(d[0] + Math.random() * ((d[1] || d[0]) - d[0]));
-                        if (def.ranged && this.game.skills && this.game.skills.spawnEnemyProjectile) this.rangedShot(rec, def, amount);
+                        if (def.ranged && distP > (def.attackRange || 0.8) + (def.hitRadius || 0.4) + PLAYER_RADIUS + 0.5 && this.game.skills && this.game.skills.spawnEnemyProjectile) this.rangedShot(rec, def, amount);   // вплотную — обычный удар
                         else this.game.combat.damagePlayer(amount, rec);
                     }
                 }

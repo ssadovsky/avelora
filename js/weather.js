@@ -29,7 +29,7 @@
             vec4 mv = modelViewMatrix * vec4(p, 1.0);
             gl_Position = projectionMatrix * mv;
             float d = -mv.z;
-            gl_PointSize = clamp(aSize * uPx / max(d, 0.1), 1.0, 14.0);
+            gl_PointSize = clamp(aSize * uPx / max(d, 0.1), 1.0, 6.0);
             vec2 e = abs((p.xz - c.xz) / (uBox.xz * 0.5));
             vA = (1.0 - smoothstep(0.72, 1.0, max(e.x, e.y))) * smoothstep(0.6, 2.2, d);
         }`;
@@ -58,7 +58,7 @@
             vec4 mv = modelViewMatrix * vec4(p, 1.0);
             gl_Position = projectionMatrix * mv;
             float d = -mv.z;
-            gl_PointSize = clamp(aSize * uPx / max(d, 0.1), 1.0, 22.0);
+            gl_PointSize = clamp(aSize * uPx / max(d, 0.1), 1.0, 9.0);
             vec2 e = abs((p.xz - c.xz) / (uBox.xz * 0.5));
             float band = 0.5 + 0.5 * sin(dot(p.xz, vec2(0.21, -0.13)) + uTime * 0.6);
             vA = (1.0 - smoothstep(0.7, 1.0, max(e.x, e.y))) * smoothstep(0.8, 3.0, d) * smoothstep(0.25, 0.75, band) * gust;
@@ -76,10 +76,10 @@
             const wind = this.cfg.wind || [1.8, 0.6];
             const fall = this.cfg.fall !== undefined ? this.cfg.fall : 1.5;
             this.layers.push(this._make(Math.round(3600 * dens), new THREE.Vector3(48, 24, 48), VERT, FRAG,
-                { uFall: { value: fall }, uAlpha: { value: 0.92 } }, wind, [0.045, 0.11], 11));
+                { uFall: { value: fall }, uAlpha: { value: 0.92 } }, wind, [0.022, 0.055], 11));
             if (this.cfg.drift !== false) {
                 this.layers.push(this._make(Math.round(1500 * dens), new THREE.Vector3(34, 1, 34), VERT_DRIFT, FRAG,
-                    { uAlpha: { value: 0.42 } }, wind, [0.10, 0.26], 23));
+                    { uAlpha: { value: 0.42 } }, wind, [0.05, 0.13], 23));
             }
         }
 

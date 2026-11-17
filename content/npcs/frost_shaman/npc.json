@@ -62,6 +62,7 @@
   },
   "quests": [
     "fr_sh_hides",
+    "fr_sh_spiders",
     "fr_sh_shamans"
   ]
 }

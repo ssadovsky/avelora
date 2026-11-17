@@ -1137,10 +1137,13 @@ window.LOCATIONS = {
             default:    { x: 0.0, z: -78.0, r: Math.PI },
             fromForest: { x: 0.0, z: -78.0, r: Math.PI },
             fromBurnt:  { x: -128.0, z: 0.0, r: -Math.PI / 2 },
-            fromValley: { x: 128.0, z: 0.0, r: Math.PI / 2 }
+            fromValley: { x: 128.0, z: 0.0, r: Math.PI / 2 },
+            fromHollow: { x: 104.8, z: -58.8, r: -0.75 }      // выход из логова: перед пещерой, лицом от входа
         },
 
         exits: [
+            // Пещера на северо-востоке: вход в подземелье «Логово Хозяина хребта»
+            { id: 'toHollow', x: 107.1, z: -61.2, radius: 1.5, height: 2.6, noRing: true, color: 0x6e8fff, to: 'frostHollow', spawn: 'entrance', label: 'Логово Хозяина хребта', minLevel: 22 },
             // Северный проход в Лесную опушку
             { id: 'toForest', x: 0.0, z: -96.0, radius: 2.0, to: 'forestEdge', spawn: 'fromFrost', label: 'Лесная опушка', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, r: Math.PI, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.25, color: 0x9bc2a4 } },
             // Западный проход в Выжженную землю
@@ -1169,7 +1172,7 @@ window.LOCATIONS = {
 
             // Северо-восточный склон (между северным ущельем и восточным)
             { id: 'fr_forest_ne_1', type: 'forest', x: 65.0, z: -68.0, rx: 42.0, rz: 16.0, count: 24, spacing: 8.0, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3103 },
-            { id: 'fr_forest_ne_2', type: 'forest', x: 110.0, z: -50.0, rx: 25.0, rz: 22.0, count: 18, spacing: 8.0, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3104 },
+            { id: 'fr_forest_ne_2', type: 'forest', x: 111.7, z: -47.2, rx: 25.0, rz: 22.0, count: 18, spacing: 8.0, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3104 },
 
             // Западная горная стена к югу от западного прохода
             { id: 'fr_forest_sw', type: 'forest', x: -118.0, z: 45.0, rx: 22.0, rz: 34.0, count: 22, spacing: 8.5, treeType: 'evergreen', scaleMin: 0.85, scaleMax: 1.35, undergrowth: false, seed: 3105 },
@@ -1202,11 +1205,12 @@ window.LOCATIONS = {
             { id: 'fr_grove_e', type: 'forest', x: 112.0, z: 18.0, rx: 10.0, rz: 9.0, count: 6, spacing: 7.5, treeType: 'evergreen', scaleMin: 0.8, scaleMax: 1.25, undergrowth: false, seed: 3307 },
             { id: 'fr_grove_mam', type: 'forest', x: -22.0, z: 62.0, rx: 10.0, rz: 8.0, count: 6, spacing: 7.5, treeType: 'evergreen', scaleMin: 0.9, scaleMax: 1.35, undergrowth: false, seed: 3308 },
             { id: 'fr_rocks_wolves', type: 'rocks', x: -102.0, z: 38.0, radius: 7.0, count: 4, scaleMin: 1.0, scaleMax: 2.0, seed: 3401 },
-            { id: 'fr_rocks_brutes', type: 'rocks', x: 104.0, z: -58.0, radius: 12.0, count: 7, scaleMin: 1.3, scaleMax: 2.8, seed: 3402 },
+            { id: 'fr_rocks_brutes', type: 'rocks', x: 95.2, z: -49.4, radius: 12.0, count: 7, scaleMin: 1.3, scaleMax: 2.8, seed: 3402 },
             { id: 'fr_rocks_bears', type: 'rocks', x: 108.0, z: 60.0, radius: 9.0, count: 5, scaleMin: 1.1, scaleMax: 2.4, seed: 3403 },
             { id: 'fr_rocks_fang', type: 'rocks', x: -14.0, z: 14.0, radius: 7.0, count: 4, scaleMin: 1.0, scaleMax: 2.0, seed: 3404 },
             { id: 'fr_rocks_tiger', type: 'rocks', x: 52.0, z: 4.0, radius: 7.0, count: 4, scaleMin: 1.0, scaleMax: 2.0, seed: 3405 },
-            { id: 'fr_rocks_rhino', type: 'rocks', x: 36.0, z: 74.0, radius: 7.0, count: 4, scaleMin: 1.0, scaleMax: 2.0, seed: 3406 }
+            { id: 'fr_rocks_rhino', type: 'rocks', x: 36.0, z: 74.0, radius: 7.0, count: 4, scaleMin: 1.0, scaleMax: 2.0, seed: 3406 },
+            { id: 'fr_rocks_spiders', type: 'rocks', x: -114.0, z: 64.0, radius: 9.0, count: 5, scaleMin: 1.0, scaleMax: 2.2, seed: 3407 }
         ],
 
         props: [
@@ -1251,6 +1255,11 @@ window.LOCATIONS = {
             { id: 'frostRidge.sentinel_5', prop: 'sentinel_stone_5', x: 26.1, z: -11.2, r: 4.59, s: 1.09, snow: 0.8 },
             { id: 'frostRidge.sentinel_6', prop: 'sentinel_stone_3', x: 23.5, z: -6.2, r: 4.91, s: 1.12, snow: 0.8 },
             { id: 'frostRidge.sentinel_7', prop: 'sentinel_stone_1', x: 25.8, z: -1.0, r: 5.27, s: 1.06, snow: 0.8 },
+            // Гнездо пауков: глыбы и кости
+            { id: 'frostRidge.spider_ice_1', prop: 'ice_shard_1', x: -119.0, z: 55.0, r: 0.8, s: 1.2, snow: 0.45 },
+            { id: 'frostRidge.spider_ice_2', prop: 'ice_shard_5', x: -104.0, z: 67.0, r: 3.1, s: 1.1, snow: 0.45 },
+            { id: 'frostRidge.spider_ice_3', prop: 'ice_shard_3', x: -121.0, z: 69.0, r: 5.0, s: 1.0, snow: 0.45 },
+            { id: 'frostRidge.spider_bones', prop: 'bone_pile_3', x: -107.0, z: 53.0, r: 2.0, snow: true },
             // Замёрзшее озеро: торосы по берегу и вмёрзшие в лёд
             { id: 'frostRidge.lake_ice_1', prop: 'ice_shard_6', x: -5.5, z: -45.4, r: 4.99, s: 1.37, snow: 0.45 },
             { id: 'frostRidge.lake_ice_2', prop: 'ice_shard_1', x: -23.1, z: -35.4, r: 5.28, s: 1.29, snow: 0.45 },
@@ -1347,6 +1356,13 @@ window.LOCATIONS = {
             { id: 'fr_polar_bear_3', type: 'polar_bear', x: 103.6, z: 48.3, r: 1.64, level: 25 },
             { id: 'fr_polar_bear_4', type: 'polar_bear', x: 94.0, z: 45.9, r: 1.68, level: 24 },
             { id: 'fr_polar_bear_5', type: 'polar_bear', x: 89.0, z: 54.4, r: 1.95, level: 24 },
+            // Гнездо ледяных пауков на юго-западе (-112, 60)
+            { id: 'fr_ice_spider_1', type: 'ice_spider', x: -113.5, z: 67.3, r: 3.99, level: 21 },
+            { id: 'fr_ice_spider_2', type: 'ice_spider', x: -107.6, z: 62.6, r: 4.98, level: 21 },
+            { id: 'fr_ice_spider_3', type: 'ice_spider', x: -107.0, z: 55.7, r: 3.17, level: 22 },
+            { id: 'fr_ice_spider_4', type: 'ice_spider', x: -111.4, z: 56.0, r: 2.33, level: 21 },
+            { id: 'fr_ice_spider_5', type: 'ice_spider', x: -115.9, z: 58.0, r: 4.98, level: 21 },
+            { id: 'fr_ice_spider_6', type: 'ice_spider', x: -116.8, z: 61.8, r: 0.27, level: 22 },
             // Шаманы йети: по одному в группах племени
             { id: 'fr_yeti_shaman_1', type: 'frost_yeti_shaman', x: 89.0, z: -63.0, r: 1.25, level: 24 },
             { id: 'fr_yeti_shaman_2', type: 'frost_yeti_shaman', x: 100.1, z: -45.6, r: 2.67, level: 24 },
@@ -1354,9 +1370,9 @@ window.LOCATIONS = {
             { id: 'fr_yeti_shaman_4', type: 'frost_yeti_shaman', x: 128.9, z: -68.2, r: 3.36, level: 24 },
             { id: 'fr_yeti_shaman_5', type: 'frost_yeti_shaman', x: 113.3, z: -76.4, r: 5.89, level: 24 },
             { id: 'fr_yeti_shaman_6', type: 'frost_yeti_shaman', x: 80.4, z: -76.2, r: 3.28, level: 24 },
-            { id: 'fr_yeti_shaman_7', type: 'frost_yeti_shaman', x: 98.5, z: -57.6, r: 4.61, level: 24 },
+            { id: 'fr_yeti_shaman_7', type: 'frost_yeti_shaman', x: 91.6, z: -56.3, r: 4.61, level: 24 },
             // Племя йети на северо-востоке: рядовые группами по скалам до краёв локации, 4 громилы-командира (босс будет в подземелье за пещерой)
-            { id: 'fr_brute_1', type: 'frostfang_brute', x: 104.5, z: -58.0, r: 5.02, level: 25 },
+            { id: 'fr_brute_1', type: 'frostfang_brute', x: 92.0, z: -45.0, r: 5.02, level: 25 },
             { id: 'fr_brute_2', type: 'frostfang_brute', x: 92.0, z: -50.0, r: 2.05, level: 25 },
             { id: 'fr_brute_3', type: 'frostfang_brute', x: 121.0, z: -52.0, r: 1.51, level: 25 },
             { id: 'fr_brute_4', type: 'frostfang_brute', x: 96.0, z: -70.0, r: 5.17, level: 25 },
@@ -1365,7 +1381,7 @@ window.LOCATIONS = {
             { id: 'fr_yeti_3', type: 'frost_yeti', x: 86.2, z: -67.2, r: 0.48, level: 23 },
             { id: 'fr_yeti_4', type: 'frost_yeti', x: 94.1, z: -40.3, r: 4.65, level: 23 },
             { id: 'fr_yeti_5', type: 'frost_yeti', x: 102.6, z: -40.2, r: 0.50, level: 24 },
-            { id: 'fr_yeti_6', type: 'frost_yeti', x: 104.5, z: -49.0, r: 0.22, level: 23 },
+            { id: 'fr_yeti_6', type: 'frost_yeti', x: 104.4, z: -45.3, r: 0.22, level: 23 },
             { id: 'fr_yeti_7', type: 'frost_yeti', x: 124.1, z: -42.7, r: 2.25, level: 23 },
             { id: 'fr_yeti_8', type: 'frost_yeti', x: 123.8, z: -37.0, r: 6.19, level: 24 },
             { id: 'fr_yeti_9', type: 'frost_yeti', x: 118.5, z: -36.3, r: 5.80, level: 23 },
@@ -1382,6 +1398,86 @@ window.LOCATIONS = {
             { id: 'fr_yeti_20', type: 'frost_yeti', x: 69.9, z: -53.3, r: 1.94, level: 24 },
             { id: 'fr_yeti_21', type: 'frost_yeti', x: 112.6, z: -25.1, r: 0.91, level: 23 },
             { id: 'fr_yeti_22', type: 'frost_yeti', x: 107.3, z: -34.3, r: 4.25, level: 23 }
+        ]
+    },
+
+    // ==========================================================================================
+    // ПОДЗЕМЕЛЬЕ: Логово Хозяина хребта (id `frostHollow`) — ледяные пещеры за пещерой на северо-востоке Морозного хребта.
+    // Геометрия: js/depths.js, тема 'frost' (_layoutFrost): Ледяная глотка -> Ледяной грот (озеро) -> развилка (прямой ход / паучья жеода) -> Стойбище -> Чертог Хозяина.
+    // ==========================================================================================
+    frostHollow: {
+        id: 'frostHollow',
+        name: 'Логово Хозяина хребта',
+        isDungeon: true,
+        surfaceLocation: 'frostRidge',
+        surfaceSpawn: 'fromHollow',
+        noMount: true,
+
+        terrain: { size: 350, seed: 9917, biome: 'forest', flat: true, hidden: true, segments: 4, waterBody: { type: 'none' }, hills: { amplitude: 0.0, inclineX: 0.0, inclineZ: 0.0 }, baseHeight: 0.0, border: 0 },
+        atmosphere: { sky: 0x0a121a, skyTop: 0x05090e, fogColor: 0x101c28, fogDensity: 0.0075 },
+        lighting: { hemiSky: 0x94a4b8, hemiGround: 0x8a9aae, hemiIntensity: 1.5, sunColor: 0x8090a0, sunIntensity: 0.08 },   // небо и «земля» света почти одного тона: иначе низ и верх стены красятся по-разному («бутерброд»)
+        cameraAngle: Math.PI,
+        cameraDistance: 9.5, minDistance: 3.8, maxDistance: 22.0, pitchZoomedIn: 0.24, pitchZoomedOut: 0.62,
+
+        spawns: {
+            default:  { x: 0.0, z: -85.0, r: Math.PI },
+            entrance: { x: 0.0, z: -85.0, r: Math.PI }
+        },
+        exits: [
+            { id: 'toSurface', x: 0.0, z: -91.5, y: 0.02, radius: 1.3, height: 2.4, color: 0x7fd4ff, to: 'frostRidge', spawn: 'fromHollow', label: 'Выход на хребет' }
+        ],
+
+        dungeon: { kind: 'depths', theme: 'frost', id: 'frost_hollow', minLevel: 22, resetSeconds: 600,
+            bossId: 'fh_boss', bossArena: [-26.0, 66.0, 26.0, 118.0],
+            bossExit: { id: 'bossExit', x: 0.0, z: 112.0, y: 0.02, radius: 1.3, height: 2.4, color: 0x7fd4ff, to: 'frostRidge', spawn: 'fromHollow', label: 'Выход из логова' } },
+        creatures: [
+            // Ледяная глотка: цепные волки и дозор йети
+            { id: 'fh_throat_wolf_1', type: 'frost_wolf', x: 0.5, z: -57.4, r: 2.32 },
+            { id: 'fh_throat_wolf_2', type: 'frost_wolf', x: -5.7, z: -68.3, r: 0.41 },
+            { id: 'fh_throat_wolf_3', type: 'frost_wolf', x: 0.4, z: -70.9, r: 1.89 },
+            { id: 'fh_throat_yeti_1', type: 'frost_yeti', x: 6.5, z: -52.9, r: 2.97 },
+            { id: 'fh_throat_yeti_2', type: 'frost_yeti', x: -3.2, z: -50.7, r: 2.79 },
+            // Ледяной грот: йети у озера, шаман, пауки по краям
+            { id: 'fh_grotto_yeti_1', type: 'frost_yeti', x: 14.6, z: -36.3, r: 0.61 },
+            { id: 'fh_grotto_yeti_2', type: 'frost_yeti', x: -10.5, z: -30.5, r: 2.20 },
+            { id: 'fh_grotto_yeti_3', type: 'frost_yeti', x: -13.0, z: -36.0, r: 1.33 },
+            { id: 'fh_grotto_yeti_4', type: 'frost_yeti', x: 6.3, z: -41.2, r: 1.79 },
+            { id: 'fh_grotto_shaman_1', type: 'frost_yeti_shaman', x: 12.5, z: -42.2, r: 3.26 },
+            { id: 'fh_grotto_spider_1', type: 'ice_spider', x: -20.6, z: -26.0, r: 3.84 },
+            { id: 'fh_grotto_spider_2', type: 'ice_spider', x: -14.6, z: -25.9, r: 3.31 },
+            { id: 'fh_grotto_spider_e_1', type: 'ice_spider', x: 16.0, z: -22.3, r: 0.34 },
+            // Прямой ход: волки и йети
+            { id: 'fh_pass_wolf_1', type: 'frost_wolf', x: 21.0, z: 4.0, r: 0.43 },
+            { id: 'fh_pass_wolf_2', type: 'frost_wolf', x: 14.9, z: -0.5, r: 1.20 },
+            { id: 'fh_pass_yeti_1', type: 'frost_yeti', x: 19.2, z: 19.5, r: 3.49 },
+            // Боковой ход и паучья жеода: ледяные пауки, в жеоде матка (элита)
+            { id: 'fh_side_spider_1', type: 'ice_spider', x: -26.9, z: -10.2, r: 0.50 },
+            { id: 'fh_side_spider_2', type: 'ice_spider', x: -30.6, z: -1.7, r: 3.91 },
+            { id: 'fh_geode_queen', type: 'ice_spider', x: -36.7, z: 5.3, r: 4.61, rank: 'elite', scale: 1.7, name: 'Ледяная матка', leashRadius: 28 },
+            { id: 'fh_geode_spider_1', type: 'ice_spider', x: -31.2, z: 15.4, r: 5.87 },
+            { id: 'fh_geode_spider_2', type: 'ice_spider', x: -41.2, z: 1.9, r: 4.23 },
+            { id: 'fh_geode_spider_3', type: 'ice_spider', x: -44.9, z: 15.0, r: 6.03 },
+            { id: 'fh_geode_spider_4', type: 'ice_spider', x: -38.8, z: 18.6, r: 6.04 },
+            { id: 'fh_side_spider_s_1', type: 'ice_spider', x: -21.7, z: 31.7, r: 2.21 },
+            { id: 'fh_side_spider_s_2', type: 'ice_spider', x: -29.1, z: 26.6, r: 4.05 },
+            // Стойбище: племя, шаманы, громила-командир, волки
+            { id: 'fh_camp_brute', type: 'frostfang_brute', x: 12.8, z: 38.8, r: 5.59, rank: 'elite' },
+            { id: 'fh_camp_yeti_1', type: 'frost_yeti', x: 19.8, z: 35.3, r: 2.08 },
+            { id: 'fh_camp_yeti_2', type: 'frost_yeti', x: 11.6, z: 25.1, r: 3.48 },
+            { id: 'fh_camp_yeti_3', type: 'frost_yeti', x: 11.3, z: 44.6, r: 0.43 },
+            { id: 'fh_camp_yeti_4', type: 'frost_yeti', x: -0.1, z: 34.1, r: 2.26 },
+            { id: 'fh_camp_yeti_5', type: 'frost_yeti', x: 5.6, z: 37.8, r: 4.83 },
+            { id: 'fh_camp_shaman_1', type: 'frost_yeti_shaman', x: 4.9, z: 44.3, r: 4.85 },
+            { id: 'fh_camp_shaman_2', type: 'frost_yeti_shaman', x: 18.1, z: 41.0, r: 4.89 },
+            { id: 'fh_camp_wolf_1', type: 'frost_wolf', x: -0.4, z: 40.0, r: 3.66 },
+            { id: 'fh_camp_wolf_2', type: 'frost_wolf', x: 1.6, z: 28.5, r: 6.15 },
+            // Стража у входа в чертог
+            { id: 'fh_gate_brute_1', type: 'frostfang_brute', x: 17.6, z: 65.4, r: 1.01, rank: 'elite' },
+            { id: 'fh_gate_brute_2', type: 'frostfang_brute', x: 13.5, z: 71.8, r: 3.30, rank: 'elite' },
+            // Чертог Хозяина
+            { id: 'fh_boss', type: 'frost_behemoth', x: -1.2, z: 93.7, r: 5.35, rank: 'boss', name: 'Хозяин хребта' },
+            { id: 'fh_hall_shaman_1', type: 'frost_yeti_shaman', x: -3.0, z: 105.3, r: 5.57 },
+            { id: 'fh_hall_shaman_2', type: 'frost_yeti_shaman', x: 3.8, z: 81.8, r: 1.52 }
         ]
     },
 

@@ -21,16 +21,16 @@
             this.scene.add(this.group);
             this.geometries = []; this.materials = []; this.textures = [];
             this.time = { value: 0 };
+            this.frost = config.theme === 'frost';   // ледяная тема: своя раскладка (_layoutFrost), вода со льдинами вместо лавы, без проломов, гнезда и печати
             this._layout();
             this._buildFields();
             this._planCrystals();
             this._buildRock();
             this._buildLava();
-            this._buildShafts();
+            if (!this.frost) this._buildShafts();
             this._buildBasalt();
             this._buildCrystals();
-            this._buildNest();
-            this._buildSeal();
+            if (!this.frost) { this._buildNest(); this._buildSeal(); }
             this._buildFX();
             this._registerColliders();
         }
@@ -62,7 +62,38 @@
         }
 
         // ---------- план подземелья ----------
+        /** Ледяная раскладка («Логово Хозяина хребта»): короче недр, 4 зала и развилка. Координаты сразу в метрах, герой идёт на +z. */
+        _layoutFrost() {
+            const cm = (p) => this._catmull(p, 1.0);
+            const throat = [[0, -86, 5.5, 9], [4, -76, 5.5, 9], [-4, -66, 6.0, 10], [3, -56, 6.0, 10], [0, -48, 7.0, 12]];                       // «Ледяная глотка»
+            const direct = [[10, -12, 6.5, 11], [18, -2, 6.0, 10], [22, 10, 6.5, 11], [20, 22, 7.0, 12]];                                     // прямой ход из грота в стойбище
+            const side = [[-16, -12, 5.5, 9], [-30, -4, 5.5, 9], [-38, 10, 6.0, 10], [-32, 24, 5.5, 9], [-18, 32, 6.0, 10], [-4, 34, 6.5, 11]];   // боковой ход через паучью жеоду
+            const toBoss = [[22, 56, 6.5, 11], [18, 66, 6.5, 12], [10, 74, 7.5, 14]];
+            this._paths = [throat, direct, side, toBoss].map(cm);
+            this._blobs = [
+                [0, -88, 9.0, 11],                                              // входная камера
+                [0, -28, 19, 22], [-14, -22, 12, 16], [14, -34, 12, 16],        // «Ледяной грот» с озером
+                [-38, 10, 11, 13],                                              // паучья жеода
+                [14, 38, 20, 20], [2, 36, 12, 15], [26, 46, 12, 16],            // «Стойбище»
+                [0, 92, 24, 28], [-12, 86, 12, 20], [12, 100, 12, 20]           // «Чертог Хозяина»
+            ];
+            this._basaltSpots = [];
+            this._basaltHall = [1e5, 1e5];
+            this._geode = [-38, 10];
+            this._nest = [1e5, 1e5]; this._seal = [0, 92];
+            this._pillars = [[-8, -36, 1.1], [10, -17, 1.0], [8, 30, 1.1], [23, 44, 1.0], [-15, 84, 1.2], [15, 101, 1.2]];
+            this._lavaRivers = [];
+            this._lavaLakes = [[3, -27, 8.5], [-12, -19, 3.4], [-18, 99, 3.2], [18, 85, 3.2]];   // незамерзающая вода: озеро грота, полынья, две чаши в чертоге
+            this._lavaPuddles = [];
+            this._bridges = [];
+            this.entrance = [0, -86];
+            this._shafts = [];
+            this._bounds = [-66, 56, -110, 128];
+            this.LAVA_Y = -0.85;
+        }
+
         _layout() {
+            if (this.frost) { this._layoutFrost(); return; }
             // Всё задано в «черновых» координатах и растягивается в K раз (T): так масштаб подземелья меняется одной цифрой.
             const K = 1.3, ZO = -13;
             const T = (p, rk) => { const o = p.slice(); o[0] *= K; o[1] = o[1] * K + ZO; if (rk) o[2] *= rk; return o; };
@@ -143,7 +174,7 @@
         }
 
         _buildFields() {
-            const H = 0.7, X0 = -86, X1 = 106, Z0 = -164, Z1 = 170;
+            const H = 0.7, B_ = this._bounds || [-86, 106, -164, 170], X0 = B_[0], X1 = B_[1], Z0 = B_[2], Z1 = B_[3];
             const NX = Math.round((X1 - X0) / H) + 1, NZ = Math.round((Z1 - Z0) / H) + 1, N = NX * NZ;
             const S = new Float32Array(N), CH = new Float32Array(N), F = new Float32Array(N), C = new Float32Array(N), L = new Float32Array(N), PD = new Float32Array(N).fill(99), SH = new Float32Array(N);
             for (let iz = 0; iz < NZ; iz++) for (let ix = 0; ix < NX; ix++) {
@@ -160,7 +191,9 @@
             for (let iz = 0; iz < NZ; iz++) for (let ix = 0; ix < NX; ix++) {
                 const x = X0 + ix * H, z = Z0 + iz * H, k = iz * NX + ix, s = S[k], cH = CH[k];
                 // Высота, на которой низ стены встречает верх: гуляет вдоль стены, а не идёт по линейке
-                const HE = Math.max(2.6, Math.min(11.0, 0.36 * cH * (0.72 + 0.62 * this._vnoise(x * 0.045 + 31, z * 0.045 + 7))));
+                const HE = this.frost
+                    ? Math.max(1.9, Math.min(11.0, 0.40 * cH * (0.50 + 0.95 * this._vnoise(x * 0.06 + 31, z * 0.06 + 7)) + 0.9 * this._fbm(x * 0.13 + 3, z * 0.13 + 9)))   // лёд: стык гуляет сильнее, прямой «полки» нет
+                    : Math.max(2.6, Math.min(11.0, 0.36 * cH * (0.72 + 0.62 * this._vnoise(x * 0.045 + 31, z * 0.045 + 7))));
                 // Сечение без шва: низ стены — четверть эллипса (у пола полого, у стыка отвесно), свод — купол, который у стыка тоже отвесный.
                 // Раньше обе поверхности подходили к стыку горизонтально (smoothstep) и смыкались клином — отсюда «бутерброд» с полосой склейки.
                 const tl = Math.max(0, Math.min(1, (s + 0.5) / (SC + 0.5)));
@@ -224,6 +257,21 @@
             geo.setAttribute('aCool', new THREE.BufferAttribute(cool, 1));
             geo.setIndex(new THREE.BufferAttribute(new Uint32Array(idx), 1));
             geo.computeVertexNormals();
+            if (this.frost) {
+                // Шов «низ стены / свод»: у пола и свода свои вершины и свои нормали, на светлом льду стык читался линией по всей пещере.
+                // У стыка (пол и свод почти сошлись) обе нормали сводятся к общей — освещение переходит без излома.
+                const nr = geo.attributes.normal.array;
+                for (let k = 0; k < nV; k++) {
+                    const gap = C[k] - F[k]; if (gap > 3.2) continue;
+                    const j = nV + k, w0 = 1 - Math.min(1, Math.max(0, (gap - 0.15) / 3.05)), w = w0 * w0 * (3 - 2 * w0);
+                    let ax = nr[k * 3] + nr[j * 3], ay = nr[k * 3 + 1] + nr[j * 3 + 1], az = nr[k * 3 + 2] + nr[j * 3 + 2];
+                    const l = Math.hypot(ax, ay, az); if (l < 1e-4) continue; ax /= l; ay /= l; az /= l;
+                    for (const q of [k, j]) {
+                        const x = nr[q * 3] * (1 - w) + ax * w, y = nr[q * 3 + 1] * (1 - w) + ay * w, z = nr[q * 3 + 2] * (1 - w) + az * w, m = Math.hypot(x, y, z) || 1;
+                        nr[q * 3] = x / m; nr[q * 3 + 1] = y / m; nr[q * 3 + 2] = z / m;
+                    }
+                }
+            }
             this.geometries.push(geo);
             this.triangles = idx.length / 3;
 
@@ -249,13 +297,13 @@
                         vec3 rock = vec3(dot(ct.rgb, vec3(0.33)) * 0.9 + (dot(cd.rgb, vec3(0.33)) - 0.35) * 0.9);   // только яркость: исходная текстура рыжая, а здесь нужен серый базальт
                         // горизонтальные пласты базальта
                         float strata = 0.94 + 0.06 * sin(vCavePos.y * 1.9 + sin(vCavePos.x * 0.11 + vCavePos.z * 0.09) * 3.0);
-                        diffuseColor.rgb *= clamp(rock, 0.0, 1.4) * strata * vec3(0.50, 0.47, 0.49) * 1.35;   // тёмный серый базальт: тепло даёт только лава
+                        diffuseColor.rgb *= clamp(rock, 0.0, 1.4) * strata * ${this.frost ? 'vec3(0.46, 0.62, 0.90) * 1.50' : 'vec3(0.50, 0.47, 0.49) * 1.35'};   // тёмный серый базальт: тепло даёт только лава
                         #endif`)
                     .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-                        totalEmissiveRadiance += vec3(1.0, 0.30, 0.06) * vGlow * (0.62 + 0.08 * sin(uDepthsTime * 0.9 + vCavePos.x * 0.07)) * (0.25 + diffuseColor.r * 1.6);
+                        totalEmissiveRadiance += ${this.frost ? 'vec3(0.08, 0.40, 0.80)' : 'vec3(1.0, 0.30, 0.06)'} * vGlow * (0.62 + 0.08 * sin(uDepthsTime * 0.9 + vCavePos.x * 0.07)) * (0.25 + diffuseColor.r * 1.6);
                         totalEmissiveRadiance += vec3(0.30, 0.36, 1.0) * vCool * (0.34 + 0.05 * sin(uDepthsTime * 1.3 + vCavePos.z * 0.2)) * (0.2 + diffuseColor.r * 1.8);   // холодный свет кристаллов «Жеоды»`);
             };
-            mat.customProgramCacheKey = () => 'avelora_depths_rock_v2';
+            mat.customProgramCacheKey = () => 'avelora_depths_rock_v2' + (this.frost ? '_frost' : '');
             this.materials.push(mat);
             this.rockMat = mat;
             const mesh = new THREE.Mesh(geo, mat);
@@ -271,7 +319,8 @@
             geo.rotateX(-Math.PI / 2);
             this.geometries.push(geo);
             const assets = (window.GAME_ASSETS && window.GAME_ASSETS.textures) || {};
-            const tex = assets.burntLavaDiff ? new THREE.TextureLoader().load(assets.burntLavaDiff) : null;
+            const lavaSrc = this.frost ? (assets.frostIceDiff || assets.burntLavaDiff) : assets.burntLavaDiff;
+            const tex = lavaSrc ? new THREE.TextureLoader().load(lavaSrc) : null;
             if (tex) { tex.wrapS = tex.wrapT = THREE.RepeatWrapping; this.textures.push(tex); }
             const fog = this.scene.parent && this.scene.parent.fog ? this.scene.parent.fog : null;
             const mat = new THREE.ShaderMaterial({
@@ -290,9 +339,11 @@
                         float th = clamp((tt.r - tt.b - 0.08) * 2.4, 0.0, 1.0);
                         float tv = n(g * 0.22 - uTime * 0.05) * 0.65 + n(g * 0.7 + uTime * 0.07) * 0.35;
                         float T = clamp((0.42 + th * 0.6 + tv * 0.5 - (1.0 - th) * (1.0 - tv) * 0.4) * (0.86 + 0.14 * sin(uTime * 0.9 + tv * 9.0)), 0.0, 1.0);
-                        vec3 hot = mix(vec3(0.50, 0.04, 0.0), vec3(1.0, 0.33, 0.03), smoothstep(0.12, 0.55, T));
+                        ${this.frost ? `vec3 hot = mix(vec3(0.01, 0.07, 0.16), vec3(0.04, 0.26, 0.46), smoothstep(0.12, 0.55, T));
+                        hot = mix(hot, vec3(0.30, 0.62, 0.85), smoothstep(0.70, 1.0, T)) * 0.55;
+                        vec3 crust = tt * vec3(0.80, 0.92, 1.05);   // льдины: текстура льда как есть` : `vec3 hot = mix(vec3(0.50, 0.04, 0.0), vec3(1.0, 0.33, 0.03), smoothstep(0.12, 0.55, T));
                         hot = mix(hot, vec3(1.0, 0.64, 0.17), smoothstep(0.62, 1.0, T));
-                        vec3 crust = vec3(dot(tt, vec3(0.3, 0.59, 0.11))) * vec3(0.34, 0.24, 0.22);
+                        vec3 crust = vec3(dot(tt, vec3(0.3, 0.59, 0.11))) * vec3(0.34, 0.24, 0.22);`}
                         float molten = smoothstep(0.10, 0.42, T);
                         vec3 col = mix(crust, hot * (0.6 + 2.0 * T), molten);
                         float fogF = 1.0 - exp(-uFogDensity * uFogDensity * vDepth * vDepth);
@@ -510,7 +561,7 @@
                 }
             };
             for (const c of this._crystals) {
-                const col = c.hue ? [1.0, 0.36, 0.10] : (rnd() < 0.5 ? [0.34, 0.42, 1.0] : [0.58, 0.36, 1.0]);
+                const col = this.frost ? (rnd() < 0.5 ? [0.45, 0.80, 1.0] : [0.72, 0.92, 1.0]) : (c.hue ? [1.0, 0.36, 0.10] : (rnd() < 0.5 ? [0.34, 0.42, 1.0] : [0.58, 0.36, 1.0]));
                 for (let i = 0; i < c.count; i++) {
                     const main = i === 0, spread = main ? 0.12 : 0.75;
                     let ax = c.n[0] + (rnd() - 0.5) * 2 * spread, ay = c.n[1] + (rnd() - 0.5) * 2 * spread * 0.6, az = c.n[2] + (rnd() - 0.5) * 2 * spread;
@@ -760,7 +811,7 @@
             };
             const emberFS = `varying float vA; varying float vT;
                 void main() { vec2 c = gl_PointCoord - 0.5; float a = (1.0 - smoothstep(0.0, 1.0, dot(c, c) * 4.0)) * vA;
-                    gl_FragColor = vec4(mix(vec3(1.0, 0.72, 0.28), vec3(1.0, 0.22, 0.03), smoothstep(0.1, 0.8, vT)) * a * 1.6, 1.0); }`;
+                    gl_FragColor = vec4(mix(${this.frost ? 'vec3(0.75, 0.92, 1.0), vec3(0.25, 0.55, 0.95)' : 'vec3(1.0, 0.72, 0.28), vec3(1.0, 0.22, 0.03)'}, smoothstep(0.1, 0.8, vT)) * a * ${this.frost ? '0.9' : '1.6'}, 1.0); }`;
             // искры над всей лавой
             const first = mk(pick(low ? 220 : 520), this.LAVA_Y + 0.1, () => [rnd(), 0.09 + 0.15 * rnd(), 2.0 + 6.0 * rnd(), 0.05 + 0.08 * rnd()], `
                 attribute vec4 aSeed; uniform float uTime; uniform float uScale; varying float vA; varying float vT;
@@ -782,7 +833,7 @@
                 varying float vA; varying float vT; varying float vR;
                 void main() { vec2 c = gl_PointCoord - 0.5; float cs = cos(vR), sn = sin(vR); c = vec2(c.x * cs - c.y * sn, c.x * sn + c.y * cs);
                     float puff = (1.0 - smoothstep(0.15, 1.0, length(c) * 2.0)) * (0.75 + 0.25 * sin(c.x * 9.0 + vR) * sin(c.y * 7.0 - vR));
-                    gl_FragColor = vec4(mix(vec3(0.85, 0.30, 0.08), vec3(0.20, 0.15, 0.14), smoothstep(0.0, 0.45, vT)), puff * vA * 0.30); }`,
+                    gl_FragColor = vec4(mix(${this.frost ? 'vec3(0.80, 0.90, 1.0), vec3(0.55, 0.65, 0.78)' : 'vec3(0.85, 0.30, 0.08), vec3(0.20, 0.15, 0.14)'}, smoothstep(0.0, 0.45, vT)), puff * vA * 0.30); }`,
                 THREE.NormalBlending, 5);
             // брызги у подножия огнепада: фонтан из центра по дуге
             if (this._splashAt) {

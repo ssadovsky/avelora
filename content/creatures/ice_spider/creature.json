@@ -1,0 +1,38 @@
+{
+  "attackRange": 0.85,
+  "attackCooldown": 1.2,
+  "walkSpeed": 1.1,
+  "runSpeed": 3.8,
+  "hitRadius": 0.9,
+  "modelKey": "creatures/spider",
+  "id": "ice_spider",
+  "name": "Ледяной паук",
+  "level": 22,
+  "rank": "normal",
+  "hp": 280,
+  "damage": [
+    26,
+    38
+  ],
+  "behavior": "aggressive",
+  "aggroRadius": 10,
+  "leashRadius": 22,
+  "wanderRadius": 5,
+  "respawnMinutes": 6,
+  "scale": 1.19,
+  "gold": [
+    10,
+    20
+  ],
+  "goldDrop": true,
+  "xp": 360,
+  "statMultiplier": 1.15,
+  "drops": [
+    {
+      "item": "spider_silk",
+      "count": 1,
+      "chance": 0.6
+    }
+  ],
+  "textureKey": "creatures/blue_spider"
+}

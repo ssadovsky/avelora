@@ -898,7 +898,7 @@ class LakesideTerrain {
 
         // КРИТИЧНО для Three.js: без customProgramCacheKey движок повторно использует
         // скомпилированный шейдер первой локации для всех последующих!
-        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v54_${this.groundSet}_mix${mixGround ? groundMode : 0}${holeSig}`;
+        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v55_${this.groundSet}_mix${mixGround ? groundMode : 0}${holeSig}`;
 
         const biomeId = (this.biome === 'goldshire') ? 1.0 : ((this.biome === 'volcanic') ? 2.0 : 0.0);
         const waterTypeId = (curWType === 'coast') ? 1.0 : ((curWType === 'river') ? 2.0 : 0.0);
@@ -1164,6 +1164,9 @@ class LakesideTerrain {
                                 float drift = avNoise(gxz * 0.10) * 0.6 + avNoise(gxz * 0.31 + 9.0) * 0.4;
                                 drift = smoothstep(0.56, 0.74, drift + 0.30 * smoothstep(0.70, 1.0, iD));
                                 groundCol = mix(groundCol, mix(iceCol, groundCol, drift * 0.9), iM);
+                                vec3 iceH = normalize(normalize(cameraPosition - vWorldPosition) + vec3(0.35, 0.80, 0.48));
+                                float iceGl = pow(max(iceH.y, 0.0), 48.0);
+                                groundCol += vec3(0.50, 0.58, 0.66) * iceGl * (1.0 - drift) * iM * (0.4 + ice1.b);
                             }
                         }
                     } else if (uGroundMix > 5.5) {
