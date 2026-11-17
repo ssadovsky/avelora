@@ -177,10 +177,26 @@
             return table[q] !== undefined ? table[q] : 1;
         },
 
+        /** Primary attack stat for current hero class (archer -> dex, warrior -> str, mage -> int). */
+        getHeroPrimaryStat() {
+            try {
+                const g = window.game;
+                const charId = (g && g.hero && g.hero.charId) ||
+                               (g && g.state && g.state.characterId) ||
+                               'mage';
+                if (charId === 'archer') return 'dex';
+                if (charId === 'warrior') return 'str';
+                return 'int';
+            } catch (_) {
+                return 'int';
+            }
+        },
+
         /**
-         * Separate upgrade bonus calculations:
-         * Weapons: +2 base min & max damage per +1, +1 to profile stat per +1 (staff: int, bow/dagger: dex, axe/hammer: str).
+         * Upgrade bonus for an item at level `up`:
+         * Weapon: +2 min/max damage per +1, +1 primary stat per +1 (staff: int, bow/dagger: dex, axe/hammer: str).
          * Armor: +1 armor per +1, +1 sta per +1.
+         * Jewelry (ring, neck): +1 armor per +1, +1 primary class stat per +1 (archer: dex, mage: int, warrior: str).
          */
         upgradeBonus(id, up) {
             up = Math.max(0, parseInt(up, 10) || 0);
@@ -209,19 +225,9 @@
             const isJewelry = (slot === 'ring' || slot === 'neck' || def.category === 'jewelry');
 
             if (isJewelry) {
-                // Бижутерия точится на профильный стат (Интеллект для мага или профильный стат кольца)
-                let stat = null;
-                if (def.stats) {
-                    const s = def.stats;
-                    const candidates = ['int', 'dex', 'str'].filter(k => (Number(s[k]) || 0) > 0);
-                    if (candidates.length > 0) {
-                        candidates.sort((a, b) => (Number(s[b]) || 0) - (Number(s[a]) || 0));
-                        stat = candidates[0];
-                    }
-                }
-                if (!stat) {
-                    stat = (window.AVELORA_HERO && window.AVELORA_HERO.primaryStat) || 'int';
-                }
+                // Вся бижутерия при заточке усиливает профильный стат класса текущего героя:
+                // Лучник (Арисса) -> Ловкость (dex), Маг -> Интеллект (int), Воин -> Сила (str)
+                const stat = this.getHeroPrimaryStat();
                 return {
                     type: 'armor',
                     up,
