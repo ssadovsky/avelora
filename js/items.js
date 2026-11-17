@@ -151,6 +151,32 @@
             return limits[q] !== undefined ? limits[q] : 0;
         },
 
+        /** Maximum gem sockets for an item by its quality rank (uncommon: 1, rare: 2, epic: 3). */
+        maxSockets(id) {
+            const def = this.get(id);
+            if (!def || !this.isEquippable(id)) return 0;
+            const q = this.quality(id).key;
+            const cfg = window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.socket;
+            const limits = cfg ? cfg.maxByQuality : { poor: 0, common: 0, uncommon: 1, rare: 2, epic: 3 };
+            return limits[q] !== undefined ? limits[q] : 0;
+        },
+
+        /** Returns gem info { type, tier, stat, value } or null. */
+        gemDef(gemId) {
+            const def = this.get(gemId);
+            return (def && def.gem) ? def.gem : null;
+        },
+
+        /** Yield of arcane_dust when disenchanting an equippable item. */
+        disenchantYield(id) {
+            const def = this.get(id);
+            if (!def || !this.isEquippable(id)) return 0;
+            const q = this.quality(id).key;
+            const cfg = window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.socket;
+            const table = cfg ? cfg.disenchantYield : { poor: 0, common: 1, uncommon: 2, rare: 4, epic: 8 };
+            return table[q] !== undefined ? table[q] : 1;
+        },
+
         /**
          * Separate upgrade bonus calculations:
          * Weapons: +2 base min & max damage per +1, +1 to profile stat per +1 (staff: int, bow/dagger: dex, axe/hammer: str).
@@ -1520,15 +1546,19 @@
             return added;
         }
 
-        /** Adds up to `count` with an upgrade level into empty cells. */
-        addWithUpgrade(itemId, count, up) {
+        /** Adds up to `count` with an upgrade level and sockets/gems into empty cells. */
+        addWithUpgrade(itemId, count, up, gems) {
             up = Math.max(0, parseInt(up, 10) || 0);
-            if (!up) return this.add(itemId, count);
+            gems = Array.isArray(gems) ? gems.filter(g => g && AveloraItems.get(g)) : [];
+            if (!up && (!gems || gems.length === 0)) return this.add(itemId, count);
             if (!AveloraItems.get(itemId) || !(count > 0)) return 0;
             let left = count;
             for (let i = 0; i < this.cells.length && left > 0; i++) {
                 if (!this.cells[i]) {
-                    this.cells[i] = { item: itemId, count: 1, up };
+                    const entry = { item: itemId, count: 1 };
+                    if (up > 0) entry.up = up;
+                    if (gems.length > 0) entry.gems = gems.slice();
+                    this.cells[i] = entry;
                     left--;
                 }
             }
@@ -1561,7 +1591,9 @@
             if (from === to || from < 0 || to < 0 || from >= this.cells.length || to >= this.cells.length) return false;
             const a = this.cells[from], b = this.cells[to];
             if (!a) return false;
-            if (b && b.item === a.item && !a.up && !b.up) {
+            const aCustom = a.up || (a.gems && a.gems.length);
+            const bCustom = b && (b.up || (b.gems && b.gems.length));
+            if (b && b.item === a.item && !aCustom && !bCustom) {
                 const max = AveloraItems.stackMax(a.item);
                 const k = Math.min(a.count, max - b.count);
                 if (k <= 0) { // target full: plain swap keeps behaviour predictable
@@ -1577,13 +1609,18 @@
             return true;
         }
 
-        /** Empties one cell and returns what was in it ({item, count, up} | null). */
+        /** Empties one cell and returns what was in it ({item, count, up, gems} | null). */
         removeAt(index) {
             const c = this.cells[index];
             if (!c) return null;
             this.cells[index] = null;
             this.changed();
-            return { item: c.item, count: c.count, up: c.up || 0 };
+            return {
+                item: c.item,
+                count: c.count,
+                up: c.up || 0,
+                gems: Array.isArray(c.gems) ? c.gems.slice() : []
+            };
         }
 
         /**
@@ -1638,12 +1675,12 @@
          * (items keep the order of their first appearance). Returns true if anything changed.
          */
         arrange() {
-            const upgraded = [];
+            const customized = [];
             const order = [], total = new Map();
             for (const c of this.cells) {
                 if (!c) continue;
-                if (c.up) {
-                    upgraded.push({ item: c.item, count: 1, up: c.up });
+                if (c.up || (c.gems && c.gems.length)) {
+                    customized.push(Object.assign({}, c));
                     continue;
                 }
                 if (!total.has(c.item)) { total.set(c.item, 0); order.push(c.item); }
@@ -1651,7 +1688,7 @@
             }
             const next = new Array(this.cells.length).fill(null);
             let i = 0;
-            for (const u of upgraded) {
+            for (const u of customized) {
                 if (i < next.length) next[i++] = u;
             }
             for (const id of order) {
@@ -1665,7 +1702,7 @@
             }
             const same = next.every((c, j) => {
                 const o = this.cells[j];
-                return (!c && !o) || (c && o && c.item === o.item && c.count === o.count && (c.up || 0) === (o.up || 0));
+                return (!c && !o) || (c && o && c.item === o.item && c.count === o.count && (c.up || 0) === (o.up || 0) && JSON.stringify(c.gems || []) === JSON.stringify(o.gems || []));
             });
             if (same) return false;
             for (let j = 0; j < next.length; j++) this.cells[j] = next[j];
@@ -1678,7 +1715,13 @@
         }
 
         toJSON() {
-            return this.cells.map(c => (c ? (c.up ? { item: c.item, count: c.count, up: c.up } : { item: c.item, count: c.count }) : null));
+            return this.cells.map(c => {
+                if (!c) return null;
+                const obj = { item: c.item, count: c.count };
+                if (c.up) obj.up = c.up;
+                if (Array.isArray(c.gems) && c.gems.length > 0) obj.gems = c.gems.slice();
+                return obj;
+            });
         }
     }
 

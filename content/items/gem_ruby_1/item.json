@@ -1,0 +1,16 @@
+{
+  "id": "gem_ruby_1",
+  "name": "Огранённый рубин",
+  "description": "Драгоценный камень для инкрустации в снаряжение. Дает +3 к Силе.",
+  "category": "gem",
+  "quality": "uncommon",
+  "gem": {
+    "type": "ruby",
+    "tier": 1,
+    "stat": "str",
+    "value": 3
+  },
+  "stackMax": 20,
+  "value": 50,
+  "sellPrice": 25
+}

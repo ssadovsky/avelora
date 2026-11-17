@@ -1,0 +1,16 @@
+{
+  "id": "gem_amethyst_2",
+  "name": "Сияющий аметист",
+  "description": "Драгоценный камень для инкрустации в снаряжение. Дает +5 к Интеллекту.",
+  "category": "gem",
+  "quality": "rare",
+  "gem": {
+    "type": "amethyst",
+    "tier": 2,
+    "stat": "int",
+    "value": 5
+  },
+  "stackMax": 20,
+  "value": 150,
+  "sellPrice": 75
+}

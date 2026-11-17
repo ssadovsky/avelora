@@ -3977,16 +3977,19 @@
         /* Upgrade panel (U) */
         #upgrade-panel {
             position: fixed;
-            right: 14px;
-            bottom: 70px;
-            width: 320px;
-            max-height: calc(100% - 130px);
-            background: rgba(12, 16, 18, 0.94);
-            border: 1px solid rgba(195, 160, 95, 0.45);
-            border-radius: 4px;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 0, 0, 0.6);
-            padding: 14px 14px 12px;
-            z-index: 150;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 410px;
+            height: 630px;
+            max-width: calc(100vw - 20px);
+            max-height: calc(100vh - 20px);
+            background: rgba(12, 16, 18, 0.95);
+            border: 1.5px solid rgba(195, 160, 95, 0.55);
+            border-radius: 6px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(195, 160, 95, 0.2);
+            padding: 14px 16px 12px;
+            z-index: 950;
             display: none;
             cursor: default;
             flex-direction: column;
@@ -3994,14 +3997,47 @@
             box-sizing: border-box;
         }
         #upgrade-panel.open { display: flex; }
-        #upgrade-panel.beside-inventory { right: 324px; }
+
+        .upgrade-modes {
+            display: flex;
+            gap: 4px;
+            margin: 4px 0 8px;
+            border-bottom: 1px solid rgba(195, 160, 95, 0.25);
+            padding-bottom: 6px;
+            flex-shrink: 0;
+        }
+        .upgrade-mode-btn {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(195, 160, 95, 0.25);
+            border-radius: 4px;
+            color: #bfa882;
+            padding: 6px 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            text-align: center;
+        }
+        .upgrade-mode-btn:hover {
+            background: rgba(239, 207, 122, 0.12);
+            color: #efcf7a;
+            border-color: rgba(195, 160, 95, 0.45);
+        }
+        .upgrade-mode-btn.active {
+            background: linear-gradient(180deg, rgba(239, 207, 122, 0.28) 0%, rgba(138, 106, 47, 0.28) 100%);
+            border-color: #ffd700;
+            color: #ffd700;
+            font-weight: bold;
+            box-shadow: 0 0 6px rgba(255, 215, 0, 0.3);
+        }
 
         .upgrade-tabs {
             display: flex;
             gap: 6px;
-            margin: 6px 0 10px;
-            border-bottom: 1px solid rgba(195, 160, 95, 0.2);
-            padding-bottom: 6px;
+            margin: 0 0 8px;
+            border-bottom: 1px solid rgba(195, 160, 95, 0.15);
+            padding-bottom: 5px;
             flex-shrink: 0;
         }
         .upgrade-tab-btn {
@@ -4027,13 +4063,22 @@
             display: flex;
             gap: 6px;
             overflow-x: auto;
-            padding: 4px 2px 8px;
-            min-height: 64px;
-            max-height: 68px;
+            overflow-y: hidden !important;
+            padding: 4px 6px;
+            height: 76px;
+            box-sizing: border-box;
             border-bottom: 1px solid rgba(195, 160, 95, 0.15);
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             scrollbar-width: thin;
+            scrollbar-color: rgba(195, 160, 95, 0.4) transparent;
             flex-shrink: 0;
+        }
+        .upgrade-item-list::-webkit-scrollbar {
+            height: 6px;
+        }
+        .upgrade-item-list::-webkit-scrollbar-thumb {
+            background: rgba(195, 160, 95, 0.4);
+            border-radius: 3px;
         }
         .upgrade-item-list:empty::before {
             content: 'Нет предметов для усиления';
@@ -4067,10 +4112,15 @@
 
         .upgrade-bench {
             flex: 1;
+            min-height: 0;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            overflow-y: visible;
+            gap: 8px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(195, 160, 95, 0.3) transparent;
+            padding-right: 2px;
         }
         .upgrade-bench-hero {
             display: flex;
@@ -4203,6 +4253,240 @@
             background: rgba(220, 70, 70, 0.3);
             border-color: #ff6b6b;
             color: #ffb4a4;
+        }
+
+        /* Gem dots on bag / doll cells */
+        .cell-gem-dots {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            display: flex;
+            gap: 2px;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .gem-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 0, 0, 0.6);
+            display: inline-block;
+        }
+        .gem-dot.ruby { background: #ff3344; box-shadow: 0 0 3px #ff3344; }
+        .gem-dot.amethyst { background: #b844ff; box-shadow: 0 0 3px #b844ff; }
+        .gem-dot.emerald { background: #33e066; box-shadow: 0 0 3px #33e066; }
+        .gem-dot.diamond { background: #d0f0ff; box-shadow: 0 0 3px #d0f0ff; }
+
+        /* Sockets in upgrade bench */
+        .socket-bench-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: rgba(18, 24, 27, 0.8);
+            border: 1px solid rgba(195, 160, 95, 0.2);
+            border-radius: 4px;
+            padding: 8px 10px;
+        }
+        .socket-bench-title {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #bfa882;
+            display: flex;
+            justify-content: space-between;
+        }
+        .socket-slots-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .socket-slot-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px dashed rgba(195, 160, 95, 0.3);
+            border-radius: 4px;
+            padding: 6px 8px;
+            font-size: 0.82rem;
+        }
+        .socket-slot-row.filled {
+            border-style: solid;
+            border-color: rgba(186, 123, 232, 0.5);
+            background: rgba(30, 20, 45, 0.45);
+        }
+        .socket-slot-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .socket-gem-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .socket-extract-btn {
+            background: rgba(180, 50, 50, 0.2);
+            border: 1px solid rgba(220, 90, 90, 0.4);
+            color: #e0806c;
+            border-radius: 3px;
+            font-size: 0.74rem;
+            padding: 3px 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .socket-extract-btn:hover {
+            background: rgba(220, 70, 70, 0.35);
+            color: #fff;
+        }
+
+        .socket-available-box {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: rgba(15, 19, 21, 0.7);
+            border: 1px solid rgba(195, 160, 95, 0.15);
+            border-radius: 4px;
+            padding: 8px 10px;
+        }
+        .socket-available-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 140px;
+            overflow-y: auto;
+        }
+        .socket-gem-pick-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(195, 160, 95, 0.2);
+            border-radius: 4px;
+            padding: 5px 8px;
+            color: #e2d6b5;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: left;
+        }
+        .socket-gem-pick-btn:hover {
+            border-color: #ffd700;
+            background: rgba(239, 207, 122, 0.15);
+        }
+
+        /* Synth mode */
+        .synth-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .synth-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+        .synth-tab-btn {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(195, 160, 95, 0.2);
+            border-radius: 3px;
+            color: #bfa882;
+            padding: 4px 6px;
+            font-size: 0.78rem;
+            cursor: pointer;
+        }
+        .synth-tab-btn.active {
+            background: rgba(239, 207, 122, 0.18);
+            border-color: #efcf7a;
+            color: #ffd700;
+            font-weight: bold;
+        }
+        .synth-resource-bar {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(195, 160, 95, 0.2);
+            border-radius: 4px;
+            padding: 6px 4px;
+            font-size: 0.78rem;
+            color: #d8c7a6;
+        }
+        .synth-card {
+            background: rgba(18, 24, 27, 0.8);
+            border: 1px solid rgba(195, 160, 95, 0.2);
+            border-radius: 4px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .synth-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.86rem;
+            font-weight: bold;
+            color: #efcf7a;
+            border-bottom: 1px solid rgba(195, 160, 95, 0.15);
+            padding-bottom: 4px;
+        }
+        .synth-tier-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 3px;
+            padding: 4px 6px;
+        }
+        /* Gem-type tabs inside synth */
+        .synth-gem-tabs {
+            display: flex;
+            gap: 4px;
+            flex-wrap: nowrap;
+        }
+        .synth-gem-tab-btn {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(195, 160, 95, 0.2);
+            border-radius: 3px;
+            color: #bfa882;
+            padding: 4px 2px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .synth-gem-tab-btn.active {
+            background: rgba(239, 207, 122, 0.18);
+            border-color: #efcf7a;
+            color: #ffd700;
+            font-weight: bold;
+        }
+        .synth-gem-tab-btn:hover:not(.active) {
+            background: rgba(195, 160, 95, 0.1);
+            border-color: rgba(195, 160, 95, 0.4);
+        }
+        .synth-craft-btn {
+            background: linear-gradient(180deg, #c3a05f 0%, #8a6a2f 100%);
+            border: 1px solid #ffd700;
+            border-radius: 3px;
+            color: #121008;
+            font-weight: bold;
+            font-size: 0.74rem;
+            padding: 3px 8px;
+            cursor: pointer;
+        }
+        .synth-craft-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            border-color: rgba(195, 160, 95, 0.3);
+            background: #2a251b;
+            color: #7a6e5a;
         }
 
         .upgrade-hint {
@@ -6387,5 +6671,60 @@ body:not(.touch-ui) #target-frame .hp-text {
     }
     body.touch-ui .skill-bar #potion-btn .slot-heal-frame {
         inset: 0 !important;
+    }
+}
+
+
+/* -----------------------------------------------------------
+ * Upgrade Panel Mobile & Low-Height Landscape Adaptations
+ * ----------------------------------------------------------- */
+body.touch-ui #upgrade-panel,
+@media (max-height: 660px) {
+    #upgrade-panel {
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        right: auto !important;
+        bottom: auto !important;
+        width: min(420px, calc(100vw - 16px)) !important;
+        max-width: calc(100vw - 16px) !important;
+        height: min(630px, calc(100vh - 12px)) !important;
+        max-height: calc(100vh - 12px) !important;
+        padding: 8px 10px 8px !important;
+        z-index: 950 !important;
+    }
+}
+
+@media (max-height: 520px) {
+    #upgrade-panel .upgrade-item-list {
+        height: 66px !important;
+        padding: 2px 4px !important;
+        margin-bottom: 6px !important;
+    }
+    #upgrade-panel .upgrade-select-cell {
+        flex: 0 0 48px !important;
+        width: 48px !important;
+        height: 48px !important;
+    }
+    #upgrade-panel .upgrade-bench {
+        gap: 6px !important;
+    }
+    #upgrade-panel .upgrade-slot-big {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+    }
+    #upgrade-panel .upgrade-bench-hero {
+        padding: 4px 6px !important;
+        gap: 8px !important;
+    }
+    #upgrade-panel .upgrade-preview-box,
+    #upgrade-panel .upgrade-cost-box {
+        padding: 4px 8px !important;
+        gap: 3px !important;
+    }
+    #upgrade-panel .upgrade-btn-do {
+        padding: 7px 10px !important;
+        font-size: 0.88rem !important;
     }
 }

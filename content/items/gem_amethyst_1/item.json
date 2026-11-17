@@ -1,0 +1,16 @@
+{
+  "id": "gem_amethyst_1",
+  "name": "Огранённый аметист",
+  "description": "Драгоценный камень для инкрустации в снаряжение. Дает +3 к Интеллекту.",
+  "category": "gem",
+  "quality": "uncommon",
+  "gem": {
+    "type": "amethyst",
+    "tier": 1,
+    "stat": "int",
+    "value": 3
+  },
+  "stackMax": 20,
+  "value": 50,
+  "sellPrice": 25
+}

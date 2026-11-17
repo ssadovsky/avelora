@@ -1,0 +1,16 @@
+{
+  "id": "gem_emerald_3",
+  "name": "Безупречный изумруд",
+  "description": "Драгоценный камень для инкрустации в снаряжение. Дает +10 к Ловкости.",
+  "category": "gem",
+  "quality": "epic",
+  "gem": {
+    "type": "emerald",
+    "tier": 3,
+    "stat": "dex",
+    "value": 10
+  },
+  "stackMax": 20,
+  "value": 500,
+  "sellPrice": 250
+}

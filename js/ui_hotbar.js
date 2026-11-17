@@ -383,6 +383,20 @@
                     u.textContent = `+${c.up}`;
                     cell.appendChild(u);
                 }
+                if (Array.isArray(c.gems) && c.gems.some(g => g)) {
+                    const gd = document.createElement('span');
+                    gd.className = 'cell-gem-dots';
+                    c.gems.forEach(g => {
+                        if (!g) return;
+                        const dot = document.createElement('i');
+                        if (g.includes('ruby')) dot.className = 'gem-dot ruby';
+                        else if (g.includes('amethyst')) dot.className = 'gem-dot amethyst';
+                        else if (g.includes('emerald')) dot.className = 'gem-dot emerald';
+                        else if (g.includes('diamond')) dot.className = 'gem-dot diamond';
+                        gd.appendChild(dot);
+                    });
+                    cell.appendChild(gd);
+                }
                 if (c.count > 1) {
                     const b = document.createElement('span');
                     b.className = 'cell-count';
@@ -949,9 +963,17 @@
             this.upgradeTabEq = document.getElementById('upgrade-tab-eq');
             this.upgradeTabBag = document.getElementById('upgrade-tab-bag');
             this.heroUpgradeBtn = document.getElementById('hero-open-upgrade-btn');
+            this.upgradeModeEnchant = document.getElementById('upgrade-mode-enchant');
+            this.upgradeModeSocket = document.getElementById('upgrade-mode-socket');
+            this.upgradeModeSynth = document.getElementById('upgrade-mode-synth');
+            this.upgradeSourceTabs = document.getElementById('upgrade-source-tabs');
             this.upgradeOpen = false;
+            this.upgradeMode = 'enchant'; // 'enchant' | 'socket' | 'synth'
+            this.synthTab = 'gems';       // 'gems' | 'disenchant'
+            this.synthGemType = 'amethyst'; // активный тип камня в синтезе
             this.upgradeTab = 'equipped';
             this.upgradeTarget = null;
+            this.disenchantTarget = null;
 
             if (this.heroUpgradeBtn) {
                 this.heroUpgradeBtn.addEventListener('click', (e) => {
@@ -973,6 +995,25 @@
                     e.stopPropagation();
                     this.setUpgradeOpen(false);
                 });
+            }
+
+            // Mode buttons
+            const setMode = (m) => {
+                this.upgradeMode = m;
+                if (this.upgradeModeEnchant) this.upgradeModeEnchant.classList.toggle('active', m === 'enchant');
+                if (this.upgradeModeSocket) this.upgradeModeSocket.classList.toggle('active', m === 'socket');
+                if (this.upgradeModeSynth) this.upgradeModeSynth.classList.toggle('active', m === 'synth');
+                this.renderUpgrade();
+            };
+
+            if (this.upgradeModeEnchant) {
+                this.upgradeModeEnchant.addEventListener('click', (e) => { e.stopPropagation(); setMode('enchant'); });
+            }
+            if (this.upgradeModeSocket) {
+                this.upgradeModeSocket.addEventListener('click', (e) => { e.stopPropagation(); setMode('socket'); });
+            }
+            if (this.upgradeModeSynth) {
+                this.upgradeModeSynth.addEventListener('click', (e) => { e.stopPropagation(); setMode('synth'); });
             }
 
             if (this.upgradeTabEq) {
@@ -1016,29 +1057,52 @@
             const st = this.state;
             if (!st) return;
 
+            if (this.upgradeModeEnchant) this.upgradeModeEnchant.classList.toggle('active', this.upgradeMode === 'enchant');
+            if (this.upgradeModeSocket) this.upgradeModeSocket.classList.toggle('active', this.upgradeMode === 'socket');
+            if (this.upgradeModeSynth) this.upgradeModeSynth.classList.toggle('active', this.upgradeMode === 'synth');
+
             if (this.upgradeTabEq) this.upgradeTabEq.classList.toggle('active', this.upgradeTab === 'equipped');
             if (this.upgradeTabBag) this.upgradeTabBag.classList.toggle('active', this.upgradeTab === 'bag');
 
-            // 1. Gather selectable items
+            // If in synth mode, hide item list and source tabs
+            if (this.upgradeMode === 'synth') {
+                if (this.upgradeSourceTabs) this.upgradeSourceTabs.style.display = 'none';
+                if (this.upgradeItemList) this.upgradeItemList.style.display = 'none';
+                this.renderSynthBench();
+                return;
+            }
+
+            if (this.upgradeSourceTabs) this.upgradeSourceTabs.style.display = 'flex';
+            if (this.upgradeItemList) this.upgradeItemList.style.display = 'flex';
+
+            // 1. Gather selectable items depending on current mode
             const items = [];
+            const isFilterPass = (id) => {
+                if (!id || !window.AveloraItems.isEquippable(id)) return false;
+                if (this.upgradeMode === 'enchant') return window.AveloraItems.maxUpgrade(id) > 0;
+                if (this.upgradeMode === 'socket') return window.AveloraItems.maxSockets(id) > 0;
+                return true;
+            };
+
             if (this.upgradeTab === 'equipped') {
                 const slots = ['right', 'head', 'neck', 'cloak', 'body', 'hands', 'ring', 'ring2', 'legs', 'feet'];
                 slots.forEach(slot => {
                     const id = st.equipped[slot];
-                    if (id && window.AveloraItems.isEquippable(id) && window.AveloraItems.maxUpgrade(id) > 0) {
+                    if (isFilterPass(id)) {
                         const up = (st.equippedUpgrades && st.equippedUpgrades[slot]) || 0;
-                        items.push({ kind: 'equipped', slot, item: id, up });
+                        const gems = (st.equippedGems && st.equippedGems[slot]) || [];
+                        items.push({ kind: 'equipped', slot, item: id, up, gems });
                     }
                 });
             } else {
                 st.inventory.cells.forEach((c, idx) => {
-                    if (c && window.AveloraItems.isEquippable(c.item) && window.AveloraItems.maxUpgrade(c.item) > 0) {
-                        items.push({ kind: 'bag', index: idx, item: c.item, up: c.up || 0 });
+                    if (c && isFilterPass(c.item)) {
+                        items.push({ kind: 'bag', index: idx, item: c.item, up: c.up || 0, gems: c.gems || [] });
                     }
                 });
             }
 
-            // Ensure valid target strictly within the current items list
+            // Ensure valid target strictly within current items list
             let currentItem = null;
             if (this.upgradeTarget && items.length > 0) {
                 const target = this.upgradeTarget;
@@ -1067,6 +1131,20 @@
                         uBadge.textContent = `+${cand.up}`;
                         cell.appendChild(uBadge);
                     }
+                    if (Array.isArray(cand.gems) && cand.gems.some(g => g)) {
+                        const gd = document.createElement('span');
+                        gd.className = 'cell-gem-dots';
+                        cand.gems.forEach(g => {
+                            if (!g) return;
+                            const dot = document.createElement('i');
+                            if (g.includes('ruby')) dot.className = 'gem-dot ruby';
+                            else if (g.includes('amethyst')) dot.className = 'gem-dot amethyst';
+                            else if (g.includes('emerald')) dot.className = 'gem-dot emerald';
+                            else if (g.includes('diamond')) dot.className = 'gem-dot diamond';
+                            gd.appendChild(dot);
+                        });
+                        cell.appendChild(gd);
+                    }
                     const isSel = currentItem && (currentItem.kind === cand.kind) && (cand.kind === 'equipped' ? currentItem.slot === cand.slot : currentItem.index === cand.index);
                     if (isSel) cell.classList.add('selected');
 
@@ -1077,16 +1155,26 @@
                     });
                     cell.addEventListener('pointerover', (e) => {
                         if (e.pointerType !== 'mouse') return;
-                        this.showTooltipFor(cell, 'item', cand.item, undefined, false, cand.up || 0);
+                        this.showTooltipFor(cell, 'item', cand.item, undefined, false, cand.up || 0, cand.gems || []);
                     });
                     cell.addEventListener('pointerout', () => { this.hideTooltip(); });
                     this.upgradeItemList.appendChild(cell);
                 });
             }
 
-            // 3. Render workbench
+            // 3. Render workbench by mode
+            if (this.upgradeMode === 'enchant') {
+                this.renderEnchantBench(currentItem);
+            } else if (this.upgradeMode === 'socket') {
+                this.renderSocketBench(currentItem);
+            }
+        }
+
+        renderEnchantBench(currentItem) {
             if (!this.upgradeBench) return;
             this.upgradeBench.innerHTML = '';
+            const st = this.state;
+            if (!st) return;
 
             if (!currentItem) {
                 const empty = document.createElement('div');
@@ -1250,6 +1338,19 @@
                 });
                 actions.appendChild(btnDo);
 
+                // Подсказка: что именно не хватает
+                if (!canAfford) {
+                    const hintLack = document.createElement('div');
+                    hintLack.style.cssText = 'font-size:0.74rem;color:#e06060;text-align:center;padding:4px 0 0;';
+                    const lacks = [];
+                    if (!hasCrystals) lacks.push(`Кристаллов: ${haveCrystals}/${cost.count}`);
+                    if (cost.extraItem && st.inventory.count(cost.extraItem) < cost.extraCount)
+                        lacks.push(`Ядро: ${st.inventory.count(cost.extraItem)}/${cost.extraCount}`);
+                    if (!hasGold) lacks.push(`Золото: ${haveGold}/${cost.gold}`);
+                    hintLack.textContent = 'Не хватает: ' + lacks.join(', ');
+                    actions.appendChild(hintLack);
+                }
+
                 if (curUp > 0) {
                     const btnDis = document.createElement('button');
                     btnDis.type = 'button';
@@ -1280,6 +1381,422 @@
             if (this.upgradeHint) {
                 this.upgradeHint.textContent = `Усиление гарантировано 100%. При сбросе возвращается 100% кристаллов.`;
             }
+        }
+
+        renderSocketBench(currentItem) {
+            if (!this.upgradeBench) return;
+            this.upgradeBench.innerHTML = '';
+            const st = this.state;
+
+            if (!currentItem) {
+                const empty = document.createElement('div');
+                empty.style.color = '#7e8a89';
+                empty.style.fontStyle = 'italic';
+                empty.style.padding = '20px 10px';
+                empty.style.textAlign = 'center';
+                empty.textContent = this.upgradeTab === 'equipped' ? 'На герое нет снаряжения с гнёздами' : 'В сумке нет снаряжения с гнёздами';
+                this.upgradeBench.appendChild(empty);
+                if (this.upgradeHint) this.upgradeHint.textContent = 'Зелёный шмот: 1 гнездо, синий: 2, фиолетовый: 3.';
+                return;
+            }
+
+            const def = window.AveloraItems.get(currentItem.item);
+            if (!def) return;
+            const maxSock = window.AveloraItems.maxSockets(currentItem.item);
+            const q = window.AveloraItems.quality(currentItem.item);
+            const gems = currentItem.gems || [];
+
+            // Workbench Hero (big slot + name + rank)
+            const heroBox = document.createElement('div');
+            heroBox.className = 'upgrade-bench-hero';
+
+            const bigSlot = document.createElement('div');
+            bigSlot.className = 'upgrade-slot-big';
+            applyQuality(bigSlot, currentItem.item);
+            bigSlot.appendChild(makeIcon(def));
+            if (currentItem.up > 0) {
+                const bigBadge = document.createElement('span');
+                bigBadge.className = 'cell-upgrade';
+                bigBadge.textContent = `+${currentItem.up}`;
+                bigBadge.style.fontSize = '12px';
+                bigSlot.appendChild(bigBadge);
+            }
+            bigSlot.addEventListener('pointerover', (e) => {
+                if (e.pointerType !== 'mouse') return;
+                this.showTooltipFor(bigSlot, 'item', currentItem.item, undefined, false, currentItem.up || 0, gems);
+            });
+            bigSlot.addEventListener('pointerout', () => { this.hideTooltip(); });
+
+            const infoBox = document.createElement('div');
+            infoBox.className = 'upgrade-bench-info';
+            const nameEl = document.createElement('div');
+            nameEl.className = 'upgrade-bench-name';
+            nameEl.style.color = q.color;
+            nameEl.textContent = `${def.name}${currentItem.up > 0 ? ' +' + currentItem.up : ''}`;
+
+            const rankEl = document.createElement('div');
+            rankEl.className = 'upgrade-bench-rank';
+            rankEl.textContent = `Ранг: ${q.name} · Доступно гнёзд: ${maxSock}`;
+
+            infoBox.append(nameEl, rankEl);
+            heroBox.append(bigSlot, infoBox);
+            this.upgradeBench.appendChild(heroBox);
+
+            // Sockets Box
+            const sockBox = document.createElement('div');
+            sockBox.className = 'socket-bench-box';
+
+            const sTitle = document.createElement('div');
+            sTitle.className = 'socket-bench-title';
+            const filledCount = gems.filter(g => g).length;
+            sTitle.innerHTML = `<span>Гнёзда под камни</span><span>${filledCount} / ${maxSock}</span>`;
+            sockBox.appendChild(sTitle);
+
+            const sList = document.createElement('div');
+            sList.className = 'socket-slots-list';
+
+            for (let i = 0; i < maxSock; i++) {
+                const gId = gems[i];
+                const row = document.createElement('div');
+                row.className = `socket-slot-row ${gId ? 'filled' : 'empty'}`;
+
+                if (gId) {
+                    const gDef = window.AveloraItems.get(gId);
+                    const gInfo = gDef && gDef.gem;
+                    const nm = (window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.statNames) || {};
+                    const statName = gInfo ? (nm[gInfo.stat] || gInfo.stat) : '';
+                    const bonusText = gInfo ? `+${gInfo.value} к ${statName}` : '';
+
+                    const infoL = document.createElement('div');
+                    infoL.className = 'socket-slot-info';
+                    infoL.innerHTML = `<span>💎</span><div><div style="color:#efcf7a; font-weight:bold;">${gDef ? gDef.name : gId}</div><div style="font-size:0.75rem; color:#ba7be8;">${bonusText}</div></div>`;
+
+                    const btnExt = document.createElement('button');
+                    btnExt.type = 'button';
+                    btnExt.className = 'socket-extract-btn';
+                    btnExt.textContent = '⏏ Извлечь';
+                    btnExt.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.executeExtractGem(currentItem, i);
+                    });
+
+                    row.append(infoL, btnExt);
+                } else {
+                    row.innerHTML = `<div class="socket-slot-info"><span style="opacity:0.5;">⚪</span><span style="color:#7d8a9e;">Пустое гнездо #${i + 1}</span></div>`;
+                }
+                sList.appendChild(row);
+            }
+            sockBox.appendChild(sList);
+            this.upgradeBench.appendChild(sockBox);
+
+            // Available Gems to insert
+            const firstEmptyIdx = gems.findIndex((g, idx) => idx < maxSock && !g);
+            const hasEmptySocket = firstEmptyIdx >= 0 || gems.length < maxSock;
+            const targetSocketIdx = firstEmptyIdx >= 0 ? firstEmptyIdx : gems.length;
+
+            if (hasEmptySocket) {
+                const availBox = document.createElement('div');
+                availBox.className = 'socket-available-box';
+
+                const aTitle = document.createElement('div');
+                aTitle.className = 'socket-bench-title';
+                aTitle.textContent = `Вставить камень в гнездо #${targetSocketIdx + 1}:`;
+                availBox.appendChild(aTitle);
+
+                const availList = document.createElement('div');
+                availList.className = 'socket-available-list';
+
+                // Find all gems in bag
+                const bagGems = [];
+                st.inventory.cells.forEach(c => {
+                    if (c && c.item && c.item.startsWith('gem_')) {
+                        const existing = bagGems.find(bg => bg.item === c.item);
+                        if (existing) existing.count += c.count;
+                        else bagGems.push({ item: c.item, count: c.count });
+                    }
+                });
+
+                if (bagGems.length === 0) {
+                    const noG = document.createElement('div');
+                    noG.style.color = '#7e8a89';
+                    noG.style.fontStyle = 'italic';
+                    noG.style.fontSize = '0.78rem';
+                    noG.style.padding = '6px';
+                    noG.textContent = 'В сумке нет камней для инкрустации. Создайте их во вкладке «Синтез»!';
+                    availList.appendChild(noG);
+                } else {
+                    bagGems.forEach(bg => {
+                        const gDef = window.AveloraItems.get(bg.item);
+                        const gInfo = gDef && gDef.gem;
+                        const nm = (window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.statNames) || {};
+                        const statName = gInfo ? (nm[gInfo.stat] || gInfo.stat) : '';
+                        const bonusText = gInfo ? `+${gInfo.value} к ${statName}` : '';
+
+                        const btnPick = document.createElement('button');
+                        btnPick.type = 'button';
+                        btnPick.className = 'socket-gem-pick-btn';
+                        btnPick.innerHTML = `<span>💎 <b>${gDef ? gDef.name : bg.item}</b> <span style="color:#ba7be8;">(${bonusText})</span></span><span style="color:#ffd700;">×${bg.count}</span>`;
+                        btnPick.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            this.executeInsertGem(currentItem, targetSocketIdx, bg.item);
+                        });
+                        availList.appendChild(btnPick);
+                    });
+                }
+
+                availBox.appendChild(availList);
+                this.upgradeBench.appendChild(availBox);
+            }
+
+            if (this.upgradeHint) {
+                this.upgradeHint.textContent = 'Камни можно безопасно извлекать обратно в сумку в любой момент без потерь.';
+            }
+        }
+
+        renderSynthBench() {
+            if (!this.upgradeBench) return;
+            this.upgradeBench.innerHTML = '';
+            const st = this.state;
+            if (!st) return;
+
+            const synthContainer = document.createElement('div');
+            synthContainer.className = 'synth-panel';
+
+            // Sub-tabs: Gems Synthesis vs Disenchant
+            const subTabs = document.createElement('div');
+            subTabs.className = 'synth-tabs';
+
+            const btnTabGems = document.createElement('button');
+            btnTabGems.type = 'button';
+            btnTabGems.className = `synth-tab-btn ${this.synthTab === 'gems' ? 'active' : ''}`;
+            btnTabGems.textContent = '💎 Синтез камней';
+            btnTabGems.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.synthTab = 'gems';
+                this.renderSynthBench();
+            });
+
+            const btnTabDis = document.createElement('button');
+            btnTabDis.type = 'button';
+            btnTabDis.className = `synth-tab-btn ${this.synthTab === 'disenchant' ? 'active' : ''}`;
+            btnTabDis.textContent = '⚗️ Распыление на порошок';
+            btnTabDis.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.synthTab = 'disenchant';
+                this.renderSynthBench();
+            });
+
+            subTabs.append(btnTabGems, btnTabDis);
+            synthContainer.appendChild(subTabs);
+
+            // Resource Bar
+            const resBar = document.createElement('div');
+            resBar.className = 'synth-resource-bar';
+            const crystals = st.inventory.count('element_crystal');
+            const dust = st.inventory.count('arcane_dust');
+            const cores = st.inventory.count('primordial_core');
+            resBar.innerHTML = `<span>🔹 Крист: <b>${crystals}</b></span><span>✨ Пыль: <b>${dust}</b></span><span>👑 Ядра: <b>${cores}</b></span><span>🪙 Золото: <b>${st.gold}</b></span>`;
+            synthContainer.appendChild(resBar);
+
+            if (this.synthTab === 'gems') {
+                // Gem type tabs
+                const gemTypes = [
+                    { type: 'amethyst', label: '🟣 Аметист', statName: 'Интеллект' },
+                    { type: 'ruby',     label: '🔴 Рубин',    statName: 'Сила' },
+                    { type: 'emerald',  label: '🟢 Изумруд',  statName: 'Ловкость' },
+                    { type: 'diamond',  label: '⚪ Алмаз',    statName: 'Выносливость' }
+                ];
+
+                if (!gemTypes.find(g => g.type === this.synthGemType)) this.synthGemType = 'amethyst';
+                const gt = gemTypes.find(g => g.type === this.synthGemType);
+
+                // Таб-переключатели
+                const gemTabBar = document.createElement('div');
+                gemTabBar.className = 'synth-gem-tabs';
+                gemTypes.forEach(g => {
+                    const tb = document.createElement('button');
+                    tb.type = 'button';
+                    tb.className = 'synth-gem-tab-btn' + (g.type === this.synthGemType ? ' active' : '');
+                    tb.textContent = g.label;
+                    tb.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.synthGemType = g.type;
+                        this.renderSynthBench();
+                    });
+                    gemTabBar.appendChild(tb);
+                });
+                synthContainer.appendChild(gemTabBar);
+
+                // Одна карточка для активного типа
+                const c1 = st.inventory.count(`gem_${gt.type}_1`);
+                const c2 = st.inventory.count(`gem_${gt.type}_2`);
+                const c3 = st.inventory.count(`gem_${gt.type}_3`);
+
+                const card = document.createElement('div');
+                card.className = 'synth-card';
+
+                const head = document.createElement('div');
+                head.className = 'synth-card-header';
+                head.innerHTML = `<span>${gt.label} <span style="font-weight:normal;color:#a8b8c4;">(${gt.statName})</span></span><span style="font-size:0.75rem;color:#8f9c9b;">[ ${c1} / ${c2} / ${c3} ]</span>`;
+                card.appendChild(head);
+
+                // Tier 1: 5 кристаллов + 25g
+                const r1 = document.createElement('div');
+                r1.className = 'synth-tier-row';
+                const can1 = crystals >= 5 && st.gold >= 25;
+                r1.innerHTML = `<div><b>Огранённый (+3)</b><div style="font-size:0.7rem;color:#8f9c9b;">5 кристаллов + 25🪙</div></div>`;
+                const b1 = document.createElement('button');
+                b1.type = 'button'; b1.className = 'synth-craft-btn'; b1.disabled = !can1; b1.textContent = 'Создать';
+                b1.addEventListener('click', (e) => { e.stopPropagation(); this.executeSynth(gt.type, 1); });
+                r1.appendChild(b1); card.appendChild(r1);
+
+                // Tier 2: 3 tier1 + 1 пыль + 50g
+                const r2 = document.createElement('div');
+                r2.className = 'synth-tier-row';
+                const can2 = c1 >= 3 && dust >= 1 && st.gold >= 50;
+                r2.innerHTML = `<div><b>Сияющий (+5)</b><div style="font-size:0.7rem;color:#8f9c9b;">3 обычных + 1 пыль + 50🪙</div></div>`;
+                const b2 = document.createElement('button');
+                b2.type = 'button'; b2.className = 'synth-craft-btn'; b2.disabled = !can2; b2.textContent = 'Синтез';
+                b2.addEventListener('click', (e) => { e.stopPropagation(); this.executeSynth(gt.type, 2); });
+                r2.appendChild(b2); card.appendChild(r2);
+
+                // Tier 3: 3 tier2 + 1 ядро + 150g
+                const r3 = document.createElement('div');
+                r3.className = 'synth-tier-row';
+                const can3 = c2 >= 3 && cores >= 1 && st.gold >= 150;
+                r3.innerHTML = `<div><b>Безупречный (+10)</b><div style="font-size:0.7rem;color:#8f9c9b;">3 сияющих + 1 ядро + 150🪙</div></div>`;
+                const b3 = document.createElement('button');
+                b3.type = 'button'; b3.className = 'synth-craft-btn'; b3.disabled = !can3; b3.textContent = 'Синтез';
+                b3.addEventListener('click', (e) => { e.stopPropagation(); this.executeSynth(gt.type, 3); });
+                r3.appendChild(b3); card.appendChild(r3);
+
+                synthContainer.appendChild(card);
+
+                if (this.upgradeHint) {
+                    this.upgradeHint.textContent = 'Объединяйте кристаллы стихий и порошок для создания мощных самоцветов!';
+                }
+            } else {
+                // Disenchant Mode
+                const disBox = document.createElement('div');
+                disBox.className = 'synth-card';
+
+                const dHead = document.createElement('div');
+                dHead.className = 'synth-card-header';
+                dHead.textContent = 'Распыление экипировки на чародейский порошок:';
+                disBox.appendChild(dHead);
+
+                const equippableItems = [];
+                st.inventory.cells.forEach((c, idx) => {
+                    if (c && window.AveloraItems.isEquippable(c.item)) {
+                        const yld = window.AveloraItems.disenchantYield(c.item);
+                        if (yld > 0) equippableItems.push({ index: idx, item: c.item, count: c.count, up: c.up || 0, gems: c.gems || [], yield: yld });
+                    }
+                });
+
+                if (equippableItems.length === 0) {
+                    const emptyD = document.createElement('div');
+                    emptyD.style.color = '#7e8a89';
+                    emptyD.style.fontStyle = 'italic';
+                    emptyD.style.fontSize = '0.8rem';
+                    emptyD.style.padding = '12px 6px';
+                    emptyD.textContent = 'В сумке нет экипировки для распыления. Любая броня или оружие (белое, зелёное, синее, фиолетовое) даёт порошок!';
+                    disBox.appendChild(emptyD);
+                } else {
+                    const dList = document.createElement('div');
+                    dList.className = 'socket-available-list';
+                    dList.style.maxHeight = '240px';
+
+                    equippableItems.forEach(cand => {
+                        const def = window.AveloraItems.get(cand.item);
+                        const q = window.AveloraItems.quality(cand.item);
+                        const btnD = document.createElement('button');
+                        btnD.type = 'button';
+                        btnD.className = 'socket-gem-pick-btn';
+                        const upStr = cand.up > 0 ? ` +${cand.up}` : '';
+                        const gemWarn = (cand.gems && cand.gems.length > 0) ? ` · 💎 камни вернутся!` : '';
+                        btnD.innerHTML = `<div><span style="color:${q.color}; font-weight:bold;">${def ? def.name : cand.item}${upStr}</span><div style="font-size:0.72rem; color:#8ec07c;">Даст: +${cand.yield} порошка${gemWarn}</div></div><span class="synth-craft-btn" style="background:#b43232; border-color:#e0806c; color:#fff;">Распылить</span>`;
+                        btnD.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            this.executeDisenchant(cand);
+                        });
+                        dList.appendChild(btnD);
+                    });
+                    disBox.appendChild(dList);
+                }
+
+                synthContainer.appendChild(disBox);
+                if (this.upgradeHint) {
+                    this.upgradeHint.textContent = 'Белый шмот даёт 1 порошок, зелёный — 2, синий — 4, фиолетовый — 8. Вставленные камни возвращаются в сумку!';
+                }
+            }
+
+            this.upgradeBench.appendChild(synthContainer);
+        }
+
+        executeInsertGem(target, socketIndex, gemId) {
+            const st = this.state;
+            if (!st || !target) return;
+            const res = (target.kind === 'equipped')
+                ? st.insertGemEquipped(target.slot, socketIndex, gemId)
+                : st.insertGemInventory(target.index, socketIndex, gemId);
+            if (!res.success) {
+                this.floatText(res.reason || 'Не удалось вставить камень', 'warn');
+                return;
+            }
+            const gDef = window.AveloraItems.get(gemId);
+            this.floatText(`💎 ${gDef ? gDef.name : 'Камень'} вставлен в гнездо!`, 'loot');
+            this.pulseInventory();
+            this.applyEquipment();
+            this.renderAll && this.renderAll();
+            this.renderUpgrade();
+        }
+
+        executeExtractGem(target, socketIndex) {
+            const st = this.state;
+            if (!st || !target) return;
+            const res = (target.kind === 'equipped')
+                ? st.extractGemEquipped(target.slot, socketIndex)
+                : st.extractGemInventory(target.index, socketIndex);
+            if (!res.success) {
+                this.floatText(res.reason || 'Не удалось извлечь камень', 'warn');
+                return;
+            }
+            this.floatText(`⏏ Камень извлечён и возвращён в сумку!`, 'info');
+            this.pulseInventory();
+            this.applyEquipment();
+            this.renderAll && this.renderAll();
+            this.renderUpgrade();
+        }
+
+        executeDisenchant(cand) {
+            const st = this.state;
+            if (!st || !cand) return;
+            const res = st.disenchantInventory(cand.index);
+            if (!res.success) {
+                this.floatText(res.reason || 'Не удалось распылить', 'warn');
+                return;
+            }
+            this.floatText(`✨ Предмет распылён! Получено: +${res.dust} порошка!`, 'loot');
+            this.pulseInventory();
+            this.applyEquipment();
+            this.renderAll && this.renderAll();
+            this.renderUpgrade();
+        }
+
+        executeSynth(type, tier) {
+            const st = this.state;
+            if (!st) return;
+            const res = st.synthesizeGem(type, tier);
+            if (!res.success) {
+                this.floatText(res.reason || 'Не удалось создать камень', 'warn');
+                return;
+            }
+            const gDef = window.AveloraItems.get(res.gem);
+            this.floatText(`✨ Создан: ${gDef ? gDef.name : 'Камень'}!`, 'loot');
+            this.pulseInventory();
+            this.applyEquipment();
+            this.renderAll && this.renderAll();
+            this.renderUpgrade();
         }
 
         executeUpgrade(target) {
@@ -1349,9 +1866,7 @@
             if (this.craftingPanel && !this.craftingPanel.dataset.dragged) {
                 this.craftingPanel.classList.toggle('beside-inventory', hasInv);
             }
-            if (this.upgradePanel && !this.upgradePanel.dataset.dragged) {
-                this.upgradePanel.classList.toggle('beside-inventory', hasInv);
-            }
+
         }
 
         setupDraggablePanels() {
@@ -2081,6 +2596,21 @@
                         u.textContent = `+${up}`;
                         el.appendChild(u);
                     }
+                    const gems = (this.state && this.state.equippedGems && this.state.equippedGems[key]) || [];
+                    if (Array.isArray(gems) && gems.some(g => g)) {
+                        const gd = document.createElement('span');
+                        gd.className = 'cell-gem-dots';
+                        gems.forEach(g => {
+                            if (!g) return;
+                            const dot = document.createElement('i');
+                            if (g.includes('ruby')) dot.className = 'gem-dot ruby';
+                            else if (g.includes('amethyst')) dot.className = 'gem-dot amethyst';
+                            else if (g.includes('emerald')) dot.className = 'gem-dot emerald';
+                            else if (g.includes('diamond')) dot.className = 'gem-dot diamond';
+                            gd.appendChild(dot);
+                        });
+                        el.appendChild(gd);
+                    }
                     el.removeAttribute('title');
                     el.onclick = (e) => { e.stopPropagation(); this.hideTooltip(); this.unequip(key); };
                 } else {
@@ -2536,7 +3066,7 @@
         }
 
         /** Array of lines for item stats: main first (damage / armor / tool action), then upgrade line, then stat bonuses. */
-        itemStatsLines(def, up) {
+        itemStatsLines(def, up, gems) {
             if (!def) return [];
             const nm = (window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.statNames) || {};
             const lines = [];
@@ -2565,6 +3095,30 @@
                         isUpgrade: true,
                         text: `⚡ Заточка +${bonus.up}: +${bonus.armor} к броне, +${bonus.statValue} к ${statName}`
                     });
+                }
+            }
+
+            // Инкрустированные камни и гнёзда
+            const maxSock = (window.AveloraItems && window.AveloraItems.maxSockets) ? window.AveloraItems.maxSockets(def.id) : 0;
+            if (maxSock > 0) {
+                const sockList = Array.isArray(gems) ? gems : [];
+                for (let i = 0; i < maxSock; i++) {
+                    const gId = sockList[i];
+                    if (gId) {
+                        const gDef = window.AveloraItems.get(gId);
+                        if (gDef && gDef.gem) {
+                            const statName = nm[gDef.gem.stat] || gDef.gem.stat;
+                            lines.push({
+                                isGem: true,
+                                text: `💎 ${gDef.name}: +${gDef.gem.value} к ${statName}`
+                            });
+                        }
+                    } else {
+                        lines.push({
+                            isSocketEmpty: true,
+                            text: `⚪ Пустое гнездо`
+                        });
+                    }
                 }
             }
 
@@ -2807,7 +3361,7 @@
         // -----------------------------------------------------------
         // Tooltip (#item-tooltip)
         // -----------------------------------------------------------
-        showTooltipFor(el, kind, id, count, isDoll, upgrade) {
+        showTooltipFor(el, kind, id, count, isDoll, upgrade, gems) {
             if (!this.tooltip) return;
             this.tooltip.classList.remove('potion-tooltip');
             let def = null, meta = '';
@@ -2840,13 +3394,23 @@
                 const sl = this.skillStatsLine(def);
                 if (sl) { const sd = document.createElement('div'); sd.className = 'tt-req'; sd.style.color = '#a9d68c'; sd.textContent = sl; this.tooltip.appendChild(sd); }
             } else {
-                const slLines = this.itemStatsLines(def, upgrade);
+                const slLines = this.itemStatsLines(def, upgrade, gems);
                 slLines.forEach(l => {
                     const sd = document.createElement('div');
                     if (typeof l === 'object' && l.isUpgrade) {
                         sd.className = 'tt-req tt-upgrade';
                         sd.style.color = '#ffd700';
                         sd.style.fontWeight = 'bold';
+                        sd.textContent = l.text;
+                    } else if (typeof l === 'object' && l.isGem) {
+                        sd.className = 'tt-req tt-gem';
+                        sd.style.color = '#ba7be8';
+                        sd.style.fontWeight = 'bold';
+                        sd.textContent = l.text;
+                    } else if (typeof l === 'object' && l.isSocketEmpty) {
+                        sd.className = 'tt-req tt-socket-empty';
+                        sd.style.color = '#7d8a9e';
+                        sd.style.fontStyle = 'italic';
                         sd.textContent = l.text;
                     } else {
                         sd.className = 'tt-req';
@@ -3015,13 +3579,23 @@
             if (qc.key !== 'common') m.textContent = `${qc.name} · ${m.textContent}`;
 
             this.tooltip.append(header, d, m);
-            const slLines = this.itemStatsLines(def, src.up);
+            const slLines = this.itemStatsLines(def, src.up, src.gems);
             slLines.forEach(l => {
                 const sd = document.createElement('div');
                 if (typeof l === 'object' && l.isUpgrade) {
                     sd.className = 'tt-req tt-upgrade';
                     sd.style.color = '#ffd700';
                     sd.style.fontWeight = 'bold';
+                    sd.textContent = l.text;
+                } else if (typeof l === 'object' && l.isGem) {
+                    sd.className = 'tt-req tt-gem';
+                    sd.style.color = '#ba7be8';
+                    sd.style.fontWeight = 'bold';
+                    sd.textContent = l.text;
+                } else if (typeof l === 'object' && l.isSocketEmpty) {
+                    sd.className = 'tt-req tt-socket-empty';
+                    sd.style.color = '#7d8a9e';
+                    sd.style.fontStyle = 'italic';
                     sd.textContent = l.text;
                 } else {
                     sd.className = 'tt-req';
@@ -3748,7 +4322,8 @@
                 const key = slot === 'weapon' ? 'right' : slot;
                 const itemId = this.state.equipped[key];
                 const up = (this.state.equippedUpgrades && this.state.equippedUpgrades[key]) || 0;
-                return itemId ? { kind: 'doll', slot: key, item: itemId, up, el: doll } : null;
+                const gems = (this.state.equippedGems && this.state.equippedGems[key]) || [];
+                return itemId ? { kind: 'doll', slot: key, item: itemId, up, gems, el: doll } : null;
             }
             const slot = target.closest('.hotbar-slot');
             if (slot && this.state) {
@@ -3760,13 +4335,13 @@
             if (ccell && this.chestInv) {
                 const i = parseInt(ccell.dataset.cell, 10);
                 const c = this.chestInv.cells[i];
-                return c ? { kind: 'chest', index: i, item: c.item, count: c.count, up: c.up || 0, el: ccell } : null;
+                return c ? { kind: 'chest', index: i, item: c.item, count: c.count, up: c.up || 0, gems: c.gems || [], el: ccell } : null;
             }
             const cell = target.closest('.inventory-cell');
             if (cell && this.state) {
                 const i = parseInt(cell.dataset.cell, 10);
                 const c = this.state.inventory.cells[i];
-                return c ? { kind: 'inv', index: i, item: c.item, count: c.count, up: c.up || 0, el: cell } : null;
+                return c ? { kind: 'inv', index: i, item: c.item, count: c.count, up: c.up || 0, gems: c.gems || [], el: cell } : null;
             }
             const skill = target.closest('.skill-entry');
             if (skill) return { kind: 'skill', id: skill.dataset.skill, el: skill };
@@ -3776,17 +4351,18 @@
         }
 
         showSourceTooltip(src) {
-            if (src.kind === 'inv' || src.kind === 'chest') this.showTooltipFor(src.el, 'item', src.item, src.count, false, src.up);
-            else if (src.kind === 'doll') this.showTooltipFor(src.el, 'item', src.item, undefined, true, src.up);
+            if (src.kind === 'inv' || src.kind === 'chest') this.showTooltipFor(src.el, 'item', src.item, src.count, false, src.up, src.gems);
+            else if (src.kind === 'doll') this.showTooltipFor(src.el, 'item', src.item, undefined, true, src.up, src.gems);
             else if (src.kind === 'skill') this.showTooltipFor(src.el, 'skill', src.id);
             else if (src.kind === 'craft') this.showTooltipFor(src.el, 'item', src.item);
             else if (src.kind === 'slot' && src.entry) {
-                let up = 0;
+                let up = 0, gems = [];
                 if (src.entry.type === 'item' && this.state) {
                     const eqSlot = this.state.equippedSlotOf(src.entry.id);
                     if (eqSlot && this.state.equippedUpgrades) up = this.state.equippedUpgrades[eqSlot] || 0;
+                    if (eqSlot && this.state.equippedGems) gems = this.state.equippedGems[eqSlot] || [];
                 }
-                this.showTooltipFor(src.el, src.entry.type === 'skill' ? 'skill' : 'item', src.entry.id, undefined, false, up);
+                this.showTooltipFor(src.el, src.entry.type === 'skill' ? 'skill' : 'item', src.entry.id, undefined, false, up, gems);
             }
         }
 

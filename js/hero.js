@@ -156,6 +156,15 @@
                         out[b.statKey] += b.statValue;
                     }
                 }
+                const gems = (this.state && this.state.equippedGems && this.state.equippedGems[slot]) || [];
+                if (Array.isArray(gems)) {
+                    gems.forEach(gId => {
+                        const gDef = gId ? window.AveloraItems.get(gId) : null;
+                        if (gDef && gDef.gem && out[gDef.gem.stat] !== undefined) {
+                            out[gDef.gem.stat] += Number(gDef.gem.value) || 0;
+                        }
+                    });
+                }
             });
             return out;
         }

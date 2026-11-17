@@ -1,0 +1,16 @@
+{
+  "id": "gem_ruby_2",
+  "name": "Сияющий рубин",
+  "description": "Драгоценный камень для инкрустации в снаряжение. Дает +5 к Силе.",
+  "category": "gem",
+  "quality": "rare",
+  "gem": {
+    "type": "ruby",
+    "tier": 2,
+    "stat": "str",
+    "value": 5
+  },
+  "stackMax": 20,
+  "value": 150,
+  "sellPrice": 75
+}

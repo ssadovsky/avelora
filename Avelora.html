@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <title>Avelora - Medieval Experience</title>
-    <link rel="stylesheet" href="css/main.css?v=teachicons2">
+    <link rel="stylesheet" href="css/main.css?v=upgrade6">
 </head>
 <body>
 
@@ -461,7 +461,12 @@
             <div class="inventory-title" id="upgrade-title">Усиление снаряжения</div>
             <button type="button" id="upgrade-close" title="Закрыть (U)" aria-label="Закрыть усиление">×</button>
         </div>
-        <div class="upgrade-tabs">
+        <div class="upgrade-modes">
+            <button type="button" class="upgrade-mode-btn active" data-mode="enchant" id="upgrade-mode-enchant">⚡ Заточка</button>
+            <button type="button" class="upgrade-mode-btn" data-mode="socket" id="upgrade-mode-socket">💎 Инкрустация</button>
+            <button type="button" class="upgrade-mode-btn" data-mode="synth" id="upgrade-mode-synth">⚗️ Синтез</button>
+        </div>
+        <div class="upgrade-tabs" id="upgrade-source-tabs">
             <button type="button" class="upgrade-tab-btn active" data-tab="equipped" id="upgrade-tab-eq">Надето</button>
             <button type="button" class="upgrade-tab-btn" data-tab="bag" id="upgrade-tab-bag">Сумка</button>
         </div>

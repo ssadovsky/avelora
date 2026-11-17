@@ -1,0 +1,16 @@
+{
+  "id": "gem_emerald_2",
+  "name": "Сияющий изумруд",
+  "description": "Драгоценный камень для инкрустации в снаряжение. Дает +5 к Ловкости.",
+  "category": "gem",
+  "quality": "rare",
+  "gem": {
+    "type": "emerald",
+    "tier": 2,
+    "stat": "dex",
+    "value": 5
+  },
+  "stackMax": 20,
+  "value": 150,
+  "sellPrice": 75
+}

@@ -104,6 +104,9 @@
                 const up = parseInt(c.up, 10);
                 if (up > 0) entry.up = up;
             }
+            if (Array.isArray(c.gems) && c.gems.length > 0) {
+                entry.gems = c.gems.filter(g => g && Items.get(g));
+            }
             out[i] = entry;
         }
         return out;
@@ -127,6 +130,9 @@
                     if (c.up) {
                         const up = parseInt(c.up, 10);
                         if (up > 0) entry.up = up;
+                    }
+                    if (Array.isArray(c.gems) && c.gems.length > 0) {
+                        entry.gems = c.gems.filter(g => g && Items.get(g));
                     }
                     cells[i] = entry;
                 }
@@ -321,14 +327,19 @@
             this.pickupsTaken = sanitizeTaken(data.pickupsTaken);
             const eq = (data.equipped && typeof data.equipped === 'object') ? data.equipped : {};
             const eqUp = (data.equippedUpgrades && typeof data.equippedUpgrades === 'object') ? data.equippedUpgrades : {};
+            const eqGems = (data.equippedGems && typeof data.equippedGems === 'object') ? data.equippedGems : {};
             this.equipped = { right: null, head: null, neck: null, cloak: null, body: null, hands: null, ring: null, ring2: null, legs: null, feet: null };
             this.equippedUpgrades = { right: 0, head: 0, neck: 0, cloak: 0, body: 0, hands: 0, ring: 0, ring2: 0, legs: 0, feet: 0 };
+            this.equippedGems = { right: [], head: [], neck: [], cloak: [], body: [], hands: [], ring: [], ring2: [], legs: [], feet: [] };
             ['head', 'neck', 'cloak', 'body', 'hands', 'ring', 'ring2', 'legs', 'feet'].forEach(slot => {
                 const reqSlot = (slot === 'ring2') ? 'ring' : slot;
                 if (window.AveloraItems.isEquippable(eq[slot]) && window.AveloraItems.equipSlot(eq[slot]) === reqSlot) {
                     this.equipped[slot] = eq[slot];
                     const u = parseInt(eqUp[slot], 10);
                     if (u > 0) this.equippedUpgrades[slot] = u;
+                    if (Array.isArray(eqGems[slot])) {
+                        this.equippedGems[slot] = eqGems[slot].filter(g => g && window.AveloraItems.get(g));
+                    }
                 }
             });
             // An item in the hand (state.equipped) does NOT occupy a bag cell. Saves from before
@@ -338,6 +349,9 @@
                     this.equipped.right = eq.right;
                     const u = parseInt(eqUp.right, 10);
                     if (u > 0) this.equippedUpgrades.right = u;
+                    if (Array.isArray(eqGems.right)) {
+                        this.equippedGems.right = eqGems.right.filter(g => g && window.AveloraItems.get(g));
+                    }
                 } else if (this.inventory.count(eq.right) > 0) {
                     this.equipped.right = eq.right;
                     const cb = this.inventory.onChange;
@@ -568,16 +582,20 @@
             }
             const prev = this.equipped[slot];
             const prevUp = (this.equippedUpgrades && this.equippedUpgrades[slot]) || 0;
+            const prevGems = (this.equippedGems && this.equippedGems[slot]) || [];
 
             let cellUp = 0;
+            let cellGems = [];
             if (fromCellIndex !== undefined && fromCellIndex >= 0 && this.inventory.cells[fromCellIndex] && this.inventory.cells[fromCellIndex].item === itemId) {
                 cellUp = this.inventory.cells[fromCellIndex].up || 0;
+                cellGems = this.inventory.cells[fromCellIndex].gems || [];
                 this.inventory.removeAt(fromCellIndex);
             } else {
                 for (let i = this.inventory.cells.length - 1; i >= 0; i--) {
                     const c = this.inventory.cells[i];
                     if (c && c.item === itemId) {
                         cellUp = c.up || 0;
+                        cellGems = c.gems || [];
                         this.inventory.removeAt(i);
                         break;
                     }
@@ -585,26 +603,29 @@
             }
 
             if (prev) {
-                if (this.inventory.addWithUpgrade(prev, 1, prevUp) < 1) {
-                    this.inventory.addWithUpgrade(itemId, 1, cellUp);   // roll back
+                if (this.inventory.addWithUpgrade(prev, 1, prevUp, prevGems) < 1) {
+                    this.inventory.addWithUpgrade(itemId, 1, cellUp, cellGems);   // roll back
                     return 'full';
                 }
             }
             this.equipped[slot] = itemId;
             this.equippedUpgrades[slot] = cellUp;
+            this.equippedGems[slot] = cellGems;
             this.save();
             return 'ok';
         }
 
-        /** Slot (default: right hand) -> bag, preserving upgrade level. Returns 'ok' | 'empty' | 'full'. */
+        /** Slot (default: right hand) -> bag, preserving upgrade level and gems. Returns 'ok' | 'empty' | 'full'. */
         unequipToBag(slot) {
             slot = slot || 'right';
             const prev = this.equipped[slot];
             if (!prev) return 'empty';
             const prevUp = (this.equippedUpgrades && this.equippedUpgrades[slot]) || 0;
-            if (this.inventory.addWithUpgrade(prev, 1, prevUp) < 1) return 'full';
+            const prevGems = (this.equippedGems && this.equippedGems[slot]) || [];
+            if (this.inventory.addWithUpgrade(prev, 1, prevUp, prevGems) < 1) return 'full';
             this.equipped[slot] = null;
             if (this.equippedUpgrades) this.equippedUpgrades[slot] = 0;
+            if (this.equippedGems) this.equippedGems[slot] = [];
             this.save();
             return 'ok';
         }
@@ -700,6 +721,202 @@
             this.inventory.changed();
             this.save();
             return { success: true, refund: inv };
+        }
+
+        // =========================================================================
+        // 💎 GEM SOCKETING, EXTRACTION, DISENCHANT & SYNTHESIS
+        // =========================================================================
+
+        /** Inserts a gem into an equipped item's socket */
+        insertGemEquipped(slot, socketIndex, gemId) {
+            const itemId = this.equipped[slot];
+            if (!itemId) return { success: false, reason: 'Слот пуст' };
+            const max = window.AveloraItems.maxSockets(itemId);
+            if (socketIndex < 0 || socketIndex >= max) return { success: false, reason: 'Недопустимый номер гнезда' };
+            if (!this.equippedGems[slot]) this.equippedGems[slot] = [];
+            if (this.equippedGems[slot][socketIndex]) return { success: false, reason: 'Гнездо уже занято' };
+            if (this.inventory.count(gemId) <= 0) return { success: false, reason: 'Камень отсутствует в сумке' };
+
+            this.inventory.remove(gemId, 1);
+            this.equippedGems[slot][socketIndex] = gemId;
+            this.save();
+            return { success: true };
+        }
+
+        /** Inserts a gem into an inventory item's socket */
+        insertGemInventory(cellIndex, socketIndex, gemId) {
+            const c = this.inventory.cells[cellIndex];
+            if (!c) return { success: false, reason: 'Ячейка пуста' };
+            const max = window.AveloraItems.maxSockets(c.item);
+            if (socketIndex < 0 || socketIndex >= max) return { success: false, reason: 'Недопустимый номер гнезда' };
+            if (!Array.isArray(c.gems)) c.gems = [];
+            if (c.gems[socketIndex]) return { success: false, reason: 'Гнездо уже занято' };
+            if (this.inventory.count(gemId) <= 0) return { success: false, reason: 'Камень отсутствует в сумке' };
+
+            this.inventory.remove(gemId, 1);
+            c.gems[socketIndex] = gemId;
+            this.inventory.changed();
+            this.save();
+            return { success: true };
+        }
+
+        /** Extracts a gem from an equipped item back to inventory */
+        extractGemEquipped(slot, socketIndex) {
+            const itemId = this.equipped[slot];
+            if (!itemId) return { success: false, reason: 'Слот пуст' };
+            if (!this.equippedGems[slot] || !this.equippedGems[slot][socketIndex]) {
+                return { success: false, reason: 'В этом гнезде нет камня' };
+            }
+            const gemId = this.equippedGems[slot][socketIndex];
+            if (this.inventory.spaceFor(gemId) < 1) return { success: false, reason: 'Сумка переполнена' };
+
+            this.equippedGems[slot][socketIndex] = null;
+            // Trim trailing nulls
+            while (this.equippedGems[slot].length > 0 && !this.equippedGems[slot][this.equippedGems[slot].length - 1]) {
+                this.equippedGems[slot].pop();
+            }
+            this.inventory.add(gemId, 1);
+            this.save();
+            return { success: true, gem: gemId };
+        }
+
+        /** Extracts a gem from an inventory item back to inventory */
+        extractGemInventory(cellIndex, socketIndex) {
+            const c = this.inventory.cells[cellIndex];
+            if (!c) return { success: false, reason: 'Ячейка пуста' };
+            if (!Array.isArray(c.gems) || !c.gems[socketIndex]) {
+                return { success: false, reason: 'В этом гнезде нет камня' };
+            }
+            const gemId = c.gems[socketIndex];
+            if (this.inventory.spaceFor(gemId) < 1) return { success: false, reason: 'Сумка переполнена' };
+
+            c.gems[socketIndex] = null;
+            while (c.gems.length > 0 && !c.gems[c.gems.length - 1]) {
+                c.gems.pop();
+            }
+            this.inventory.add(gemId, 1);
+            this.inventory.changed();
+            this.save();
+            return { success: true, gem: gemId };
+        }
+
+        /** Disenchants an equipped item: refunds any inserted gems, gives arcane_dust, removes item */
+        disenchantEquipped(slot) {
+            const itemId = this.equipped[slot];
+            if (!itemId) return { success: false, reason: 'Слот пуст' };
+            const dustYield = window.AveloraItems.disenchantYield(itemId);
+            if (dustYield <= 0) return { success: false, reason: 'Этот предмет нельзя распылить' };
+
+            // Return gems if any
+            const gems = this.equippedGems[slot] || [];
+            gems.forEach(g => { if (g) this.inventory.add(g, 1); });
+
+            // Return crystals if upgraded
+            const curUp = (this.equippedUpgrades && this.equippedUpgrades[slot]) || 0;
+            if (curUp > 0) {
+                const inv = window.AveloraItems.upgradeInvested(itemId, curUp);
+                if (inv.crystals > 0) this.inventory.add('element_crystal', inv.crystals);
+                if (inv.cores > 0) this.inventory.add('primordial_core', inv.cores);
+            }
+
+            this.inventory.add('arcane_dust', dustYield);
+            this.equipped[slot] = null;
+            this.equippedUpgrades[slot] = 0;
+            this.equippedGems[slot] = [];
+            this.save();
+            return { success: true, dust: dustYield };
+        }
+
+        /** Disenchants an inventory item: refunds any inserted gems, gives arcane_dust, removes item */
+        disenchantInventory(cellIndex) {
+            const c = this.inventory.cells[cellIndex];
+            if (!c) return { success: false, reason: 'Ячейка пуста' };
+            const dustYield = window.AveloraItems.disenchantYield(c.item);
+            if (dustYield <= 0) return { success: false, reason: 'Этот предмет нельзя распылить' };
+
+            const gems = c.gems || [];
+            const up = c.up || 0;
+            const itemId = c.item;
+
+            // Remove the item cell first to guarantee space for dust/gems
+            this.inventory.removeAt(cellIndex);
+
+            gems.forEach(g => { if (g) this.inventory.add(g, 1); });
+
+            if (up > 0) {
+                const inv = window.AveloraItems.upgradeInvested(itemId, up);
+                if (inv.crystals > 0) this.inventory.add('element_crystal', inv.crystals);
+                if (inv.cores > 0) this.inventory.add('primordial_core', inv.cores);
+            }
+
+            this.inventory.add('arcane_dust', dustYield);
+            this.save();
+            return { success: true, dust: dustYield };
+        }
+
+        /** Synthesizes a gem: tier 1 (5 crystals + 25g), tier 2 (3 tier1 + 1 dust + 50g), tier 3 (3 tier2 + 1 core + 150g) */
+        synthesizeGem(type, targetTier) {
+            const cfg = (window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.socket && window.AVELORA_PROGRESSION.socket.synth) || {
+                tier1: { costCrystals: 5, gold: 25 },
+                tier2: { needGems: 3, dust: 1, gold: 50 },
+                tier3: { needGems: 3, core: 1, gold: 150 }
+            };
+
+            const targetGemId = `gem_${type}_${targetTier}`;
+            if (!window.AveloraItems.get(targetGemId)) return { success: false, reason: 'Неизвестный камень' };
+
+            if (targetTier === 1) {
+                const cost = cfg.tier1;
+                if (this.inventory.count('element_crystal') < cost.costCrystals) {
+                    return { success: false, reason: `Не хватает кристаллов стихий: нужно ${cost.costCrystals}` };
+                }
+                if (this.gold < cost.gold) {
+                    return { success: false, reason: `Не хватает золота: нужно ${cost.gold}` };
+                }
+                this.inventory.remove('element_crystal', cost.costCrystals);
+                this.gold -= cost.gold;
+                this.inventory.add(targetGemId, 1);
+                this.save();
+                return { success: true, gem: targetGemId };
+            } else if (targetTier === 2) {
+                const cost = cfg.tier2;
+                const prevGemId = `gem_${type}_1`;
+                if (this.inventory.count(prevGemId) < cost.needGems) {
+                    return { success: false, reason: `Нужно 3 огранённых камня для сияющего` };
+                }
+                if (this.inventory.count('arcane_dust') < cost.dust) {
+                    return { success: false, reason: `Нужен чародейский порошок: ${cost.dust} шт.` };
+                }
+                if (this.gold < cost.gold) {
+                    return { success: false, reason: `Не хватает золота: нужно ${cost.gold}` };
+                }
+                this.inventory.remove(prevGemId, cost.needGems);
+                this.inventory.remove('arcane_dust', cost.dust);
+                this.gold -= cost.gold;
+                this.inventory.add(targetGemId, 1);
+                this.save();
+                return { success: true, gem: targetGemId };
+            } else if (targetTier === 3) {
+                const cost = cfg.tier3;
+                const prevGemId = `gem_${type}_2`;
+                if (this.inventory.count(prevGemId) < cost.needGems) {
+                    return { success: false, reason: `Нужно 3 сияющих камня для безупречного` };
+                }
+                if (this.inventory.count('primordial_core') < cost.core) {
+                    return { success: false, reason: `Нужно первородное ядро: ${cost.core} шт.` };
+                }
+                if (this.gold < cost.gold) {
+                    return { success: false, reason: `Не хватает золота: нужно ${cost.gold}` };
+                }
+                this.inventory.remove(prevGemId, cost.needGems);
+                this.inventory.remove('primordial_core', cost.core);
+                this.gold -= cost.gold;
+                this.inventory.add(targetGemId, 1);
+                this.save();
+                return { success: true, gem: targetGemId };
+            }
+
+            return { success: false, reason: 'Неверный ранг камня' };
         }
 
         /**
@@ -842,6 +1059,7 @@
                 pickupsTaken: this.pickupsTaken,
                 equipped: Object.keys(this.equipped).reduce((o, k) => { o[k] = this.equipped[k] || null; return o; }, {}),
                 equippedUpgrades: Object.keys(this.equippedUpgrades).reduce((o, k) => { if (this.equippedUpgrades[k]) o[k] = this.equippedUpgrades[k]; return o; }, {}),
+                equippedGems: Object.keys(this.equippedGems).reduce((o, k) => { if (this.equippedGems[k] && this.equippedGems[k].length) o[k] = this.equippedGems[k].slice(); return o; }, {}),
                 equipV2: 1,
                 ground: this.ground,
                 killed: this.killed,

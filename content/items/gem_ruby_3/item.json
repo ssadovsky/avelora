@@ -1,0 +1,16 @@
+{
+  "id": "gem_ruby_3",
+  "name": "Безупречный рубин",
+  "description": "Драгоценный камень для инкрустации в снаряжение. Дает +10 к Силе.",
+  "category": "gem",
+  "quality": "epic",
+  "gem": {
+    "type": "ruby",
+    "tier": 3,
+    "stat": "str",
+    "value": 10
+  },
+  "stackMax": 20,
+  "value": 500,
+  "sellPrice": 250
+}

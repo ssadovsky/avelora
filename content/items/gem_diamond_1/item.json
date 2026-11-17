@@ -1,0 +1,16 @@
+{
+  "id": "gem_diamond_1",
+  "name": "Огранённый алмаз",
+  "description": "Драгоценный камень для инкрустации в снаряжение. Дает +3 к Выносливости.",
+  "category": "gem",
+  "quality": "uncommon",
+  "gem": {
+    "type": "diamond",
+    "tier": 1,
+    "stat": "sta",
+    "value": 3
+  },
+  "stackMax": 20,
+  "value": 50,
+  "sellPrice": 25
+}

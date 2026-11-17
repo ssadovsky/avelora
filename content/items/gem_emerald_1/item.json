@@ -1,0 +1,16 @@
+{
+  "id": "gem_emerald_1",
+  "name": "Огранённый изумруд",
+  "description": "Драгоценный камень для инкрустации в снаряжение. Дает +3 к Ловкости.",
+  "category": "gem",
+  "quality": "uncommon",
+  "gem": {
+    "type": "emerald",
+    "tier": 1,
+    "stat": "dex",
+    "value": 3
+  },
+  "stackMax": 20,
+  "value": 50,
+  "sellPrice": 25
+}

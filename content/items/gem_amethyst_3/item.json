@@ -1,0 +1,16 @@
+{
+  "id": "gem_amethyst_3",
+  "name": "Безупречный аметист",
+  "description": "Драгоценный камень для инкрустации в снаряжение. Дает +10 к Интеллекту.",
+  "category": "gem",
+  "quality": "epic",
+  "gem": {
+    "type": "amethyst",
+    "tier": 3,
+    "stat": "int",
+    "value": 10
+  },
+  "stackMax": 20,
+  "value": 500,
+  "sellPrice": 250
+}

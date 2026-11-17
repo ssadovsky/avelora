@@ -207,5 +207,42 @@ window.AVELORA_PROGRESSION = {
         // Дополнительный расходник только для финального шага (+9 → +10 у epic):
         extraItem: 'primordial_core',
         extraCount: 1
+    },
+
+    // =========================================================================
+    // 💎 СИСТЕМА ИНКРУСТАЦИИ И СИНТЕЗА КАМНЕЙ
+    // =========================================================================
+    // Гнёзда под камни:
+    //   poor, common: 0 гнёзд
+    //   uncommon:     1 гнездо
+    //   rare:         2 гнезда
+    //   epic:         3 гнезда
+    //
+    // Распыление на чародейский порошок (arcane_dust):
+    //   poor:     0
+    //   common:   1
+    //   uncommon: 2
+    //   rare:     4
+    //   epic:     8
+    socket: {
+        maxByQuality: {
+            poor:     0,
+            common:   0,
+            uncommon: 1,
+            rare:     2,
+            epic:     3
+        },
+        disenchantYield: {
+            poor:     0,
+            common:   1,
+            uncommon: 2,
+            rare:     4,
+            epic:     8
+        },
+        synth: {
+            tier1: { costCrystals: 5, gold: 25 },
+            tier2: { needGems: 3, dust: 1, gold: 50 },
+            tier3: { needGems: 3, core: 1, gold: 150 }
+        }
     }
 };
