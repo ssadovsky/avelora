@@ -970,7 +970,7 @@
             this.upgradeOpen = false;
             this.upgradeMode = 'enchant'; // 'enchant' | 'socket' | 'synth'
             this.synthTab = 'gems';       // 'gems' | 'disenchant'
-            this.synthGemType = 'amethyst'; // активный тип камня в синтезе
+            this.synthOpenGem = 'amethyst'; // активный тип камня в синтезе
             this.upgradeTab = 'equipped';
             this.upgradeTarget = null;
             this.disenchantTarget = null;
@@ -1265,13 +1265,15 @@
                     row2.innerHTML = `<span>⚡ Бонус к ${statName}</span><span class="upgrade-diff-gain">+${curStatVal} ➔ +${nextStatVal} (+1)</span>`;
 
                     previewBox.append(row1, row2);
-                } else if (def.armor !== undefined) {
+                } else if (def.armor !== undefined || (window.AveloraItems && window.AveloraItems.upgradeBonus(currentItem.item, 1))) {
                     const curBonus = window.AveloraItems.upgradeBonus(currentItem.item, curUp);
                     const nextBonus = window.AveloraItems.upgradeBonus(currentItem.item, nextUp);
                     const curArmor = (def.armor || 0) + ((curBonus && curBonus.armor) || 0);
-                    const nextArmor = (def.armor || 0) + nextBonus.armor;
-                    const curSta = (curBonus && curBonus.statValue) || 0;
-                    const nextSta = nextBonus.statValue;
+                    const nextArmor = (def.armor || 0) + ((nextBonus && nextBonus.armor) || 0);
+                    const statKey = (nextBonus && nextBonus.statKey) || 'sta';
+                    const statName = nm[statKey] || statKey;
+                    const curVal = (curBonus && curBonus.statValue) || 0;
+                    const nextVal = (nextBonus && nextBonus.statValue) || 0;
 
                     const row1 = document.createElement('div');
                     row1.className = 'upgrade-diff-row';
@@ -1279,7 +1281,7 @@
 
                     const row2 = document.createElement('div');
                     row2.className = 'upgrade-diff-row upgrade-diff-row--bonus';
-                    row2.innerHTML = `<span>⚡ Бонус к Выносливости</span><span class="upgrade-diff-gain">+${curSta} ➔ +${nextSta} (+1)</span>`;
+                    row2.innerHTML = `<span>⚡ Бонус к ${statName}</span><span class="upgrade-diff-gain">+${curVal} ➔ +${nextVal} (+1)</span>`;
 
                     previewBox.append(row1, row2);
                 }
@@ -1599,7 +1601,6 @@
             synthContainer.appendChild(resBar);
 
             if (this.synthTab === 'gems') {
-                // Gem type tabs
                 const gemTypes = [
                     { type: 'amethyst', label: '🟣 Аметист', statName: 'Интеллект' },
                     { type: 'ruby',     label: '🔴 Рубин',    statName: 'Сила' },
@@ -1607,70 +1608,85 @@
                     { type: 'diamond',  label: '⚪ Алмаз',    statName: 'Выносливость' }
                 ];
 
-                if (!gemTypes.find(g => g.type === this.synthGemType)) this.synthGemType = 'amethyst';
-                const gt = gemTypes.find(g => g.type === this.synthGemType);
+                if (!this.synthOpenGem) this.synthOpenGem = 'amethyst';
 
-                // Таб-переключатели
-                const gemTabBar = document.createElement('div');
-                gemTabBar.className = 'synth-gem-tabs';
-                gemTypes.forEach(g => {
-                    const tb = document.createElement('button');
-                    tb.type = 'button';
-                    tb.className = 'synth-gem-tab-btn' + (g.type === this.synthGemType ? ' active' : '');
-                    tb.textContent = g.label;
-                    tb.addEventListener('click', (e) => {
+                const listContainer = document.createElement('div');
+                listContainer.className = 'synth-accordion-list';
+
+                gemTypes.forEach(gt => {
+                    const c1 = st.inventory.count(`gem_${gt.type}_1`);
+                    const c2 = st.inventory.count(`gem_${gt.type}_2`);
+                    const c3 = st.inventory.count(`gem_${gt.type}_3`);
+                    const isOpen = this.synthOpenGem === gt.type;
+
+                    const sec = document.createElement('div');
+                    sec.className = 'synth-gem-group' + (isOpen ? ' open' : '');
+
+                    const head = document.createElement('button');
+                    head.type = 'button';
+                    head.className = 'synth-gem-head';
+                    head.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                    head.innerHTML = `
+                        <span class="synth-gem-chev">▸</span>
+                        <div class="synth-gem-title">
+                            <span>${gt.label}</span>
+                            <span class="stat-tag">(${gt.statName})</span>
+                        </div>
+                        <span class="synth-gem-counts">[ ${c1} / ${c2} / ${c3} ]</span>
+                    `;
+
+                    head.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        this.synthGemType = g.type;
-                        this.renderSynthBench();
+                        const willOpen = !sec.classList.contains('open');
+                        this.synthOpenGem = willOpen ? gt.type : null;
+                        listContainer.querySelectorAll('.synth-gem-group').forEach(s => {
+                            s.classList.remove('open');
+                            s.querySelector('.synth-gem-head').setAttribute('aria-expanded', 'false');
+                        });
+                        if (willOpen) {
+                            sec.classList.add('open');
+                            head.setAttribute('aria-expanded', 'true');
+                        }
                     });
-                    gemTabBar.appendChild(tb);
+
+                    const body = document.createElement('div');
+                    body.className = 'synth-gem-body';
+
+                    // Tier 1: 5 кристаллов + 25 🪙
+                    const r1 = document.createElement('div');
+                    r1.className = 'synth-tier-row';
+                    const can1 = crystals >= 5 && st.gold >= 25;
+                    r1.innerHTML = `<div><b>Огранённый (+3)</b><div style="font-size:0.7rem;color:#8f9c9b;">5 кристаллов + 25 🪙</div></div>`;
+                    const b1 = document.createElement('button');
+                    b1.type = 'button'; b1.className = 'synth-craft-btn'; b1.disabled = !can1; b1.textContent = 'Создать';
+                    b1.addEventListener('click', (e) => { e.stopPropagation(); this.executeSynth(gt.type, 1); });
+                    r1.appendChild(b1); body.appendChild(r1);
+
+                    // Tier 2: 3 tier1 + 1 пыль + 50 🪙
+                    const r2 = document.createElement('div');
+                    r2.className = 'synth-tier-row';
+                    const can2 = c1 >= 3 && dust >= 1 && st.gold >= 50;
+                    r2.innerHTML = `<div><b>Сияющий (+5)</b><div style="font-size:0.7rem;color:#8f9c9b;">3 обычных + 1 пыль + 50 🪙</div></div>`;
+                    const b2 = document.createElement('button');
+                    b2.type = 'button'; b2.className = 'synth-craft-btn'; b2.disabled = !can2; b2.textContent = 'Синтез';
+                    b2.addEventListener('click', (e) => { e.stopPropagation(); this.executeSynth(gt.type, 2); });
+                    r2.appendChild(b2); body.appendChild(r2);
+
+                    // Tier 3: 3 tier2 + 1 ядро + 150 🪙
+                    const r3 = document.createElement('div');
+                    r3.className = 'synth-tier-row';
+                    const can3 = c2 >= 3 && cores >= 1 && st.gold >= 150;
+                    r3.innerHTML = `<div><b>Безупречный (+10)</b><div style="font-size:0.7rem;color:#8f9c9b;">3 сияющих + 1 ядро + 150 🪙</div></div>`;
+                    const b3 = document.createElement('button');
+                    b3.type = 'button'; b3.className = 'synth-craft-btn'; b3.disabled = !can3; b3.textContent = 'Синтез';
+                    b3.addEventListener('click', (e) => { e.stopPropagation(); this.executeSynth(gt.type, 3); });
+                    r3.appendChild(b3); body.appendChild(r3);
+
+                    sec.append(head, body);
+                    listContainer.appendChild(sec);
                 });
-                synthContainer.appendChild(gemTabBar);
 
-                // Одна карточка для активного типа
-                const c1 = st.inventory.count(`gem_${gt.type}_1`);
-                const c2 = st.inventory.count(`gem_${gt.type}_2`);
-                const c3 = st.inventory.count(`gem_${gt.type}_3`);
-
-                const card = document.createElement('div');
-                card.className = 'synth-card';
-
-                const head = document.createElement('div');
-                head.className = 'synth-card-header';
-                head.innerHTML = `<span>${gt.label} <span style="font-weight:normal;color:#a8b8c4;">(${gt.statName})</span></span><span style="font-size:0.75rem;color:#8f9c9b;">[ ${c1} / ${c2} / ${c3} ]</span>`;
-                card.appendChild(head);
-
-                // Tier 1: 5 кристаллов + 25g
-                const r1 = document.createElement('div');
-                r1.className = 'synth-tier-row';
-                const can1 = crystals >= 5 && st.gold >= 25;
-                r1.innerHTML = `<div><b>Огранённый (+3)</b><div style="font-size:0.7rem;color:#8f9c9b;">5 кристаллов + 25🪙</div></div>`;
-                const b1 = document.createElement('button');
-                b1.type = 'button'; b1.className = 'synth-craft-btn'; b1.disabled = !can1; b1.textContent = 'Создать';
-                b1.addEventListener('click', (e) => { e.stopPropagation(); this.executeSynth(gt.type, 1); });
-                r1.appendChild(b1); card.appendChild(r1);
-
-                // Tier 2: 3 tier1 + 1 пыль + 50g
-                const r2 = document.createElement('div');
-                r2.className = 'synth-tier-row';
-                const can2 = c1 >= 3 && dust >= 1 && st.gold >= 50;
-                r2.innerHTML = `<div><b>Сияющий (+5)</b><div style="font-size:0.7rem;color:#8f9c9b;">3 обычных + 1 пыль + 50🪙</div></div>`;
-                const b2 = document.createElement('button');
-                b2.type = 'button'; b2.className = 'synth-craft-btn'; b2.disabled = !can2; b2.textContent = 'Синтез';
-                b2.addEventListener('click', (e) => { e.stopPropagation(); this.executeSynth(gt.type, 2); });
-                r2.appendChild(b2); card.appendChild(r2);
-
-                // Tier 3: 3 tier2 + 1 ядро + 150g
-                const r3 = document.createElement('div');
-                r3.className = 'synth-tier-row';
-                const can3 = c2 >= 3 && cores >= 1 && st.gold >= 150;
-                r3.innerHTML = `<div><b>Безупречный (+10)</b><div style="font-size:0.7rem;color:#8f9c9b;">3 сияющих + 1 ядро + 150🪙</div></div>`;
-                const b3 = document.createElement('button');
-                b3.type = 'button'; b3.className = 'synth-craft-btn'; b3.disabled = !can3; b3.textContent = 'Синтез';
-                b3.addEventListener('click', (e) => { e.stopPropagation(); this.executeSynth(gt.type, 3); });
-                r3.appendChild(b3); card.appendChild(r3);
-
-                synthContainer.appendChild(card);
+                synthContainer.appendChild(listContainer);
 
                 if (this.upgradeHint) {
                     this.upgradeHint.textContent = 'Объединяйте кристаллы стихий и порошок для создания мощных самоцветов!';

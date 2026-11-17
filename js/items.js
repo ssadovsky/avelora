@@ -205,6 +205,32 @@
                 };
             }
 
+            const slot = def.slot || (def.use && def.use.slot);
+            const isJewelry = (slot === 'ring' || slot === 'neck' || def.category === 'jewelry');
+
+            if (isJewelry) {
+                // Бижутерия точится на профильный стат (Интеллект для мага или профильный стат кольца)
+                let stat = null;
+                if (def.stats) {
+                    const s = def.stats;
+                    const candidates = ['int', 'dex', 'str'].filter(k => (Number(s[k]) || 0) > 0);
+                    if (candidates.length > 0) {
+                        candidates.sort((a, b) => (Number(s[b]) || 0) - (Number(s[a]) || 0));
+                        stat = candidates[0];
+                    }
+                }
+                if (!stat) {
+                    stat = (window.AVELORA_HERO && window.AVELORA_HERO.primaryStat) || 'int';
+                }
+                return {
+                    type: 'armor',
+                    up,
+                    armor: up * 1,
+                    statKey: stat,
+                    statValue: up * 1
+                };
+            }
+
             if (def.armor !== undefined) {
                 return {
                     type: 'armor',

@@ -4444,32 +4444,88 @@
             border-radius: 3px;
             padding: 4px 6px;
         }
-        /* Gem-type tabs inside synth */
-        .synth-gem-tabs {
+        /* Gem accordion inside synth (like skills panel) */
+        .synth-accordion-list {
             display: flex;
-            gap: 4px;
-            flex-wrap: nowrap;
+            flex-direction: column;
+            gap: 6px;
         }
-        .synth-gem-tab-btn {
-            flex: 1;
-            background: rgba(0, 0, 0, 0.35);
-            border: 1px solid rgba(195, 160, 95, 0.2);
-            border-radius: 3px;
-            color: #bfa882;
-            padding: 4px 2px;
-            font-size: 0.72rem;
+        .synth-gem-group {
+            background: rgba(18, 24, 27, 0.6);
+            border: 1px solid rgba(195, 160, 95, 0.25);
+            border-radius: 4px;
+            overflow: hidden;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        .synth-gem-group:hover {
+            border-color: rgba(239, 207, 122, 0.45);
+        }
+        .synth-gem-group.open {
+            border-color: rgba(212, 175, 55, 0.7);
+            background: rgba(18, 24, 27, 0.88);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+        }
+        .synth-gem-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            font-family: inherit;
+            font-size: 0.86rem;
+            color: #efcf7a;
+            padding: 7px 10px;
+            background: rgba(28, 22, 14, 0.75);
+            border: none;
             cursor: pointer;
-            white-space: nowrap;
+            text-align: left;
+            box-sizing: border-box;
+            user-select: none;
+            transition: background 0.15s ease;
         }
-        .synth-gem-tab-btn.active {
-            background: rgba(239, 207, 122, 0.18);
-            border-color: #efcf7a;
+        .synth-gem-head:hover {
+            background: rgba(38, 30, 18, 0.9);
+        }
+        .synth-gem-group.open .synth-gem-head {
+            border-bottom: 1px solid rgba(195, 160, 95, 0.2);
+            background: rgba(34, 28, 20, 0.95);
+        }
+        .synth-gem-chev {
+            display: inline-block;
+            width: 12px;
+            transition: transform 0.15s ease;
             color: #ffd700;
+            font-size: 0.8rem;
+            line-height: 1;
+        }
+        .synth-gem-group.open .synth-gem-chev {
+            transform: rotate(90deg);
+        }
+        .synth-gem-title {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             font-weight: bold;
         }
-        .synth-gem-tab-btn:hover:not(.active) {
-            background: rgba(195, 160, 95, 0.1);
-            border-color: rgba(195, 160, 95, 0.4);
+        .synth-gem-title .stat-tag {
+            font-weight: normal;
+            font-size: 0.76rem;
+            color: #a8b8c4;
+        }
+        .synth-gem-counts {
+            font-size: 0.75rem;
+            color: #8f9c9b;
+            font-weight: normal;
+            letter-spacing: 0.5px;
+        }
+        .synth-gem-body {
+            display: none;
+            padding: 6px 8px 8px;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .synth-gem-group.open .synth-gem-body {
+            display: flex;
         }
         .synth-craft-btn {
             background: linear-gradient(180deg, #c3a05f 0%, #8a6a2f 100%);
