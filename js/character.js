@@ -700,12 +700,6 @@ class MedievalCharacter {
             const arms = [[b.lArm, b.lForearm, b.lHand, -1], [b.rArm, b.rForearm, b.rHand, 1]];
             for (let i = 0; i < 2; i++) {
                 const [ua, fa, hand, sg] = arms[i];
-                if (sg === 1 && this.handItem && this.handItem.userData && this.handItem.userData.staffGrip) {
-                    // правая рука держит посох: локоть наружу, кисть вперёд и в сторону от шеи маунта
-                    this.aimBoneWorld(ua, fa, dirOf(0.22, 0.52, -0.82, sg), w);
-                    this.aimBoneWorld(fa, hand, dirOf(0.72, 0.42, -0.10, sg), w);
-                    continue;
-                }
                 this.aimBoneWorld(ua, fa, dirOf(P.upperArm[0], P.upperArm[1], P.upperArm[2], sg), w);
                 this.aimBoneWorld(fa, hand, dirOf(P.forearm[0], P.forearm[1], P.forearm[2], sg), w);
             }
@@ -734,7 +728,11 @@ class MedievalCharacter {
             return;
         }
         if (sw.style === 'gather') { this.applyGatherOverlay(u); return; }
-        if (sw.style === 'staff') { this.applyStaffOverlay(u); return; }
+        if (sw.style === 'staff') {
+            // посох в кулаке (staffGrip): атака посохом выглядит как обычный каст — позу и вертикаль посоха ставит applyCarryUpright
+            if (this.handItem && this.handItem.userData && this.handItem.userData.staffGrip) return;
+            this.applyStaffOverlay(u); return;
+        }
         if (sw.style === 'bow') { this.applyBowOverlay(u); return; }
         const k = this.config.swing || {};
         const kArm = k.arm !== undefined ? k.arm : 1, kFore = k.forearm !== undefined ? k.forearm : 1;
@@ -771,21 +769,21 @@ class MedievalCharacter {
     /**
      * Посох в руке держится вертикально с небольшим наклоном вперёд — стоя, на бегу, при касте и верхом (кисть доворачивается,
      * посох не «продолжение руки»). При касте рука согнута в локте: плечо вниз-вперёд, предплечье вперёд-вверх.
-     * Верхом посох сдвинут в кулаке вверх и наклонён наружу, чтобы не проходил сквозь шею и бок маунта.
+     * Верхом (вне каста) посох лежит горизонтально поперёк, перед всадником, вместе с поводьями. Удар посохом выглядит как каст.
      */
     applyCarryUpright(delta) {
         const it = this.handItem, b = this.rightHandBone;
         const obj = it && it.children[0];
         if (!obj || !obj.userData || !obj.userData.upright || !b || !b.parent) { this.carryW = 0; this.castBendW = 0; return; }
         const grip = !!(it.userData && it.userData.staffGrip);
-        const alive = this.deathT < 0 && !this.swing;
+        const staffSwing = grip && !!this.swing && this.swing.style === 'staff';   // удар посохом = поза каста
+        const alive = this.deathT < 0 && (!this.swing || staffSwing);
         // без staffGrip (старое крепление) — как раньше: только на ходу
         const want = grip ? alive : (this.isMoving && !this.isCasting && !this.isChanneling && !this.isAttacking && alive);
         this.carryW = (this.carryW || 0) + ((want ? 1 : 0) - (this.carryW || 0)) * Math.min(1, delta * 10);
-        const casting = grip && alive && (this.isCasting || this.isChanneling);
+        const casting = grip && alive && (this.isCasting || this.isChanneling || staffSwing);
         this.castBendW = (this.castBendW || 0) + ((casting ? 1 : 0) - (this.castBendW || 0)) * Math.min(1, delta * 9);
         const rideW = (grip && this.isMounted) ? (this.mountPoseW || 0) : 0;
-        if (grip) obj.position.y = 0.30 * rideW;                    // верхом кулак держит посох ниже середины
         if (this.carryW < 0.01) return;
         this.mesh.updateMatrixWorld(true);
         const r = this.currentRotation, sb = this.swingBones;
@@ -806,13 +804,45 @@ class MedievalCharacter {
         const shaft = this._cv1 || (this._cv1 = new THREE.Vector3());
         const want_d = this._cv2 || (this._cv2 = new THREE.Vector3());
         shaft.set(0, 1, 0).applyQuaternion(qO);
-        const tilt = (grip ? 8 : 6) * DEG, out = 10 * DEG * rideW;   // верх посоха чуть вперёд; верхом — ещё и наружу
-        want_d.set(0, 1, 0).addScaledVector(fwd, Math.tan(tilt)).addScaledVector(rgt, Math.tan(out)).normalize();
+        const tilt = (grip ? 8 : 6) * DEG;                          // верх посоха чуть вперёд
+        want_d.set(0, 1, 0).addScaledVector(fwd, Math.tan(tilt)).normalize();
+        const horizW = rideW * (1 - this.castBendW);
         const full = this._q4 || (this._q4 = new THREE.Quaternion());
         full.setFromUnitVectors(shaft, want_d);
         qd.identity().slerp(full, this.carryW);
         b.getWorldQuaternion(qb);
         qb.premultiply(qd);
+        // верхом (не в касте): из вертикального хвата посох наклоняется влево-поперёк, перед всадником, вместе с поводьями —
+        // как если бы всадник, садясь, положил посох: навершие влево, кулак ладонью вниз
+        if (horizW > 0.001) {
+            const hz = this._cv6 || (this._cv6 = new THREE.Vector3());
+            hz.copy(rgt).multiplyScalar(-1).addScaledVector(fwd, 0.04); hz.y = 0.07; hz.normalize();
+            const tip = this._q5 || (this._q5 = new THREE.Quaternion());
+            tip.setFromUnitVectors(want_d, hz);
+            qd.identity().slerp(tip, horizW * this.carryW);
+            qb.premultiply(qd);
+        }
+        // верхом посох лежит симметрично: сдвигается в кулаке вдоль древка так, чтобы его середина была над серединой седла
+        if (grip) {
+            if (it.userData.shaftMid === undefined) {   // середина посоха вдоль древка в системе предмета (м), считается один раз
+                const bx = new THREE.Box3(), inv = new THREE.Matrix4(), m4 = new THREE.Matrix4(), bb = new THREE.Box3();
+                obj.updateMatrixWorld(true); inv.copy(obj.matrixWorld).invert();
+                obj.traverse(o => {
+                    if (!o.isMesh || !o.geometry) return;
+                    if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+                    bb.copy(o.geometry.boundingBox).applyMatrix4(m4.multiplyMatrices(inv, o.matrixWorld)); bx.union(bb);
+                });
+                it.userData.shaftMid = bx.isEmpty() ? 0 : (bx.min.y + bx.max.y) * 0.5;
+            }
+            let slide = 0;
+            if (horizW > 0.001) {
+                const hp = this._cv7 || (this._cv7 = new THREE.Vector3());
+                b.getWorldPosition(hp);
+                const lat = (hp.x - this.position.x) * rgt.x + (hp.z - this.position.z) * rgt.z;   // кисть правее середины на lat
+                slide = (lat - it.userData.shaftMid) * horizW;                                      // навершие смотрит влево (-right)
+            }
+            obj.position.y = slide;
+        }
         b.parent.getWorldQuaternion(qO);
         b.quaternion.copy(qO).invert().multiply(qb);
     }
