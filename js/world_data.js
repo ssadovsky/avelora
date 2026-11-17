@@ -1427,7 +1427,7 @@ window.LOCATIONS = {
             { id: 'toSurface', x: 0.0, z: -91.5, y: 0.02, radius: 1.3, height: 2.4, color: 0x7fd4ff, to: 'frostRidge', spawn: 'fromHollow', label: 'Выход на хребет' }
         ],
 
-        dungeon: { kind: 'depths', theme: 'frost', id: 'frost_hollow', minLevel: 22, resetSeconds: 600,
+        dungeon: { kind: 'depths', theme: 'frost', id: 'frost_hollow', minLevel: 22, resetSeconds: 60,
             bossId: 'fh_boss', bossArena: [-26.0, 66.0, 26.0, 118.0],
             bossExit: { id: 'bossExit', x: 0.0, z: 112.0, y: 0.02, radius: 1.3, height: 2.4, color: 0x7fd4ff, to: 'frostRidge', spawn: 'fromHollow', label: 'Выход из логова' } },
         creatures: [
