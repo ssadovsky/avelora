@@ -72,7 +72,10 @@ window.CHARACTER_CATALOG = [
         channelHoldTime: 0.4,   // 'Cast' clip: рука поднята на 0.38 с — на этой позе держим её при долгих заклинаниях (home_recall)
         maxHp: 90,
         // Топор ориентирован лезвием вперед и вниз (Y = 1.5708 rad = 90 deg)
-        handGrip: { position: [0.0, 0.08, 0.0], rotation: [0.0, 1.5708, 0.0] }
+        handGrip: { position: [0.0, 0.08, 0.0], rotation: [0.0, 1.5708, 0.0] },
+        // Посох в кулаке (пальцы правой кисти загнуты в самой модели, temp_work/mage_grip/fist.py): точка хвата (м) и ось древка в системе кости кисти.
+        // Посох всегда вертикален с наклоном вперёд (character.js applyCarryUpright); при пересборке модели мага заново прогнать fist.py.
+        staffGrip: { position: [-0.0259, 0.0797, -0.0203], axis: [-0.617, 0.0, 0.7869] }
     },
     {
         id: 'archer',

@@ -700,6 +700,12 @@ class MedievalCharacter {
             const arms = [[b.lArm, b.lForearm, b.lHand, -1], [b.rArm, b.rForearm, b.rHand, 1]];
             for (let i = 0; i < 2; i++) {
                 const [ua, fa, hand, sg] = arms[i];
+                if (sg === 1 && this.handItem && this.handItem.userData && this.handItem.userData.staffGrip) {
+                    // правая рука держит посох: локоть наружу, кисть вперёд и в сторону от шеи маунта
+                    this.aimBoneWorld(ua, fa, dirOf(0.22, 0.52, -0.82, sg), w);
+                    this.aimBoneWorld(fa, hand, dirOf(0.72, 0.42, -0.10, sg), w);
+                    continue;
+                }
                 this.aimBoneWorld(ua, fa, dirOf(P.upperArm[0], P.upperArm[1], P.upperArm[2], sg), w);
                 this.aimBoneWorld(fa, hand, dirOf(P.forearm[0], P.forearm[1], P.forearm[2], sg), w);
             }
@@ -762,23 +768,46 @@ class MedievalCharacter {
         this.rotateBoneWorld(b.hand, this._right, swingKey(SWING_KEYS.hand, u) * DEG * kHand);
     }
 
-    /** Walking/running with a staff: the run clip pumps the arm, so the staff is held (nearly) upright instead. */
+    /**
+     * Посох в руке держится вертикально с небольшим наклоном вперёд — стоя, на бегу, при касте и верхом (кисть доворачивается,
+     * посох не «продолжение руки»). При касте рука согнута в локте: плечо вниз-вперёд, предплечье вперёд-вверх.
+     * Верхом посох сдвинут в кулаке вверх и наклонён наружу, чтобы не проходил сквозь шею и бок маунта.
+     */
     applyCarryUpright(delta) {
         const it = this.handItem, b = this.rightHandBone;
         const obj = it && it.children[0];
-        if (!obj || !obj.userData || !obj.userData.upright || !b || !b.parent) { this.carryW = 0; return; }
-        const want = this.isMoving && !this.swing && !this.isCasting && !this.isChanneling && !this.isAttacking && this.deathT < 0;
+        if (!obj || !obj.userData || !obj.userData.upright || !b || !b.parent) { this.carryW = 0; this.castBendW = 0; return; }
+        const grip = !!(it.userData && it.userData.staffGrip);
+        const alive = this.deathT < 0 && !this.swing;
+        // без staffGrip (старое крепление) — как раньше: только на ходу
+        const want = grip ? alive : (this.isMoving && !this.isCasting && !this.isChanneling && !this.isAttacking && alive);
         this.carryW = (this.carryW || 0) + ((want ? 1 : 0) - (this.carryW || 0)) * Math.min(1, delta * 10);
+        const casting = grip && alive && (this.isCasting || this.isChanneling);
+        this.castBendW = (this.castBendW || 0) + ((casting ? 1 : 0) - (this.castBendW || 0)) * Math.min(1, delta * 9);
+        const rideW = (grip && this.isMounted) ? (this.mountPoseW || 0) : 0;
+        if (grip) obj.position.y = 0.30 * rideW;                    // верхом кулак держит посох ниже середины
         if (this.carryW < 0.01) return;
         this.mesh.updateMatrixWorld(true);
+        const r = this.currentRotation, sb = this.swingBones;
+        const fwd = this._cv3 || (this._cv3 = new THREE.Vector3()), rgt = this._cv4 || (this._cv4 = new THREE.Vector3());
+        fwd.set(-Math.sin(r), 0, -Math.cos(r)); rgt.set(Math.cos(r), 0, -Math.sin(r));
+        if (this.castBendW > 0.01 && sb && sb.arm && sb.forearm && sb.hand) {
+            const d = this._cv5 || (this._cv5 = new THREE.Vector3());
+            this.saveOverlayBone(sb.arm); this.saveOverlayBone(sb.forearm);
+            d.set(0, -0.78, 0).addScaledVector(fwd, 0.55).addScaledVector(rgt, 0.30).normalize();
+            this.aimBoneWorld(sb.arm, sb.forearm, d, this.castBendW * 0.9);
+            d.set(0, 0.55, 0).addScaledVector(fwd, 0.82).addScaledVector(rgt, -0.06).normalize();
+            this.aimBoneWorld(sb.forearm, sb.hand, d, this.castBendW * 0.9);
+            this.mesh.updateMatrixWorld(true);
+        }
         this.saveOverlayBone(b);
         const qO = this._q1, qd = this._q2, qb = this._q3;
         obj.getWorldQuaternion(qO);
         const shaft = this._cv1 || (this._cv1 = new THREE.Vector3());
         const want_d = this._cv2 || (this._cv2 = new THREE.Vector3());
         shaft.set(0, 1, 0).applyQuaternion(qO);
-        const r = this.currentRotation, tilt = 6 * DEG;   // top slightly forward
-        want_d.set(-Math.sin(r) * Math.sin(tilt), Math.cos(tilt), -Math.cos(r) * Math.sin(tilt));
+        const tilt = (grip ? 8 : 6) * DEG, out = 10 * DEG * rideW;   // верх посоха чуть вперёд; верхом — ещё и наружу
+        want_d.set(0, 1, 0).addScaledVector(fwd, Math.tan(tilt)).addScaledVector(rgt, Math.tan(out)).normalize();
         const full = this._q4 || (this._q4 = new THREE.Quaternion());
         full.setFromUnitVectors(shaft, want_d);
         qd.identity().slerp(full, this.carryW);
@@ -1102,6 +1131,15 @@ class MedievalCharacter {
             holder.position.set(gp[0] / (ws.x || 1), gp[1] / (ws.y || 1), gp[2] / (ws.z || 1));
             const gr = grip.rotation || [0, 0, 0];
             holder.rotation.set(gr[0], gr[1], gr[2]);
+            // Посох у рига с кулаком (characters.js staffGrip {position (м), axis}): древко лежит поперёк ладони, поза предмета (item.json hold) не нужна
+            const sg = (object.userData && object.userData.upright) ? this.config.staffGrip : null;
+            if (sg && sg.axis) {
+                const sp = sg.position || [0, 0, 0];
+                holder.position.set(sp[0] / (ws.x || 1), sp[1] / (ws.y || 1), sp[2] / (ws.z || 1));
+                holder.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(sg.axis[0], sg.axis[1], sg.axis[2]).normalize());
+                object.rotation.set(0, 0, 0); object.position.set(0, 0, 0);
+                holder.userData.staffGrip = true;
+            }
             bone.add(holder);
         } else {
             // No hand bone: carry it at the side (still real size: undo the root scale)
