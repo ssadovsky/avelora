@@ -1103,7 +1103,8 @@ window.LOCATIONS = {
             ],
             boulders: [],
             shrubs: [
-                { id: 'savanna.desert_crown_hermit', x: 70.0, z: -1.0, s: 1.0, r: 0.65, shrubType: 'shrub_desert_crown' }
+                { id: 'savanna.desert_crown_hermit', x: 64.0, z: -2.0, s: 1.0, r: 0.65, shrubType: 'shrub_desert_crown' },
+                { id: 'savanna.golden_green_hermit', x: 61.0, z: -4.5, s: 1.0, r: 2.2, shrubType: 'shrub_golden_green' }
             ],
             ferns: [],
             reeds: [],

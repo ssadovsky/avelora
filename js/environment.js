@@ -741,7 +741,8 @@ class LakesideEnvironment {
             shrub_b: [],
             shrub_c: [],
             shrub_d: [],
-            shrub_desert_crown: []
+            shrub_desert_crown: [],
+            shrub_golden_green: []
         };
 
         const defaultScales = {
@@ -749,7 +750,8 @@ class LakesideEnvironment {
             shrub_b: 1.85,
             shrub_c: 1.95,
             shrub_d: 1.9,
-            shrub_desert_crown: 1.0
+            shrub_desert_crown: 1.0,
+            shrub_golden_green: 0.65
         };
 
         shrubSpots.forEach((sp, idx) => {
