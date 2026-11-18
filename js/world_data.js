@@ -577,7 +577,18 @@ window.LOCATIONS = {
                 { x: 104.0, z: -20.0, s: 1.1, r: 1.2, shrubType: 'shrub_a' },
                 { x: 92.0,  z: -26.0, s: 1.0, r: 2.1, shrubType: 'shrub_b' },
                 { x: 122.0, z: -28.0, s: 1.1, r: 0.5, shrubType: 'shrub_c' },
-                { x: 125.0, z: -32.0, s: 1.0, r: 1.6, shrubType: 'shrub_d' }
+                { x: 125.0, z: -32.0, s: 1.0, r: 1.6, shrubType: 'shrub_d' },
+                // Композиция между беседкой и кузнецом
+                { id: 'forestEdge.golden_green_1', x: 34.0, z: -18.0, s: 1.0, r: 0.8, shrubType: 'shrub_golden_green' },
+                { id: 'forestEdge.golden_green_2', x: 43.0, z: -12.0, s: 1.0, r: 3.0, shrubType: 'shrub_golden_green' },
+                { id: 'forestEdge.golden_green_3', x: 54.0, z: -19.0, s: 1.0, r: 1.8, shrubType: 'shrub_golden_green' },
+                { id: 'forestEdge.golden_green_4', x: 59.0, z: -7.0, s: 1.0, r: 2.6, shrubType: 'shrub_golden_green' },
+                { id: 'forestEdge.hibiscus_red_1', x: 31.0, z: -10.0, s: 1.0, r: 2.4, shrubType: 'shrub_scarlet_hibiscus' },
+                { id: 'forestEdge.hibiscus_red_2', x: 48.0, z: -23.0, s: 1.0, r: 0.5, shrubType: 'shrub_scarlet_hibiscus' },
+                { id: 'forestEdge.hibiscus_red_3', x: 61.0, z: -17.0, s: 1.0, r: 3.8, shrubType: 'shrub_scarlet_hibiscus' },
+                { id: 'forestEdge.hibiscus_blue_1', x: 38.0, z: -24.0, s: 1.0, r: 4.0, shrubType: 'shrub_scarlet_hibiscus_blue' },
+                { id: 'forestEdge.hibiscus_blue_2', x: 51.0, z: -7.0, s: 1.0, r: 1.2, shrubType: 'shrub_scarlet_hibiscus_blue' },
+                { id: 'forestEdge.hibiscus_blue_3', x: 63.0, z: -23.0, s: 1.0, r: 5.2, shrubType: 'shrub_scarlet_hibiscus_blue' }
             ],
             ferns: [
                 // Заметные кусты папоротника рядом с лагерем игрока для удобного сбора
@@ -847,6 +858,13 @@ window.LOCATIONS = {
         // Трава: почти вся сухая (солома), в открытых местах почти без проплешин
         foliage: { dryGrass: 0.85, openGap: 0.05 },
         noFerns: [{ x: 80.0, z: 0.0, rx: 12.0, rz: 12.0 }],   // стоянка отшельника: без папоротников
+        // Локально убираем один валун у озёрной тропы и папоротник у камня на юго-востоке.
+        removeZones: [
+            { x: 28.82, z: -29.92, r: 1.2, kinds: ['boulders'] },
+            { x: -55.06, z: -71.34, r: 1.2, kinds: ['ferns'] },
+            { x: 72.63, z: 19.45, r: 1.0, kinds: ['ferns'] },
+            { x: 74.25, z: 20.55, r: 1.0, kinds: ['ferns'] }
+        ],
 
         spawns: {
             default:    { x: 83.5, z: -3.5, r: 1.57 },      // появление и воскрешение: у стоянки отшельника (перенесено с (128, -10))
@@ -1103,8 +1121,23 @@ window.LOCATIONS = {
             ],
             boulders: [],
             shrubs: [
-                { id: 'savanna.desert_crown_hermit', x: 64.0, z: -2.0, s: 1.0, r: 0.65, shrubType: 'shrub_desert_crown' },
-                { id: 'savanna.golden_green_hermit', x: 61.0, z: -4.5, s: 1.0, r: 2.2, shrubType: 'shrub_golden_green' }
+                // Юкка и Golden Green группами у двух озёр; стоянка ящера остаётся свободной.
+                { id: 'savanna.golden_yucca_1', x: 12.0, z: -20.0, s: 1.0, r: 1.4, shrubType: 'shrub_golden_yucca' },
+                { id: 'savanna.golden_yucca_2', x: 18.0, z: -5.0, s: 1.0, r: 4.2, shrubType: 'shrub_golden_yucca' },
+                { id: 'savanna.golden_yucca_3', x: 27.0, z: -16.0, s: 1.0, r: 0.7, shrubType: 'shrub_golden_yucca' },
+                { id: 'savanna.golden_yucca_4', x: 9.0, z: -9.0, s: 1.0, r: 2.5, shrubType: 'shrub_golden_yucca' },
+                { id: 'savanna.golden_yucca_5', x: 60.0, z: -4.5, s: 1.0, r: 3.3, shrubType: 'shrub_golden_yucca' },
+                { id: 'savanna.golden_yucca_6', x: 58.0, z: 18.0, s: 1.0, r: 5.1, shrubType: 'shrub_golden_yucca' },
+                { id: 'savanna.golden_yucca_7', x: 37.0, z: 34.0, s: 1.0, r: 0.2, shrubType: 'shrub_golden_yucca' },
+                { id: 'savanna.golden_yucca_8', x: 18.0, z: 25.0, s: 1.0, r: 2.5, shrubType: 'shrub_golden_yucca' },
+                { id: 'savanna.golden_green_1', x: 7.0, z: -15.0, s: 1.0, r: 2.2, shrubType: 'shrub_golden_green' },
+                { id: 'savanna.golden_green_2', x: 22.0, z: -24.0, s: 1.0, r: 0.4, shrubType: 'shrub_golden_green' },
+                { id: 'savanna.golden_green_3', x: 30.0, z: -7.0, s: 1.0, r: 3.1, shrubType: 'shrub_golden_green' },
+                { id: 'savanna.golden_green_4', x: 17.0, z: -13.0, s: 1.0, r: 1.7, shrubType: 'shrub_golden_green' },
+                { id: 'savanna.golden_green_5', x: 59.0, z: 26.0, s: 1.0, r: 0.7, shrubType: 'shrub_golden_green' },
+                { id: 'savanna.golden_green_6', x: 57.0, z: 7.0, s: 1.0, r: 4.5, shrubType: 'shrub_golden_green' },
+                { id: 'savanna.golden_green_7', x: 30.0, z: 33.0, s: 1.0, r: 2.2, shrubType: 'shrub_golden_green' },
+                { id: 'savanna.golden_green_8', x: 10.0, z: 23.0, s: 1.0, r: 5.7, shrubType: 'shrub_golden_green' }
             ],
             ferns: [],
             reeds: [],
@@ -1612,6 +1645,22 @@ window.LOCATIONS = {
         atmosphere: { sky: 0xd9e6c6, skyTop: 0x5a9ccf, fogDensity: 0.0065 },
         cameraAngle: Math.PI,
         noFerns: [{ x: 0.0, z: -89.0, rx: 10.0, rz: 10.0 }],
+        decorations: {
+            shrubs: [
+                { id: 'primevalValley.desert_crown_1', x: -38.0, z: 6.0, s: 1.0, r: 0.8, shrubType: 'shrub_desert_crown' },
+                { id: 'primevalValley.desert_crown_2', x: -10.0, z: 32.0, s: 1.0, r: 2.7, shrubType: 'shrub_desert_crown' },
+                { id: 'primevalValley.desert_crown_3', x: 20.0, z: 4.0, s: 1.0, r: 4.1, shrubType: 'shrub_desert_crown' },
+                { id: 'primevalValley.desert_crown_4', x: -9.0, z: -25.0, s: 1.0, r: 1.5, shrubType: 'shrub_desert_crown' },
+                { id: 'primevalValley.desert_crown_5', x: -35.0, z: -13.0, s: 1.0, r: 3.1, shrubType: 'shrub_desert_crown' },
+                { id: 'primevalValley.desert_crown_6', x: 15.0, z: 27.0, s: 1.0, r: 5.0, shrubType: 'shrub_desert_crown' },
+                { id: 'primevalValley.golden_green_1', x: -40.0, z: -1.0, s: 1.0, r: 3.4, shrubType: 'shrub_golden_green' },
+                { id: 'primevalValley.golden_green_2', x: -23.0, z: 30.0, s: 1.0, r: 0.6, shrubType: 'shrub_golden_green' },
+                { id: 'primevalValley.golden_green_3', x: 22.0, z: -3.0, s: 1.0, r: 2.0, shrubType: 'shrub_golden_green' },
+                { id: 'primevalValley.golden_green_4', x: 4.0, z: -29.0, s: 1.0, r: 5.0, shrubType: 'shrub_golden_green' },
+                { id: 'primevalValley.golden_green_5', x: -32.0, z: 20.0, s: 1.0, r: 1.7, shrubType: 'shrub_golden_green' },
+                { id: 'primevalValley.golden_green_6', x: 8.0, z: 34.0, s: 1.0, r: 4.4, shrubType: 'shrub_golden_green' }
+            ]
+        },
 
         spawns: {
             default:    { x: -128.0, z: 0.0, r: 4.71 },
@@ -1698,7 +1747,6 @@ window.LOCATIONS = {
             { id: 'primevalValley.bones_3', prop: 'bone_pile_1', x: 88.0, z: -2.0, r: 0.86 },
             { id: 'primevalValley.bones_4', prop: 'bone_pile_4', x: -102.0, z: 40.0, r: 1.96 },
             { id: 'primevalValley.log_1', prop: 'fallen_log', x: -14.0, z: -30.0, r: 3.64 },
-            { id: 'primevalValley.log_2', prop: 'fallen_log', x: 36.0, z: -34.0, r: 5.34 },
             { id: 'primevalValley.log_3', prop: 'fallen_log', x: -38.0, z: 12.0, r: 4.44 }
         ],
 
@@ -1839,7 +1887,6 @@ window.LOCATIONS = {
         lighting: { hemiSky: 0xc9a28c, hemiGround: 0x3a1c12, hemiIntensity: 1.05, sunColor: 0xff9460, sunIntensity: 0.80 },
         cameraAngle: 0.0,
         noFerns: [{ x: 0.0, z: -89.0, rx: 10.0, rz: 10.0 }],
-
         spawns: {
             default:      { x: 0.0, z: -78.5, r: 3.14 },
             fromSavanna:  { x: 0.0, z: -78.5, r: 3.14 },
