@@ -1435,7 +1435,13 @@
         return { rects: [rect(-6.95, -2.55, -1.75, 1.75), rect(2.55, 6.95, -1.75, 1.75), rect(-2.6, 2.6, -3.0, -0.75), rect(-11.0, 11.0, -14.0, -1.0), rect(-10.9, -7.0, -1.4, 1.6), rect(7.0, 10.9, -1.4, 1.6)], platform: null, w: 13.9, d: 3.5, h: 9.1 };
     }
 
-    const TYPES = { templeGate: buildTempleGate, stoneHouse: buildStoneHouse, hearthCottage: buildHearthCottage, marbleTemple: buildMarbleTemple, tavern: buildTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall, buildTempleGate };
+    /** Только светящееся фиолетовое полотно портала (врата — отдельный проп-модель). cfg: W — ширина проёма, H — высота, ox — смещение по X в локальных осях. */
+    function buildPortalVeil(B, cfg) {
+        const hw = (cfg.W || 3.5) / 2, h = cfg.H || 5.3, ox = cfg.ox || 0, k = 2.9 / hw;   // шейдер рассчитан на полуширину 2.9 м: растягиваем uv
+        B.poly('gatePortal', [[ox - hw, -0.1, 0], [ox + hw, -0.1, 0], [ox + hw, h, 0], [ox - hw, h, 0]], [0, 0, 1], { uv: TEX_M * k, ou: -ox * k });
+        return { rects: [] };
+    }
+    const TYPES = { templeGate: buildTempleGate, portalVeil: buildPortalVeil, stoneHouse: buildStoneHouse, hearthCottage: buildHearthCottage, marbleTemple: buildMarbleTemple, tavern: buildTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall, buildTempleGate };
     const CAMERA_BLOCK = { templeGate: ['stone'], stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], hearthCottage: ['stone', 'slate', 'wood', 'plaster', 'deck', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], corral: [], castleWall: ['wallstone', 'wallcap'] };
 
     // ------------------------------------------------------------------ менеджер локации
@@ -1472,7 +1478,8 @@
                 }
                 else dims = b.type === 'marbleTemple' ? Math.hypot((b.HX || 3.9) + 0.8, (b.HZ || 5.0) + 0.8) : Math.hypot((b.W || 8.2) / 2 + 1, (b.D || 6.2) / 2 + 1);
                 if (b.type === 'corral') dims = Math.hypot((b.W || 14) / 2 + 1, (b.D || 11) / 2 + 1);
-                if (b.type === 'runeGate') dims = 12;     // площадку выравнивает плаза подвала (cellar.js), здесь только чистим траву
+                if (b.type === 'portalVeil') dims = 3;     // площадку и горы вокруг врат задаёт world_data (flatSpots), здесь только чистим траву
+                else if (b.type === 'runeGate') dims = 12;     // площадку выравнивает плаза подвала (cellar.js), здесь только чистим траву
                 else {
                     const fs = { x: cx, z: cz, radius: dims + 0.5, blend: 5.0 };
                     if (cfg.level) fs.hFrom = cfg.level;

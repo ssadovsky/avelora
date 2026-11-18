@@ -804,6 +804,17 @@ window.LOCATIONS = {
                 { x: 10.0, z: 80.0, radius: 2.2, blend: 2.5, hFrom: [10.0, 70.0] }, { x: 10.0, z: 86.5, radius: 2.2, blend: 3.0, hFrom: [10.0, 70.0], dh: 0.0 }, { x: 10.0, z: 90.5, radius: 2.2, blend: 3.5, hFrom: [10.0, 70.0], dh: 0.22 }, { x: 10.0, z: 94.0, radius: 2.2, blend: 4.0, hFrom: [10.0, 70.0], dh: 0.60 }, { x: 10.0, z: 97.0, radius: 2.0, blend: 4.5, hFrom: [10.0, 70.0], dh: 0.60 },
                 { x: 80.0, z: 0.0, radius: 8.0, blend: 7.0 },
                 { x: -74.0,   z: 42.0, radius: 15.0, blend: 9.0 },
+                // врата Храма Стихий: ровно только площадка перед ступенями и проход под аркой; по бокам и сзади — родной склон гор (присыпает скалы ворот)
+                { x: -100.0, z: 86.5, radius: 7.5, blend: 3.0, hFrom: [-100.0, 72.0] },
+                { x: -100.0, z: 95.0, radius: 2.6, blend: 2.0, hFrom: [-100.0, 72.0] },
+                // передние углы ворот: насыпь у стен начинается за ними и поднимается полого
+                { x: -111.5, z: 85.0, radius: 2.0, blend: 10.0, hFrom: [-100.0, 72.0] }, { x: -88.5, z: 85.0, radius: 2.0, blend: 10.0, hFrom: [-100.0, 72.0] },
+                // западный бок ворот: один плавный склон (естественный пояс тут ниже, чем на востоке)
+                { x: -112.0, z: 100.5, radius: 0.0, blend: 9.0, hFrom: [-100.0, 72.0], dh: 7.0 },
+                // просвет сквозь арку: проход ровный до самого края карты (как в ущелье)
+                { x: -100.0, z: 99.0, radius: 2.4, blend: 2.0, hFrom: [-100.0, 72.0] },
+                // за вратами: край локации чуть прикрыт горой только у углов ворот (середина за аркой не трогается)
+                { x: -107.0, z: 100.5, radius: 2.0, blend: 4.0, hFrom: [-100.0, 72.0], dh: 7.0 }, { x: -93.0, z: 100.5, radius: 2.0, blend: 4.0, hFrom: [-100.0, 72.0], dh: 7.0 },
                 { x: -106.0,  z: -46.0, radius: 25.0, blend: 9.0 },
                 // южное расширение лагеря ящеров до z -84 (высота — как у лагеря)
                 { x: -86.0,  z: -69.0, radius: 14.0, blend: 7.0, hFrom: [-106.0, -46.0] },
@@ -811,7 +822,6 @@ window.LOCATIONS = {
                 { x: -126.0, z: -69.0, radius: 14.0, blend: 7.0, hFrom: [-106.0, -46.0] }
             ],
             hills: { amplitude: 2.6, inclineX: -0.25, inclineZ: 0.10 },
-
             paths: [
                 // Главная тропа: портал -> стоянка отшельника -> южный берег озера -> центр -> подход к Кругу стихий (до (-65, 30))
                 {
@@ -842,16 +852,16 @@ window.LOCATIONS = {
             default:    { x: 83.5, z: -3.5, r: 1.57 },      // появление и воскрешение: у стоянки отшельника (перенесено с (128, -10))
             fromForest: { x: 83.5, z: -3.5, r: 1.57 },    // приход из лесной опушки (выход-портал по-прежнему на востоке, (146, -10)), лицом на запад
             fromBurnt:  { x: 10.0, z: 78.0, r: 0.00 },   // выход из южного ущелья (Выжженная земля), лицом на север
-            fromTemple: { x: -100.0, z: 84.5, r: 0.00 }  // выход из Храма Стихий: перед вратами, лицом от них
+            fromTemple: { x: -100.0, z: 83.5, r: 0.00 }  // выход из Храма Стихий: перед вратами, лицом от них
         },
 
         // Процедурные здания (js/town.js): врата Храма Стихий у северной скалы
-        town: { level: [-100.0, 72.0], buildings: [ { id: 'temple_gate', type: 'templeGate', x: -100.0, z: 91.0, r: 3.14, W: 10.0, D: 4.0 } ] },
+        town: { level: [-100.0, 72.0], buildings: [ { id: 'temple_veil', type: 'portalVeil', x: -100.0, z: 93.5, r: 0.0, W: 3.5, H: 6.5, ox: 0.2 } ] },   // фиолетовое полотно портала в проёме врат (проп runestone_gate, Meshy)
 
         exits: [
             { id: 'toBurnt', x: 10.0, z: 96.0, radius: 2.0, to: 'burntLands', spawn: 'fromSavanna', label: 'Выжженная земля', color: 0xffc9a0, height: 5.0, track: true, noRing: true, r: 0.00, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.2, color: 0xcbb3a4 } },
             // Вход в Храм Стихий (ур. 10+): врата-пилоны (town.buildings templeGate), печать-портал между пилонами
-            { id: 'toTemple', x: -100.0, z: 90.4, radius: 1.7, minLevel: 10, height: 0.2, to: 'elementTemple', spawn: 'entrance', label: 'Храм Стихий', color: 0xb78cff, noRing: true },
+            { id: 'toTemple', x: -99.8, z: 92.3, radius: 1.7, minLevel: 10, height: 0.2, to: 'elementTemple', spawn: 'entrance', label: 'Храм Стихий', color: 0xb78cff, noRing: true },
             { id: 'toForest', x: 146.0, z: -10.0, radius: 2.0, to: 'forestEdge', spawn: 'fromSavanna', label: 'Лесная опушка', color: 0xcfe8ff, height: 5.0, track: true, noRing: true, r: 1.57, fog: { w: 3.4, h: 7.0, dz: 0.5, from: 6.5, n: 1, density: 0.25, color: 0x9bc2a4 } }
         ],
 
@@ -860,6 +870,7 @@ window.LOCATIONS = {
             { x: 10.0, z: 84.0, radius: 9.0 }, { x: 10.0, z: 93.0, radius: 8.0 },          // северное ущелье
             { x: 80.0, z: 0.0, radius: 12.0 },                 // стоянка отшельника (перенесена на ровное место, 2026-11-18)
             { x: -74.0, z: 42.0, radius: 19.0 },                 // Круг стихий
+            { x: -100.0, z: 90.0, radius: 13.0 },                 // подход к вратам Храма Стихий
             { x: -106.0, z: -46.0, radius: 26.0 },                 // расширенный лагерь ящеров
             { x: -86.0, z: -69.0, radius: 15.0 }, { x: -106.0, z: -71.0, radius: 15.0 }, { x: -126.0, z: -69.0, radius: 15.0 },   // южное расширение лагеря
             { x: -4.0, z: 68.0, radius: 6.0 }, { x: -22.0, z: 64.0, radius: 6.0 }   // логово львов (кости)
@@ -1023,6 +1034,8 @@ window.LOCATIONS = {
             { id: 'savanna.altar_water', prop: 'elemental_altar_water', x: -74.0, z: 36.0, r: 6.28 },
             { id: 'savanna.altar_air', prop: 'elemental_altar_air', x: -68.0, z: 42.0, r: 1.57 },
             { id: 'savanna.obelisk', prop: 'elemental_obelisk', x: -74.0, z: 42.0, r: 3.14 },
+            // Врата Храма Стихий: у северного края (передний край z = 87.5, тыл z = 99.5), на полу площадки (flatSpot как у прежних процедурных врат)
+            { id: 'savanna.temple_gate', prop: 'runestone_gate', x: -100.0, z: 93.5, r: 0.0, yFrom: [-100.0, 72.0], dy: 0.0 },
 
             // Центральный узел лагеря ящеров
             { id: 'savanna.lizard_totem', prop: 'lizard_totem', x: -92.0, z: -40.0, r: 3.64 },
