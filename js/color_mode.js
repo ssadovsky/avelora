@@ -33,8 +33,7 @@
     // Пропсы, существовавшие до Рунных земель (старый режим). Всё, чего тут нет, — sRGB.
     const LEGACY_PROPS = new Set([
         'bush', 'stump', 'campfire', 'chest', 'fallen_log', 'bone_pile', 'drying_rack',
-        'elemental_altar_air', 'elemental_altar_fire', 'elemental_altar_stone', 'elemental_altar_water',
-        'elemental_obelisk', 'hermit_hut', 'waystone',
+        'hermit_hut', 'waystone',
         'anvil', 'cottage', 'gazebo', 'grass_tuft', 'violet_flowerbed',
         'smithy', 'stone_pass', 'woodshed', 'twinstone_pass',
         'sawmill'   // = модель props/woodshed (отдельный id для построек), старый режим

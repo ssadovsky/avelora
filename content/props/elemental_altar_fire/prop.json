@@ -1,17 +1,17 @@
 {
   "id": "elemental_altar_fire",
   "name": "Алтарь Огня",
-  "obstacle": 1.0,
+  "obstacle": 0,
+  "obstacleShapes": [
+    {
+      "type": "box",
+      "hx": 1.05,
+      "hz": 1.05,
+      "padding": 0.15
+    }
+  ],
   "fire": {
-    "y": 0.98,
-    "size": 0.65
-  },
-  "stub": {
-    "box": [
-      1.7,
-      1.0,
-      1.7
-    ],
-    "color": "#b5502a"
+    "y": 1.38,
+    "size": 0.9
   }
 }

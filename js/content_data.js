@@ -5319,71 +5319,77 @@ window.GAME_CONTENT = {
   "elemental_altar_air": {
    "id": "elemental_altar_air",
    "name": "Алтарь Воздуха",
-   "obstacle": 1.0,
-   "stub": {
-    "box": [
-     1.7,
-     1.0,
-     1.7
-    ],
-    "color": "#cfd9e0"
-   }
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "hx": 1.05,
+     "hz": 1.05,
+     "padding": 0.15
+    }
+   ],
+   "modelKey": "props/elemental_altar_air"
   },
   "elemental_altar_fire": {
    "id": "elemental_altar_fire",
    "name": "Алтарь Огня",
-   "obstacle": 1.0,
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "hx": 1.05,
+     "hz": 1.05,
+     "padding": 0.15
+    }
+   ],
    "fire": {
-    "y": 0.98,
-    "size": 0.65
+    "y": 1.38,
+    "size": 0.9
    },
-   "stub": {
-    "box": [
-     1.7,
-     1.0,
-     1.7
-    ],
-    "color": "#b5502a"
-   }
+   "modelKey": "props/elemental_altar_fire"
   },
   "elemental_altar_stone": {
    "id": "elemental_altar_stone",
    "name": "Алтарь Камня",
-   "obstacle": 1.0,
-   "stub": {
-    "box": [
-     1.7,
-     1.0,
-     1.7
-    ],
-    "color": "#77736b"
-   }
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "hx": 1.05,
+     "hz": 1.05,
+     "padding": 0.15
+    }
+   ],
+   "modelKey": "props/elemental_altar_stone"
   },
   "elemental_altar_water": {
    "id": "elemental_altar_water",
    "name": "Алтарь Воды",
-   "obstacle": 1.0,
-   "stub": {
-    "box": [
-     1.7,
-     1.0,
-     1.7
-    ],
-    "color": "#2f7f9a"
-   }
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "hx": 1.05,
+     "hz": 1.05,
+     "padding": 0.15
+    }
+   ],
+   "modelKey": "props/elemental_altar_water"
   },
   "elemental_obelisk": {
    "id": "elemental_obelisk",
    "name": "Обелиск стихий",
-   "obstacle": 1.0,
-   "stub": {
-    "cyl": [
-     0.45,
-     0.8,
-     4.6
-    ],
-    "color": "#6b6762"
-   }
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "hx": 0.8,
+     "hz": 0.8,
+     "padding": 0.15
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/elemental_obelisk"
   },
   "ember_cavern": {
    "id": "ember_cavern",
