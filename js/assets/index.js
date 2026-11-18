@@ -191,6 +191,7 @@ window.AVELORA_ASSET_INDEX = {
   "shrub_b": ["m/shrub_b.js", "bc5fdfdd48"],
   "shrub_c": ["m/shrub_c.js", "03011b6785"],
   "shrub_d": ["m/shrub_d.js", "edca63f12a"],
+  "shrub_desert_crown": ["m/shrub_desert_crown.js", "1653a517df"],
   "soldier": ["m/soldier.js", "5469785391"],
   "torchlit_grotto": ["m/torchlit_grotto.js", "2c93e078d2"],
   "tree": ["m/tree.js", "1ecdbeadbe"],

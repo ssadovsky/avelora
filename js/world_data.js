@@ -1102,7 +1102,9 @@ window.LOCATIONS = {
                 { id: 'savanna.palm_majesty_lake', x: 58.0, z: 26.0, s: 1.0, r: 1.3, treeType: 'palm_majesty' }
             ],
             boulders: [],
-            shrubs: [],
+            shrubs: [
+                { id: 'savanna.desert_crown_hermit', x: 70.0, z: -1.0, s: 1.0, r: 0.65, shrubType: 'shrub_desert_crown' }
+            ],
             ferns: [],
             reeds: [],
             grass: []
