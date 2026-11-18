@@ -1,0 +1,44 @@
+{
+  "id": "village_tailor",
+  "name": "Эльвира",
+  "title": "Швея",
+  "height": 1.68,
+  "start": "start",
+  "dialog": {
+    "start": {
+      "text": "Заходи, путник, не стесняйся! Я Эльвира, шью плащи и простую одежду для всей опушки. Замёрз — купи плащ. А если принесёшь паутину, научу сшить холщовую одежду самому.",
+      "options": [
+        {
+          "text": "Научи меня шить",
+          "action": "teach_craft"
+        },
+        {
+          "text": "Покажи свои товары",
+          "action": "shop"
+        },
+        {
+          "text": "До свидания",
+          "action": "close"
+        }
+      ]
+    }
+  },
+  "shop": {
+    "buy": [
+      {
+        "item": "traveler_cloak"
+      }
+    ],
+    "sell": true
+  },
+  "teach": {
+    "price": 5,
+    "only": [
+      "linen_hood",
+      "linen_gloves",
+      "linen_shoes",
+      "linen_robe",
+      "wolf_cloak"
+    ]
+  }
+}

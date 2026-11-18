@@ -1,0 +1,18 @@
+{
+  "id": "linen_gloves",
+  "name": "Холщовые перчатки",
+  "description": "Изготовление: Холщовые перчатки.",
+  "category": "tailoring",
+  "ingredients": [
+    {
+      "item": "spider_silk",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "linen_gloves",
+    "count": 1
+  },
+  "price": 5,
+  "requiresLevel": 1
+}

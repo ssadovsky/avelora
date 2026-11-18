@@ -1,0 +1,6 @@
+{
+  "id": "npc_village_tailor",
+  "name": "Эльвира",
+  "obstacle": 0.5,
+  "npc": "village_tailor"
+}

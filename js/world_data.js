@@ -489,7 +489,9 @@ window.LOCATIONS = {
             // Домик (фасад с дверью смотрит на запад) и наковальня рядом
             { id: 'forestEdge.cottage', prop: 'cottage', x: 70.0, z: -15.0, r: 0.0 },
             // Домик швеи: фасад (дверь) на север к каменной дороге; лавка-навес уходит на восток, но пчёл не касается
-            { id: 'forestEdge.tailor_cottage', prop: 'tailor_cottage', x: 63.0, z: 27.0, r: Math.PI, dy: -0.04 },
+            { id: 'forestEdge.tailor_cottage', prop: 'tailor_cottage', x: 63.6, z: 27.0, r: Math.PI, dy: -0.04 },
+            // швея Эльвира (NPC, content/npcs/village_tailor): у прилавка под навесом домика, лицом к дороге; продаёт плащ путника, учит холщовой одежде
+            { id: 'forestEdge.village_tailor', prop: 'npc_village_tailor', x: 65.4, z: 24.3, r: Math.PI },
             { id: 'forestEdge.smithy', prop: 'smithy', x: 64.3, z: -12.3, r: 1.45 },
             // Пильня южнее кузницы Торвальда
             { id: 'forestEdge.sawmill', prop: 'sawmill', x: 64.0, z: -4.8, r: Math.PI / 2 },
