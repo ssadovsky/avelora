@@ -40,5 +40,10 @@
       "linen_robe",
       "wolf_cloak"
     ]
-  }
+  },
+  "quests": [
+    "tailor_violet_dye",
+    "tailor_fox_lining",
+    "tailor_spider_silk"
+  ]
 }
