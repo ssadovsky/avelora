@@ -479,6 +479,8 @@ class LakesideEnvironment {
             quiver: 'quiver_tree',
             sentinel: 'tree_sentinel',
             twisted: 'tree_twisted',      // колючая кривая акация саванны
+            palm_fan: 'tree_palm_fan',            // веерная пальма (Meshy Emerald Fan Palm), ~7.9 м
+            palm_majesty: 'tree_palm_majesty',    // пальма-величие (Meshy Fan Palm Majesty), ~7.9 м
             oak_wide: 'tree_oak_wide',
             oak_tall: 'tree_oak_tall',
             elm: 'tree_elm',
@@ -498,6 +500,8 @@ class LakesideEnvironment {
             quiver: 4.8,
             sentinel: 1.0,
             twisted: 0.8,
+            palm_fan: 1.0,
+            palm_majesty: 1.0,
             oak_wide: 1.0,
             oak_tall: 1.0,
             elm: 1.0,

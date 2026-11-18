@@ -1,13 +1,5 @@
 {
   "id": "lizard_banner",
   "name": "Знамя ящеров",
-  "obstacle": 0.35,
-  "stub": {
-    "cyl": [
-      0.06,
-      0.08,
-      3.0
-    ],
-    "color": "#7c2f22"
-  }
+  "obstacle": 0.35
 }

@@ -7676,50 +7676,151 @@ window.GAME_CONTENT = {
    "id": "lizard_banner",
    "name": "Знамя ящеров",
    "obstacle": 0.35,
-   "stub": {
-    "cyl": [
-     0.06,
-     0.08,
-     3.0
-    ],
-    "color": "#7c2f22"
-   }
+   "modelKey": "props/lizard_banner"
+  },
+  "lizard_banner_b": {
+   "id": "lizard_banner_b",
+   "name": "Знамя ящеров",
+   "obstacle": 0.35,
+   "modelKey": "props/lizard_banner_b"
   },
   "lizard_barricade": {
    "id": "lizard_barricade",
    "name": "Частокол из кольев",
-   "obstacle": 1.4
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "hx": 1.45,
+     "hz": 0.35,
+     "cx": 0.0,
+     "cz": 0.0,
+     "r": 0.4,
+     "step": 0.6,
+     "exact": true
+    }
+   ],
+   "modelKey": "props/lizard_barricade"
+  },
+  "lizard_barricade_b": {
+   "id": "lizard_barricade_b",
+   "name": "Частокол из кольев",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "hx": 1.45,
+     "hz": 0.3,
+     "cx": 0.0,
+     "cz": 0.0,
+     "r": 0.4,
+     "step": 0.6,
+     "exact": true
+    }
+   ],
+   "modelKey": "props/lizard_barricade_b"
   },
   "lizard_drum": {
    "id": "lizard_drum",
    "name": "Боевой барабан ящеров",
-   "obstacle": 0.5
+   "obstacle": 0.6,
+   "modelKey": "props/lizard_drum"
+  },
+  "lizard_drum_b": {
+   "id": "lizard_drum_b",
+   "name": "Боевой барабан ящеров",
+   "obstacle": 0.6,
+   "modelKey": "props/lizard_drum_b"
   },
   "lizard_tent": {
    "id": "lizard_tent",
    "name": "Шатёр ящеров",
-   "obstacle": 1.9,
-   "stub": {
-    "box": [
-     3.6,
-     2.2,
-     3.2
-    ],
-    "color": "#7e5d3a"
-   }
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "polygon",
+     "padding": 0.35,
+     "points": [
+      [
+       -2.9,
+       -1.7
+      ],
+      [
+       -1.7,
+       -2.9
+      ],
+      [
+       1.7,
+       -2.9
+      ],
+      [
+       2.9,
+       -1.7
+      ],
+      [
+       2.9,
+       2.3
+      ],
+      [
+       2.3,
+       2.9
+      ],
+      [
+       -2.3,
+       2.9
+      ],
+      [
+       -2.9,
+       2.3
+      ]
+     ]
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/lizard_tent"
+  },
+  "lizard_tent_small": {
+   "id": "lizard_tent_small",
+   "name": "Палатка ящеров",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "polygon",
+     "padding": 0.15,
+     "points": [
+      [
+       -2.0,
+       -1.9
+      ],
+      [
+       2.0,
+       -1.9
+      ],
+      [
+       2.0,
+       1.9
+      ],
+      [
+       -2.0,
+       1.9
+      ]
+     ]
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/lizard_tent_small"
   },
   "lizard_totem": {
    "id": "lizard_totem",
    "name": "Тотем ящеров",
    "obstacle": 0.8,
-   "stub": {
-    "cyl": [
-     0.3,
-     0.5,
-     3.4
-    ],
-    "color": "#6a4e34"
-   }
+   "modelKey": "props/lizard_totem"
+  },
+  "lizard_totem_b": {
+   "id": "lizard_totem_b",
+   "name": "Тотем ящеров",
+   "obstacle": 0.8,
+   "modelKey": "props/lizard_totem_b"
   },
   "magma_gate": {
    "id": "magma_gate",
@@ -11819,11 +11920,7 @@ window.GAME_CONTENT = {
    "category": "travel",
    "destination": "savanna",
    "oneWay": true,
-   "pos": {
-    "x": -112.0,
-    "z": 19.0,
-    "r": 3.14
-   },
+   "spawn": "default",
    "cooldown": 30,
    "castTime": 3,
    "vfx": {

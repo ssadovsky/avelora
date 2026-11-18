@@ -6,11 +6,7 @@
   "category": "travel",
   "destination": "savanna",
   "oneWay": true,
-  "pos": {
-    "x": -112.0,
-    "z": 19.0,
-    "r": 3.14
-  },
+  "spawn": "default",
   "cooldown": 30,
   "castTime": 3,
   "vfx": {

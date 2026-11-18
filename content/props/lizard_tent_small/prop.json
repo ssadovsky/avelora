@@ -1,0 +1,9 @@
+{
+  "id": "lizard_tent_small",
+  "name": "Палатка ящеров",
+  "obstacle": 0,
+  "obstacleShapes": [
+    { "type": "polygon", "padding": 0.15, "points": [[-2.0,-1.9],[2.0,-1.9],[2.0,1.9],[-2.0,1.9]] }
+  ],
+  "cameraBlock": true
+}

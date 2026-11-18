@@ -802,9 +802,13 @@ window.LOCATIONS = {
                 { x: 130.0, z: -10.0, radius: 2.2, blend: 2.5, hFrom: [120.0, -10.0] }, { x: 136.5, z: -10.0, radius: 2.2, blend: 3.0, hFrom: [120.0, -10.0], dh: 0.0 }, { x: 140.5, z: -10.0, radius: 2.2, blend: 3.5, hFrom: [120.0, -10.0], dh: 0.22 }, { x: 144.0, z: -10.0, radius: 2.2, blend: 4.0, hFrom: [120.0, -10.0], dh: 0.60 }, { x: 147.0, z: -10.0, radius: 2.0, blend: 4.5, hFrom: [120.0, -10.0], dh: 0.60 },
                 // южное ущелье в Выжженную землю (после разворота): площадки под проход (как у западного портала, в осях z)
                 { x: 10.0, z: 80.0, radius: 2.2, blend: 2.5, hFrom: [10.0, 70.0] }, { x: 10.0, z: 86.5, radius: 2.2, blend: 3.0, hFrom: [10.0, 70.0], dh: 0.0 }, { x: 10.0, z: 90.5, radius: 2.2, blend: 3.5, hFrom: [10.0, 70.0], dh: 0.22 }, { x: 10.0, z: 94.0, radius: 2.2, blend: 4.0, hFrom: [10.0, 70.0], dh: 0.60 }, { x: 10.0, z: 97.0, radius: 2.0, blend: 4.5, hFrom: [10.0, 70.0], dh: 0.60 },
-                { x: 115.0, z: -20.0, radius: 7.0, blend: 7.0 },
+                { x: 80.0, z: 0.0, radius: 8.0, blend: 7.0 },
                 { x: -74.0,   z: 42.0, radius: 15.0, blend: 9.0 },
-                { x: -106.0,  z: -46.0, radius: 25.0, blend: 9.0 }
+                { x: -106.0,  z: -46.0, radius: 25.0, blend: 9.0 },
+                // южное расширение лагеря ящеров до z -84 (высота — как у лагеря)
+                { x: -86.0,  z: -69.0, radius: 14.0, blend: 7.0, hFrom: [-106.0, -46.0] },
+                { x: -106.0, z: -71.0, radius: 14.0, blend: 7.0, hFrom: [-106.0, -46.0] },
+                { x: -126.0, z: -69.0, radius: 14.0, blend: 7.0, hFrom: [-106.0, -46.0] }
             ],
             hills: { amplitude: 2.6, inclineX: -0.25, inclineZ: 0.10 },
 
@@ -817,10 +821,12 @@ window.LOCATIONS = {
                         [6.0, -34.0], [-22.0, -22.0], [-44.0, -8.0], [-58.0, 14.0], [-66.0, 30.0], [-72.0, 40.0]
                     ]
                 },
+                // Ответвление к стоянке отшельника
+                { type: 'dirt', width: 2.2, points: [[86.0, -15.0], [85.0, -9.0], [82.0, -4.0]] },
                 // Ответвление к лагерю ящеров
                 {
                     type: 'dirt', width: 2.6,
-                    points: [[-22.0, -22.0], [-50.0, -36.0], [-76.0, -44.0], [-96.0, -46.0], [-116.0, -48.0]]
+                    points: [[-22.0, -22.0], [-50.0, -36.0], [-70.0, -45.5], [-80.0, -48.0]]   // тропа кончается у ворот лагеря, внутри лагеря троп нет
                 },
                 // Аллея стихий: камень на подходе к алтарям
                 {
@@ -835,10 +841,11 @@ window.LOCATIONS = {
         cameraAngle: 0.0,
         // Трава: почти вся сухая (солома), в открытых местах почти без проплешин
         foliage: { dryGrass: 0.85, openGap: 0.05 },
+        noFerns: [{ x: 80.0, z: 0.0, rx: 12.0, rz: 12.0 }],   // стоянка отшельника: без папоротников
 
         spawns: {
-            default:    { x: 128.0, z: -10.0, r: 1.57 },
-            fromForest: { x: 128.0, z: -10.0, r: 1.57 },    // выход из ущелья на востоке, лицом на запад
+            default:    { x: 83.5, z: -3.5, r: 1.57 },      // появление и воскрешение: у стоянки отшельника (перенесено с (128, -10))
+            fromForest: { x: 83.5, z: -3.5, r: 1.57 },    // приход из лесной опушки (выход-портал по-прежнему на востоке, (146, -10)), лицом на запад
             fromBurnt:  { x: 10.0, z: 78.0, r: 0.00 },   // выход из южного ущелья (Выжженная земля), лицом на север
             fromTemple: { x: -100.0, z: 84.5, r: 0.00 }  // выход из Храма Стихий: перед вратами, лицом от них
         },
@@ -856,9 +863,10 @@ window.LOCATIONS = {
         clearings: [
             { x: 131.0, z: -10.0, radius: 8.0 }, { x: 120.0, z: -10.0, radius: 7.0 },
             { x: 10.0, z: 84.0, radius: 9.0 }, { x: 10.0, z: 93.0, radius: 8.0 },          // северное ущелье
-            { x: 115.0, z: -20.0, radius: 11.0 },                 // стоянка отшельника
+            { x: 80.0, z: 0.0, radius: 12.0 },                 // стоянка отшельника (перенесена на ровное место, 2026-11-18)
             { x: -74.0, z: 42.0, radius: 19.0 },                 // Круг стихий
             { x: -106.0, z: -46.0, radius: 26.0 },                 // расширенный лагерь ящеров
+            { x: -86.0, z: -69.0, radius: 15.0 }, { x: -106.0, z: -71.0, radius: 15.0 }, { x: -126.0, z: -69.0, radius: 15.0 },   // южное расширение лагеря
             { x: -4.0, z: 68.0, radius: 6.0 }, { x: -22.0, z: 64.0, radius: 6.0 }   // логово львов (кости)
         ],
 
@@ -878,11 +886,11 @@ window.LOCATIONS = {
             { id: 'west_rim_trees', type: 'forest', grass: false, x: 126.0, z: 50.0, rx: 10.0, rz: 24.0, count: 5, spacing: 15.0, scaleMin: 0.85, scaleMax: 1.3, types: ['twisted','quiver'], undergrowth: true, ferns: 0, shrubs: 3, seed: 843 },
 
             // Пальмы-оазис: колчанные деревья (пальмы) по берегам озера и тень над стоянкой отшельника
-            { id: 'palms_lake_n', type: 'forest', grass: false, x: 36.0, z: 40.0, rx: 24.0, rz: 8.0, count: 6, spacing: 6.0, scaleMin: 0.85, scaleMax: 1.2, treeType: 'quiver', undergrowth: false, seed: 1101 },
-            { id: 'palms_lake_s', type: 'forest', grass: false, x: 30.0, z: -20.0, rx: 22.0, rz: 6.0, count: 5, spacing: 6.0, scaleMin: 0.85, scaleMax: 1.2, treeType: 'quiver', undergrowth: false, seed: 1102 },
-            { id: 'palms_lake_w', type: 'forest', grass: false, x: 66.0, z: 10.0, rx: 7.0, rz: 16.0, count: 5, spacing: 6.0, scaleMin: 0.85, scaleMax: 1.2, treeType: 'quiver', undergrowth: false, seed: 1103 },
-            { id: 'palms_lake_e', type: 'forest', grass: false, x: 6.0, z: 10.0, rx: 7.0, rz: 16.0, count: 5, spacing: 6.0, scaleMin: 0.85, scaleMax: 1.2, treeType: 'quiver', undergrowth: false, seed: 1104 },
-            { id: 'palms_camp', type: 'forest', grass: false, x: 112.0, z: -33.0, rx: 8.0, rz: 5.0, count: 3, spacing: 6.0, scaleMin: 0.9, scaleMax: 1.2, treeType: 'quiver', undergrowth: false, seed: 1105 },
+            { id: 'palms_lake_n', type: 'forest', grass: false, x: 36.0, z: 40.0, rx: 24.0, rz: 8.0, count: 9, spacing: 6.0, scaleMin: 0.85, scaleMax: 1.2, types: ['quiver', 'quiver', 'quiver', 'palm_fan', 'palm_majesty'], undergrowth: false, seed: 1101 },
+            { id: 'palms_lake_s', type: 'forest', grass: false, x: 30.0, z: -20.0, rx: 22.0, rz: 6.0, count: 7, spacing: 6.0, scaleMin: 0.85, scaleMax: 1.2, types: ['quiver', 'quiver', 'quiver', 'palm_fan', 'palm_majesty'], undergrowth: false, seed: 1102 },
+            { id: 'palms_lake_w', type: 'forest', grass: false, x: 66.0, z: 10.0, rx: 7.0, rz: 16.0, count: 7, spacing: 6.0, scaleMin: 0.85, scaleMax: 1.2, types: ['quiver', 'quiver', 'quiver', 'palm_fan', 'palm_majesty'], undergrowth: false, seed: 1103 },
+            { id: 'palms_lake_e', type: 'forest', grass: false, x: 6.0, z: 10.0, rx: 7.0, rz: 16.0, count: 7, spacing: 6.0, scaleMin: 0.85, scaleMax: 1.2, types: ['quiver', 'quiver', 'quiver', 'palm_fan', 'palm_majesty'], undergrowth: false, seed: 1104 },
+            { id: 'palms_camp', type: 'forest', grass: false, x: 112.0, z: -33.0, rx: 8.0, rz: 5.0, count: 5, spacing: 6.0, scaleMin: 0.9, scaleMax: 1.2, types: ['quiver', 'quiver', 'quiver', 'palm_fan', 'palm_majesty'], undergrowth: false, seed: 1105 },
 
             // Сухая трава (grass_set, солома): сплошной ковёр, разрежённый подлеском у деревьев
             { id: 'grass_w', type: 'grassland', x: 96.0, z: 0.0, rx: 40.0, rz: 80.0, density: 6.0, spacing: 2.1, scaleMin: 1.0, scaleMax: 1.5, weights: { a: 0.55, b: 0.06, c: 0.33, d: 0.06 }, maxSlope: 0.38, seed: 800 },
@@ -894,6 +902,7 @@ window.LOCATIONS = {
             { id: 'grass_e', type: 'grassland', x: -100.0, z: 8.0, rx: 36.0, rz: 60.0, density: 6.0, spacing: 2.1, scaleMin: 1.0, scaleMax: 1.5, weights: { a: 0.55, b: 0.06, c: 0.33, d: 0.06 }, maxSlope: 0.38, seed: 866 },
             { id: 'grass_circle', type: 'grassland', x: -74.0, z: 42.0, rx: 22.0, rz: 20.0, density: 6.0, spacing: 2.1, scaleMin: 1.0, scaleMax: 1.5, weights: { a: 0.55, b: 0.06, c: 0.33, d: 0.06 }, maxSlope: 0.38, seed: 877 },
 
+            // Пальмы вокруг озера (Meshy веерные пальмы, 2026-11-18)
             // Камни и скальные выходы (кладки у озера, холмы-копье)
             { id: 'rocks_lake_e', type: 'rocks', x: 6.0, z: 30.0, radius: 6.0, count: 4, scaleMin: 0.9, scaleMax: 2.2, seed: 900 },
             { id: 'rocks_lake_s', type: 'rocks', x: 30.0, z: -34.0, radius: 5.0, count: 3, scaleMin: 0.9, scaleMax: 2.2, seed: 907 },
@@ -941,6 +950,15 @@ window.LOCATIONS = {
             { id: 'sv_hyena_4', type: 'hyena', x: 96.0, z: -40.0, r: 2.36 },
             { id: 'sv_hyena_5', type: 'hyena', x: 88.0, z: -50.0, r: 4.06 },
             { id: 'sv_hyena_6', type: 'hyena', x: 106.0, z: -52.0, r: 5.76 },
+            // Восточные луга у x≈122 (на месте прежней стоянки отшельника): стая гиен
+            { id: 'sv_hyena_7', type: 'hyena', x: 118.0, z: -24.0, r: 1.2 },
+            { id: 'sv_hyena_8', type: 'hyena', x: 126.0, z: -30.0, r: 3.9 },
+            { id: 'sv_hyena_9', type: 'hyena', x: 110.0, z: -24.0, r: 5.1 },
+            { id: 'sv_hyena_10', type: 'hyena', x: 126.0, z: 8.0, r: 2.4 },
+            { id: 'sv_hyena_11', type: 'hyena', x: 120.0, z: 10.0, r: 0.7 },
+            { id: 'sv_hyena_12', type: 'hyena', x: 128.0, z: 18.0, r: 4.4 },
+            { id: 'sv_hyena_13', type: 'hyena', x: 114.0, z: -38.0, r: 2.9 },
+            { id: 'sv_hyena_14', type: 'hyena', x: 124.0, z: -44.0, r: 5.6 },
             { id: 'sv_komodo_1', type: 'komodo', x: -4.0, z: 14.0, r: 4.14 },
             { id: 'sv_komodo_2', type: 'komodo', x: 10.0, z: -20.0, r: 5.84 },
             { id: 'sv_komodo_3', type: 'komodo', x: 78.0, z: 22.0, r: 1.26 },
@@ -961,25 +979,25 @@ window.LOCATIONS = {
             { id: 'sv_rhino_5', type: 'rhino', name: 'Носорог', x: 36.0, z: 76.0, r: 0.52, rank: 'normal', scale: 0.82 },
             { id: 'sv_rhino_leader', type: 'rhino', name: 'Вожак носорогов', x: 112.0, z: 76.0, r: 4.71, rank: 'elite', scale: 1.15 },
             // Ящеры-солдаты в лагере (расширены по всей восточной и юго-восточной части)
-            { id: 'sv_soldier_1', type: 'lizard_soldier', x: -105.6, z: -49.0, r: 3.64 },
-            { id: 'sv_soldier_2', type: 'lizard_soldier', x: -98.2, z: -55.8, r: 5.34 },
-            { id: 'sv_soldier_3', type: 'lizard_soldier', x: -88.7, z: -52.8, r: 0.76 },
-            { id: 'sv_soldier_4', type: 'lizard_soldier', x: -86.4, z: -43.0, r: 2.46 },
-            { id: 'sv_soldier_5', type: 'lizard_soldier', x: -93.8, z: -36.2, r: 4.16 },
-            { id: 'sv_soldier_6', type: 'lizard_soldier', x: -103.3, z: -39.2, r: 5.86 },
-            { id: 'sv_soldier_7', type: 'lizard_soldier', x: -74.0, z: -54.0, r: 1.28 },
-            { id: 'sv_soldier_8', type: 'lizard_soldier', x: -122.0, z: -62.0, r: 2.98 },
-            { id: 'sv_soldier_9', type: 'lizard_soldier', x: -114.0, z: -38.0, r: 4.94 },
-            { id: 'sv_soldier_10', type: 'lizard_soldier', x: -118.0, z: -50.0, r: 0.36 },
-            { id: 'sv_soldier_11', type: 'lizard_soldier', x: -128.0, z: -44.0, r: 1.76 },
-            { id: 'sv_soldier_12', type: 'lizard_soldier', x: -132.0, z: -56.0, r: 3.94 },
-            { id: 'sv_soldier_13', type: 'lizard_soldier', x: -108.0, z: -66.0, r: 5.54 },
-            { id: 'sv_soldier_14', type: 'lizard_soldier', x: -92.0, z: -62.0, r: 0.96 },
-            { id: 'sv_soldier_15', type: 'lizard_soldier', x: -135.0, z: -32.0, r: 2.56 },
+            { id: 'sv_soldier_1', type: 'lizard_soldier', x: -130.1, z: -45.4, r: 1.49 },
+            { id: 'sv_soldier_2', type: 'lizard_soldier', x: -85.9, z: -70.0, r: 3.42 },
+            { id: 'sv_soldier_3', type: 'lizard_soldier', x: -94.3, z: -32.6, r: 2.32 },
+            { id: 'sv_soldier_4', type: 'lizard_soldier', x: -115.5, z: -74.0, r: 3.79 },
+            { id: 'sv_soldier_5', type: 'lizard_soldier', x: -107.0, z: -52.2, r: 3.93 },
+            { id: 'sv_soldier_6', type: 'lizard_soldier', x: -131.5, z: -63.7, r: 0.41 },
+            { id: 'sv_soldier_7', type: 'lizard_soldier', x: -84.2, z: -47.2, r: 0.08 },
+            { id: 'sv_soldier_8', type: 'lizard_soldier', x: -113.6, z: -39.1, r: 5.26 },
+            { id: 'sv_soldier_9', type: 'lizard_soldier', x: -94.3, z: -58.9, r: 1.63 },
+            { id: 'sv_soldier_10', type: 'lizard_soldier', x: -120.3, z: -55.3, r: 1.47 },
+            { id: 'sv_soldier_11', type: 'lizard_soldier', x: -97.9, z: -75.9, r: 6.25 },
+            { id: 'sv_soldier_12', type: 'lizard_soldier', x: -94.3, z: -48.7, r: 2.95 },
+            { id: 'sv_soldier_13', type: 'lizard_soldier', x: -122.1, z: -64.5, r: 5.25 },
+            { id: 'sv_soldier_14', type: 'lizard_soldier', x: -84.8, z: -37.5, r: 2.99 },
+            { id: 'sv_soldier_15', type: 'lizard_soldier', x: -120.8, z: -46.0, r: 4.01 },
             // Командиры ящеров
-            { id: 'sv_commander_1', type: 'lizard', x: -104.0, z: -44.0, r: 6.14 },
-            { id: 'sv_commander_2', type: 'lizard', x: -124.0, z: -32.0, r: 1.56 },
-            { id: 'sv_commander_3', type: 'lizard', x: -126.0, z: -52.0, r: 4.34 },
+            { id: 'sv_commander_1', type: 'lizard', x: -102.2, z: -41.6, r: 0.95 },
+            { id: 'sv_commander_2', type: 'lizard', x: -131.5, z: -32.4, r: 3.99 },
+            { id: 'sv_commander_3', type: 'lizard', x: -110.5, z: -63.3, r: 5.45 },
             { id: 'sv_fire_elemental', type: 'fire_elemental', x: -74.0, z: 52.0, r: 3.14 },
             { id: 'sv_stone_elemental', type: 'stone_elemental', x: -84.0, z: 42.0, r: 4.71 },
             { id: 'sv_water_elemental', type: 'water_elemental', x: -74.0, z: 32.0, r: 6.28 },
@@ -996,13 +1014,13 @@ window.LOCATIONS = {
 
         // Стоянка отшельника, Круг стихий, лагерь ящеров, путевые камни
         props: [
-            { id: 'savanna.hermit', prop: 'npc_lizard_hermit', x: 112.0, z: -22.5, r: 3.14 },
-            { id: 'savanna.hermit_fire', prop: 'campfire', x: 115.0, z: -20.0, r: 3.14 },
-            { id: 'savanna.hermit_hut', prop: 'hermit_hut', x: 122.0, z: -25.0, r: 4.04 },
-            { id: 'savanna.hermit_rack', prop: 'drying_rack', x: 109.0, z: -15.0, r: 3.44 },
-            { id: 'savanna.hermit_stump_1', prop: 'stump', x: 118.5, z: -18.0, r: 3.54 },
-            { id: 'savanna.hermit_stump_2', prop: 'stump', x: 111.0, z: -18.0, r: 4.34 },
-            { id: 'savanna.hermit_log', prop: 'fallen_log', x: 117.0, z: -15.0, r: 3.74, noObstacle: true, s: 2.4 },
+            { id: 'savanna.hermit', prop: 'npc_lizard_hermit', x: 77.0, z: -2.5, r: 3.14 },
+            { id: 'savanna.hermit_fire', prop: 'campfire', x: 80.0, z: 0.0, r: 3.14 },
+            { id: 'savanna.hermit_hut', prop: 'lizard_tent_small', x: 88.0, z: -5.0, r: 5.33 },
+            { id: 'savanna.hermit_rack', prop: 'drying_rack', x: 74.0, z: 5.0, r: 3.44 },
+            { id: 'savanna.hermit_stump_1', prop: 'stump', x: 83.5, z: 2.0, r: 3.54 },
+            { id: 'savanna.hermit_stump_2', prop: 'stump', x: 76.0, z: 2.0, r: 4.34 },
+            { id: 'savanna.hermit_log', prop: 'fallen_log', x: 82.0, z: 5.0, r: 3.74, noObstacle: true, s: 2.4 },
             { id: 'savanna.twinstone_pass', prop: 'twinstone_pass', x: 145.0, z: -10.0, r: 4.71, yFrom: [120.0, -10.0], dy: 0.10 },
             { id: 'savanna.north_pass', prop: 'twinstone_pass', x: 10.0, z: 95.0, r: 3.14, yFrom: [10.0, 70.0], dy: 0.10 },   // северное ущелье в Выжженную землю
             { id: 'savanna.altar_fire', prop: 'elemental_altar_fire', x: -74.0, z: 48.0, r: 3.14 },
@@ -1013,46 +1031,53 @@ window.LOCATIONS = {
 
             // Центральный узел лагеря ящеров
             { id: 'savanna.lizard_totem', prop: 'lizard_totem', x: -92.0, z: -40.0, r: 3.64 },
+            { id: 'savanna.lizard_totem_2', prop: 'lizard_totem_b', x: -118.0, z: -36.0, r: 3.14 },
             { id: 'savanna.lizard_fire', prop: 'campfire', x: -96.0, z: -46.0, r: 3.14 },
             { id: 'savanna.lizard_drum_1', prop: 'lizard_drum', x: -94.0, z: -42.5, r: 3.94 },
-            { id: 'savanna.lizard_drum_2', prop: 'lizard_drum', x: -99.0, z: -43.5, r: 2.54 },
-            { id: 'savanna.bones_1', prop: 'bone_pile_4', x: -90.0, z: -46.0, r: 3.54 },
+            { id: 'savanna.lizard_drum_2', prop: 'lizard_drum_b', x: -99.0, z: -43.5, r: 2.54 },
+            { id: 'savanna.bones_1', prop: 'bone_pile_4', x: -98.0, z: -39.5, r: 3.54 },
 
-            // Шатры (рассредоточены от центра на восток к краю карты)
-            { id: 'savanna.lizard_tent_1', prop: 'lizard_tent', x: -86.0, z: -50.0, r: 3.94 },
-            { id: 'savanna.lizard_tent_2', prop: 'lizard_tent', x: -104.0, z: -52.0, r: 2.54 },
-            { id: 'savanna.lizard_tent_3', prop: 'lizard_tent', x: -108.0, z: -38.0, r: 5.54 },
-            { id: 'savanna.lizard_tent_4', prop: 'lizard_tent', x: -124.0, z: -42.0, r: 4.24 },
-            { id: 'savanna.lizard_tent_5', prop: 'lizard_tent', x: -130.0, z: -54.0, r: 1.34 },
+            // Шатры (разнесены по всему лагерю, до z -80)
+            { id: 'savanna.lizard_tent_1', prop: 'lizard_tent', x: -86.0, z: -56.0, r: 5.50 },
+            { id: 'savanna.lizard_tent_2', prop: 'lizard_tent', x: -103.0, z: -69.0, r: 5.34 },
+            { id: 'savanna.lizard_tent_3', prop: 'lizard_tent', x: -124.0, z: -73.0, r: 0.69 },
+            { id: 'savanna.lizard_tent_4', prop: 'lizard_tent', x: -131.0, z: -54.0, r: 1.96 },
+            { id: 'savanna.lizard_tent_5', prop: 'lizard_tent', x: -123.0, z: -36.0, r: 2.80 },
+            { id: 'savanna.lizard_tent_6', prop: 'lizard_tent', x: -107.0, z: -33.0, r: 2.44 },
+            { id: 'savanna.lizard_fire_2', prop: 'campfire', x: -114.0, z: -61.0, r: 3.14 },
+            { id: 'savanna.lizard_drum_3', prop: 'lizard_drum', x: -109.0, z: -59.0, r: 1.94 },
+            { id: 'savanna.lizard_totem_3', prop: 'lizard_totem', x: -112.0, z: -77.0, r: 0.0 },
+            { id: 'savanna.bones_5', prop: 'bone_pile_2', x: -119.0, z: -64.5, r: 2.2 },
 
-            // Боевые знамёна
+            // Знамёна
             { id: 'savanna.lizard_banner_1', prop: 'lizard_banner', x: -88.0, z: -36.0, r: 3.14 },
-            { id: 'savanna.lizard_banner_2', prop: 'lizard_banner', x: -100.0, z: -34.0, r: 3.14 },
+            { id: 'savanna.lizard_banner_2', prop: 'lizard_banner_b', x: -100.0, z: -34.0, r: 3.14 },
             { id: 'savanna.lizard_banner_3', prop: 'lizard_banner', x: -114.0, z: -46.0, r: 4.34 },
-            { id: 'savanna.lizard_banner_4', prop: 'lizard_banner', x: -120.0, z: -28.0, r: 3.54 },
+            { id: 'savanna.lizard_banner_4', prop: 'lizard_banner_b', x: -120.0, z: -28.0, r: 3.54 },
             { id: 'savanna.lizard_banner_5', prop: 'lizard_banner', x: -134.0, z: -44.0, r: 2.34 },
+            { id: 'savanna.lizard_banner_6', prop: 'lizard_banner_b', x: -90.0, z: -74.0, r: 2.40 },
+            { id: 'savanna.lizard_banner_7', prop: 'lizard_banner', x: -122.0, z: -80.0, r: 0.40 },
 
-            // Частокол из кольев с проходами (основной широкий вход с тропы на северо-западе + проход на юг)
-            // Северное крыло частокола
+            // Частокол: северное крыло (вход с тропы свободен между x -88 и -97)
             { id: 'savanna.lizard_barricade_n1', prop: 'lizard_barricade', x: -82.0, z: -32.0, r: 3.59 },
-            { id: 'savanna.lizard_barricade_n2', prop: 'lizard_barricade', x: -87.5, z: -29.5, r: 3.49 },
-            // ВХОД С ТРОПЫ: свободен между x: 88..97, z: 30..38 (проём шириной более 8 метров)
+            { id: 'savanna.lizard_barricade_n2', prop: 'lizard_barricade_b', x: -87.5, z: -29.5, r: 3.49 },
             { id: 'savanna.lizard_barricade_n3', prop: 'lizard_barricade', x: -105.0, z: -29.0, r: 2.99 },
-            { id: 'savanna.lizard_barricade_n4', prop: 'lizard_barricade', x: -112.0, z: -28.0, r: 2.94 },
+            { id: 'savanna.lizard_barricade_n4', prop: 'lizard_barricade_b', x: -112.0, z: -28.0, r: 2.94 },
             { id: 'savanna.lizard_barricade_n5', prop: 'lizard_barricade', x: -127.0, z: -26.0, r: 2.84 },
-
-            // Западное крыло частокола
-            { id: 'savanna.lizard_barricade_w1', prop: 'lizard_barricade', x: -78.0, z: -37.0, r: 4.59 },
+            { id: 'savanna.lizard_barricade_w1', prop: 'lizard_barricade_b', x: -78.0, z: -37.0, r: 4.59 },
             { id: 'savanna.lizard_barricade_w2', prop: 'lizard_barricade', x: -77.0, z: -44.0, r: 4.69 },
-            { id: 'savanna.lizard_barricade_w3', prop: 'lizard_barricade', x: -78.0, z: -52.0, r: 4.79 },
-
-            // Южное крыло частокола
-            { id: 'savanna.lizard_barricade_s1', prop: 'lizard_barricade', x: -84.0, z: -60.0, r: 5.99 },
-            { id: 'savanna.lizard_barricade_s2', prop: 'lizard_barricade', x: -91.0, z: -62.0, r: 6.09 },
-            // ЮЖНЫЙ ПРОХОД: свободен между x: 92..102 (проём шириной ~10 метров)
-            { id: 'savanna.lizard_barricade_s3', prop: 'lizard_barricade', x: -104.0, z: -64.0, r: 6.24 },
-            { id: 'savanna.lizard_barricade_s4', prop: 'lizard_barricade', x: -114.0, z: -63.0, r: 0.09 },
-            { id: 'savanna.lizard_barricade_s5', prop: 'lizard_barricade', x: -126.0, z: -60.0, r: 0.29 },
+            { id: 'savanna.lizard_barricade_w3', prop: 'lizard_barricade_b', x: -78.0, z: -52.0, r: 4.79 },
+            { id: 'savanna.lizard_barricade_w4', prop: 'lizard_barricade', x: -78.0, z: -60.0, r: 4.79 },
+            { id: 'savanna.lizard_barricade_w5', prop: 'lizard_barricade_b', x: -79.0, z: -68.0, r: 4.90 },
+            { id: 'savanna.lizard_barricade_w6', prop: 'lizard_barricade', x: -82.0, z: -75.0, r: 5.50 },
+            { id: 'savanna.lizard_barricade_s1', prop: 'lizard_barricade_b', x: -88.0, z: -80.5, r: 6.05 },
+            { id: 'savanna.lizard_barricade_s2', prop: 'lizard_barricade', x: -95.0, z: -82.0, r: 6.20 },
+            { id: 'savanna.lizard_barricade_s3', prop: 'lizard_barricade_b', x: -110.0, z: -82.5, r: 0.10 },
+            { id: 'savanna.lizard_barricade_s4', prop: 'lizard_barricade', x: -117.0, z: -82.0, r: 0.15 },
+            { id: 'savanna.lizard_barricade_s5', prop: 'lizard_barricade_b', x: -124.0, z: -81.0, r: 0.30 },
+            { id: 'savanna.lizard_barricade_s6', prop: 'lizard_barricade', x: -131.0, z: -78.0, r: 0.55 },
+            { id: 'savanna.lizard_barricade_e1', prop: 'lizard_barricade', x: -137.0, z: -70.0, r: 1.20 },
+            // ЮЖНЫЙ ПРОХОД свободен между x -97 и -105
 
             // Кости в других зонах
             { id: 'savanna.bones_2', prop: 'bone_pile_1', x: -20.0, z: 62.0, r: 5.04 },
@@ -1061,7 +1086,13 @@ window.LOCATIONS = {
         ],
 
         decorations: {
-            trees: [],
+            trees: [
+                // Пальмы на пробу (2026-11-18): у стоянки отшельника и у озера, по одной каждого вида
+                { id: 'savanna.palm_fan_hermit', x: 88.0, z: 6.0, s: 1.0, r: 0.6, treeType: 'palm_fan' },
+                { id: 'savanna.palm_majesty_hermit', x: 72.0, z: -9.0, s: 1.0, r: 2.1, treeType: 'palm_majesty' },
+                { id: 'savanna.palm_fan_lake', x: 62.0, z: 12.0, s: 1.0, r: 4.0, treeType: 'palm_fan' },
+                { id: 'savanna.palm_majesty_lake', x: 58.0, z: 26.0, s: 1.0, r: 1.3, treeType: 'palm_majesty' }
+            ],
             boulders: [],
             shrubs: [],
             ferns: [],
@@ -1610,11 +1641,12 @@ window.LOCATIONS = {
             // Восточные горные сосны
             { id: 'pv_west_conifers', type: 'forest', x: -125.0, z: 0.0, rx: 12.0, rz: 65.0, count: 32, seed: 5106, types: ['evergreen', 'fir_a', 'fir_b', 'fir_c'] },
             // Древние реликтовые деревья вокруг озера
-            { id: 'pv_cycads_lake_n', type: 'forest', grass: false, x: -10.0, z: 30.0, rx: 24.0, rz: 8.0, count: 7, spacing: 6.0, scaleMin: 0.8, scaleMax: 1.2, treeType: 'quiver', undergrowth: false, seed: 5110 },
-            { id: 'pv_cycads_lake_s', type: 'forest', grass: false, x: -10.0, z: -20.0, rx: 22.0, rz: 6.0, count: 6, spacing: 6.0, scaleMin: 0.8, scaleMax: 1.2, treeType: 'quiver', undergrowth: false, seed: 5111 },
-            { id: 'pv_cycads_west', type: 'forest', grass: false, x: -65.0, z: -12.0, rx: 22.0, rz: 24.0, count: 8, spacing: 9.0, scaleMin: 0.8, scaleMax: 1.25, treeType: 'quiver', undergrowth: false, seed: 5112 },
-            { id: 'pv_cycads_coast', type: 'forest', grass: false, x: 65.0, z: 10.0, rx: 16.0, rz: 26.0, count: 7, spacing: 9.0, scaleMin: 0.8, scaleMax: 1.25, treeType: 'quiver', undergrowth: false, seed: 5113 },
+            { id: 'pv_cycads_lake_n', type: 'forest', grass: false, x: -10.0, z: 30.0, rx: 24.0, rz: 8.0, count: 10, spacing: 6.0, scaleMin: 0.8, scaleMax: 1.2, types: ['quiver', 'quiver', 'quiver', 'palm_fan', 'palm_majesty'], undergrowth: false, seed: 5110 },
+            { id: 'pv_cycads_lake_s', type: 'forest', grass: false, x: -10.0, z: -20.0, rx: 22.0, rz: 6.0, count: 9, spacing: 6.0, scaleMin: 0.8, scaleMax: 1.2, types: ['quiver', 'quiver', 'quiver', 'palm_fan', 'palm_majesty'], undergrowth: false, seed: 5111 },
+            { id: 'pv_cycads_west', type: 'forest', grass: false, x: -65.0, z: -12.0, rx: 22.0, rz: 24.0, count: 12, spacing: 9.0, scaleMin: 0.8, scaleMax: 1.25, types: ['quiver', 'quiver', 'quiver', 'palm_fan', 'palm_majesty'], undergrowth: false, seed: 5112 },
+            { id: 'pv_cycads_coast', type: 'forest', grass: false, x: 65.0, z: 10.0, rx: 16.0, rz: 26.0, count: 10, spacing: 9.0, scaleMin: 0.8, scaleMax: 1.25, types: ['quiver', 'quiver', 'quiver', 'palm_fan', 'palm_majesty'], undergrowth: false, seed: 5113 },
             // Меловые цветущие магнолии у воды (sakura в роли древней цветущей магнолии)
+            // Пальмы у озера и побережья (Meshy веерные пальмы, 2026-11-18)
             { id: 'pv_magnolia_lake', type: 'forest', grass: false, x: 14.0, z: 6.0, rx: 12.0, rz: 14.0, count: 4, spacing: 7.0, scaleMin: 0.9, scaleMax: 1.15, treeType: 'sakura', undergrowth: false, seed: 5114 },
             // Папоротниковые ковры
             { id: 'pv_ferns_1', type: 'fernPatch', x: 45.0, z: -32.0, radius: 10.0, count: 18, seed: 5120 },
