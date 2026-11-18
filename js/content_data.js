@@ -9716,6 +9716,35 @@ window.GAME_CONTENT = {
    "obstacle": 0.45,
    "modelKey": "props/stump"
   },
+  "tailor_cottage": {
+   "id": "tailor_cottage",
+   "name": "Домик швеи",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": 2.06,
+     "cz": -0.14,
+     "hx": 1.7,
+     "hz": 2.35,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -2.04,
+     "cz": -0.24,
+     "hx": 1.6,
+     "hz": 2.0,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/tailor_cottage"
+  },
   "twinstone_pass": {
    "id": "twinstone_pass",
    "name": "Каменный каньон",

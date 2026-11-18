@@ -161,6 +161,7 @@ window.AVELORA_ASSET_INDEX = {
   "props/stone_cottage": ["m/props__stone_cottage.js", "7f866c9001"],
   "props/stone_pass": ["m/props__stone_pass.js", "137f7dd980"],
   "props/stump": ["m/props__stump.js", "72156d4f43"],
+  "props/tailor_cottage": ["m/props__tailor_cottage.js", "fc9dd13dd6"],
   "props/twinstone_pass": ["m/props__twinstone_pass.js", "130dc91278"],
   "props/violet_flowerbed": ["m/props__violet_flowerbed.js", "5c4bf6b7bd"],
   "props/woodshed": ["m/props__woodshed.js", "25b8c6c8d3"],
