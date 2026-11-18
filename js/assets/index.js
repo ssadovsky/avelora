@@ -123,6 +123,8 @@ window.AVELORA_ASSET_INDEX = {
   "props/bone_pile_3": ["m/props__bone_pile_3.js", "e175fa1f46"],
   "props/bone_pile_4": ["m/props__bone_pile_4.js", "0bd36e3c96"],
   "props/bone_pile_5": ["m/props__bone_pile_5.js", "cf5e85ee21"],
+  "props/camp_tent_main": ["m/props__camp_tent_main.js", "c7bceeedc3"],
+  "props/camp_tent_small": ["m/props__camp_tent_small.js", "5e7c69bc61"],
   "props/campfire": ["m/props__campfire.js", "8af39b4f43"],
   "props/chest": ["m/props__chest.js", "0ec9dbe92a"],
   "props/cottage": ["m/props__cottage.js", "e0e76f41d4"],

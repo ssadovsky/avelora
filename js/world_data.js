@@ -1788,7 +1788,7 @@ window.LOCATIONS = {
             hills: { amplitude: 3.2, inclineX: 0.0, inclineZ: 0.1 },
             paths: [
                 { type: 'dirt', width: 2.4, thin: true, clearMargin: 1.6, points: [[0.0, -78.0], [0.0, -60.0], [8.0, -40.0], [6.0, -28.0]] },
-                { type: 'dirt', width: 2.2, thin: true, clearMargin: 1.4, points: [[-3.0, -77.0], [-14.0, -75.5], [-26.0, -76.5], [-36.0, -78.5], [-42.0, -79.5]] }
+                { type: 'dirt', width: 2.2, thin: true, clearMargin: 1.4, points: [[-3.0, -77.0], [-14.0, -75.5], [-26.0, -76.5], [-33.0, -77.0], [-38.5, -76.5]] }
             ]
         },
 
@@ -1846,14 +1846,14 @@ window.LOCATIONS = {
         props: [
             // Цитадель Эмберстоун: задом к западному краю (тыл обрезан и уходит в горный пояс), фасадом на восток; низ — на уровне луга
             { id: 'burntLands.ember_citadel', prop: 'ember_citadel', x: -136.0, z: 0.0, r: Math.PI / 2, s: 28.0, yFrom: [-100.0, 0.0], dy: -0.2 },
-            // Лагерь экспедиции (-45, -80): костёр, брёвна, два шатра; Малакар и Железнобородый
-            { id: 'burntLands.camp_fire', prop: 'campfire', x: -45.0, z: -79.0, r: 0.0, s: 1.3 },
-            { id: 'burntLands.camp_log_1', prop: 'fallen_log', x: -48.6, z: -79.5, r: 1.57, s: 0.7 },
-            { id: 'burntLands.camp_log_2', prop: 'fallen_log', x: -41.4, z: -79.5, r: 1.57, s: 0.7 },
-            { id: 'burntLands.camp_tent_1', prop: 'lizard_tent', x: -52.0, z: -83.0, r: 0.7 },
-            { id: 'burntLands.camp_tent_2', prop: 'lizard_tent', x: -38.0, z: -83.0, r: -0.7 },
-            { id: 'burntLands.malakar', prop: 'npc_malakar', x: -46.6, z: -85.0, r: 0.25 },
-            { id: 'burntLands.ironbeard', prop: 'npc_ironbeard', x: -43.4, z: -85.0, r: -0.25 },
+            // Лагерь экспедиции (-45, -80): большой штабной шатёр (вход на +z, к костру), две малые палатки, костёр, брёвна; Малакар и Железнобородый перед шатром
+            { id: 'burntLands.camp_tent_main', prop: 'camp_tent_main', x: -45.0, z: -83.0, r: 0.0 },
+            { id: 'burntLands.camp_tent_1', prop: 'camp_tent_small', x: -54.0, z: -80.0, r: 1.05 },
+            { id: 'burntLands.camp_fire', prop: 'campfire', x: -45.0, z: -74.5, r: 0.0, s: 1.3 },
+            { id: 'burntLands.camp_log_1', prop: 'fallen_log', x: -48.6, z: -75.0, r: 1.57, s: 0.7 },
+            { id: 'burntLands.camp_log_2', prop: 'fallen_log', x: -41.4, z: -75.0, r: 1.57, s: 0.7 },
+            { id: 'burntLands.malakar', prop: 'npc_malakar', x: -46.6, z: -77.5, r: 0.25 },
+            { id: 'burntLands.ironbeard', prop: 'npc_ironbeard', x: -43.4, z: -77.5, r: -0.25 },
             // Гнездо псевдодраконов: кости у кладок
             { id: 'burntLands.nest_bones_1', prop: 'bone_pile_4', x: -111.0, z: 66.0, r: 0.4 },
             { id: 'burntLands.nest_bones_2', prop: 'bone_pile_2', x: -121.0, z: 74.0, r: 2.1 },

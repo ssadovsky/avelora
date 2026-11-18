@@ -5175,6 +5175,84 @@ window.GAME_CONTENT = {
    "obstacle": 0.5,
    "foliage": true
   },
+  "camp_tent_main": {
+   "id": "camp_tent_main",
+   "name": "Шатёр экспедиции",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "polygon",
+     "padding": 0.15,
+     "points": [
+      [
+       -3.4,
+       -1.8
+      ],
+      [
+       -2.6,
+       -3.1
+      ],
+      [
+       2.6,
+       -3.1
+      ],
+      [
+       3.4,
+       -1.8
+      ],
+      [
+       3.4,
+       2.2
+      ],
+      [
+       2.2,
+       3.4
+      ],
+      [
+       -2.2,
+       3.4
+      ],
+      [
+       -3.4,
+       2.2
+      ]
+     ]
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/camp_tent_main"
+  },
+  "camp_tent_small": {
+   "id": "camp_tent_small",
+   "name": "Палатка экспедиции",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "polygon",
+     "padding": 0.15,
+     "points": [
+      [
+       -2.3,
+       -2.1
+      ],
+      [
+       2.3,
+       -2.1
+      ],
+      [
+       2.3,
+       2.1
+      ],
+      [
+       -2.3,
+       2.1
+      ]
+     ]
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/camp_tent_small"
+  },
   "campfire": {
    "id": "campfire",
    "name": "Кострище",

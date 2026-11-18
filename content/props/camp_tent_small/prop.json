@@ -1,0 +1,9 @@
+{
+  "id": "camp_tent_small",
+  "name": "Палатка экспедиции",
+  "obstacle": 0,
+  "obstacleShapes": [
+    { "type": "polygon", "padding": 0.15, "points": [[-2.3,-2.1],[2.3,-2.1],[2.3,2.1],[-2.3,2.1]] }
+  ],
+  "cameraBlock": true
+}
