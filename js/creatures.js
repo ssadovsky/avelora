@@ -306,7 +306,7 @@
         respawnSeconds(def) { return Math.max(5, (Number(def.respawnMinutes) || 5) * 60); }
 
         makeRecord(sp, def) {
-            const hasOverrides = sp.scale !== undefined || sp.s !== undefined || sp.behavior || sp.aggroRadius !== undefined || sp.leashRadius !== undefined || sp.rank !== undefined;
+            const hasOverrides = sp.scale !== undefined || sp.s !== undefined || sp.behavior || sp.aggroRadius !== undefined || sp.leashRadius !== undefined || sp.rank !== undefined || sp.passive !== undefined;
             const mergedDef = hasOverrides
                 ? Object.assign({}, def, sp, (sp.scale !== undefined ? { scale: sp.scale } : (sp.s !== undefined ? { scale: sp.s } : {})))
                 : def;
@@ -607,7 +607,7 @@
                 }
 
                 this.root.add(group);
-                this.proxies.push(proxy);
+                if (!def.passive) this.proxies.push(proxy);   // неприкасаемых не ловит луч мыши
             });
         }
 
@@ -1345,10 +1345,12 @@
         // Damage
         // -----------------------------------------------------------
         isAlive(rec) { return !!(rec && rec.group && rec.state !== 'dead' && rec.state !== 'gone'); }
+        /** Можно ли выбрать/ударить: живое и не «неприкасаемое» (creature.json или спавн `passive: true` — утки, бабочки, оленята). */
+        isTargetable(rec) { return this.isAlive(rec) && !(rec.def && rec.def.passive); }
 
         /** Applies damage from the player (melee / Spark). Returns the damage actually dealt. */
         damage(rec, amount, source) {
-            if (!this.isAlive(rec) || !(amount > 0)) return 0;
+            if (!this.isTargetable(rec) || !(amount > 0)) return 0;
             const ui = this.game.ui;
             if (rec.state === 'return') {
                 if (ui && ui.floatAt) ui.floatAt('Уклонение', 'miss', rec.x, rec.y + rec.height + 0.3, rec.z);
@@ -1479,7 +1481,7 @@
          * (1 = immune). Cuts a running attack; walls / water stop the slide (see stepKnockback).
          */
         knockback(rec, fromX, fromZ, kb) {
-            if (!kb || !this.isAlive(rec)) return;
+            if (!kb || !this.isTargetable(rec)) return;
             const resist = Math.max(0, Math.min(1, rec.def.knockbackResist || 0));
             const dist = (kb.distance || 0) * (1 - resist);
             if (!(dist > 0.05)) return;
@@ -1499,7 +1501,7 @@
          * for `duration` s. creature.json `slowResist` 0..1 weakens it (1 = immune). A stronger/longer slow is not overwritten by a weaker one.
          */
         slow(rec, sl) {
-            if (!sl || !this.isAlive(rec)) return;
+            if (!sl || !this.isTargetable(rec)) return;
             const resist = Math.max(0, Math.min(1, rec.def.slowResist || 0));
             const f0 = Math.max(0.1, Math.min(1, sl.factor || 0.5));
             const f = 1 - (1 - f0) * (1 - resist);
@@ -1514,7 +1516,7 @@
          * for `duration` seconds.
          */
         stun(rec, stCfg) {
-            if (!stCfg || !this.isAlive(rec)) return;
+            if (!stCfg || !this.isTargetable(rec)) return;
             const dur = typeof stCfg === 'number' ? stCfg : (stCfg.duration || 5);
             const resist = Math.max(0, Math.min(1, rec.def.stunResist || 0));
             const finalDur = Math.max(0, dur * (1 - resist));
@@ -1547,7 +1549,7 @@
             const pt = detail.point, R = detail.radius || 1;
             for (let i = 0; i < this.list.length; i++) {
                 const rec = this.list[i];
-                if (!this.isAlive(rec)) continue;
+                if (!this.isTargetable(rec)) continue;
                 if (detail.excludeId && rec.id === detail.excludeId) continue;
                 const d = Math.hypot(rec.x - pt.x, rec.z - pt.z) - (rec.def.hitRadius || 0.4);
                 if (d <= R && pt.y <= rec.y + rec.height + R) {
@@ -1571,7 +1573,7 @@
         hitTest(pos) {
             for (let i = 0; i < this.list.length; i++) {
                 const rec = this.list[i];
-                if (!this.isAlive(rec)) continue;
+                if (!this.isTargetable(rec)) continue;
                 const r = rec.def.hitRadius || 0.4;
                 const dx = pos.x - rec.x, dz = pos.z - rec.z;
                 if (dx * dx + dz * dz <= r * r && pos.y >= rec.y - 0.1 && pos.y <= rec.y + rec.height + 0.1) return rec;
@@ -1597,7 +1599,7 @@
 
             for (let i = 0; i < this.list.length; i++) {
                 const rec = this.list[i];
-                if (!this.isAlive(rec)) continue;
+                if (!this.isTargetable(rec)) continue;
 
                 const cy = rec.y + (rec.height || 0.8) * 0.5;
                 const dx = rec.x - origin.x;

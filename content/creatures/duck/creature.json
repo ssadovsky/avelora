@@ -31,5 +31,6 @@
   ],
   "swimmer": true,
   "swimSink": 0.13,
-  "statMultiplier": 1.0
+  "statMultiplier": 1.0,
+  "passive": true
 }

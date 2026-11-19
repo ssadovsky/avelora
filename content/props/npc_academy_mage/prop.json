@@ -1,0 +1,6 @@
+{
+  "id": "npc_academy_mage",
+  "name": "Ориэль",
+  "obstacle": 0.5,
+  "npc": "academy_mage"
+}

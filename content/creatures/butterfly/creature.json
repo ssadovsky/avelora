@@ -26,5 +26,6 @@
   "xp": 2,
   "drops": [],
   "hpBarHeight": 1.2,
-  "statMultiplier": 1.0
+  "statMultiplier": 1.0,
+  "passive": true
 }

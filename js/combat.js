@@ -221,7 +221,7 @@
             // Build sorted candidate list (alive, in front, in range)
             const candidates = cr.list
                 .filter(rec => {
-                    if (!cr.isAlive(rec) || !cr.sameLevel(rec)) return false;
+                    if (!(cr.isTargetable ? cr.isTargetable(rec) : cr.isAlive(rec)) || !cr.sameLevel(rec)) return false;
                     const dx = rec.x - p.x, dz = rec.z - p.z;
                     const dist = Math.sqrt(dx * dx + dz * dz);
                     if (dist > MAX_TAB_DIST) return false;
@@ -263,7 +263,7 @@
 
             const candidates = (cr.list || [])
                 .filter(rec => {
-                    if (!cr.isAlive(rec) || !cr.sameLevel(rec)) return false;
+                    if (!(cr.isTargetable ? cr.isTargetable(rec) : cr.isAlive(rec)) || !cr.sameLevel(rec)) return false;
                     const dx = rec.x - p.x, dz = rec.z - p.z;
                     const dist = Math.hypot(dx, dz);
                     if (dist > maxRange) return false;

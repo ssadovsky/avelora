@@ -2545,6 +2545,8 @@ window.LOCATIONS = {
             { id: 'runeLands.rune_smith', prop: 'npc_rune_smith', x: 49.7, z: 32.8, r: Math.PI / 2 },
             // травница-алхимик Мирена (NPC, content/npcs/herbalist): у крыльца лавки алхимика, лицом на восток к поперечной дороге; скупает всё, ничего не продаёт
             { id: 'runeLands.herbalist', prop: 'npc_herbalist', x: 48.9, z: 11.6, r: Math.PI / 2 },
+            // магистр Ориэль (NPC, content/npcs/academy_mage, Meshy Sapphire Enchantress): у подножия крыльца академии, лицом на запад к поперечной дороге; учит магии, как Лираэль
+            { id: 'runeLands.academy_mage', prop: 'npc_academy_mage', x: 60.4, z: -12.6, r: -Math.PI / 2 },
             // швея Ивелина (NPC, content/npcs/seamstress): в углу у крыльца лавки портного, лицом на восток к поперечной дороге; скупает всё, ничего не продаёт
             { id: 'runeLands.seamstress', prop: 'npc_seamstress', x: 50.0, z: -16.1, r: Math.PI / 2 },
             // лавка портного «Лунная нить» (Meshy Moonlit Tailor, S=6.65 — на 30% меньше остальных, манекен ~3 м, 90k тр.): СЗ угол перекрёстка, ЮВ угол основания (51; −6) — там манекен, тянется на север до z≈−18.6; фасад на восток, к поперечной дороге
