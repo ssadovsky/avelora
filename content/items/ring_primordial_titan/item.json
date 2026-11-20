@@ -1,0 +1,27 @@
+{
+  "id": "ring_primordial_titan",
+  "name": "Кольцо Первозданного титана",
+  "description": "Ювелирное изделие, усиливающее силу и выносливость.",
+  "category": "armor",
+  "quality": "epic",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "ring"
+  },
+  "armor": 36,
+  "stats": {
+    "str": 29,
+    "sta": 18
+  },
+  "requires": {
+    "level": 30
+  },
+  "value": 1100,
+  "sellPrice": 550
+}

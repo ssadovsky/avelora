@@ -2,7 +2,7 @@
   "id": "midnight_boots",
   "name": "Полуночные сапоги",
   "description": "Создание: Полуночные сапоги.",
-  "category": "equipment",
+  "category": "tailoring",
   "price": 80,
   "requiresLevel": 20,
   "ingredients": [

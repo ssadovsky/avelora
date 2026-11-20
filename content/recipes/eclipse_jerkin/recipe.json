@@ -1,0 +1,26 @@
+{
+  "id": "eclipse_jerkin",
+  "name": "Куртка Затмения",
+  "description": "Изготовление: куртка затмения.",
+  "category": "tailoring",
+  "requiresLevel": 25,
+  "price": 220,
+  "ingredients": [
+    {
+      "item": "bear_hide",
+      "count": 10
+    },
+    {
+      "item": "element_crystal",
+      "count": 16
+    },
+    {
+      "item": "primordial_core",
+      "count": 5
+    }
+  ],
+  "result": {
+    "item": "eclipse_jerkin",
+    "count": 1
+  }
+}

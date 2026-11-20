@@ -1,0 +1,26 @@
+{
+  "id": "starstalker_gloves",
+  "name": "Перчатки Звёздного охотника",
+  "description": "Изготовление: перчатки звёздного охотника.",
+  "category": "tailoring",
+  "requiresLevel": 30,
+  "price": 260,
+  "ingredients": [
+    {
+      "item": "bear_hide",
+      "count": 7
+    },
+    {
+      "item": "element_crystal",
+      "count": 11
+    },
+    {
+      "item": "primordial_core",
+      "count": 4
+    }
+  ],
+  "result": {
+    "item": "starstalker_gloves",
+    "count": 1
+  }
+}

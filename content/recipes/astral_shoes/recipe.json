@@ -1,0 +1,26 @@
+{
+  "id": "astral_shoes",
+  "name": "Астральные сапоги",
+  "description": "Изготовление: астральные сапоги.",
+  "category": "tailoring",
+  "requiresLevel": 25,
+  "price": 180,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 8
+    },
+    {
+      "item": "element_crystal",
+      "count": 10
+    },
+    {
+      "item": "primordial_core",
+      "count": 3
+    }
+  ],
+  "result": {
+    "item": "astral_shoes",
+    "count": 1
+  }
+}

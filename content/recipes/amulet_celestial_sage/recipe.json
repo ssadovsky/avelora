@@ -1,0 +1,26 @@
+{
+  "id": "amulet_celestial_sage",
+  "name": "Амулет Небесного мудреца",
+  "description": "Изготовление: амулет небесного мудреца.",
+  "category": "jewelry",
+  "requiresLevel": 30,
+  "price": 340,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 17
+    },
+    {
+      "item": "element_crystal",
+      "count": 34
+    },
+    {
+      "item": "primordial_core",
+      "count": 11
+    }
+  ],
+  "result": {
+    "item": "amulet_celestial_sage",
+    "count": 1
+  }
+}

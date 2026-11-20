@@ -1,0 +1,26 @@
+{
+  "id": "worldforged_helm",
+  "name": "Шлем Первотворца",
+  "description": "Изготовление: шлем первотворца.",
+  "category": "equipment",
+  "requiresLevel": 30,
+  "price": 260,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 12
+    },
+    {
+      "item": "element_crystal",
+      "count": 13
+    },
+    {
+      "item": "primordial_core",
+      "count": 4
+    }
+  ],
+  "result": {
+    "item": "worldforged_helm",
+    "count": 1
+  }
+}

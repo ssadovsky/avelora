@@ -1,0 +1,43 @@
+{
+  "id": "axe_astral",
+  "name": "Астральная секира",
+  "description": "Оружие редкой работы. Урон от Силы.",
+  "category": "weapon",
+  "quality": "epic",
+  "requires": {
+    "level": 25
+  },
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 1.25,
+    "pile": "single",
+    "rotation": [
+      1.5708,
+      0,
+      0
+    ],
+    "offsetY": 0.04
+  },
+  "use": {
+    "type": "equip",
+    "hand": "right"
+  },
+  "stats": {
+    "str": 25,
+    "sta": 17
+  },
+  "weapon": {
+    "damage": [
+      82,
+      123
+    ],
+    "range": 2.2,
+    "cooldown": 1.05,
+    "stat": "str"
+  },
+  "modelKey": "items/onyx_axe",
+  "value": 1100,
+  "sellPrice": 550,
+  "weaponType": "axe"
+}

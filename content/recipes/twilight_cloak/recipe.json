@@ -1,0 +1,26 @@
+{
+  "id": "twilight_cloak",
+  "name": "Сумеречный плащ",
+  "description": "Рецепт: сумеречный плащ.",
+  "category": "tailoring",
+  "requiresLevel": 20,
+  "price": 40,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 6
+    },
+    {
+      "item": "element_crystal",
+      "count": 3
+    },
+    {
+      "item": "primordial_core",
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "twilight_cloak",
+    "count": 1
+  }
+}

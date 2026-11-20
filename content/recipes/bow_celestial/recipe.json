@@ -1,0 +1,34 @@
+{
+  "id": "bow_celestial",
+  "name": "Небесный лук",
+  "description": "Изготовление: небесный лук.",
+  "category": "equipment",
+  "requiresLevel": 30,
+  "price": 280,
+  "ingredients": [
+    {
+      "item": "beam",
+      "count": 7
+    },
+    {
+      "item": "branch",
+      "count": 10
+    },
+    {
+      "item": "iron_ingot",
+      "count": 4
+    },
+    {
+      "item": "element_crystal",
+      "count": 40
+    },
+    {
+      "item": "primordial_core",
+      "count": 9
+    }
+  ],
+  "result": {
+    "item": "bow_celestial",
+    "count": 1
+  }
+}

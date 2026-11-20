@@ -2,7 +2,7 @@
   "id": "twilight_robe",
   "name": "Сумеречная мантия",
   "description": "Создание: Сумеречная мантия.",
-  "category": "equipment",
+  "category": "tailoring",
   "price": 120,
   "requiresLevel": 20,
   "ingredients": [

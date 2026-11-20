@@ -1,0 +1,28 @@
+{
+  "id": "eclipse_gloves",
+  "name": "Перчатки Затмения",
+  "description": "Кожаная броня затмения охотника. Бонус к ловкости.",
+  "category": "armor",
+  "quality": "epic",
+  "armorType": "leather",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "hands"
+  },
+  "armor": 18,
+  "stats": {
+    "dex": 12,
+    "sta": 9
+  },
+  "requires": {
+    "level": 25
+  },
+  "value": 700,
+  "sellPrice": 350
+}

@@ -1,0 +1,27 @@
+{
+  "id": "ring_celestial_sage",
+  "name": "Кольцо Небесного мудреца",
+  "description": "Ювелирное изделие, усиливающее интеллект и выносливость.",
+  "category": "armor",
+  "quality": "epic",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "ring"
+  },
+  "armor": 36,
+  "stats": {
+    "int": 29,
+    "sta": 18
+  },
+  "requires": {
+    "level": 30
+  },
+  "value": 1100,
+  "sellPrice": 550
+}

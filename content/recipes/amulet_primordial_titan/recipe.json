@@ -1,0 +1,26 @@
+{
+  "id": "amulet_primordial_titan",
+  "name": "Амулет Первозданного титана",
+  "description": "Изготовление: амулет первозданного титана.",
+  "category": "jewelry",
+  "requiresLevel": 30,
+  "price": 340,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 17
+    },
+    {
+      "item": "element_crystal",
+      "count": 34
+    },
+    {
+      "item": "primordial_core",
+      "count": 11
+    }
+  ],
+  "result": {
+    "item": "amulet_primordial_titan",
+    "count": 1
+  }
+}

@@ -2,7 +2,7 @@
   "id": "twilight_gloves",
   "name": "Сумеречные перчатки",
   "description": "Создание: Сумеречные перчатки.",
-  "category": "equipment",
+  "category": "tailoring",
   "price": 80,
   "requiresLevel": 20,
   "ingredients": [

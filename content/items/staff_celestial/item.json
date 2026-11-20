@@ -1,0 +1,54 @@
+{
+  "id": "staff_celestial",
+  "name": "Небесный посох",
+  "description": "Оружие редкой работы. Урон от Интеллекта.",
+  "category": "weapon",
+  "quality": "epic",
+  "requires": {
+    "level": 30
+  },
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 1.0,
+    "pile": "single",
+    "rotation": [
+      1.5708,
+      0,
+      0
+    ],
+    "offsetY": 0.04
+  },
+  "use": {
+    "type": "equip",
+    "hand": "right"
+  },
+  "stats": {
+    "int": 41,
+    "sta": 17
+  },
+  "weapon": {
+    "damage": [
+      52,
+      82
+    ],
+    "range": 20,
+    "cooldown": 0.9,
+    "style": "staff",
+    "stat": "int"
+  },
+  "modelKey": "items/staff_twilight_rift",
+  "value": 1800,
+  "sellPrice": 900,
+  "hold": {
+    "rotation": [
+      0.759,
+      1.381,
+      2.218
+    ]
+  },
+  "glow": {
+    "color": "#e0c2ff",
+    "y": 0.66
+  }
+}

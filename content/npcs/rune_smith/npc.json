@@ -7,7 +7,7 @@
   "start": "start",
   "dialog": {
     "start": {
-      "text": "Горн у меня горит синим — говорят, от рунной пыли в угле. Я Бранд, кую для всей улицы. Железо, лом, старое оружие — неси всё, найду куда пустить. А если добудешь кристаллы стихий и первородные ядра — научу, что из них сделать.",
+      "text": "Горн у меня горит синим. Я Бранд, мастер Рунных земель. Научу всем кузнечным, столярным и ювелирным рецептам, что есть в игре. Продаю только вещи без рецепта.",
       "options": [
         {
           "text": "Обучи меня ремеслу",
@@ -27,8 +27,55 @@
   "shop": {
     "buy": [
       {
-        "item": "staff",
-        "price": 20
+        "item": "adamant_cuirass"
+      },
+      {
+        "item": "adamant_gauntlets"
+      },
+      {
+        "item": "adamant_greaves"
+      },
+      {
+        "item": "adamant_helm"
+      },
+      {
+        "item": "amulet_catacombs"
+      },
+      {
+        "item": "amulet_sapphire_eye"
+      },
+      {
+        "item": "axe"
+      },
+      {
+        "item": "blackened_cuirass"
+      },
+      {
+        "item": "blackened_gauntlets"
+      },
+      {
+        "item": "blackened_greaves"
+      },
+      {
+        "item": "blackened_helm"
+      },
+      {
+        "item": "copper_ring"
+      },
+      {
+        "item": "dagger"
+      },
+      {
+        "item": "minotaur_axe"
+      },
+      {
+        "item": "pickaxe"
+      },
+      {
+        "item": "ring_arcane_ward"
+      },
+      {
+        "item": "ring_labyrinth"
       }
     ],
     "sell": true
@@ -36,62 +83,80 @@
   "teach": {
     "price": 10,
     "only": [
-      "plank",
+      "amulet_astral_sage",
+      "amulet_celestial_sage",
+      "amulet_eclipse_hunter",
+      "amulet_flame_lord",
+      "amulet_galewind",
+      "amulet_livingflame",
+      "amulet_midnight_hunter",
+      "amulet_mountain_lord",
+      "amulet_onyx_titan",
+      "amulet_primordial_titan",
+      "amulet_starstalker_hunter",
+      "amulet_stoneheart",
+      "amulet_storm_lord",
+      "amulet_twilight_sage",
+      "amulet_worldforged_titan",
+      "apprentice_staff",
+      "axe_astral",
+      "axe_celestial",
       "beam",
-      "iron_ingot",
-      "iron_ring",
-      "iron_helm",
+      "bow",
+      "bow_astral",
+      "bow_celestial",
+      "bow_dawnflame",
+      "bow_ebon_gale",
+      "bow_midnight_star",
+      "elven_bow",
+      "infernal_axe",
       "iron_cuirass",
       "iron_gauntlets",
       "iron_greaves",
-      "steel_helm",
-      "steel_cuirass",
-      "steel_gauntlets",
-      "steel_greaves",
-      "war_hammer",
-      "bow",
-      "staff",
-      "apprentice_staff",
-      "elven_bow",
-      "ring_stoneheart",
-      "ring_galewind",
-      "ring_livingflame",
-      "amulet_stoneheart",
-      "amulet_galewind",
-      "amulet_livingflame",
-      "ring_mountain_lord",
-      "ring_storm_lord",
-      "ring_flame_lord",
-      "amulet_mountain_lord",
-      "amulet_storm_lord",
-      "amulet_flame_lord",
-      "sage_staff",
-      "staff_ember_heart",
-      "rune_axe",
-      "bow_ebon_gale",
-      "infernal_axe",
-      "bow_dawnflame",
-      "onyx_helm",
+      "iron_helm",
+      "iron_ingot",
+      "iron_ring",
+      "onyx_axe",
       "onyx_cuirass",
       "onyx_gauntlets",
       "onyx_greaves",
-      "twilight_hood",
-      "twilight_robe",
-      "twilight_gloves",
-      "twilight_shoes",
-      "midnight_cap",
-      "midnight_jerkin",
-      "midnight_gloves",
-      "midnight_boots",
-      "onyx_axe",
-      "bow_midnight_star",
-      "staff_twilight_rift",
-      "ring_onyx_titan",
-      "amulet_onyx_titan",
+      "onyx_helm",
+      "plank",
+      "ring_astral_sage",
+      "ring_celestial_sage",
+      "ring_eclipse_hunter",
+      "ring_flame_lord",
+      "ring_galewind",
+      "ring_livingflame",
       "ring_midnight_hunter",
-      "amulet_midnight_hunter",
+      "ring_mountain_lord",
+      "ring_onyx_titan",
+      "ring_primordial_titan",
+      "ring_starstalker_hunter",
+      "ring_stoneheart",
+      "ring_storm_lord",
       "ring_twilight_sage",
-      "amulet_twilight_sage"
+      "ring_worldforged_titan",
+      "rune_axe",
+      "sage_staff",
+      "staff",
+      "staff_astral",
+      "staff_celestial",
+      "staff_ember_heart",
+      "staff_twilight_rift",
+      "steel_cuirass",
+      "steel_gauntlets",
+      "steel_greaves",
+      "steel_helm",
+      "titan_cuirass",
+      "titan_gauntlets",
+      "titan_greaves",
+      "titan_helm",
+      "war_hammer",
+      "worldforged_cuirass",
+      "worldforged_gauntlets",
+      "worldforged_greaves",
+      "worldforged_helm"
     ]
   }
 }

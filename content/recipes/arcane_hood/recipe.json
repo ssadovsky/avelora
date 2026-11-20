@@ -1,0 +1,22 @@
+{
+  "id": "arcane_hood",
+  "name": "Чародейский капюшон",
+  "description": "Изготовление: Чародейский капюшон.",
+  "category": "tailoring",
+  "requiresLevel": 10,
+  "price": 15,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 4
+    },
+    {
+      "item": "arcane_dust",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "arcane_hood",
+    "count": 1
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "astral_cloak",
+  "name": "Звёздный плащ",
+  "description": "Рецепт: звёздный плащ.",
+  "category": "tailoring",
+  "requiresLevel": 25,
+  "price": 60,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 8
+    },
+    {
+      "item": "element_crystal",
+      "count": 6
+    },
+    {
+      "item": "primordial_core",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "astral_cloak",
+    "count": 1
+  }
+}

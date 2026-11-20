@@ -1,0 +1,28 @@
+{
+  "id": "worldforged_gauntlets",
+  "name": "Рукавицы Первотворца",
+  "description": "Тяжёлая броня первотворца. Бонус к силе.",
+  "category": "armor",
+  "quality": "epic",
+  "armorType": "plate",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "hands"
+  },
+  "armor": 35,
+  "stats": {
+    "str": 15,
+    "sta": 11
+  },
+  "requires": {
+    "level": 30
+  },
+  "value": 980,
+  "sellPrice": 490
+}

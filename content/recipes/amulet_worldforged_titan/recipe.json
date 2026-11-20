@@ -1,0 +1,26 @@
+{
+  "id": "amulet_worldforged_titan",
+  "name": "Амулет Титана Первотворения",
+  "description": "Изготовление: амулет титана первотворения.",
+  "category": "jewelry",
+  "requiresLevel": 25,
+  "price": 230,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 13
+    },
+    {
+      "item": "element_crystal",
+      "count": 26
+    },
+    {
+      "item": "primordial_core",
+      "count": 8
+    }
+  ],
+  "result": {
+    "item": "amulet_worldforged_titan",
+    "count": 1
+  }
+}

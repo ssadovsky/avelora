@@ -1,0 +1,28 @@
+{
+  "id": "titan_greaves",
+  "name": "Титановые поножи",
+  "description": "Тяжёлая броня титановый. Бонус к силе.",
+  "category": "armor",
+  "quality": "epic",
+  "armorType": "plate",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "feet"
+  },
+  "armor": 34,
+  "stats": {
+    "str": 12,
+    "sta": 9
+  },
+  "requires": {
+    "level": 25
+  },
+  "value": 700,
+  "sellPrice": 350
+}

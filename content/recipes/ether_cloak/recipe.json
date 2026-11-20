@@ -1,0 +1,26 @@
+{
+  "id": "ether_cloak",
+  "name": "Эфирный плащ",
+  "description": "Рецепт: эфирный плащ.",
+  "category": "tailoring",
+  "requiresLevel": 15,
+  "price": 25,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 4
+    },
+    {
+      "item": "arcane_dust",
+      "count": 3
+    },
+    {
+      "item": "element_crystal",
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "ether_cloak",
+    "count": 1
+  }
+}

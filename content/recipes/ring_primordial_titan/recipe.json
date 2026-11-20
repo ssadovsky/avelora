@@ -1,0 +1,26 @@
+{
+  "id": "ring_primordial_titan",
+  "name": "Кольцо Первозданного титана",
+  "description": "Изготовление: кольцо первозданного титана.",
+  "category": "jewelry",
+  "requiresLevel": 30,
+  "price": 280,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 13
+    },
+    {
+      "item": "element_crystal",
+      "count": 24
+    },
+    {
+      "item": "primordial_core",
+      "count": 8
+    }
+  ],
+  "result": {
+    "item": "ring_primordial_titan",
+    "count": 1
+  }
+}

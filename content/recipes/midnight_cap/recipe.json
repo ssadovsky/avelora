@@ -2,7 +2,7 @@
   "id": "midnight_cap",
   "name": "Полуночная шапка",
   "description": "Создание: Полуночная шапка.",
-  "category": "equipment",
+  "category": "tailoring",
   "price": 80,
   "requiresLevel": 20,
   "ingredients": [

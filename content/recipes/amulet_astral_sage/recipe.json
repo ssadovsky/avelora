@@ -1,0 +1,26 @@
+{
+  "id": "amulet_astral_sage",
+  "name": "Амулет Астрального мудреца",
+  "description": "Изготовление: амулет астрального мудреца.",
+  "category": "jewelry",
+  "requiresLevel": 25,
+  "price": 230,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 13
+    },
+    {
+      "item": "element_crystal",
+      "count": 26
+    },
+    {
+      "item": "primordial_core",
+      "count": 8
+    }
+  ],
+  "result": {
+    "item": "amulet_astral_sage",
+    "count": 1
+  }
+}

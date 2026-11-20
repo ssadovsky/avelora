@@ -1,0 +1,27 @@
+{
+  "id": "amulet_eclipse_hunter",
+  "name": "Амулет Следопыта Затмения",
+  "description": "Ювелирное изделие, усиливающее ловкость и выносливость.",
+  "category": "armor",
+  "quality": "epic",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "neck"
+  },
+  "armor": 30,
+  "stats": {
+    "dex": 42,
+    "sta": 20
+  },
+  "requires": {
+    "level": 25
+  },
+  "value": 1250,
+  "sellPrice": 625
+}

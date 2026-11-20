@@ -1,0 +1,28 @@
+{
+  "id": "worldforged_cuirass",
+  "name": "Кираса Первотворца",
+  "description": "Тяжёлая броня первотворца. Бонус к силе.",
+  "category": "armor",
+  "quality": "epic",
+  "armorType": "plate",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "body"
+  },
+  "armor": 74,
+  "stats": {
+    "str": 30,
+    "sta": 22
+  },
+  "requires": {
+    "level": 30
+  },
+  "value": 2100,
+  "sellPrice": 1050
+}

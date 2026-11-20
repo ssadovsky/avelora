@@ -1175,12 +1175,16 @@
             const list = document.createElement('div');
             list.className = 'dlg-list dlg-teach';
             const heroLevel = this.game.hero ? this.game.hero.level : 1;
+            const heroClassId = this.game.hero ? this.game.hero.charId : null;
             const allRecipes = (window.GAME_CONTENT && window.GAME_CONTENT.recipes) || {};
             const only = this.npc && this.npc.teach && this.npc.teach.only;
             const rids = Object.keys(allRecipes).filter(id => {
                 const r = allRecipes[id];
                 if (!r) return false;
                 if (only && !only.includes(id)) return false;
+                const resultItemId = r.result && r.result.item;
+                if (resultItemId && window.AveloraItems && window.AveloraItems.classRestriction &&
+                    window.AveloraItems.classRestriction(resultItemId, heroClassId)) return false;
                 const cat = r.category || 'other';
                 return categories.includes(cat);
             }).sort((a, b) => {

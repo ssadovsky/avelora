@@ -1,0 +1,22 @@
+{
+  "id": "ether_gloves",
+  "name": "Эфирные перчатки",
+  "description": "Изготовление: Эфирные перчатки.",
+  "category": "tailoring",
+  "requiresLevel": 15,
+  "price": 35,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 4
+    },
+    {
+      "item": "element_crystal",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "ether_gloves",
+    "count": 1
+  }
+}

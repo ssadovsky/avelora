@@ -1,0 +1,26 @@
+{
+  "id": "astral_robe",
+  "name": "Астральная мантия",
+  "description": "Изготовление: астральная мантия.",
+  "category": "tailoring",
+  "requiresLevel": 25,
+  "price": 220,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 14
+    },
+    {
+      "item": "element_crystal",
+      "count": 16
+    },
+    {
+      "item": "primordial_core",
+      "count": 5
+    }
+  ],
+  "result": {
+    "item": "astral_robe",
+    "count": 1
+  }
+}

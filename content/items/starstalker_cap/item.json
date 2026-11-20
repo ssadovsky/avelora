@@ -1,0 +1,28 @@
+{
+  "id": "starstalker_cap",
+  "name": "Капюшон Звёздного охотника",
+  "description": "Кожаная броня звёздного охотника охотника. Бонус к ловкости.",
+  "category": "armor",
+  "quality": "epic",
+  "armorType": "leather",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "head"
+  },
+  "armor": 27,
+  "stats": {
+    "dex": 22,
+    "sta": 13
+  },
+  "requires": {
+    "level": 30
+  },
+  "value": 1400,
+  "sellPrice": 700
+}

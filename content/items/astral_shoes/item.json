@@ -1,0 +1,28 @@
+{
+  "id": "astral_shoes",
+  "name": "Астральные сапоги",
+  "description": "Астральный ткань, усиливающая разум мага.",
+  "category": "armor",
+  "quality": "epic",
+  "armorType": "cloth",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "feet"
+  },
+  "armor": 11,
+  "stats": {
+    "int": 11,
+    "sta": 8
+  },
+  "requires": {
+    "level": 25
+  },
+  "value": 700,
+  "sellPrice": 350
+}

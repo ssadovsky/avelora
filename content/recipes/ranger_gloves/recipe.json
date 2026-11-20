@@ -1,0 +1,26 @@
+{
+  "id": "ranger_gloves",
+  "name": "Перчатки следопыта",
+  "description": "Изготовление: Перчатки следопыта.",
+  "category": "tailoring",
+  "requiresLevel": 10,
+  "price": 20,
+  "ingredients": [
+    {
+      "item": "wolf_hide",
+      "count": 4
+    },
+    {
+      "item": "fox_hide",
+      "count": 2
+    },
+    {
+      "item": "iron_ingot",
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "ranger_gloves",
+    "count": 1
+  }
+}

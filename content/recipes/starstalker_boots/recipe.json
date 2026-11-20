@@ -1,0 +1,26 @@
+{
+  "id": "starstalker_boots",
+  "name": "Сапоги Звёздного охотника",
+  "description": "Изготовление: сапоги звёздного охотника.",
+  "category": "tailoring",
+  "requiresLevel": 30,
+  "price": 260,
+  "ingredients": [
+    {
+      "item": "bear_hide",
+      "count": 8
+    },
+    {
+      "item": "element_crystal",
+      "count": 13
+    },
+    {
+      "item": "primordial_core",
+      "count": 4
+    }
+  ],
+  "result": {
+    "item": "starstalker_boots",
+    "count": 1
+  }
+}

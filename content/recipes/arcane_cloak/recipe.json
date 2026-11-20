@@ -1,0 +1,22 @@
+{
+  "id": "arcane_cloak",
+  "name": "Арканный плащ",
+  "description": "Рецепт: арканный плащ.",
+  "category": "tailoring",
+  "requiresLevel": 10,
+  "price": 15,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 3
+    },
+    {
+      "item": "arcane_dust",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "arcane_cloak",
+    "count": 1
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "astral_cloak",
+  "name": "Звёздный плащ",
+  "description": "Нити звёздной пыли усиливают магический разум владельца.",
+  "category": "armor",
+  "quality": "epic",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "cloak"
+  },
+  "armor": 10,
+  "stats": {
+    "int": 6
+  },
+  "requires": {
+    "level": 25
+  },
+  "value": 960,
+  "sellPrice": 480
+}

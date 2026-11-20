@@ -1,0 +1,30 @@
+{
+  "id": "axe_astral",
+  "name": "Астральная секира",
+  "description": "Изготовление: астральная секира.",
+  "category": "equipment",
+  "requiresLevel": 25,
+  "price": 180,
+  "ingredients": [
+    {
+      "item": "beam",
+      "count": 5
+    },
+    {
+      "item": "iron_ingot",
+      "count": 15
+    },
+    {
+      "item": "element_crystal",
+      "count": 30
+    },
+    {
+      "item": "primordial_core",
+      "count": 6
+    }
+  ],
+  "result": {
+    "item": "axe_astral",
+    "count": 1
+  }
+}

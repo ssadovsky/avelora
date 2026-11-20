@@ -3246,13 +3246,19 @@
             mk('tt-desc', def.description || '');
             mk('tt-meta', (qi.key !== 'common' ? qi.name + ' · ' : '') + (equippable ? `снаряжение · ${SLOT[Items.equipSlot(itemId)] || ''}` : (def.use ? 'действие' : 'материал')));
             const slLines = this.itemStatsLines(def);
-            slLines.forEach(l => mk('tt-req', l, '#a9d68c'));
-            if (def.requires) {
-                const rq = def.requires, nm = (window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.statNames) || {};
+            slLines.forEach(l => {
+                if (l && typeof l === 'object') {
+                    const cls = l.isUpgrade ? 'tt-req tt-upgrade' : (l.isGem ? 'tt-req tt-gem' : (l.isSocketEmpty ? 'tt-req tt-socket-empty' : 'tt-req'));
+                    mk(cls, l.text || '', l.isUpgrade ? '#ffd700' : (l.isGem ? '#ba7be8' : (l.isSocketEmpty ? '#7d8a9e' : '#a9d68c')));
+                } else mk('tt-req', String(l), '#a9d68c');
+            });
+            if (equippable || def.requires) {
+                const rq = def.requires || {}, nm = (window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.statNames) || {};
                 const parts = [];
-                if (rq.level) parts.push(`${rq.level}-й уровень`);
+                const requiredLevel = rq.level || (equippable ? 1 : 0);
+                if (requiredLevel) parts.push(`${requiredLevel}-й уровень`);
                 ['str', 'dex', 'int', 'sta'].forEach(k => { if (rq[k]) parts.push(`${nm[k] || k} ${rq[k]}`); });
-                mk('tt-req' + (this.unmetRequirement(def) ? ' bad' : ''), 'Требуется: ' + parts.join(', '));
+                if (parts.length) mk('tt-req' + (this.unmetRequirement(def) ? ' bad' : ''), 'Требуется: ' + parts.join(', '));
             }
             {
                 const gt = Items.gearType(itemId);
@@ -3435,6 +3441,21 @@
                     }
                     this.tooltip.appendChild(sd);
                 });
+                if (window.AveloraItems.isEquippable(id) || def.requires) {
+                    const rq = def.requires || {};
+                    const names = (window.AVELORA_PROGRESSION && window.AVELORA_PROGRESSION.statNames) || {};
+                    const parts = [];
+                    const requiredLevel = rq.level || (window.AveloraItems.isEquippable(id) ? 1 : 0);
+                    if (requiredLevel) parts.push(`${requiredLevel}-й уровень`);
+                    ['str', 'dex', 'int', 'sta'].forEach(k => { if (rq[k]) parts.push(`${names[k] || k} ${rq[k]}`); });
+                    if (parts.length) {
+                        const unmet = this.unmetRequirement(def);
+                        const req = document.createElement('div');
+                        req.className = 'tt-req' + (unmet ? ' bad' : '');
+                        req.textContent = 'Требуется: ' + parts.join(', ');
+                        this.tooltip.appendChild(req);
+                    }
+                }
                 if (isDoll) {
                     const unequipDiv = document.createElement('div');
                     unequipDiv.className = 'tt-hint';

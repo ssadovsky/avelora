@@ -1,0 +1,22 @@
+{
+  "id": "arcane_robe",
+  "name": "Чародейская мантия",
+  "description": "Изготовление: Чародейская мантия.",
+  "category": "tailoring",
+  "requiresLevel": 10,
+  "price": 15,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 6
+    },
+    {
+      "item": "arcane_dust",
+      "count": 3
+    }
+  ],
+  "result": {
+    "item": "arcane_robe",
+    "count": 1
+  }
+}

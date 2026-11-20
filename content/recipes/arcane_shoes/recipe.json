@@ -1,0 +1,22 @@
+{
+  "id": "arcane_shoes",
+  "name": "Чародейские туфли",
+  "description": "Изготовление: Чародейские туфли.",
+  "category": "tailoring",
+  "requiresLevel": 10,
+  "price": 15,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 3
+    },
+    {
+      "item": "arcane_dust",
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "arcane_shoes",
+    "count": 1
+  }
+}

@@ -1,7 +1,7 @@
 {
   "id": "ether_gloves",
   "name": "Эфирные перчатки",
-  "description": "Одежда из ткани: носит только маг.",
+  "description": "Одежда из ткани.",
   "category": "armor",
   "quality": "rare",
   "armorType": "cloth",

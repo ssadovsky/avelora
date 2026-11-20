@@ -1,7 +1,7 @@
 {
   "id": "twilight_gloves",
   "name": "Сумеречные перчатки",
-  "description": "Сумеречная ткань, сотканная из паутины и света: носит только маг.",
+  "description": "Сумеречная ткань, сотканная из паутины и света.",
   "category": "armor",
   "quality": "epic",
   "armorType": "cloth",

@@ -1,0 +1,26 @@
+{
+  "id": "eclipse_boots",
+  "name": "Сапоги Затмения",
+  "description": "Изготовление: сапоги затмения.",
+  "category": "tailoring",
+  "requiresLevel": 25,
+  "price": 180,
+  "ingredients": [
+    {
+      "item": "bear_hide",
+      "count": 6
+    },
+    {
+      "item": "element_crystal",
+      "count": 10
+    },
+    {
+      "item": "primordial_core",
+      "count": 3
+    }
+  ],
+  "result": {
+    "item": "eclipse_boots",
+    "count": 1
+  }
+}

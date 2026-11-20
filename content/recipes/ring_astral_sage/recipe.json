@@ -1,0 +1,26 @@
+{
+  "id": "ring_astral_sage",
+  "name": "Кольцо Астрального мудреца",
+  "description": "Изготовление: кольцо астрального мудреца.",
+  "category": "jewelry",
+  "requiresLevel": 25,
+  "price": 190,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 10
+    },
+    {
+      "item": "element_crystal",
+      "count": 18
+    },
+    {
+      "item": "primordial_core",
+      "count": 6
+    }
+  ],
+  "result": {
+    "item": "ring_astral_sage",
+    "count": 1
+  }
+}

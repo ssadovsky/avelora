@@ -1,0 +1,22 @@
+{
+  "id": "ether_hood",
+  "name": "Эфирный капюшон",
+  "description": "Изготовление: Эфирный капюшон.",
+  "category": "tailoring",
+  "requiresLevel": 15,
+  "price": 35,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 5
+    },
+    {
+      "item": "element_crystal",
+      "count": 3
+    }
+  ],
+  "result": {
+    "item": "ether_hood",
+    "count": 1
+  }
+}

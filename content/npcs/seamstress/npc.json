@@ -6,7 +6,7 @@
   "start": "start",
   "dialog": {
     "start": {
-      "text": "Здравствуй, путник! Я Ивелина, шью и штопаю для всей улицы. Сукно, кожа, паутина — несёшь что-нибудь? Куплю всё, что сгодится в хозяйстве. А если хочешь, научу шить кожаную и тканевую одежду.",
+      "text": "Здравствуй! Я Ивелина, швея Рунных земель. Научу всем рецептам одежды и плащей, что есть в игре. В лавке продаю только вещи без рецепта.",
       "options": [
         {
           "text": "Обучи меня ремеслу",
@@ -24,25 +24,81 @@
     }
   },
   "shop": {
-    "buy": [],
+    "buy": [
+      {
+        "item": "traveler_cloak"
+      }
+    ],
     "sell": true
   },
   "teach": {
     "price": 10,
     "only": [
-      "web_cloth",
-      "leather_cap",
-      "leather_jerkin",
-      "leather_gloves",
-      "leather_boots",
-      "hunter_cap",
-      "hunter_jerkin",
-      "hunter_gloves",
+      "arcane_cloak",
+      "arcane_gloves",
+      "arcane_hood",
+      "arcane_robe",
+      "arcane_shoes",
+      "astral_cloak",
+      "astral_gloves",
+      "astral_hood",
+      "astral_robe",
+      "astral_shoes",
+      "bear_jerkin",
+      "celestial_cloak",
+      "celestial_gloves",
+      "celestial_hood",
+      "celestial_robe",
+      "celestial_shoes",
+      "eclipse_boots",
+      "eclipse_cap",
+      "eclipse_gloves",
+      "eclipse_jerkin",
+      "ether_cloak",
+      "ether_gloves",
+      "ether_hood",
+      "ether_robe",
+      "ether_shoes",
+      "fox_cap",
       "hunter_boots",
+      "hunter_cap",
+      "hunter_gloves",
+      "hunter_jerkin",
+      "leather_boots",
+      "leather_cap",
+      "leather_gloves",
+      "leather_jerkin",
+      "linen_gloves",
+      "linen_hood",
+      "linen_robe",
+      "linen_shoes",
+      "midnight_boots",
+      "midnight_cap",
+      "midnight_gloves",
+      "midnight_jerkin",
+      "ranger_boots",
+      "ranger_cap",
+      "ranger_gloves",
+      "ranger_jerkin",
+      "silk_gloves",
       "silk_hood",
       "silk_robe",
-      "silk_gloves",
-      "silk_shoes"
+      "silk_shoes",
+      "starstalker_boots",
+      "starstalker_cap",
+      "starstalker_gloves",
+      "starstalker_jerkin",
+      "storm_boots",
+      "storm_cap",
+      "storm_gloves",
+      "storm_jerkin",
+      "twilight_cloak",
+      "twilight_gloves",
+      "twilight_hood",
+      "twilight_robe",
+      "twilight_shoes",
+      "web_cloth",
+      "wolf_cloak"
     ]
   }
 }

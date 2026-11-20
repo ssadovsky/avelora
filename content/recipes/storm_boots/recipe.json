@@ -1,0 +1,26 @@
+{
+  "id": "storm_boots",
+  "name": "Штормовые сапоги",
+  "description": "Изготовление: Штормовые сапоги.",
+  "category": "tailoring",
+  "requiresLevel": 15,
+  "price": 45,
+  "ingredients": [
+    {
+      "item": "wolf_hide",
+      "count": 6
+    },
+    {
+      "item": "fox_hide",
+      "count": 2
+    },
+    {
+      "item": "element_crystal",
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "storm_boots",
+    "count": 1
+  }
+}

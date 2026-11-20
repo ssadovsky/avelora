@@ -1,0 +1,66 @@
+{
+  "id": "bow_astral",
+  "name": "Астральный лук",
+  "description": "Оружие редкой работы. Урон от Ловкости.",
+  "category": "weapon",
+  "quality": "epic",
+  "requires": {
+    "level": 25
+  },
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 1.0,
+    "pile": "single",
+    "rotation": [
+      1.5708,
+      0,
+      0
+    ],
+    "offsetY": 0.03
+  },
+  "use": {
+    "type": "equip",
+    "hand": "right"
+  },
+  "stats": {
+    "dex": 25,
+    "sta": 15
+  },
+  "weapon": {
+    "damage": [
+      59,
+      88
+    ],
+    "range": 14,
+    "cooldown": 1.05,
+    "style": "bow",
+    "stat": "dex"
+  },
+  "modelKey": "items/bow_midnight_star",
+  "value": 1320,
+  "sellPrice": 660,
+  "hold": {
+    "warrior": {
+      "rotation": [
+        -0.775,
+        -0.537,
+        -2.627
+      ]
+    },
+    "archer": {
+      "rotation": [
+        -1.117,
+        -0.709,
+        -2.866
+      ]
+    },
+    "mage": {
+      "rotation": [
+        2.869,
+        0.102,
+        0.104
+      ]
+    }
+  }
+}

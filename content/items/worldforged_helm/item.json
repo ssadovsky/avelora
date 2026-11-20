@@ -1,0 +1,28 @@
+{
+  "id": "worldforged_helm",
+  "name": "Шлем Первотворца",
+  "description": "Тяжёлая броня первотворца. Бонус к силе.",
+  "category": "armor",
+  "quality": "epic",
+  "armorType": "plate",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "head"
+  },
+  "armor": 41,
+  "stats": {
+    "str": 22,
+    "sta": 13
+  },
+  "requires": {
+    "level": 30
+  },
+  "value": 1400,
+  "sellPrice": 700
+}

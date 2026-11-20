@@ -1,0 +1,26 @@
+{
+  "id": "eclipse_gloves",
+  "name": "Перчатки Затмения",
+  "description": "Изготовление: перчатки затмения.",
+  "category": "tailoring",
+  "requiresLevel": 25,
+  "price": 180,
+  "ingredients": [
+    {
+      "item": "bear_hide",
+      "count": 5
+    },
+    {
+      "item": "element_crystal",
+      "count": 8
+    },
+    {
+      "item": "primordial_core",
+      "count": 3
+    }
+  ],
+  "result": {
+    "item": "eclipse_gloves",
+    "count": 1
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "titan_gauntlets",
+  "name": "Титановые рукавицы",
+  "description": "Изготовление: титановые рукавицы.",
+  "category": "equipment",
+  "requiresLevel": 25,
+  "price": 180,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 7
+    },
+    {
+      "item": "element_crystal",
+      "count": 8
+    },
+    {
+      "item": "primordial_core",
+      "count": 3
+    }
+  ],
+  "result": {
+    "item": "titan_gauntlets",
+    "count": 1
+  }
+}

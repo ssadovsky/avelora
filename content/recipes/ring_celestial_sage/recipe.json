@@ -1,0 +1,26 @@
+{
+  "id": "ring_celestial_sage",
+  "name": "Кольцо Небесного мудреца",
+  "description": "Изготовление: кольцо небесного мудреца.",
+  "category": "jewelry",
+  "requiresLevel": 30,
+  "price": 280,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 13
+    },
+    {
+      "item": "element_crystal",
+      "count": 24
+    },
+    {
+      "item": "primordial_core",
+      "count": 8
+    }
+  ],
+  "result": {
+    "item": "ring_celestial_sage",
+    "count": 1
+  }
+}

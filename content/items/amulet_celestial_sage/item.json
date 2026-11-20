@@ -1,0 +1,27 @@
+{
+  "id": "amulet_celestial_sage",
+  "name": "Амулет Небесного мудреца",
+  "description": "Ювелирное изделие, усиливающее интеллект и выносливость.",
+  "category": "armor",
+  "quality": "epic",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "neck"
+  },
+  "armor": 36,
+  "stats": {
+    "int": 49,
+    "sta": 24
+  },
+  "requires": {
+    "level": 30
+  },
+  "value": 1700,
+  "sellPrice": 850
+}

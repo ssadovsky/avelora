@@ -1,0 +1,22 @@
+{
+  "id": "ether_robe",
+  "name": "Эфирная мантия",
+  "description": "Изготовление: Эфирная мантия.",
+  "category": "tailoring",
+  "requiresLevel": 15,
+  "price": 35,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 8
+    },
+    {
+      "item": "element_crystal",
+      "count": 4
+    }
+  ],
+  "result": {
+    "item": "ether_robe",
+    "count": 1
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "celestial_cloak",
+  "name": "Небесный плащ",
+  "description": "Редкий плащ, в узоре которого мерцают далёкие созвездия.",
+  "category": "armor",
+  "quality": "epic",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "cloak"
+  },
+  "armor": 12,
+  "stats": {
+    "int": 7
+  },
+  "requires": {
+    "level": 30
+  },
+  "value": 1280,
+  "sellPrice": 640
+}

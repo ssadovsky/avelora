@@ -1,0 +1,26 @@
+{
+  "id": "ranger_cap",
+  "name": "Шапка следопыта",
+  "description": "Изготовление: Шапка следопыта.",
+  "category": "tailoring",
+  "requiresLevel": 10,
+  "price": 20,
+  "ingredients": [
+    {
+      "item": "wolf_hide",
+      "count": 4
+    },
+    {
+      "item": "fox_hide",
+      "count": 3
+    },
+    {
+      "item": "iron_ingot",
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "ranger_cap",
+    "count": 1
+  }
+}

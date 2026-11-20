@@ -1,0 +1,26 @@
+{
+  "id": "celestial_cloak",
+  "name": "Небесный плащ",
+  "description": "Рецепт: небесный плащ.",
+  "category": "tailoring",
+  "requiresLevel": 30,
+  "price": 80,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 10
+    },
+    {
+      "item": "element_crystal",
+      "count": 10
+    },
+    {
+      "item": "primordial_core",
+      "count": 4
+    }
+  ],
+  "result": {
+    "item": "celestial_cloak",
+    "count": 1
+  }
+}

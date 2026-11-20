@@ -1,0 +1,26 @@
+{
+  "id": "starstalker_jerkin",
+  "name": "Куртка Звёздного охотника",
+  "description": "Изготовление: куртка звёздного охотника.",
+  "category": "tailoring",
+  "requiresLevel": 30,
+  "price": 300,
+  "ingredients": [
+    {
+      "item": "bear_hide",
+      "count": 14
+    },
+    {
+      "item": "element_crystal",
+      "count": 22
+    },
+    {
+      "item": "primordial_core",
+      "count": 7
+    }
+  ],
+  "result": {
+    "item": "starstalker_jerkin",
+    "count": 1
+  }
+}

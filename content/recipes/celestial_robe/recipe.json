@@ -1,0 +1,26 @@
+{
+  "id": "celestial_robe",
+  "name": "Небесная мантия",
+  "description": "Изготовление: небесная мантия.",
+  "category": "tailoring",
+  "requiresLevel": 30,
+  "price": 300,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 18
+    },
+    {
+      "item": "element_crystal",
+      "count": 22
+    },
+    {
+      "item": "primordial_core",
+      "count": 7
+    }
+  ],
+  "result": {
+    "item": "celestial_robe",
+    "count": 1
+  }
+}

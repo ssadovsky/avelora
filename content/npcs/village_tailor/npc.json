@@ -6,7 +6,7 @@
   "start": "start",
   "dialog": {
     "start": {
-      "text": "Заходи, путник, не стесняйся! Я Эльвира, шью плащи и простую одежду для всей опушки. Замёрз — купи плащ. А если принесёшь паутину, научу сшить холщовую одежду самому.",
+      "text": "Заходи, путник! Я Эльвира, шью одежду и плащи для опушки. Научу рецептам начального шмота до 10-го уровня, а продаю вещи, для которых нет рецепта.",
       "options": [
         {
           "text": "Научи меня шить",
@@ -34,10 +34,34 @@
   "teach": {
     "price": 5,
     "only": [
-      "linen_hood",
+      "arcane_cloak",
+      "arcane_gloves",
+      "arcane_hood",
+      "arcane_robe",
+      "arcane_shoes",
+      "bear_jerkin",
+      "fox_cap",
+      "hunter_boots",
+      "hunter_cap",
+      "hunter_gloves",
+      "hunter_jerkin",
+      "leather_boots",
+      "leather_cap",
+      "leather_gloves",
+      "leather_jerkin",
       "linen_gloves",
-      "linen_shoes",
+      "linen_hood",
       "linen_robe",
+      "linen_shoes",
+      "ranger_boots",
+      "ranger_cap",
+      "ranger_gloves",
+      "ranger_jerkin",
+      "silk_gloves",
+      "silk_hood",
+      "silk_robe",
+      "silk_shoes",
+      "web_cloth",
       "wolf_cloak"
     ]
   },

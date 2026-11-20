@@ -2,7 +2,7 @@
   "id": "midnight_gloves",
   "name": "Полуночные перчатки",
   "description": "Создание: Полуночные перчатки.",
-  "category": "equipment",
+  "category": "tailoring",
   "price": 80,
   "requiresLevel": 20,
   "ingredients": [

@@ -1,0 +1,26 @@
+{
+  "id": "titan_greaves",
+  "name": "Титановые поножи",
+  "description": "Изготовление: титановые поножи.",
+  "category": "equipment",
+  "requiresLevel": 25,
+  "price": 180,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 9
+    },
+    {
+      "item": "element_crystal",
+      "count": 10
+    },
+    {
+      "item": "primordial_core",
+      "count": 3
+    }
+  ],
+  "result": {
+    "item": "titan_greaves",
+    "count": 1
+  }
+}

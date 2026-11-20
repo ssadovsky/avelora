@@ -54,8 +54,8 @@
     // amulets and gathering tools are free for everyone. Already-worn items are not re-checked on load.
     const GEAR_TYPE_NAMES = { cloth: 'ткань', leather: 'кожа', plate: 'латы', axe: 'топоры', hammer: 'молоты', dagger: 'кинжалы', bow: 'луки', staff: 'посохи' };
     const CLASS_GEAR = {
-        warrior: { armor: ['plate'], weapon: ['axe', 'hammer', 'dagger'] },
-        archer: { armor: ['leather'], weapon: ['bow', 'dagger'] },
+        warrior: { armor: ['cloth', 'plate'], weapon: ['axe', 'hammer', 'dagger'] },
+        archer: { armor: ['cloth', 'leather'], weapon: ['bow', 'dagger'] },
         mage: { armor: ['cloth'], weapon: ['staff', 'dagger'] }
     };
     const ARMOR_SLOTS = ['head', 'body', 'hands', 'legs', 'feet'];

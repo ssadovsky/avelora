@@ -1,0 +1,26 @@
+{
+  "id": "twilight_cloak",
+  "name": "Сумеречный плащ",
+  "description": "Ткань плаща хранит отблеск сумеречного разлома.",
+  "category": "armor",
+  "quality": "rare",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "cloak"
+  },
+  "armor": 8,
+  "stats": {
+    "int": 5
+  },
+  "requires": {
+    "level": 20
+  },
+  "value": 680,
+  "sellPrice": 340
+}

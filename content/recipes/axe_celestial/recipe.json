@@ -1,0 +1,30 @@
+{
+  "id": "axe_celestial",
+  "name": "Небесная секира",
+  "description": "Изготовление: небесная секира.",
+  "category": "equipment",
+  "requiresLevel": 30,
+  "price": 280,
+  "ingredients": [
+    {
+      "item": "beam",
+      "count": 7
+    },
+    {
+      "item": "iron_ingot",
+      "count": 20
+    },
+    {
+      "item": "element_crystal",
+      "count": 40
+    },
+    {
+      "item": "primordial_core",
+      "count": 9
+    }
+  ],
+  "result": {
+    "item": "axe_celestial",
+    "count": 1
+  }
+}

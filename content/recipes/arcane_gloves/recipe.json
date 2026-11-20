@@ -1,0 +1,22 @@
+{
+  "id": "arcane_gloves",
+  "name": "Чародейские перчатки",
+  "description": "Изготовление: Чародейские перчатки.",
+  "category": "tailoring",
+  "requiresLevel": 10,
+  "price": 15,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 3
+    },
+    {
+      "item": "arcane_dust",
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "arcane_gloves",
+    "count": 1
+  }
+}

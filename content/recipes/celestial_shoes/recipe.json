@@ -1,0 +1,26 @@
+{
+  "id": "celestial_shoes",
+  "name": "Небесные сапоги",
+  "description": "Изготовление: небесные сапоги.",
+  "category": "tailoring",
+  "requiresLevel": 30,
+  "price": 260,
+  "ingredients": [
+    {
+      "item": "web_cloth",
+      "count": 10
+    },
+    {
+      "item": "element_crystal",
+      "count": 13
+    },
+    {
+      "item": "primordial_core",
+      "count": 4
+    }
+  ],
+  "result": {
+    "item": "celestial_shoes",
+    "count": 1
+  }
+}

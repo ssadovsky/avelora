@@ -1,0 +1,27 @@
+{
+  "id": "ring_worldforged_titan",
+  "name": "Кольцо Титана Первотворения",
+  "description": "Ювелирное изделие, усиливающее силу и выносливость.",
+  "category": "armor",
+  "quality": "epic",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "ring"
+  },
+  "armor": 30,
+  "stats": {
+    "str": 24,
+    "sta": 15
+  },
+  "requires": {
+    "level": 25
+  },
+  "value": 800,
+  "sellPrice": 400
+}

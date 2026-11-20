@@ -1,0 +1,43 @@
+{
+  "id": "axe_celestial",
+  "name": "Небесная секира",
+  "description": "Оружие редкой работы. Урон от Силы.",
+  "category": "weapon",
+  "quality": "epic",
+  "requires": {
+    "level": 30
+  },
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 1.25,
+    "pile": "single",
+    "rotation": [
+      1.5708,
+      0,
+      0
+    ],
+    "offsetY": 0.04
+  },
+  "use": {
+    "type": "equip",
+    "hand": "right"
+  },
+  "stats": {
+    "str": 30,
+    "sta": 20
+  },
+  "weapon": {
+    "damage": [
+      99,
+      148
+    ],
+    "range": 2.2,
+    "cooldown": 1.05,
+    "stat": "str"
+  },
+  "modelKey": "items/onyx_axe",
+  "value": 1500,
+  "sellPrice": 750,
+  "weaponType": "axe"
+}

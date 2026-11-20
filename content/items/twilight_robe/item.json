@@ -1,7 +1,7 @@
 {
   "id": "twilight_robe",
   "name": "Сумеречная мантия",
-  "description": "Сумеречная ткань, сотканная из паутины и света: носит только маг.",
+  "description": "Сумеречная ткань, сотканная из паутины и света.",
   "category": "armor",
   "quality": "epic",
   "armorType": "cloth",

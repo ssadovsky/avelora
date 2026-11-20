@@ -1,0 +1,28 @@
+{
+  "id": "titan_helm",
+  "name": "Титановый шлем",
+  "description": "Тяжёлая броня титановый. Бонус к силе.",
+  "category": "armor",
+  "quality": "epic",
+  "armorType": "plate",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "head"
+  },
+  "armor": 34,
+  "stats": {
+    "str": 18,
+    "sta": 11
+  },
+  "requires": {
+    "level": 25
+  },
+  "value": 1000,
+  "sellPrice": 500
+}

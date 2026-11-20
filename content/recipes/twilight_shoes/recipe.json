@@ -2,7 +2,7 @@
   "id": "twilight_shoes",
   "name": "Сумеречные туфли",
   "description": "Создание: Сумеречные туфли.",
-  "category": "equipment",
+  "category": "tailoring",
   "price": 80,
   "requiresLevel": 20,
   "ingredients": [

@@ -1,0 +1,26 @@
+{
+  "id": "titan_cuirass",
+  "name": "Титановая кираса",
+  "description": "Изготовление: титановая кираса.",
+  "category": "equipment",
+  "requiresLevel": 25,
+  "price": 220,
+  "ingredients": [
+    {
+      "item": "iron_ingot",
+      "count": 16
+    },
+    {
+      "item": "element_crystal",
+      "count": 16
+    },
+    {
+      "item": "primordial_core",
+      "count": 5
+    }
+  ],
+  "result": {
+    "item": "titan_cuirass",
+    "count": 1
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "starstalker_gloves",
+  "name": "Перчатки Звёздного охотника",
+  "description": "Кожаная броня звёздного охотника охотника. Бонус к ловкости.",
+  "category": "armor",
+  "quality": "epic",
+  "armorType": "leather",
+  "stackMax": 1,
+  "ground": {
+    "variants": 1,
+    "scale": 0.8,
+    "pile": "single"
+  },
+  "use": {
+    "type": "equip",
+    "slot": "hands"
+  },
+  "armor": 22,
+  "stats": {
+    "dex": 15,
+    "sta": 11
+  },
+  "requires": {
+    "level": 30
+  },
+  "value": 980,
+  "sellPrice": 490
+}

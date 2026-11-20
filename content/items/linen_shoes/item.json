@@ -1,7 +1,7 @@
 {
   "id": "linen_shoes",
   "name": "Холщовые туфли",
-  "description": "Одежда из ткани: носит только маг.",
+  "description": "Одежда из ткани.",
   "category": "armor",
   "quality": "uncommon",
   "armorType": "cloth",
