@@ -456,6 +456,8 @@ class LakesideEnvironment {
     }
 
     loadRealisticTrees() {
+        // Отладка нагрузки GPU: ?notrees — деревья не создаются (маска леса под ними тоже). Только для замеров.
+        if (/[?&]notrees\b/.test(location.search)) { console.warn('[Avelora] ?notrees: деревья отключены (отладка)'); return; }
         const treePositions = this.getDecorations('trees');
         // маска леса для groundSet 'baseForest'. Плодовые деревья (яблоня) лесом не считаются: под ними остаётся та земля, что есть
         if (this.terrain && this.terrain.setForestMask) this.terrain.setForestMask(treePositions.filter(p => !FRUIT_TREE_TYPES[p.treeType]));
@@ -1329,7 +1331,7 @@ class LakesideEnvironment {
             const lim = R * c.mul + CULL_CHUNK_HALF_DIAG;
             const dx = c.x - px, dz = c.z - pz;
             const d2 = dx * dx + dz * dz;
-            if (R >= 1e8) { c.mesh.visible = !c.inner; continue; }
+            if (R >= 1e8) { c.mesh.visible = !c.inner; continue; } if (R <= 0.01) { c.mesh.visible = false; continue; }   // ?nograss (отладка)
             let vis = d2 <= lim * lim;
             if (vis && c.inner) {
                 const inLim = R * c.inner - CULL_CHUNK_HALF_DIAG;

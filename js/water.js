@@ -81,7 +81,7 @@ class LakesideWater {
         this._probe = null;          // точки воды пересчитываются по рельефу новой локации (updateMirrorActive)
         this._probeTerrain = null;
         this.water.mirrorActive = true;
-        if (wType === 'none') {
+        if (wType === 'none' || /[?&]nowater\b/.test(window.location.search)) {   // ?nowater — отладка нагрузки GPU
             this.water.visible = false;
             return;
         }

@@ -189,7 +189,11 @@
             const jobs = [];
             this.bgTasks = [];
             this.buildBridges();
+            // ?noprops — отладка нагрузки GPU: без построек и пропов (NPC — тоже пропы, тоже пропадут); ?noprops=id1,id2 — только эти проп-типы
+            const _np = new URLSearchParams(window.location.search).get('noprops');
+            const _npSet = _np ? new Set(_np.split(',')) : null;
             (location.props || []).forEach(p => {
+                if (_np !== null && (!_npSet || _npSet.has(p.prop))) return;
                 const dx = (p.x || 0) - sx, dz = (p.z || 0) - sz;
                 const isFar = !location.isDungeon && (dx * dx + dz * dz > 105 * 105);
                 const job = this.buildProp(p, isFar);

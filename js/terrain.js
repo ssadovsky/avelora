@@ -1504,6 +1504,8 @@ class LakesideTerrain {
         };
 
         this.mesh = new THREE.Mesh(geo, this.material);
+        // ?simpleground — отладка нагрузки GPU: земля рисуется простым материалом (без тяжёлого шейдера), рельеф тот же
+        if (/[?&]simpleground\b/.test(window.location.search)) this.mesh.material = new THREE.MeshLambertMaterial({ color: 0x5f7a3a });
         this.mesh.receiveShadow = true;
         this.mesh.castShadow = false;
         if (this.locTerrain.hidden) this.mesh.visible = false;

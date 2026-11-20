@@ -46,6 +46,7 @@
     const RESPAWN_CHECK = 2;        // s between respawn checks (game time)
     const CREATURE_DRAW_DIST = 1e6;  // м: дальше существо не рисуется. Сейчас без ограничения (появление волка на бегу раздражало); можно вернуть ~80–150 для слабых устройств
     const CREATURE_SHADOW_DIST = 40; // м: тень существа только вблизи
+    const CREATURE_LOD_DIST = 40;    // м: дальше — лёгкая модель <modelKey>_far (content/creatures/<id>/model_far.glb), если она есть; та же дальность, что у тени — у дальней тени нет
     const HIT_FLASH = 0.22;         // s red emissive flash
     const HIT_CLIP_GAP = 0.7;       // s — don't restart the Hit clip more often than this
     const FADE = 0.2;               // s clip cross-fade
@@ -262,6 +263,7 @@
                     jobs.push(this.spawn(rec, false));
                 }
             });
+            if (/[?&]nocreatures\b/.test(window.location.search)) { jobs.length = 0; farRecs.length = 0; this.list.forEach(r => { r.state = 'gone'; r.slain = true; }); }   // ?nocreatures — отладка нагрузки GPU
             this.ready = Promise.all(jobs).then(() => undefined);
             this.allReady = this.ready.then(() => this._spawnFarBatch(farRecs));
         }
@@ -435,6 +437,8 @@
             if (this.templates[type]) return this.templates[type];
             // модель подгружается своим файлом (asset_loader.js), потом разбирается как раньше
             const assetReady = (def.modelKey && window.AveloraAssets) ? window.AveloraAssets.ensure(def.modelKey) : Promise.resolve(true);
+            const farKey = def.modelKey ? def.modelKey + '_far' : null;
+            const hasFar = !!(farKey && window.AveloraAssets && window.AveloraAssets.known && window.AveloraAssets.known(farKey));
             this.templates[type] = assetReady.then(() => new Promise(resolve => {
                 const buffer = def.modelKey && window.LakesideEnvironment
                     ? window.LakesideEnvironment.getModelBuffer(def.modelKey) : null;
@@ -482,7 +486,19 @@
                     finish(null, null);
                 }
             }));
+            if (hasFar) this.templates[type] = this.templates[type].then(tpl => this.loadFarGeos(farKey).then(geos => { if (tpl && !tpl.fallback && geos.length) tpl.farGeos = geos; return tpl; }));
             return this.templates[type];
+        }
+
+        /** Дальняя LOD-модель: геометрии её SkinnedMesh (в порядке обхода сцены). Привязываются к скелету ближней модели (кости и skin те же — lighten.mjs). */
+        loadFarGeos(key) {
+            return window.AveloraAssets.ensure(key).then(() => new Promise(resolve => {
+                const buf = window.LakesideEnvironment ? window.LakesideEnvironment.getModelBuffer(key) : null;
+                if (!buf) { resolve([]); return; }
+                const done = gltf => { const geos = []; if (gltf) gltf.scene.traverse(o => { if (o.isSkinnedMesh) geos.push(o.geometry); }); resolve(geos); };
+                try { new THREE.GLTFLoader().parse(buf, '', done, err => { console.warn(`[Avelora] far model "${key}" failed`, err); resolve([]); }); }
+                catch (err) { console.warn(`[Avelora] far model "${key}" failed`, err); resolve([]); }
+            })).catch(() => []);
         }
 
         /** No model.glb yet: an ellipsoid body with a head bump, sized from hitRadius (+Z forward). */
@@ -531,6 +547,23 @@
                     }
                 });
                 group.add(model);
+                // LOD: дальняя геометрия на том же скелете и с тем же (уже клонированным) материалом — вспышка удара, лёд и т. п. работают и на ней
+                rec.lod = null; rec._lodFar = false;
+                if (tpl.farGeos && tpl.farGeos.length) {
+                    const nears = []; model.traverse(o => { if (o.isSkinnedMesh) nears.push(o); });
+                    if (nears.length === tpl.farGeos.length) {
+                        rec.lod = nears.map((near, i) => {
+                            const far = new THREE.SkinnedMesh(tpl.farGeos[i], near.material);
+                            far.name = near.name + '_far';
+                            far.position.copy(near.position); far.quaternion.copy(near.quaternion); far.scale.copy(near.scale);
+                            far.bind(near.skeleton, near.bindMatrix);
+                            far.frustumCulled = false; far.castShadow = false; far.receiveShadow = true; far.visible = false;
+                            far.userData.lodFar = true;
+                            near.parent.add(far);
+                            return { near, far };
+                        });
+                    }
+                }
 
                 // Generous invisible hit cylinder (hover / click / tap / Spark)
                 if (!this.proxyGeos[rec.type]) {
@@ -621,11 +654,11 @@
             if (rec.group && rec.group.parent) rec.group.parent.remove(rec.group);
             rec.materials.forEach(m => m.dispose());
             if (rec.model) rec.model.traverse(o => {
-                if (o.isSkinnedMesh && o.skeleton) o.skeleton.dispose();
+                if (o.isSkinnedMesh && o.skeleton && !o.userData.lodFar) o.skeleton.dispose();
                 if (o.isMesh && o.material && rec.materials.indexOf(o.material) < 0) o.material.dispose();
             });
             rec.materials.length = 0;
-            rec.group = rec.model = rec.proxy = rec.mixer = null;
+            rec.group = rec.model = rec.proxy = rec.mixer = null; rec.lod = null;
             rec.actions = {}; rec.current = null; rec.anim = null;
             if (this.hovered === rec) this.hovered = null;
             this.hideHpBar(rec);
@@ -847,11 +880,18 @@
                     rec._d2 = d2;
                     const vis = d2 < CREATURE_DRAW_DIST * CREATURE_DRAW_DIST;
                     rec._inRange = vis;
+                    if (rec.lod) {
+                        const farOn = d2 > CREATURE_LOD_DIST * CREATURE_LOD_DIST;
+                        if (rec._lodFar !== farOn) {
+                            rec._lodFar = farOn;
+                            for (let k = 0; k < rec.lod.length; k++) { rec.lod[k].near.visible = !farOn; rec.lod[k].far.visible = farOn; }
+                        }
+                    }
                     if (vis) {
                         const sh = d2 < CREATURE_SHADOW_DIST * CREATURE_SHADOW_DIST;
                         if (rec._shadowOn !== sh) {
                             rec._shadowOn = sh;
-                            rec.group.traverse(o => { if (o.isMesh) o.castShadow = sh; });
+                            rec.group.traverse(o => { if (o.isMesh && !o.userData.lodFar) o.castShadow = sh; });
                         }
                     }
                 }

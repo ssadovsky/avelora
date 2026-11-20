@@ -43,6 +43,13 @@
         if (tier === GFX.tier) return false;
         Object.assign(GFX, PROFILES[tier]);
         GFX.aa = true;
+        // Отладка нагрузки GPU (только для замеров): ?dpr=0.75 — чёткость, ?noshadow — без теней, ?nograss — без травы и цветов
+        try {
+            const q = new URLSearchParams(location.search);
+            if (q.has('dpr')) { const v = parseFloat(q.get('dpr')); if (v > 0.2 && v < 3) GFX.dpr = v; }
+            if (q.has('noshadow')) { GFX.shadows = false; GFX.treeShadowR = 0.001; }
+            if (q.has('nograss')) GFX.grassRadius = 0.001;
+        } catch (e) { /* без URLSearchParams — без отладки */ }
         GFX.tier = tier;
         GFX.mobile = tier === 'low';
         return true;
