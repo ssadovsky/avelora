@@ -511,7 +511,7 @@ window.LOCATIONS = {
             // Кузнец Торвальд у нового домика, рядом с наковальней (лицом к ней)
             { id: 'forestEdge.blacksmith', prop: 'npc_blacksmith', x: 68.5, z: -11.5, r: 0.9 },
             // Лираэль, Хранительница Каменного Дозора (NPC у водопада)
-            { id: 'forestEdge.lirael', prop: 'npc_lirael', x: 129.0, z: 19.5, r: 0.0 },
+            { id: 'forestEdge.lirael', prop: 'npc_lirael', x: 129.0, z: 19.5, r: 0.0 },   // модель — бывшая Ориэль (Sapphire Enchantress), 20.11
             // Олениха-друид (NPC): в тени одинокого большого дерева (14, 8.5), берёт отчёты по заданиям от Лираэль
             { id: 'forestEdge.doe_druid', prop: 'npc_doe_druid', x: 10.0, z: 5.0, r: 1.57 },
 
@@ -1747,7 +1747,9 @@ window.LOCATIONS = {
             { id: 'primevalValley.bones_3', prop: 'bone_pile_1', x: 88.0, z: -2.0, r: 0.86 },
             { id: 'primevalValley.bones_4', prop: 'bone_pile_4', x: -102.0, z: 40.0, r: 1.96 },
             { id: 'primevalValley.log_1', prop: 'fallen_log', x: -14.0, z: -30.0, r: 3.64 },
-            { id: 'primevalValley.log_3', prop: 'fallen_log', x: -38.0, z: 12.0, r: 4.44 }
+            { id: 'primevalValley.log_3', prop: 'fallen_log', x: -38.0, z: 12.0, r: 4.44 },
+            // охотница на драконов Кайра (NPC, content/npcs/dragon_huntress, Meshy Boneclad Huntress 1120003953): западный берег озера у бревна, лицом на запад к входу в долину; пока только приветствие
+            { id: 'primevalValley.dragon_huntress', prop: 'npc_dragon_huntress', x: -41.5, z: 15.0, r: -Math.PI / 2 }
         ],
 
         creatures: [
@@ -2545,7 +2547,7 @@ window.LOCATIONS = {
             { id: 'runeLands.rune_smith', prop: 'npc_rune_smith', x: 49.7, z: 32.8, r: Math.PI / 2 },
             // травница-алхимик Мирена (NPC, content/npcs/herbalist): у крыльца лавки алхимика, лицом на восток к поперечной дороге; скупает всё, ничего не продаёт
             { id: 'runeLands.herbalist', prop: 'npc_herbalist', x: 48.9, z: 11.6, r: Math.PI / 2 },
-            // магистр Ориэль (NPC, content/npcs/academy_mage, Meshy Sapphire Enchantress): в центре нижнего края лестницы академии (центр ступеней z −15.7, низ x≈63), спиной к двери, лицом на улицу (запад); учит магии, как Лираэль
+            // магистр Элисандра (NPC, content/npcs/academy_mage, Meshy Sapphire Archmage 1119235723): в центре нижнего края лестницы академии (центр ступеней z −15.7, низ x≈63), спиной к двери, лицом на улицу (запад); учит магии, как Лираэль
             { id: 'runeLands.academy_mage', prop: 'npc_academy_mage', x: 62.6, z: -15.7, r: -Math.PI / 2 },
             // швея Ивелина (NPC, content/npcs/seamstress): в углу у крыльца лавки портного, лицом на восток к поперечной дороге; скупает всё, ничего не продаёт
             { id: 'runeLands.seamstress', prop: 'npc_seamstress', x: 50.0, z: -16.1, r: Math.PI / 2 },

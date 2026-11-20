@@ -2,6 +2,8 @@
   "id": "lirael",
   "name": "Лираэль",
   "title": "Хранительница Каменного Дозора",
+  "height": 1.75,
+  "greetClip": "Greeting",
   "start": "start",
   "dialog": {
     "start": {
@@ -63,7 +65,6 @@
   "teach": {
     "price": 1
   },
-  "height": 1.75,
   "quests": [
     "fern_gathering",
     "meet_blacksmith",

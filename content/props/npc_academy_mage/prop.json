@@ -1,6 +1,6 @@
 {
   "id": "npc_academy_mage",
-  "name": "Ориэль",
+  "name": "Элисандра",
   "obstacle": 0.5,
   "npc": "academy_mage"
 }

@@ -1,0 +1,6 @@
+{
+  "id": "npc_dragon_huntress",
+  "name": "Кайра",
+  "obstacle": 0.5,
+  "npc": "dragon_huntress"
+}
