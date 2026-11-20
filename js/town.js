@@ -381,6 +381,15 @@
             img.src = A.townMeshWindow;
             M.mwinnf = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x3a2508, emissiveMap: tex, emissiveIntensity: 0.35 });
         } else M.mwinnf = M.mwin || M.glass;
+        // деревенская таверна (villageTavern): текстуры с Meshy «Timber Tankard Inn»; repeat.y — поправка на пропорции тайла
+        const vp = imgTex('villageTavernPlaster'), vb = imgTex('villageTavernBeam', 9.14), vs = imgTex('villageTavernShingle', 1.93);
+        const vd = imgTex('villageTavernDoor', 0, true), vw = imgTex('villageTavernWindow', 0, true), vg = imgTex('villageTavernSign', 0, true);
+        M.vplaster = vp ? std(vp, null, { roughness: 0.95 }) : M.plaster;
+        M.vbeam = vb ? std(vb, null, { roughness: 0.85 }) : M.wood;
+        M.vshingle = vs ? std(vs, null, { roughness: 0.9 }) : M.slate;
+        M.vdoor = vd ? new THREE.MeshStandardMaterial({ map: vd, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x2a1806, emissiveMap: vd, emissiveIntensity: 0.2 }) : M.wood;
+        M.vwin = vw ? new THREE.MeshStandardMaterial({ map: vw, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x3a2508, emissiveMap: vw, emissiveIntensity: 0.35 }) : M.glass;
+        M.vsign = vg ? new THREE.MeshStandardMaterial({ map: vg, roughness: 0.8, metalness: 0, vertexColors: true }) : M.sign;
         // Стена: тот же камень, что у башен (sRGB-режим, как у GLB ворот и башни)
         M.wallstone = mws ? new THREE.MeshStandardMaterial({ map: mws, roughness: 0.9, metalness: 0, vertexColors: true }) : M.mstone;
         // верх стены: тот же кирпич, но с повтором по обеим осям (боковая текстура на верхней грани тянется полосами)
@@ -771,6 +780,118 @@
             { cx: 6.85, cz: 4.6, hx: 0.95, hz: 0.1, y: 0.35, rampLen: 1.0, rampHx: 0.95, endY: 0 }
         ];
         return { rects, platforms, platform: null, w: 19.4, d: 11.8, h: roof.yR + 1.0 };
+    }
+
+    // ------------------------------------------------------------------ деревенская таверна «Деревянная кружка» (Лесная опушка, 2026-11-20)
+    // Скромная таверна по мотивам Meshy «The Timber Tankard Inn»: полтора этажа, фахверк на штукатурке, крутая крыша из дранки
+    // (фронтон на фасад), открытый навес сбоку со столом и лавками, вывеска с кружкой на навесе.
+    // Текстуры сняты с самой Meshy-модели (ортогональный рендер без света): штукатурка vplaster, брус vbeam, дранка vshingle,
+    // арочная дверь vdoor, окно vwin (без цветочного ящика — нижняя половина окна зеркальна верхней), вывеска vsign.
+    // Цоколь и ступень — Meshy-камень коттеджа (mplinth). Без Meshy-текстур материалы откатываются на процедурные.
+    // Локально: фасад +Z, корпус x ±4.0, z ±3.2; навес справа (x 4…8.6). Дом не заходимый.
+    function buildVillageTavern(B, cfg) {
+        const HX = 4.0, HZ = 3.2, YS = 0.45, YW = 3.6, YT = 3.85, PI = Math.PI;
+        const UVB = 0.484, UVS = 0.69, UVP = 0.303;          // брус: тайл 4.13 м; дранка: 2.9 м (ряды 0.5 м); цоколь — как у коттеджа
+        const rects = [], rect = (x0, x1, z0, z1) => rects.push({ x0, x1, z0, z1 });
+        const beam = (x, y, z, sx, sy, sz, o) => B.box('vbeam', x, y, z, sx, sy, sz, Object.assign({ uv: UVB, vert: !(o && (o.rx || o.ry || o.rz)) && sy > sx && sy > sz }, o || {}));
+        const win = (fr, y, k) => B.frame(fr, () => B.sign('vwin', 0, y, 0.025, 1.02 * (k || 1), 1.36 * (k || 1)));
+
+        // ---------- цоколь, стены, обвязка
+        B.box('mplinth', 0, 0.0, 0, 2 * HX + 0.3, 0.9, 2 * HZ + 0.3, { uv: UVP });                              // −0.45…0.45 (на склоне уходит в землю)
+        B.box('vplaster', 0, (0.5 + YW + 0.02) / 2, 0, 2 * HX, YW + 0.02 - 0.5, 2 * HZ, { uv: 1.0, t: [1.12, 1.1, 1.08] });
+        beam(0, (YW + YT) / 2, 0, 2 * HX + 0.24, YT - YW, 2 * HZ + 0.24, { bottom: true });                    // верхняя обвязка 3.6…3.85
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) beam(sx * (HX + 0.02), (YS + YW) / 2, sz * (HZ + 0.02), 0.32, YW - YS, 0.32);   // угловые стойки
+
+        // стены: рамка (x вдоль стены, +z наружу); окна, стойки, ригель под окнами, нижняя обвязка (с разрывом под дверью)
+        const DX = -0.7, DW = 1.8, DH = 2.12;
+        const WALLS = {
+            front: { fr: { x: 0, z: HZ, yaw: 0 }, len: 2 * HX, wins: [-2.95, 2.1], posts: [-1.85, 0.45], gap: [DX - DW / 2 - 0.05, DX + DW / 2 + 0.05] },
+            back: { fr: { x: 0, z: -HZ, yaw: PI }, len: 2 * HX, wins: [-1.9, 1.9], posts: [0] },
+            right: { fr: { x: HX, z: 0, yaw: PI / 2 }, len: 2 * HZ, wins: [-1.5, 1.5], posts: [0] },
+            left: { fr: { x: -HX, z: 0, yaw: -PI / 2 }, len: 2 * HZ, wins: [1.4], posts: [-0.2] }
+        };
+        for (const k of Object.keys(WALLS)) {
+            const W = WALLS[k], L = W.len / 2 - 0.16;
+            for (const x of W.wins) win(Object.assign({}, W.fr, { x: W.fr.x + x * Math.cos(W.fr.yaw), z: W.fr.z - x * Math.sin(W.fr.yaw) }), 1.95);
+            B.frame(W.fr, () => {
+                for (const x of W.posts) beam(x, (YS + YW) / 2, 0.07, 0.24, YW - YS, 0.14);
+                // нижняя обвязка и ригель под окнами (у двери — разрыв)
+                const spans = W.gap ? [[-L, W.gap[0]], [W.gap[1], L]] : [[-L, L]];
+                for (const [a, b] of spans) {
+                    beam((a + b) / 2, 0.575, 0.04, b - a, 0.25, 0.16);
+                    beam((a + b) / 2, 1.17, 0.05, b - a, 0.16, 0.12);
+                }
+                // раскосы в простенках у углов (не на окнах и стойках)
+                for (const s of [-1, 1]) {
+                    const xa = s * (L - 0.05), xb = s * (L - 0.95), clear = W.wins.every(w => Math.abs(w - (xa + xb) / 2) > 1.15);
+                    if (!clear) continue;
+                    const ya = 1.25, yb = YW - 0.05, len = Math.hypot(xb - xa, yb - ya), a = Math.atan2(yb - ya, xb - xa);
+                    beam((xa + xb) / 2, (ya + yb) / 2, 0.05, len, 0.16, 0.1, { rz: a });
+                }
+            });
+        }
+        // дверь, порог, ступень
+        B.sign('vdoor', DX, 0.5 + DH / 2, HZ + 0.025, DW, DH);
+        beam(DX, 0.47, HZ + 0.06, DW + 0.1, 0.06, 0.14);
+        B.box('mplinth', DX, 0.12, HZ + 0.5, DW + 0.5, 0.5, 0.6, { uv: UVP });                                    // ступень: верх 0.37, z 3.2…3.8
+        rect(DX - DW / 2 - 0.3, DX + DW / 2 + 0.3, HZ, HZ + 0.85);
+
+        // ---------- крыша: дранка, конёк вдоль Z (фронтон на фасад), скаты в своих рамках (ряды дранки идут вдоль конька)
+        const ang = 0.78, tan = Math.tan(ang), ov = 0.55, half = HX, run = half + ov;
+        const yE = YT - ov * tan, yR = YT + half * tan, slope = run / Math.cos(ang) + 0.12, yc = (yE + yR) / 2 + 0.1, LR = 2 * HZ + 1.1;
+        for (const s of [1, -1]) B.frame({ x: 0, z: 0, yaw: s * PI / 2 }, () => {
+            B.box('vshingle', 0, yc, run / 2, LR + (s > 0 ? 0 : 0.03), 0.2, slope, { rx: ang, bottom: true, uv: UVS });
+            beam(0, yE, run, LR + (s > 0 ? 0.09 : 0.12), 0.18, 0.18);                                              // карнизный брус
+        });
+        beam(0, yR + 0.17, 0, 0.38, 0.16, LR + 0.16);                                                                 // коньковый брус
+        // фронтоны: штукатурка, фахверк, окно, причелины
+        for (const s of [1, -1]) {
+            B.frame({ x: 0, z: s * (HZ + 0.02), yaw: s > 0 ? 0 : PI }, () => {
+                B.prism('vplaster', 'z', 0, YT, half, half * tan, 0.2, { uv: 1.0, t: [1.12, 1.1, 1.08] });
+                const yc2 = YT + 1.75, hw = half - 1.75 / tan;
+                beam(0, yc2, 0.13, 2 * hw - 0.1, 0.18, 0.1);                                                       // ригель
+                beam(0, (yc2 + 0.09 + yR - 0.3) / 2, 0.13, 0.2, yR - 0.3 - yc2 - 0.09, 0.1);                         // бабка над окном
+                for (const sx of [-1, 1]) {
+                    const xa = sx * 2.9, ya = YT + 0.05, xb = sx * 0.95, yb = yc2 - 0.08, len = Math.hypot(xb - xa, yb - ya);
+                    beam((xa + xb) / 2, (ya + yb) / 2, 0.13, len, 0.16, 0.1, { rz: Math.atan2(yb - ya, xb - xa) });
+                    const bx = sx * run / 2, by = YT + (half - run / 2) * tan - 0.02;                                   // причелина по скату
+                    beam(bx, by, 0.5, run / Math.cos(ang) + 0.05, 0.26, 0.12, { rz: -sx * ang });
+                }
+                win({ x: 0, z: 0.12, yaw: 0 }, YT + 0.88, 0.75);
+            });
+        }
+
+        // ---------- навес справа: столбы, балки, односкатная крыша из дранки, вывеска на кронштейне
+        const PX = 8.4, PZ = HZ + 0.15, yPw = 3.2, pA = 0.112, pRun = 4.9;
+        for (const z of [-PZ, PZ]) {
+            B.cyl('vbeam', PX, -0.1, z, 0.18, 0.15, 2.72, 10, { uv: UVB, rings: 1 });
+            beam((HX + PX) / 2 + 0.05, 2.55, z, PX - HX + 0.25, 0.24, 0.22);                                          // боковые балки
+            beam(PX - 0.45, 2.15, z, 0.85, 0.12, 0.12, { rz: -0.75 });                                                // подкос
+            rect(PX - 0.25, PX + 0.25, z - 0.25, z + 0.25);
+        }
+        beam(PX, 2.55, 0, 0.24, 0.26, 2 * PZ + 0.3);                                                                 // прогон по столбам
+        beam(HX + 0.09, yPw - 0.2, 0, 0.18, 0.22, 2 * HZ - 0.1);                                                      // опорный брус на стене
+        B.frame({ x: HX, z: 0, yaw: PI / 2 }, () => {
+            const yA = yPw, yB = yPw - pRun * Math.tan(pA);
+            B.box('vshingle', 0, (yA + yB) / 2 + 0.08, pRun / 2, 2 * PZ + 0.8, 0.14, pRun / Math.cos(pA) + 0.1, { rx: pA, bottom: true, uv: UVS });
+        });
+        // вывеска: доска на внешней стороне прогона по столбам, лицом наружу (к дороге), изнанка — под навес
+        beam(PX + 0.16, 2.3, 0, 0.05, 0.74, 0.78, { vert: false });
+        B.frame({ x: PX + 0.16, z: 0, yaw: PI / 2 }, () => B.sign('vsign', 0, 2.3, 0.03, 0.7, 0.7));
+        B.frame({ x: PX + 0.16, z: 0, yaw: -PI / 2 }, () => B.sign('vsign', 0, 2.3, 0.03, 0.7, 0.7));
+
+        // ---------- под навесом: стол с лавками, бочки у стены
+        const tX = 6.3, tZ = 0.4, tL = 2.4;
+        beam(tX, 0.78, tZ, 0.9, 0.08, tL);
+        for (const sz of [-1, 1]) beam(tX, 0.37, tZ + sz * (tL / 2 - 0.3), 0.12, 0.74, 0.12);
+        beam(tX, 0.37, tZ, 0.6, 0.1, 0.1);
+        for (const sx of [-1, 1]) {
+            beam(tX + sx * 0.85, 0.45, tZ, 0.32, 0.07, tL);
+            for (const sz of [-1, 1]) beam(tX + sx * 0.85, 0.21, tZ + sz * (tL / 2 - 0.25), 0.1, 0.42, 0.1);
+        }
+        rect(tX - 1.05, tX + 1.05, tZ - tL / 2 - 0.05, tZ + tL / 2 + 0.05);
+        rect(-HX - 0.2, HX + 0.2, -HZ - 0.2, HZ + 0.2);                                                               // корпус
+        return { rects, platform: null, w: 2 * PX + 2, d: 2 * HZ + 2, h: yR + 1.0 };
     }
 
     // ------------------------------------------------------------------ белый мраморный храм (греческий периптер)
@@ -1441,8 +1562,8 @@
         B.poly('gatePortal', [[ox - hw, -0.1, 0], [ox + hw, -0.1, 0], [ox + hw, h, 0], [ox - hw, h, 0]], [0, 0, 1], { uv: TEX_M * k, ou: -ox * k });
         return { rects: [] };
     }
-    const TYPES = { templeGate: buildTempleGate, portalVeil: buildPortalVeil, stoneHouse: buildStoneHouse, hearthCottage: buildHearthCottage, marbleTemple: buildMarbleTemple, tavern: buildTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall, buildTempleGate };
-    const CAMERA_BLOCK = { templeGate: ['stone'], stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], hearthCottage: ['stone', 'slate', 'wood', 'plaster', 'deck', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], corral: [], castleWall: ['wallstone', 'wallcap'] };
+    const TYPES = { templeGate: buildTempleGate, portalVeil: buildPortalVeil, stoneHouse: buildStoneHouse, hearthCottage: buildHearthCottage, marbleTemple: buildMarbleTemple, tavern: buildTavern, villageTavern: buildVillageTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall, buildTempleGate };
+    const CAMERA_BLOCK = { templeGate: ['stone'], stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], hearthCottage: ['stone', 'slate', 'wood', 'plaster', 'deck', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], villageTavern: ['vplaster', 'vbeam', 'vshingle', 'mplinth'], corral: [], castleWall: ['wallstone', 'wallcap'] };
 
     // ------------------------------------------------------------------ менеджер локации
     class AveloraTown {
@@ -1465,6 +1586,7 @@
             const t = loc.terrain = loc.terrain || {};
             t.flatSpots = t.flatSpots || []; loc.clearings = loc.clearings || []; loc.noFerns = loc.noFerns || [];
             for (const b of (cfg.buildings || [])) {
+                if (b.prep === false) continue;   // площадку и расчистку задаёт world_data (flatSpots/removeZones): clearings пересобрали бы лес локации
                 let dims, cx = b.x, cz = b.z;
                 if (b.type === 'tavern') { dims = 13.6; cx += 0.7 * Math.sin(b.r || 0); cz += 0.7 * Math.cos(b.r || 0); }   // терраса смещена вперёд от начала здания
                 else if (b.type === 'castleWall') {
@@ -1558,6 +1680,6 @@
     }
 
     // для headless-теста без игры
-    AveloraTown._internals = { Builder, TYPES, sharedMaterials, buildStoneHouse, buildHearthCottage, buildMarbleTemple, buildTavern, buildRuneGate, buildCastleWall };
+    AveloraTown._internals = { Builder, TYPES, sharedMaterials, buildStoneHouse, buildHearthCottage, buildMarbleTemple, buildTavern, buildVillageTavern, buildRuneGate, buildCastleWall };
     window.AveloraTown = AveloraTown;
 })();

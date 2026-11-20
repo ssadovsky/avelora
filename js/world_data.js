@@ -83,7 +83,7 @@ window.LOCATIONS = {
             // Ровная площадка под порталом (радиус 4.5 м, дальше 5 м плавно возвращается к рельефу)
             rimDip: [{ x: 0.0, k0: 0.85, w: 30.0, cragK: 0.0 }, { side: 'west', axis: 'z', z: 8.0, k0: 0.85, w: 30.0, cragK: 0.0 }],
             rockTint: { x: 0.0, z: 94.0, tintRadius: 26.0, tintStrength: 0.9 },
-            flatSpots: [{ x: -130.0, z: 8.0, radius: 2.2, blend: 2.5, hFrom: [-120.0, 8.0] }, { x: -136.5, z: 8.0, radius: 2.2, blend: 3.0, hFrom: [-120.0, 8.0], dh: 0.0 }, { x: -140.5, z: 8.0, radius: 2.2, blend: 3.5, hFrom: [-120.0, 8.0], dh: 0.22 }, { x: -144.0, z: 8.0, radius: 2.2, blend: 4.0, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: -147.0, z: 8.0, radius: 2.0, blend: 4.5, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: 70.0, z: -15.0, radius: 4.6, blend: 5.0 }, { x: 61.0, z: 27.3, radius: 3.8, blend: 4.0, hFrom: [63.0, 27.0] }, { x: 65.1, z: 27.4, radius: 3.8, blend: 4.0, hFrom: [63.0, 27.0] }, { x: 61.5, z: 10.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: -0.102 }, { x: 61.5, z: 11.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: -0.073 }, { x: 61.5, z: 12.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: -0.018 }, { x: 61.5, z: 13.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.056 }, { x: 61.5, z: 14.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.145 }, { x: 61.5, z: 15.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.244 }, { x: 61.5, z: 16.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.349 }, { x: 61.5, z: 17.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.453 }, { x: 61.5, z: 18.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.552 }, { x: 61.5, z: 19.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.641 }, { x: 61.5, z: 20.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.716 }, { x: 61.5, z: 21.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.770 }, { x: 61.5, z: 22.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.800 }, { x: 61.5, z: 22.8, radius: 2.2, blend: 4.0, hFrom: [63.0, 27.0] }, { x: 25.5, z: -20.1, radius: 3.4, blend: 4.0 }, { x: 64.3, z: -12.3, radius: 3.8, blend: 4.0 }, { x: 65.0, z: -4.8, radius: 3.8, blend: 4.0, hFrom: [64.3, -12.3] }, { x: 37.5, z: -7.0, radius: 5.0, blend: 4.0, hFrom: [40.0, 2.82], road: true }, { x: 42.5, z: -7.0, radius: 5.0, blend: 4.0, hFrom: [40.0, 2.82], road: true }, { x: 56.0, z: -3.0, radius: 4.0, blend: 4.0, hFrom: [56.0, 5.43], road: true }, { x: 0.0, z: 86.0, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.07 }, { x: 0.0, z: 89.5, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.1 }, { x: 0.0, z: 93.0, radius: 2.2, blend: 4.5, hFrom: [0.0, 79.0], dh: 0.0 }, { x: 0.0, z: 95.3, radius: 1.6, blend: 6.5, hFrom: [0.0, 79.0], dh: -0.11 }, { x: -80.0, z: 60.0, radius: 4.8, blend: 5.0 }],   // 2-й: под домиком кузнеца, 3-4-й и далее: под домиком швеи (дом, лавка), цепочка ровного подъёма тропинки от уровня дороги к двери, двор у двери, далее беседка, кузня
+            flatSpots: [{ x: -130.0, z: 8.0, radius: 2.2, blend: 2.5, hFrom: [-120.0, 8.0] }, { x: -136.5, z: 8.0, radius: 2.2, blend: 3.0, hFrom: [-120.0, 8.0], dh: 0.0 }, { x: -140.5, z: 8.0, radius: 2.2, blend: 3.5, hFrom: [-120.0, 8.0], dh: 0.22 }, { x: -144.0, z: 8.0, radius: 2.2, blend: 4.0, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: -147.0, z: 8.0, radius: 2.0, blend: 4.5, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: 70.0, z: -15.0, radius: 4.6, blend: 5.0 }, { x: 61.0, z: 27.3, radius: 3.8, blend: 4.0, hFrom: [63.0, 27.0] }, { x: 65.1, z: 27.4, radius: 3.8, blend: 4.0, hFrom: [63.0, 27.0] }, { x: 61.5, z: 10.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: -0.102 }, { x: 61.5, z: 11.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: -0.073 }, { x: 61.5, z: 12.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: -0.018 }, { x: 61.5, z: 13.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.056 }, { x: 61.5, z: 14.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.145 }, { x: 61.5, z: 15.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.244 }, { x: 61.5, z: 16.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.349 }, { x: 61.5, z: 17.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.453 }, { x: 61.5, z: 18.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.552 }, { x: 61.5, z: 19.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.641 }, { x: 61.5, z: 20.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.716 }, { x: 61.5, z: 21.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.770 }, { x: 61.5, z: 22.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.800 }, { x: 61.5, z: 22.8, radius: 2.2, blend: 4.0, hFrom: [63.0, 27.0] }, { x: 25.5, z: -20.1, radius: 3.4, blend: 4.0 }, { x: 64.3, z: -12.3, radius: 3.8, blend: 4.0 }, { x: 65.0, z: -4.8, radius: 3.8, blend: 4.0, hFrom: [64.3, -12.3] }, { x: 37.5, z: -7.0, radius: 5.0, blend: 4.0, hFrom: [40.0, 2.82], road: true }, { x: 42.5, z: -7.0, radius: 5.0, blend: 4.0, hFrom: [40.0, 2.82], road: true }, { x: 56.0, z: -3.0, radius: 4.0, blend: 4.0, hFrom: [56.0, 5.43], road: true }, { x: 0.0, z: 86.0, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.07 }, { x: 0.0, z: 89.5, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.1 }, { x: 0.0, z: 93.0, radius: 2.2, blend: 4.5, hFrom: [0.0, 79.0], dh: 0.0 }, { x: 0.0, z: 95.3, radius: 1.6, blend: 6.5, hFrom: [0.0, 79.0], dh: -0.11 }, { x: -80.0, z: 60.0, radius: 4.8, blend: 5.0 }, { x: 52.0, z: 12.1, radius: 4.0, blend: 4.0, hFrom: [52.0, 17.6], dh: -0.35, road: true }, { x: 52.0, z: 16.6, radius: 4.5, blend: 4.0, hFrom: [52.0, 17.6], dh: -0.35, road: true }, { x: 50.0, z: 21.1, radius: 3.5, blend: 4.0, hFrom: [52.0, 17.6], dh: -0.35, road: true }, { x: 54.0, z: 21.1, radius: 3.5, blend: 4.0, hFrom: [52.0, 17.6], dh: -0.35, road: true }],   // 2-й: под домиком кузнеца, 3-4-й и далее: под домиком швеи (дом, лавка), цепочка ровного подъёма тропинки от уровня дороги к двери, двор у двери, далее беседка, кузня
             // Арочный вырез в восточном горном барьере для грота (севернее водопада)
             caves: [
                 { x: 139.5, z: -18.0, minX: 134.0, maxX: 143.5, radiusZ: 3.5, backLen: 1.0, tintRadius: 26.0, tintStrength: 0.85 }
@@ -136,6 +136,10 @@ window.LOCATIONS = {
                 {
                     type: 'dirt', thin: true, width: 1.2, clearMargin: 0.6,
                     points: [[38.25, 2.5], [38.25, -0.8], [38.25, -2.9]]
+                },
+                {   // ответвление от тропинки к домику швеи (x 61.5) на запад к двери деревенской таверны (town villageTavern, дверь z 19.3, ступень x 56.0)
+                    type: 'dirt', thin: true, width: 1.6, clearMargin: 0.6,
+                    points: [[61.5, 18.2], [59.0, 18.2], [57.0, 18.2]]
                 }
             ]
         },
@@ -143,6 +147,9 @@ window.LOCATIONS = {
         atmosphere: { sky: 0xc6dbe3, skyTop: 0x4a8fc9, fogDensity: 0.0055 },
         // тяжёлый лес: деревья рисуются упрощёнными с 40 м и бросают тень до 22 м (профиль high: 55 / 30); keep у крупных лесов — прореживание 25%
         gfx: { treeLodR: 40, treeShadowR: 22 },
+        // Процедурная таверна «Деревянная кружка» (town.js, villageTavern; текстуры сняты с Meshy Timber Tankard Inn): южнее дороги, западнее тропинки швеи.
+        // r = π/2: навес (локальный +x) с вывеской — на север к дороге (столбы z ≈ 10.2, вне полотна сглаженной дороги — там площадка не действует), дверь (фасад +Z) — на восток, к ответвлению от тропинки швеи.
+        // prep: false — площадка (flatSpots) и тропинка заданы вручную, clearings не нужны (иначе пересоберётся лес).
         cameraAngle: 0.0,           // на старте камера смотрит на север (по тропе к Лираэль)
         // Зоны без папоротников (поляна барсуков): эллипсы {x, z, rx, rz}
         noFerns: [{ x: -80.0, z: 58.0, rx: 8.0, rz: 8.0 }, { x: 72.0, z: 62.0, rx: 32.0, rz: 28.0 }, { x: 24.5, z: -16.5, rx: 6.5, rz: 8.5 }, { x: 64.3, z: -12.3, rx: 6.5, rz: 6.5 }, { x: 65.0, z: -4.8, rx: 5.5, rz: 5.5 }, { x: 63.0, z: 26.0, rx: 8.0, rz: 6.5 }, { x: 40.0, z: -7.0, rx: 7.0, rz: 6.0 }, { x: 56.0, z: -3.0, rx: 5.0, rz: 5.0 }, { x: 0.0, z: 89.0, rx: 10.0, rz: 10.0 }],   // 2-й: беседка и подход к ней
@@ -445,8 +452,8 @@ window.LOCATIONS = {
             { id: 'lake_duck_4', type: 'duck', level: 1, x: -16.5, z: -37.5, r: 5.5 },
             { id: 'lake_duck_5', type: 'duck', level: 1, x: -4, z: -25.5, r: 1.3 },
             { id: 'lake_duck_6', type: 'duck', level: 1, x: -14, z: -28.5, r: 3.4 },
-            // Красная панда за водопадом (3 уровень, защищается боксом)
-            { id: 'waterfall_red_panda', type: 'red_panda', level: 3, x: 127.0, z: -9.0, r: -1.57 },
+            // Красная панда у таверны: неприкасаемая (passive), танцует на месте, лицом к дороге (север)
+            { id: 'waterfall_red_panda', type: 'red_panda', level: 3, x: 52.0, z: 9.5, r: Math.PI, passive: true },
             // Оленёнок рядом с друидом
             { id: 'doe_fawn', type: 'spotted_fawn', level: 1, x: 8.0, z: 7.5, r: -2.30 },
             // Синие пауки на юго-западе долины (9 уровень, квест «Синие пауки»)
@@ -509,6 +516,15 @@ window.LOCATIONS = {
             // деревня у дороги (2026-11-20): домик Timber Hearth и дом из FBX; площадки — по уровню дороги (flatSpots road:true)
             { id: 'forestEdge.timber_cottage', prop: 'timber_cottage', x: 56.0, z: -3.0, r: 0.0 },
             { id: 'forestEdge.village_house', prop: 'village_house', x: 40.0, z: -7.0, r: 0.0, dy: -0.08 },   // dy: в модели Meshy низ ступенек на 5–7 см выше пола
+            { id: 'forestEdge.dragon_huntress', prop: 'npc_dragon_huntress', x: 34.0, z: -3.0, r: 0.0 },   // копия Кайры из Долины, лицом к дороге (юг, +Z)
+            { id: 'forestEdge.village_tavern', prop: 'village_tavern', x: 52.0, z: 18.6, r: Math.PI / 2 },   // Meshy-таверна: крыльцо (+X модели) к дороге (север), дверь (+Z) на восток к тропе
+            // две секции навеса (столбы на z модели −4.3 / −0.07 / 4.0 → мир x 47.7 / 51.9 / 56.0): стол и две лавки в каждой, длинной стороной от стены таверны (по Z)
+            { id: 'forestEdge.tavern_table1', prop: 'village_table', x: 49.8, z: 12.6, r: Math.PI / 2 },
+            { id: 'forestEdge.tavern_bench1a', prop: 'village_bench', x: 49.0, z: 12.6, r: Math.PI / 2 },
+            { id: 'forestEdge.tavern_bench1b', prop: 'village_bench', x: 50.6, z: 12.6, r: Math.PI / 2 },
+            { id: 'forestEdge.tavern_table2', prop: 'village_table', x: 54.0, z: 12.6, r: Math.PI / 2 },
+            { id: 'forestEdge.tavern_bench2a', prop: 'village_bench', x: 53.2, z: 12.6, r: Math.PI / 2 },
+            { id: 'forestEdge.tavern_bench2b', prop: 'village_bench', x: 54.8, z: 12.6, r: Math.PI / 2 },
             { id: 'forestEdge.gazebo', prop: 'gazebo', x: 25.5, z: -20.1, r: -0.41 },
             // Каменный проход в Долину Забытых Эпох: ущелье встроено в южный горный пояс (вход с севера)
             { id: 'forestEdge.stone_pass', prop: 'stone_pass', x: 0.0, z: 93.0, r: Math.PI, dy: 0.26 },

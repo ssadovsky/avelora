@@ -11628,6 +11628,24 @@ window.GAME_CONTENT = {
    },
    "modelKey": "props/twinstone_pass"
   },
+  "village_bench": {
+   "id": "village_bench",
+   "name": "Лавка",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": 0,
+     "cz": 0,
+     "hx": 0.66,
+     "hz": 0.27,
+     "r": 0.2,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "modelKey": "props/village_bench"
+  },
   "village_house": {
    "id": "village_house",
    "name": "Деревенский дом",
@@ -11666,6 +11684,83 @@ window.GAME_CONTENT = {
    ],
    "cameraBlock": true,
    "modelKey": "props/village_house"
+  },
+  "village_table": {
+   "id": "village_table",
+   "name": "Стол",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": 0,
+     "cz": 0,
+     "hx": 0.8,
+     "hz": 0.46,
+     "r": 0.2,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "modelKey": "props/village_table"
+  },
+  "village_tavern": {
+   "id": "village_tavern",
+   "name": "Таверна",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": 0.0,
+     "cz": 0.05,
+     "hx": 3.9,
+     "hz": 4.4,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -3.2,
+     "cz": 4.5,
+     "hx": 0.65,
+     "hz": 0.6,
+     "r": 0.3,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 2.7,
+     "cz": 4.6,
+     "hx": 1.15,
+     "hz": 0.6,
+     "r": 0.3,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 7.3,
+     "cz": -4.2,
+     "hx": 0.3,
+     "hz": 0.3,
+     "r": 0.3,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 7.3,
+     "cz": 3.95,
+     "hx": 0.3,
+     "hz": 0.3,
+     "r": 0.3,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/village_tavern"
   },
   "violet_flowerbed": {
    "id": "violet_flowerbed",
