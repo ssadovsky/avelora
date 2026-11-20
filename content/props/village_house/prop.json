@@ -1,0 +1,28 @@
+{
+  "id": "village_house",
+  "name": "Деревенский дом",
+  "obstacle": 0,
+  "obstacleShapes": [
+    {
+      "type": "box",
+      "cx": -1.6,
+      "cz": 0.0,
+      "hx": 2.7,
+      "hz": 3.8,
+      "r": 0.4,
+      "step": 0.5,
+      "exact": true
+    },
+    {
+      "type": "box",
+      "cx": 2.8,
+      "cz": -0.8,
+      "hx": 1.7,
+      "hz": 2.3,
+      "r": 0.4,
+      "step": 0.5,
+      "exact": true
+    }
+  ],
+  "cameraBlock": true
+}

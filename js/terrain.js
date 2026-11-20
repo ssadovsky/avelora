@@ -312,6 +312,26 @@ class LakesideTerrain {
         });
     }
 
+    /** 0 на полотне сглаженной дороги (до hw от оси), 1 дальше hw + 1.5 м: площадки road:true не трогают дорогу. */
+    _roadKeep(x, z) {
+        if (this._rs === undefined) this._buildRoadSmooth();
+        let k = 1.0;
+        for (let r = 0; this._rs && r < this._rs.length; r++) {
+            const q = this._rs[r];
+            if (x < q.x0 || x > q.x1 || z < q.z0 || z > q.z1) continue;
+            let bd = 1e9;
+            for (let i = 0; i < q.xs.length - 1; i++) {
+                const ax = q.xs[i], az = q.zs[i], dx = q.xs[i + 1] - ax, dz = q.zs[i + 1] - az;
+                const l2 = dx * dx + dz * dz || 1e-9;
+                const t = Math.min(1, Math.max(0, ((x - ax) * dx + (z - az) * dz) / l2));
+                bd = Math.min(bd, Math.hypot(x - (ax + dx * t), z - (az + dz * t)));
+            }
+            const u = Math.min(1, Math.max(0, (bd - q.hw) / 1.5));
+            k = Math.min(k, u * u * (3 - 2 * u));
+        }
+        return k;
+    }
+
     _roadSmoothedH(x, z, h) {
         if (this._rs === undefined) this._buildRoadSmooth();
         for (let r = 0; r < this._rs.length; r++) {
@@ -364,9 +384,14 @@ class LakesideTerrain {
             const bl = (f.blend !== undefined) ? f.blend : 5.0;
             const d = Math.hypot(x - f.x, z - f.z);
             if (d >= f.radius + bl) continue;
-            if (this._flatH[i] === undefined) this._flatH[i] = (f.hFrom ? this._getRawHeightBase(f.hFrom[0], f.hFrom[1]) : this._getRawHeightBase(f.x, f.z)) + (f.dh || 0);   // hFrom: высота берётся в другой точке (ущелье в горном поясе: дно = уровень луга перед входом)
+            if (this._flatH[i] === undefined) {
+                const hx = f.hFrom ? f.hFrom[0] : f.x, hz = f.hFrom ? f.hFrom[1] : f.z;
+                // road: высота берётся со сглаженной дороги (hFrom — точка на оси дороги), а не из сырого рельефа
+                this._flatH[i] = (f.road ? this._roadSmoothedH(hx, hz, this._getRawHeightBase(hx, hz)) : this._getRawHeightBase(hx, hz)) + (f.dh || 0);   // hFrom: высота берётся в другой точке (ущелье в горном поясе: дно = уровень луга перед входом)
+            }   // hFrom: высота берётся в другой точке (ущелье в горном поясе: дно = уровень луга перед входом)
             const t = d <= f.radius ? 1.0 : 1.0 - (d - f.radius) / bl;
-            const w = t * t * (3.0 - 2.0 * t);
+            let w = t * t * (3.0 - 2.0 * t);
+            if (f.road) w *= this._roadKeep(x, z);   // road: на полотне сглаженной дороги площадка не действует (дорогу не ломаем)
             out += (this._flatH[i] - out) * w;
         }
         out = this._iceLakeH(x, z, out);
