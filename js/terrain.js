@@ -923,7 +923,7 @@ class LakesideTerrain {
 
         // КРИТИЧНО для Three.js: без customProgramCacheKey движок повторно использует
         // скомпилированный шейдер первой локации для всех последующих!
-        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v55_${this.groundSet}_mix${mixGround ? groundMode : 0}${holeSig}`;
+        this.material.customProgramCacheKey = () => `lakeside_terrain_${this.biome}_${this.segments}_v56_${this.groundSet}_mix${mixGround ? groundMode : 0}${holeSig}`;
 
         const biomeId = (this.biome === 'goldshire') ? 1.0 : ((this.biome === 'volcanic') ? 2.0 : 0.0);
         const waterTypeId = (curWType === 'coast') ? 1.0 : ((curWType === 'river') ? 2.0 : 0.0);
@@ -1432,7 +1432,7 @@ class LakesideTerrain {
                     pathBlended = mix(pathBlended, centerPath, stoneMask * 0.96);
 
                     // Смешивание с грунтовыми тропами (от спавна до лагеря и западной к перевалу)
-                    vec3 meadowBase = mix(pathBlended, colDirtRgb, passTrailMask * 0.88);
+                    vec3 meadowBase = mix(pathBlended, colDirtRgb, passTrailMask * 0.88 * (1.0 - stoneMask));   // грунтовая тропа не закрашивает каменную мостовую (стык тропинок с дорогой)
 
                     // Скальные уступы на крутых склонах и на высоте горного массива
                     float altitudeRock = smoothstep(2.4, 4.6, vWorldPosition.y);

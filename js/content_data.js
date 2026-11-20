@@ -10190,9 +10190,9 @@ window.GAME_CONTENT = {
     {
      "type": "box",
      "cx": 2.3,
-     "cz": -0.15,
-     "hx": 1.9,
-     "hz": 2.4,
+     "cz": 0.25,
+     "hx": 1.95,
+     "hz": 2.85,
      "r": 0.4,
      "step": 0.5,
      "exact": true
@@ -10203,6 +10203,26 @@ window.GAME_CONTENT = {
      "cz": -0.3,
      "hx": 1.8,
      "hz": 2.1,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -4.0,
+     "cz": -0.55,
+     "hx": 0.4,
+     "hz": 1.05,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -1.0,
+     "cz": 2.6,
+     "hx": 0.3,
+     "hz": 0.3,
      "r": 0.4,
      "step": 0.5,
      "exact": true
@@ -11629,6 +11649,16 @@ window.GAME_CONTENT = {
      "cz": -0.8,
      "hx": 1.7,
      "hz": 2.3,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": -4.95,
+     "cz": 2.55,
+     "hx": 0.45,
+     "hz": 0.45,
      "r": 0.4,
      "step": 0.5,
      "exact": true

@@ -1304,17 +1304,21 @@ class LakesideEnvironment {
         this._cullT = 0;
         // V4.5: деревья отбрасывают тень только в радиусе GFX.treeShadowR (чанк целиком дальше — без тени)
         const SR = (window.GFX && window.GFX.treeShadowR) || 1e9;
+        const SRloc = this.location && this.location.gfx && this.location.gfx.treeShadowR;   // локация может только уменьшить дальность (тяжёлый лес опушки)
+        const SRe = SRloc ? Math.min(SR, SRloc) : SR;
         for (const c of this.shadowMeshes) {
             const dx = c.x - playerPos.x, dz = c.z - playerPos.z;
-            const lim = SR + CULL_CHUNK_HALF_DIAG;
-            const cast = SR >= 1e8 || (dx * dx + dz * dz) <= lim * lim;
+            const lim = SRe + CULL_CHUNK_HALF_DIAG;
+            const cast = SRe >= 1e8 || (dx * dx + dz * dz) <= lim * lim;
             if (c.mesh.castShadow !== cast) c.mesh.castShadow = cast;
         }
         // Дальние чанки деревьев — лёгкая модель с листвой (<key>_far): ближе GFX.treeLodR — обычная
         const LR = (window.GFX && window.GFX.treeLodR) || 50;
+        const LRloc = this.location && this.location.gfx && this.location.gfx.treeLodR;   // локация может только уменьшить дальность (тяжёлый лес опушки)
+        const LRe = LRloc ? Math.min(LR, LRloc) : LR;
         for (const c of this.lodMeshes) {
             const dx = c.x - playerPos.x, dz = c.z - playerPos.z;
-            const lim = LR + CULL_CHUNK_HALF_DIAG;
+            const lim = LRe + CULL_CHUNK_HALF_DIAG;
             const near = (dx * dx + dz * dz) <= lim * lim;
             if (c.near.visible !== near) c.near.visible = near;
             if (c.far.visible === near) c.far.visible = !near;

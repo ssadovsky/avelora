@@ -447,6 +447,7 @@
         const deco = location.decorations || {};
         KINDS.forEach(kind => {
             (deco[kind] || []).forEach((p, i) => {
+                if (p.post) return;   // post: ставится после групп (шаг 2б) — не сдвигает раскладку лесов
                 const obj = Object.assign({}, p, { id: p.id || `${kind}_${i}`, group: null });
                 result[kind].push(obj);
                 ctx.placed[kind].push(obj);
@@ -468,8 +469,26 @@
                 generated[kind].forEach((obj, n) => {
                     obj.id = `${groupId}.${SINGULAR[kind]}${n + 1}`;
                     obj.group = groupId;
+                    // keep (0..1): прореживание деревьев группы. Фильтр ПОСЛЕ нумерации и генерации: id остальных деревьев,
+                    // подлесок, кусты и все следующие группы остаются на прежних местах (убранное дерево остаётся в ctx.placed).
+                    if (kind === 'trees' && g.keep !== undefined && g.keep < 1 && (hashString(obj.id) % 10000) / 10000 >= g.keep) return;
+                    // minGap (м): равномерное прореживание — дерево пропускается, если ближе minGap уже стоит оставленное дерево
+                    // (этой или более ранней группы). Густые места редеют, редкие не трогаются.
+                    // maxH (м): деревья не растут на склонах гор — выше этой высоты рельефа дерево пропускается
+                    if (kind === 'trees' && g.maxH !== undefined && ctx.terrain && (ctx.terrain.getRawHeightAt ? ctx.terrain.getRawHeightAt(obj.x, obj.z) : ctx.terrain.getHeightAt(obj.x, obj.z)) > g.maxH) return;
+                    if (kind === 'trees' && g.minGap && result.trees.some(t => (t.x - obj.x) * (t.x - obj.x) + (t.z - obj.z) * (t.z - obj.z) < g.minGap * g.minGap)) return;
                     result[kind].push(obj);
                 });
+            });
+        });
+
+        // 2б) Ручные объекты с post: true — после всех групп
+        KINDS.forEach(kind => {
+            (deco[kind] || []).forEach((p, i) => {
+                if (!p.post) return;
+                const obj = Object.assign({}, p, { id: p.id || `${kind}_${i}`, group: null });
+                result[kind].push(obj);
+                ctx.placed[kind].push(obj);
             });
         });
 
@@ -487,6 +506,14 @@
             (zn.kinds || ['trees', 'ferns', 'flowers', 'branches', 'shrubs']).forEach(k => {
                 if (!result[k]) return;
                 result[k] = result[k].filter(o => o.group === null || (o.x - zn.x) * (o.x - zn.x) + (o.z - zn.z) * (o.z - zn.z) > zn.r * zn.r);
+            });
+        });
+
+        // 5) Прямоугольники вырезки (location.removeBoxes: {x0, x1, z0, z1, kinds?}): вся растительность и мелочь внутри, включая ручные
+        (location.removeBoxes || []).forEach(b => {
+            (b.kinds || KINDS).forEach(k => {
+                if (!result[k]) return;
+                result[k] = result[k].filter(o => !(o.x >= b.x0 && o.x <= b.x1 && o.z >= b.z0 && o.z <= b.z1));
             });
         });
 

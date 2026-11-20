@@ -83,7 +83,7 @@ window.LOCATIONS = {
             // Ровная площадка под порталом (радиус 4.5 м, дальше 5 м плавно возвращается к рельефу)
             rimDip: [{ x: 0.0, k0: 0.85, w: 30.0, cragK: 0.0 }, { side: 'west', axis: 'z', z: 8.0, k0: 0.85, w: 30.0, cragK: 0.0 }],
             rockTint: { x: 0.0, z: 94.0, tintRadius: 26.0, tintStrength: 0.9 },
-            flatSpots: [{ x: -130.0, z: 8.0, radius: 2.2, blend: 2.5, hFrom: [-120.0, 8.0] }, { x: -136.5, z: 8.0, radius: 2.2, blend: 3.0, hFrom: [-120.0, 8.0], dh: 0.0 }, { x: -140.5, z: 8.0, radius: 2.2, blend: 3.5, hFrom: [-120.0, 8.0], dh: 0.22 }, { x: -144.0, z: 8.0, radius: 2.2, blend: 4.0, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: -147.0, z: 8.0, radius: 2.0, blend: 4.5, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: 70.0, z: -15.0, radius: 4.6, blend: 5.0 }, { x: 61.0, z: 27.3, radius: 3.8, blend: 4.0, hFrom: [63.0, 27.0] }, { x: 65.1, z: 27.4, radius: 3.8, blend: 4.0, hFrom: [63.0, 27.0] }, { x: 61.5, z: 10.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: -0.102 }, { x: 61.5, z: 11.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: -0.073 }, { x: 61.5, z: 12.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: -0.018 }, { x: 61.5, z: 13.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.056 }, { x: 61.5, z: 14.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.145 }, { x: 61.5, z: 15.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.244 }, { x: 61.5, z: 16.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.349 }, { x: 61.5, z: 17.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.453 }, { x: 61.5, z: 18.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.552 }, { x: 61.5, z: 19.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.641 }, { x: 61.5, z: 20.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.716 }, { x: 61.5, z: 21.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.770 }, { x: 61.5, z: 22.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.800 }, { x: 61.5, z: 22.8, radius: 2.2, blend: 4.0, hFrom: [63.0, 27.0] }, { x: 25.5, z: -20.1, radius: 3.4, blend: 4.0 }, { x: 64.3, z: -12.3, radius: 3.8, blend: 4.0 }, { x: 65.0, z: -4.8, radius: 3.8, blend: 4.0, hFrom: [64.3, -12.3] }, { x: 37.5, z: -5.0, radius: 5.0, blend: 4.0, hFrom: [40.0, 2.82], road: true }, { x: 42.5, z: -5.0, radius: 5.0, blend: 4.0, hFrom: [40.0, 2.82], road: true }, { x: 56.0, z: -1.0, radius: 4.0, blend: 4.0, hFrom: [56.0, 5.43], road: true }, { x: 0.0, z: 86.0, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.07 }, { x: 0.0, z: 89.5, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.1 }, { x: 0.0, z: 93.0, radius: 2.2, blend: 4.5, hFrom: [0.0, 79.0], dh: 0.0 }, { x: 0.0, z: 95.3, radius: 1.6, blend: 6.5, hFrom: [0.0, 79.0], dh: -0.11 }, { x: -80.0, z: 60.0, radius: 4.8, blend: 5.0 }],   // 2-й: под домиком кузнеца, 3-4-й и далее: под домиком швеи (дом, лавка), цепочка ровного подъёма тропинки от уровня дороги к двери, двор у двери, далее беседка, кузня
+            flatSpots: [{ x: -130.0, z: 8.0, radius: 2.2, blend: 2.5, hFrom: [-120.0, 8.0] }, { x: -136.5, z: 8.0, radius: 2.2, blend: 3.0, hFrom: [-120.0, 8.0], dh: 0.0 }, { x: -140.5, z: 8.0, radius: 2.2, blend: 3.5, hFrom: [-120.0, 8.0], dh: 0.22 }, { x: -144.0, z: 8.0, radius: 2.2, blend: 4.0, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: -147.0, z: 8.0, radius: 2.0, blend: 4.5, hFrom: [-120.0, 8.0], dh: 0.60 }, { x: 70.0, z: -15.0, radius: 4.6, blend: 5.0 }, { x: 61.0, z: 27.3, radius: 3.8, blend: 4.0, hFrom: [63.0, 27.0] }, { x: 65.1, z: 27.4, radius: 3.8, blend: 4.0, hFrom: [63.0, 27.0] }, { x: 61.5, z: 10.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: -0.102 }, { x: 61.5, z: 11.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: -0.073 }, { x: 61.5, z: 12.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: -0.018 }, { x: 61.5, z: 13.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.056 }, { x: 61.5, z: 14.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.145 }, { x: 61.5, z: 15.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.244 }, { x: 61.5, z: 16.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.349 }, { x: 61.5, z: 17.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.453 }, { x: 61.5, z: 18.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.552 }, { x: 61.5, z: 19.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.641 }, { x: 61.5, z: 20.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.716 }, { x: 61.5, z: 21.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.770 }, { x: 61.5, z: 22.0, radius: 1.3, blend: 3.0, hFrom: [61.5, 9.5], dh: 0.800 }, { x: 61.5, z: 22.8, radius: 2.2, blend: 4.0, hFrom: [63.0, 27.0] }, { x: 25.5, z: -20.1, radius: 3.4, blend: 4.0 }, { x: 64.3, z: -12.3, radius: 3.8, blend: 4.0 }, { x: 65.0, z: -4.8, radius: 3.8, blend: 4.0, hFrom: [64.3, -12.3] }, { x: 37.5, z: -7.0, radius: 5.0, blend: 4.0, hFrom: [40.0, 2.82], road: true }, { x: 42.5, z: -7.0, radius: 5.0, blend: 4.0, hFrom: [40.0, 2.82], road: true }, { x: 56.0, z: -3.0, radius: 4.0, blend: 4.0, hFrom: [56.0, 5.43], road: true }, { x: 0.0, z: 86.0, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.07 }, { x: 0.0, z: 89.5, radius: 2.2, blend: 3.0, hFrom: [0.0, 79.0], dh: 0.1 }, { x: 0.0, z: 93.0, radius: 2.2, blend: 4.5, hFrom: [0.0, 79.0], dh: 0.0 }, { x: 0.0, z: 95.3, radius: 1.6, blend: 6.5, hFrom: [0.0, 79.0], dh: -0.11 }, { x: -80.0, z: 60.0, radius: 4.8, blend: 5.0 }],   // 2-й: под домиком кузнеца, 3-4-й и далее: под домиком швеи (дом, лавка), цепочка ровного подъёма тропинки от уровня дороги к двери, двор у двери, далее беседка, кузня
             // Арочный вырез в восточном горном барьере для грота (севернее водопада)
             caves: [
                 { x: 139.5, z: -18.0, minX: 134.0, maxX: 143.5, radiusZ: 3.5, backLen: 1.0, tintRadius: 26.0, tintStrength: 0.85 }
@@ -127,18 +127,29 @@ window.LOCATIONS = {
                 },
                 {   // прямая ровная тропинка от каменной дороги к домику швеи (63, 27), дверь на север; начинается у южного края дороги, на дорогу не заходит
                     type: 'dirt', thin: true, width: 1.2, clearMargin: 1.4,
-                    points: [[61.5, 8.8], [61.5, 12.0], [61.5, 18.0], [61.5, 24.3]]
+                    points: [[61.5, 6.0], [61.5, 8.8], [61.5, 12.0], [61.5, 18.0], [61.5, 24.3]]
+                },
+                {   // тропинки от каменной дороги к крыльцу домиков (2026-11-20): домик (56, −3) дверь x 56.75; дом (40, −7) дверь x 38.25. Начало — у края полотна, дорогу не трогают
+                    type: 'dirt', thin: true, width: 1.2, clearMargin: 0.6,
+                    points: [[56.75, 5.45], [56.75, 2.0], [56.75, -0.2]]
+                },
+                {
+                    type: 'dirt', thin: true, width: 1.2, clearMargin: 0.6,
+                    points: [[38.25, 2.5], [38.25, -0.8], [38.25, -2.9]]
                 }
             ]
         },
 
         atmosphere: { sky: 0xc6dbe3, skyTop: 0x4a8fc9, fogDensity: 0.0055 },
+        // тяжёлый лес: деревья рисуются упрощёнными с 40 м и бросают тень до 22 м (профиль high: 55 / 30); keep у крупных лесов — прореживание 25%
+        gfx: { treeLodR: 40, treeShadowR: 22 },
         cameraAngle: 0.0,           // на старте камера смотрит на север (по тропе к Лираэль)
         // Зоны без папоротников (поляна барсуков): эллипсы {x, z, rx, rz}
-        noFerns: [{ x: -80.0, z: 58.0, rx: 8.0, rz: 8.0 }, { x: 72.0, z: 62.0, rx: 32.0, rz: 28.0 }, { x: 24.5, z: -16.5, rx: 6.5, rz: 8.5 }, { x: 64.3, z: -12.3, rx: 6.5, rz: 6.5 }, { x: 65.0, z: -4.8, rx: 5.5, rz: 5.5 }, { x: 63.0, z: 26.0, rx: 8.0, rz: 6.5 }, { x: 40.0, z: -5.0, rx: 7.0, rz: 6.0 }, { x: 56.0, z: -1.0, rx: 5.0, rz: 5.0 }, { x: 0.0, z: 89.0, rx: 10.0, rz: 10.0 }],   // 2-й: беседка и подход к ней
+        noFerns: [{ x: -80.0, z: 58.0, rx: 8.0, rz: 8.0 }, { x: 72.0, z: 62.0, rx: 32.0, rz: 28.0 }, { x: 24.5, z: -16.5, rx: 6.5, rz: 8.5 }, { x: 64.3, z: -12.3, rx: 6.5, rz: 6.5 }, { x: 65.0, z: -4.8, rx: 5.5, rz: 5.5 }, { x: 63.0, z: 26.0, rx: 8.0, rz: 6.5 }, { x: 40.0, z: -7.0, rx: 7.0, rz: 6.0 }, { x: 56.0, z: -3.0, rx: 5.0, rz: 5.0 }, { x: 0.0, z: 89.0, rx: 10.0, rz: 10.0 }],   // 2-й: беседка и подход к ней
 
         // Вырезка уже сгенерированного леса (location_groups.js, removeZones): гора у (-135,-7), озеро у (-72,-22), (2,30), одиночные деревья под яблони (135.4,38.3) и (69,-4.1)
-        removeZones: [{ x: -135.0, z: -7.0, r: 19.0 }, { x: -72.0, z: -22.0, r: 20.0 }, { x: 2.0, z: 30.0, r: 11.0 }, { x: 135.4, z: 38.3, r: 0.8, kinds: ['trees'] }, { x: 69.0, z: -4.1, r: 0.8, kinds: ['trees'] }, { x: 54.4, z: -11.4, r: 3.5 }, { x: 40.0, z: -5.0, r: 7.0 }, { x: 56.0, z: -1.0, r: 5.0 }],
+        removeBoxes: [{ x0: -160.0, x1: -137.0, z0: -110.0, z1: 110.0 }, { x0: -160.0, x1: 160.0, z0: 87.0, z1: 110.0 }, { x0: 137.0, x1: 160.0, z0: -110.0, z1: -30.0 }, { x0: -160.0, x1: 160.0, z0: -110.0, z1: -87.0 }],   // запад x < −137, юг z > 87, север z < −87, восток x > 137 у медведей (до z −30, водопад и грот не трогаем) — только горы, ущелья и порталы (2026-11-20)
+        removeZones: [{ x: -135.0, z: -7.0, r: 19.0 }, { x: -72.0, z: -22.0, r: 20.0 }, { x: 2.0, z: 30.0, r: 11.0 }, { x: 135.4, z: 38.3, r: 0.8, kinds: ['trees'] }, { x: 69.0, z: -4.1, r: 0.8, kinds: ['trees'] }, { x: 54.4, z: -11.4, r: 3.5 }, { x: 40.0, z: -7.0, r: 7.0 }, { x: 56.0, z: -3.0, r: 5.0 }, { x: 40.0, z: -7.0, r: 6.5, kinds: ['grass'] }, { x: 56.0, z: -3.0, r: 4.5, kinds: ['grass'] }],
 
         spawns: {
             default:   { x: 127.0,  z: 77.5, r: 0.0 },   // новая игра: юго-восток долины, лицом на север к тропе (r: поворот модели = atan2+π, север = 0)
@@ -234,26 +245,26 @@ window.LOCATIONS = {
 
         groups: [
             // Горные леса у подножия хребта
-            { id: 'north_rim_forest', type: 'forest', x: 0.0,    z: -78.0, rx: 110.0, rz: 14.0, count: 45, seed: 11 },
-            { id: 'south_rim_forest', type: 'forest', x: 0.0,    z: 78.0,  rx: 110.0, rz: 14.0, count: 45, seed: 14 },
+            { id: 'north_rim_forest', type: 'forest', maxH: 3.0, keep: 0.75, x: 0.0,    z: -78.0, rx: 110.0, rz: 14.0, count: 45, seed: 11 },
+            { id: 'south_rim_forest', type: 'forest', maxH: 3.0, keep: 0.75, x: 0.0,    z: 78.0,  rx: 110.0, rz: 14.0, count: 45, seed: 14 },
             // (восточный горный массив включён в единый северо-восточный бор ниже)
-            { id: 'east_south_forest',type: 'forest', x: 116.0,  z: 48.0,  rx: 14.0,  rz: 24.0, count: 18, spacing: 10.0, seed: 16 },
-            { id: 'west_north_forest',type: 'forest', x: -115.0, z: -56.0, rx: 24.0,  rz: 31.0, count: 42, seed: 17, types: ['evergreen', 'fir_a', 'evergreen', 'fir_b', 'evergreen', 'fir_c'] },
+            { id: 'east_south_forest',type: 'forest', maxH: 3.0, keep: 0.75, x: 116.0,  z: 48.0,  rx: 14.0,  rz: 24.0, count: 18, spacing: 10.0, seed: 16 },
+            { id: 'west_north_forest',type: 'forest', maxH: 3.0, keep: 0.75, x: -115.0, z: -56.0, rx: 24.0,  rz: 31.0, count: 42, seed: 17, types: ['evergreen', 'fir_a', 'evergreen', 'fir_b', 'evergreen', 'fir_c'] },
             // Юго-запад: обычный лес от (-135,18)–(-65,20) до (-12,60) и до западного и южного краёв
             // Лес на запад от озера: закрывает поляну до (-30,-30)
-            { id: 'sw_forest_a', type: 'forest', x: -110.0, z: 58.0, rx: 40.0, rz: 34.0, count: 52, spacing: 7.0, seed: 181 },
-            { id: 'sw_forest_b', type: 'forest', x: -62.0,  z: 62.0, rx: 32.0, rz: 28.0, count: 34, spacing: 7.0, seed: 182 },
-            { id: 'sw_forest_c', type: 'forest', x: -92.0,  z: 32.0, rx: 38.0, rz: 14.0, count: 32, spacing: 6.0, seed: 183 },
-            { id: 'sw_forest_d', type: 'forest', x: -34.0,  z: 66.0, rx: 24.0, rz: 22.0, count: 24, spacing: 6.0, seed: 184 },
+            { id: 'sw_forest_a', type: 'forest', maxH: 3.0, minGap: 8, x: -110.0, z: 58.0, rx: 40.0, rz: 34.0, count: 52, spacing: 7.0, seed: 181 },
+            { id: 'sw_forest_b', type: 'forest', maxH: 3.0, minGap: 8, x: -62.0,  z: 62.0, rx: 32.0, rz: 28.0, count: 34, spacing: 7.0, seed: 182 },
+            { id: 'sw_forest_c', type: 'forest', maxH: 3.0, minGap: 8, x: -92.0,  z: 32.0, rx: 38.0, rz: 14.0, count: 32, spacing: 6.0, seed: 183 },
+            { id: 'sw_forest_d', type: 'forest', maxH: 3.0, minGap: 8, x: -34.0,  z: 66.0, rx: 24.0, rz: 22.0, count: 24, spacing: 6.0, seed: 184 },
             // Лес вдоль дороги с юга до (6, 50) (кусок леса у ворот gate_forest_s возле -130 23 убран)
-            { id: 'road_south_forest', type: 'forest', x: -72.0, z: 27.0, rx: 74.0, rz: 11.0, count: 52, spacing: 6.0, seed: 193 },
-            { id: 'road_south_east', type: 'forest', x: -17.0, z: 30.0, rx: 22.0, rz: 11.0, count: 16, spacing: 6.0, seed: 195 },
-            { id: 'sw_forest_f', type: 'forest', x: -14.0, z: 43.0, rx: 22.0, rz: 8.0, count: 10, spacing: 6.0, seed: 196 },
+            { id: 'road_south_forest', type: 'forest', maxH: 3.0, minGap: 8, x: -72.0, z: 27.0, rx: 74.0, rz: 11.0, count: 52, spacing: 6.0, seed: 193 },
+            { id: 'road_south_east', type: 'forest', maxH: 3.0, minGap: 8, x: -17.0, z: 30.0, rx: 22.0, rz: 11.0, count: 16, spacing: 6.0, seed: 195 },
+            { id: 'sw_forest_f', type: 'forest', maxH: 3.0, minGap: 8, x: -14.0, z: 43.0, rx: 22.0, rz: 8.0, count: 10, spacing: 6.0, seed: 196 },
             { id: 'lake_nw_forest', type: 'forest', x: -37.0, z: -36.0, rx: 13.0, rz: 10.0, count: 9, spacing: 6.0, seed: 197 },
-            { id: 'sw_forest_e', type: 'forest', x: -8.0,   z: 52.0, rx: 22.0, rz: 12.0, count: 12,  spacing: 7.0, seed: 185 },
+            { id: 'sw_forest_e', type: 'forest', maxH: 3.0, minGap: 8, x: -8.0,   z: 52.0, rx: 22.0, rz: 12.0, count: 12,  spacing: 7.0, seed: 185 },
 
             // Лесочек вокруг поляны барсуков (без подлеска — папоротники здесь не растут)
-            { id: 'badger_wood', type: 'forest', x: 72.0, z: 62.0, rx: 38.0, rz: 30.0, count: 30, seed: 91 },
+            { id: 'badger_wood', type: 'forest', maxH: 3.0, keep: 0.75, x: 72.0, z: 62.0, rx: 38.0, rz: 30.0, count: 30, seed: 91 },
 
             // Рощи внутри просторной долины
             { id: 'oak_grove',   type: 'forest', x: 26.0,  z: -20.0, radius: 11.0, count: 12, seed: 21 },
@@ -284,28 +295,28 @@ window.LOCATIONS = {
 
             // === СЕВЕРО-ВОСТОЧНЫЙ ЛЕСНОЙ МАССИВ (просторное редколесье, шаг стволов ~10м) ===
             // 1. Северная горная кайма (у подножия северных скал Z: -61..-90, закрывает угол X: 126, Z: -78.5)
-            { id: 'ne_mountain_rim_forest', type: 'forest', grass: false, x: 105.0, z: -76.0, rx: 34.0, rz: 15.0, count: 18, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 8, seed: 301 },
+            { id: 'ne_mountain_rim_forest', type: 'forest', keep: 0.9, grass: false, x: 105.0, z: -76.0, rx: 34.0, rz: 15.0, count: 18, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 8, seed: 301 },
 
             // 2. Северо-западные скалистые склоны (стыкуется с центральным северным хребтом)
-            { id: 'ne_northwest_highlands', type: 'forest', grass: false, x: 68.0, z: -74.0, rx: 18.0, rz: 14.0, count: 10, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 302 },
+            { id: 'ne_northwest_highlands', type: 'forest', keep: 0.9, grass: false, x: 68.0, z: -74.0, rx: 18.0, rz: 14.0, count: 10, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 302 },
 
             // 3. Восточная горная стена (вдоль скалистого обрыва от водопада до севера, X: 114..140, Z: -33..-77)
-            { id: 'ne_east_mountain_wall', type: 'forest', grass: false, x: 128.0, z: -55.0, rx: 14.0, rz: 22.0, count: 12, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 303 },
+            { id: 'ne_east_mountain_wall', type: 'forest', keep: 0.9, grass: false, x: 128.0, z: -55.0, rx: 14.0, rz: 22.0, count: 12, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 303 },
 
             // 4. Центрально-северная чаща (заделывает просеку между холмами, X: 77..127, Z: -32..-68)
-            { id: 'ne_north_mid_forest', type: 'forest', grass: false, x: 102.0, z: -50.0, rx: 25.0, rz: 18.0, count: 15, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 8, seed: 304 },
+            { id: 'ne_north_mid_forest', type: 'forest', keep: 0.9, grass: false, x: 102.0, z: -50.0, rx: 25.0, rz: 18.0, count: 15, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 8, seed: 304 },
 
             // 5. Лиственный бор на холмах лисиц (X: 56..96, Z: -22..-58)
-            { id: 'ne_fox_hills_woods', type: 'forest', grass: false, x: 76.0, z: -40.0, rx: 20.0, rz: 18.0, count: 12, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 305 },
+            { id: 'ne_fox_hills_woods', type: 'forest', keep: 0.9, grass: false, x: 76.0, z: -40.0, rx: 20.0, rz: 18.0, count: 12, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 305 },
 
             // 6. Центральная чаща буков (высокие кроны, свободный шаг между стволами 10м, X: 80..132, Z: -9..-41)
-            { id: 'ne_central_beech_woods', type: 'forest', grass: false, x: 106.0, z: -25.0, rx: 26.0, rz: 16.0, count: 16, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 8, seed: 306 },
+            { id: 'ne_central_beech_woods', type: 'forest', keep: 0.9, grass: false, x: 106.0, z: -25.0, rx: 26.0, rz: 16.0, count: 16, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 8, seed: 306 },
 
             // 7. Лесистый гребень над водопадом (X: 114..138, Z: -12..-36)
-            { id: 'ne_waterfall_ridge', type: 'forest', grass: false, x: 127.0, z: -24.0, rx: 13.0, rz: 15.0, count: 10, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 5, seed: 307 },
+            { id: 'ne_waterfall_ridge', type: 'forest', keep: 0.9, grass: false, x: 127.0, z: -24.0, rx: 13.0, rz: 15.0, count: 10, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 5, seed: 307 },
 
             // 8. Редколесье вдоль каменной дороги (деревья отступают минимум на 6м от края полотна дороги)
-            { id: 'ne_roadside_forest', type: 'forest', grass: false, x: 85.0, z: -9.0, rx: 34.0, rz: 6.0, count: 12, spacing: 10.0, scaleMin: 0.9, scaleMax: 1.35, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 308 },
+            { id: 'ne_roadside_forest', type: 'forest', keep: 0.9, grass: false, x: 85.0, z: -9.0, rx: 34.0, rz: 6.0, count: 12, spacing: 10.0, scaleMin: 0.9, scaleMax: 1.35, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 308 },
 
             // 9. Разновысокие проходимые кусты подлеска (растут естественными лесными куртинами)
             { id: 'ne_shrubs_central', type: 'shrubCluster', x: 104.0, z: -28.0, radius: 16.0, count: 10, seed: 310 },
@@ -496,8 +507,8 @@ window.LOCATIONS = {
             // Пильня южнее кузницы Торвальда
             { id: 'forestEdge.sawmill', prop: 'sawmill', x: 64.0, z: -4.8, r: Math.PI / 2 },
             // деревня у дороги (2026-11-20): домик Timber Hearth и дом из FBX; площадки — по уровню дороги (flatSpots road:true)
-            { id: 'forestEdge.timber_cottage', prop: 'timber_cottage', x: 56.0, z: -1.0, r: 0.0 },
-            { id: 'forestEdge.village_house', prop: 'village_house', x: 40.0, z: -5.0, r: 0.0 },
+            { id: 'forestEdge.timber_cottage', prop: 'timber_cottage', x: 56.0, z: -3.0, r: 0.0 },
+            { id: 'forestEdge.village_house', prop: 'village_house', x: 40.0, z: -7.0, r: 0.0, dy: -0.08 },   // dy: в модели Meshy низ ступенек на 5–7 см выше пола
             { id: 'forestEdge.gazebo', prop: 'gazebo', x: 25.5, z: -20.1, r: -0.41 },
             // Каменный проход в Долину Забытых Эпох: ущелье встроено в южный горный пояс (вход с севера)
             { id: 'forestEdge.stone_pass', prop: 'stone_pass', x: 0.0, z: 93.0, r: Math.PI, dy: 0.26 },
@@ -544,6 +555,7 @@ window.LOCATIONS = {
             // Одинокое большое дерево на поляне (ставится вручную)
             trees: [
                 { x: 14.0, z: 8.5, s: 1.6, r: 0.3 },
+                { id: 'tree_spider_glade', x: -132.1, z: 28.6, r: 1.1, post: true },   // у пауков на краю поляны (2026-11-20); post — после групп, лес не сдвигается
 
                 // === ВЫСТАВКА ДЕРЕВЬЕВ У ОЗЕРА (~ -65, 20) ===
                 // Центральное эталонное дерево с пышными листьями
