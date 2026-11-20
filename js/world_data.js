@@ -302,28 +302,28 @@ window.LOCATIONS = {
 
             // === СЕВЕРО-ВОСТОЧНЫЙ ЛЕСНОЙ МАССИВ (просторное редколесье, шаг стволов ~10м) ===
             // 1. Северная горная кайма (у подножия северных скал Z: -61..-90, закрывает угол X: 126, Z: -78.5)
-            { id: 'ne_mountain_rim_forest', type: 'forest', keep: 0.9, grass: false, x: 105.0, z: -76.0, rx: 34.0, rz: 15.0, count: 18, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 8, seed: 301 },
+            { id: 'ne_mountain_rim_forest', type: 'forest', grass: false, x: 105.0, z: -76.0, rx: 34.0, rz: 15.0, count: 18, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 8, seed: 301 },
 
             // 2. Северо-западные скалистые склоны (стыкуется с центральным северным хребтом)
-            { id: 'ne_northwest_highlands', type: 'forest', keep: 0.9, grass: false, x: 68.0, z: -74.0, rx: 18.0, rz: 14.0, count: 10, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 302 },
+            { id: 'ne_northwest_highlands', type: 'forest', grass: false, x: 68.0, z: -74.0, rx: 18.0, rz: 14.0, count: 10, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 302 },
 
             // 3. Восточная горная стена (вдоль скалистого обрыва от водопада до севера, X: 114..140, Z: -33..-77)
-            { id: 'ne_east_mountain_wall', type: 'forest', keep: 0.9, grass: false, x: 128.0, z: -55.0, rx: 14.0, rz: 22.0, count: 12, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 303 },
+            { id: 'ne_east_mountain_wall', type: 'forest', grass: false, x: 128.0, z: -55.0, rx: 14.0, rz: 22.0, count: 12, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 303 },
 
             // 4. Центрально-северная чаща (заделывает просеку между холмами, X: 77..127, Z: -32..-68)
-            { id: 'ne_north_mid_forest', type: 'forest', keep: 0.9, grass: false, x: 102.0, z: -50.0, rx: 25.0, rz: 18.0, count: 15, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 8, seed: 304 },
+            { id: 'ne_north_mid_forest', type: 'forest', grass: false, x: 102.0, z: -50.0, rx: 25.0, rz: 18.0, count: 15, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 8, seed: 304 },
 
             // 5. Лиственный бор на холмах лисиц (X: 56..96, Z: -22..-58)
-            { id: 'ne_fox_hills_woods', type: 'forest', keep: 0.9, grass: false, x: 76.0, z: -40.0, rx: 20.0, rz: 18.0, count: 12, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 305 },
+            { id: 'ne_fox_hills_woods', type: 'forest', grass: false, x: 76.0, z: -40.0, rx: 20.0, rz: 18.0, count: 12, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 305 },
 
             // 6. Центральная чаща буков (высокие кроны, свободный шаг между стволами 10м, X: 80..132, Z: -9..-41)
-            { id: 'ne_central_beech_woods', type: 'forest', keep: 0.9, grass: false, x: 106.0, z: -25.0, rx: 26.0, rz: 16.0, count: 16, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 8, seed: 306 },
+            { id: 'ne_central_beech_woods', type: 'forest', grass: false, x: 106.0, z: -25.0, rx: 26.0, rz: 16.0, count: 16, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 8, seed: 306 },
 
             // 7. Лесистый гребень над водопадом (X: 114..138, Z: -12..-36)
-            { id: 'ne_waterfall_ridge', type: 'forest', keep: 0.9, grass: false, x: 127.0, z: -24.0, rx: 13.0, rz: 15.0, count: 10, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 5, seed: 307 },
+            { id: 'ne_waterfall_ridge', type: 'forest', grass: false, x: 127.0, z: -24.0, rx: 13.0, rz: 15.0, count: 10, spacing: 10.0, types: ['tree', 'small'], undergrowth: true, shrubs: 5, seed: 307 },
 
             // 8. Редколесье вдоль каменной дороги (деревья отступают минимум на 6м от края полотна дороги)
-            { id: 'ne_roadside_forest', type: 'forest', keep: 0.9, grass: false, x: 85.0, z: -9.0, rx: 34.0, rz: 6.0, count: 12, spacing: 10.0, scaleMin: 0.9, scaleMax: 1.35, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 308 },
+            { id: 'ne_roadside_forest', type: 'forest', grass: false, x: 85.0, z: -9.0, rx: 34.0, rz: 6.0, count: 12, spacing: 10.0, scaleMin: 0.9, scaleMax: 1.35, types: ['tree', 'small'], undergrowth: true, shrubs: 6, seed: 308 },
 
             // 9. Разновысокие проходимые кусты подлеска (растут естественными лесными куртинами)
             { id: 'ne_shrubs_central', type: 'shrubCluster', x: 104.0, z: -28.0, radius: 16.0, count: 10, seed: 310 },
@@ -566,7 +566,11 @@ window.LOCATIONS = {
                 { id: 'forestEdge.violets_3', x: 90, z: 18, r: 3.1, s: 0.45 },
                 { id: 'forestEdge.violets_4', x: 95, z: 27, r: 5.0, s: 0.55 },
                 { id: 'forestEdge.violets_5', x: 88, z: 29, r: 2.4, s: 0.5 },
-                { id: 'forestEdge.violets_6', x: 100, z: 16.5, r: 0.9, s: 0.575 }
+                { id: 'forestEdge.violets_6', x: 100, z: 16.5, r: 0.9, s: 0.575 },
+                // барсучий лес: чуть фиалок
+                { id: 'forestEdge.violets_7', x: 68, z: 52, r: 1.3, s: 0.5 },
+                { id: 'forestEdge.violets_8', x: 73, z: 56, r: 4.1, s: 0.55 },
+                { id: 'forestEdge.violets_9', x: 70, z: 74, r: 2.7, s: 0.5 }
             ],
             // Одинокое большое дерево на поляне (ставится вручную)
             trees: [
@@ -619,7 +623,12 @@ window.LOCATIONS = {
                 { id: 'forestEdge.hibiscus_red_3', x: 61.0, z: -17.0, s: 1.0, r: 3.8, shrubType: 'shrub_scarlet_hibiscus' },
                 { id: 'forestEdge.hibiscus_blue_1', x: 38.0, z: -24.0, s: 1.0, r: 4.0, shrubType: 'shrub_scarlet_hibiscus_blue' },
                 { id: 'forestEdge.hibiscus_blue_2', x: 51.0, z: -7.0, s: 1.0, r: 1.2, shrubType: 'shrub_scarlet_hibiscus_blue' },
-                { id: 'forestEdge.hibiscus_blue_3', x: 63.0, z: -23.0, s: 1.0, r: 5.2, shrubType: 'shrub_scarlet_hibiscus_blue' }
+                { id: 'forestEdge.hibiscus_blue_3', x: 63.0, z: -23.0, s: 1.0, r: 5.2, shrubType: 'shrub_scarlet_hibiscus_blue' },
+                // барсучий лес: чуть гибискуса
+                { id: 'forestEdge.hibiscus_red_4', x: 72.0, z: 53.0, s: 1.0, r: 0.9, shrubType: 'shrub_scarlet_hibiscus' },
+                { id: 'forestEdge.hibiscus_red_5', x: 69.0, z: 75.5, s: 1.0, r: 3.3, shrubType: 'shrub_scarlet_hibiscus' },
+                { id: 'forestEdge.hibiscus_blue_4', x: 66.0, z: 55.0, s: 1.0, r: 2.1, shrubType: 'shrub_scarlet_hibiscus_blue' },
+                { id: 'forestEdge.hibiscus_blue_5', x: 75.0, z: 60.0, s: 1.0, r: 4.6, shrubType: 'shrub_scarlet_hibiscus_blue' }
             ],
             ferns: [
                 // Заметные кусты папоротника рядом с лагерем игрока для удобного сбора
