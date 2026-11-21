@@ -142,8 +142,9 @@
             if (!status) {
                 if (isGiver) hasAvailable = true;
             } else if (status === 'active' && isTurnIn) {
-                if (game.dialog && game.dialog.questProgress) {
-                    if (game.dialog.questProgress(q).ready) hasReadyToTurnIn = true;
+                const dialog = game.dialog || (game.ui && game.ui.dialog);
+                if (dialog && dialog.questProgress) {
+                    if (dialog.questProgress(q).ready) hasReadyToTurnIn = true;
                 } else {
                     const o = q.objective || {};
                     let have = 0;
