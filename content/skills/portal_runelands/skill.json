@@ -1,0 +1,24 @@
+{
+  "id": "portal_runelands",
+  "name": "Телепорт: Рунные земли",
+  "description": "Сапфировая вспышка переносит вас в Рунные земли — к Сапфировой академии. Движение или удар прерывают заклинание.",
+  "type": "teleport",
+  "category": "travel",
+  "destination": "runeLands",
+  "oneWay": true,
+  "pos": {
+    "x": 58.2,
+    "z": -15.7,
+    "r": 1.5708
+  },
+  "cooldown": 30,
+  "castTime": 3,
+  "vfx": {
+    "color": "#6fa8ff",
+    "core": "#e8f1ff",
+    "radius": 1.7
+  },
+  "requiresLevel": 1,
+  "price": 40,
+  "teacher": "academy_mage"
+}

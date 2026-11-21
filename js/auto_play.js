@@ -1319,7 +1319,7 @@
                     const npcLoc = this.findNpcLocation(turnNpc);
                     if (npcLoc && npcLoc.locId === this.curLocId()) {
                         const dist = Math.hypot(npcLoc.x - c.position.x, npcLoc.z - c.position.z);
-                        if (dist <= 3.5) {
+                        if (dist <= 12) {
                             this.executeTurnInQuest(rq.def);
                             return;
                         }
@@ -1640,6 +1640,7 @@
             const neededCreatures = new Map(); // creatureType -> qDef
             const neededItems = new Map();     // itemId -> { remaining, qDef }
             const manualQuests = [];
+            const dropQuests = [];
 
             for (const qDef of unreadyDefs) {
                 const obj = qDef.objective;
@@ -1659,9 +1660,24 @@
                     const count = obj.count || 1;
                     if (have < count) {
                         neededItems.set(obj.item, { remaining: count - have, qDef });
+                        dropQuests.push({ item: obj.item, qDef });
                     }
                 } else {
                     manualQuests.push(qDef);
+                }
+            }
+
+            // Предмет квеста может падать с существ (паутина с пауков и т.п):
+            // добавляем таких существ в цели, сначала слабых (по уровню).
+            if (dropQuests.length > 0) {
+                const cdefs = (window.GAME_CONTENT && window.GAME_CONTENT.creatures) || {};
+                for (const { item, qDef } of dropQuests) {
+                    const src = Object.values(cdefs)
+                        .filter(d => d && d.id && (d.drops || []).some(dr => dr.item === item))
+                        .sort((a, b) => (a.level || 0) - (b.level || 0));
+                    for (const d of src) {
+                        if (!neededCreatures.has(d.id)) neededCreatures.set(d.id, qDef);
+                    }
                 }
             }
 
@@ -1795,16 +1811,20 @@
 
             // If no immediate targets in line of sight, navigate towards creature spawn
             if (neededCreatures.size > 0) {
-                const firstCreatureType = neededCreatures.keys().next().value;
-                const spawnPos = this.findCreatureSpawnPosition(firstCreatureType);
-                if (spawnPos) {
-                    this.navigateTowards(spawnPos.x, spawnPos.z);
-                    return;
+                const types = Array.from(neededCreatures.keys());
+                for (const t of types) {
+                    const spawnPos = this.findCreatureSpawnPosition(t);
+                    if (spawnPos) {
+                        this.navigateTowards(spawnPos.x, spawnPos.z);
+                        return;
+                    }
                 }
-                const loc = this.findCreatureLocation(firstCreatureType);
-                if (loc && loc !== this.curLocId()) {
-                    this.navigateToLocation(loc);
-                    return;
+                for (const t of types) {
+                    const loc = this.findCreatureLocation(t);
+                    if (loc && loc !== this.curLocId()) {
+                        this.navigateToLocation(loc);
+                        return;
+                    }
                 }
             }
 
@@ -1812,6 +1832,13 @@
             if (manualQuests.length > 0) {
                 this.toggleQuest(false);
                 if (g.ui && g.ui.floatText) g.ui.floatText('Автоквест: «' + manualQuests[0].name + '» нужно выполнить вручную', 'warn');
+                return;
+            }
+
+            // Нет целей, но есть готовые квесты — идём сдавать, а не выключаемся
+            const readyNow = this.getActiveQuests().filter(q => q.ready);
+            if (readyNow.length > 0) {
+                this.executeTurnInQuest(readyNow[0].def);
                 return;
             }
 

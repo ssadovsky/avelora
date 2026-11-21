@@ -18,6 +18,10 @@
           "next": "work"
         },
         {
+          "text": "Научи меня дороге к твоему костру",
+          "action": "teach_magic"
+        },
+        {
           "text": "До встречи",
           "action": "close"
         }
@@ -63,5 +67,11 @@
     "sv_soldiers",
     "sv_commander",
     "hermit_temple"
-  ]
+  ],
+  "teach": {
+    "price": 40,
+    "only": [
+      "portal_savanna"
+    ]
+  }
 }
