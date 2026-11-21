@@ -205,7 +205,7 @@ window.AVELORA_ASSET_INDEX = {
   "shrub_scarlet_hibiscus": ["m/shrub_scarlet_hibiscus.js", "1f05333f5c"],
   "shrub_scarlet_hibiscus_blue": ["m/shrub_scarlet_hibiscus_blue.js", "c8555e8e66"],
   "soldier": ["m/soldier.js", "1fbcff5367"],
-  "sorceress": ["m/sorceress.js", "cf77a0d195"],
+  "sorceress": ["m/sorceress.js", "52a267c262"],
   "torchlit_grotto": ["m/torchlit_grotto.js", "2c93e078d2"],
   "tree": ["m/tree.js", "1ecdbeadbe"],
   "tree_apple": ["m/tree_apple.js", "95ea8f8335"],

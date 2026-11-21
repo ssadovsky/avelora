@@ -71,8 +71,10 @@ window.CHARACTER_CATALOG = [
                   scale: 1.05,
                   facingOffset: Math.PI,
                   animMap: { idle: 'Idle', run: 'Running', greeting: 'Greeting', cast: 'Cast', unarmed: 'Boxing' },   // unarmed — удар кулаком, играется только когда в руке ничего нет
-                  // кулак правой кисти запечён в сетку (temp_work/rig/sorceress/build_sorceress.py печатает эти числа)
-                  staffGrip: { position: [-0.0279, 0.0202, -0.019], axis: [-0.5626, 0.0005, 0.8267] },
+                  // хват посоха: пальцы правой кисти сжимаются костями (поза из бокса ×0.5), только пока в руке предмет; без него кисть открытая.
+                  // staffGrip — точка и ось посоха в системе кисти (центр кольца свёрнутых пальцев); считалось по рендеру вдоль оси (temp_work/rig/sorceress)
+                  gripFingers: {"RightHandThumb1": [0.3563, -0.7995, 0.0513, 0.4808], "RightHandThumb2": [-0.0733, 0.0468, 0.1339, 0.9872], "RightHandThumb3": [-0.0837, -0.0175, 0.2633, 0.9609], "RightHandMiddle1": [0.1889, -0.8082, 0.3282, 0.451], "RightHandMiddle2": [0.3856, -0.0371, 0.0002, 0.9219], "RightHandMiddle3": [0.2078, -0.0932, -0.0606, 0.9718], "RightHandPinky1": [0.1584, -0.7717, 0.3239, 0.524], "RightHandPinky2": [0.3544, 0.038, -0.0708, 0.9317], "RightHandPinky3": [0.5389, 0.003, 0.0065, 0.8424]},
+                  staffGrip: { position: [-0.008, 0.080, -0.014], axis: [-0.2, 0.14, 0.97] },
                   // платье: верхом ноги почти вместе, колени вперёд (иначе подол рвётся на две половины)
                   riderPose: { thigh: [0.82, 0.2, -0.54], shin: [0.04, 0.1, -1.0], foot: [0.9, 0.08, -0.4], lean: 5, gallopLean: 7 }
               } }

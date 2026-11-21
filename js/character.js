@@ -242,6 +242,16 @@ class MedievalCharacter {
 
             // Setup Animation Mixer
             this.mixer = new THREE.AnimationMixer(this.mesh);
+            // Хват (config.gripFingers {RightHandMiddle1: [x,y,z,w], ...}): пальцы правой кисти сжимаются костями, пока в руке предмет (applyGrip)
+            this._gripBones = []; this.gripW = 0;
+            if (this.config.gripFingers) {
+                const gf = this.config.gripFingers;
+                this.mesh.traverse(o => {
+                    if (!o.isBone) return;
+                    const q = gf[o.name.replace(/^mixamorig:?/, '')];
+                    if (q) this._gripBones.push({ b: o, q: new THREE.Quaternion(q[0], q[1], q[2], q[3]) });
+                });
+            }
             gltf.animations.forEach(clip => {
                 const action = this.mixer.clipAction(clip);
                 this.actions[clip.name] = action;
@@ -774,6 +784,17 @@ class MedievalCharacter {
      * посох не «продолжение руки»). При касте рука согнута в локте: плечо вниз-вперёд, предплечье вперёд-вверх.
      * Верхом (вне каста) посох лежит горизонтально поперёк, перед всадником, вместе с поводьями. Удар посохом выглядит как каст.
      */
+    /** Хват на предмет: плавно сжимает пальцы правой кисти в позу config.gripFingers, пока в руке предмет.
+     *  Без предмета пальцы ведёт клип (расслабленная открытая кисть, кулак в боксе и т.д.). */
+    applyGrip(delta) {
+        const hi = this.handItem;
+        const target = (hi && hi.visible !== false) ? 1 : 0;
+        this.gripW += (target - this.gripW) * Math.min(1, delta * 10);
+        if (Math.abs(target - this.gripW) < 0.01) this.gripW = target;
+        const w = this.gripW;
+        if (w > 0) for (const f of this._gripBones) { if (w >= 1) f.b.quaternion.copy(f.q); else f.b.quaternion.slerp(f.q, w); }
+    }
+
     applyCarryUpright(delta) {
         const it = this.handItem, b = this.rightHandBone;
         const obj = it && it.children[0];
@@ -1420,6 +1441,7 @@ class MedievalCharacter {
         this.restoreOverlay();
         if (this.mixer) {
             this.mixer.update(delta);
+            if (this._gripBones && this._gripBones.length) this.applyGrip(delta);
         }
         if (this.isChanneling && this.channelAction && !this.channelAction.paused) {
             const hold = this.config.channelHoldTime !== undefined ? this.config.channelHoldTime : 0.4;
