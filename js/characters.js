@@ -70,7 +70,7 @@ window.CHARACTER_CATALOG = [
                   noNavyLift: true,                       // у мага осветляется тёмно-синяя ткань; у Чародейки свой цвет
                   scale: 1.05,
                   facingOffset: Math.PI,
-                  animMap: { idle: 'Idle', run: 'Running', greeting: 'Greeting', cast: 'Cast' },
+                  animMap: { idle: 'Idle', run: 'Running', greeting: 'Greeting', cast: 'Cast', unarmed: 'Boxing' },   // unarmed — удар кулаком, играется только когда в руке ничего нет
                   // кулак правой кисти запечён в сетку (temp_work/rig/sorceress/build_sorceress.py печатает эти числа)
                   staffGrip: { position: [-0.0279, 0.0202, -0.019], axis: [-0.5626, 0.0005, 0.8267] },
                   // платье: верхом ноги почти вместе, колени вперёд (иначе подол рвётся на две половины)

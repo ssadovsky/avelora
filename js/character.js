@@ -260,7 +260,7 @@ class MedievalCharacter {
                     if (!this.isMoving) this.fadeToLogical('idle', 0.25);
                     else this.fadeToLogical('run', 0.2);
                 }
-                if (this.isAttacking && e.action === this.actions[(this.config.animMap || {}).attack]) {
+                if (this.isAttacking && (e.action === this.actions[(this.config.animMap || {}).attack] || e.action === this._atkAct)) {
                     this.isAttacking = false;
                     this.idleTimer = 0;
                     if (this._hideHandItemForGather) {
@@ -553,7 +553,10 @@ class MedievalCharacter {
         if (this.isGreeting) {
             this.isGreeting = false;
         }
-        const attackAction = this.resolveAction('attack');
+        // безоружный удар (animMap.unarmed, например бокс у Чародейки) — только когда в руке ничего нет; с оружием/посохом остаётся прежняя анимация
+        const unarmedAction = (!this.handItem && !style) ? this.resolveAction('unarmed') : null;
+        const attackAction = unarmedAction || this.resolveAction('attack');
+        this._atkAct = attackAction || null;
         if (attackAction && this.currentAction) {
             this.isAttacking = true;
             attackAction.reset();
@@ -1257,7 +1260,7 @@ class MedievalCharacter {
         }
         if (this.isAttacking) {
             this.isAttacking = false;
-            const attackAction = this.resolveAction('attack');
+            const attackAction = this._atkAct || this.resolveAction('attack');
             if (attackAction) attackAction.fadeOut(0.15);
         }
         this.fadeToLogical('run', 0.2);

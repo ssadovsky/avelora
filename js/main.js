@@ -241,6 +241,7 @@ class AveloraGame {
         this.frameCharSelectCamera();
 
         this.setupCharacterSelectEvents();
+        this._bindSelectDrag();
         this.renderCharacterSlots();
 
         const overlay = document.getElementById('character-select-overlay');
@@ -353,10 +354,13 @@ class AveloraGame {
         this.csPreviewGroup.add(rim);
 
         // 3. Stage Lighting (moody, contrasted dark fantasy showcase)
-        const amb = new THREE.AmbientLight(0x28323a, 0.7);
+        // Свет витрины сведён к игровому: раньше рассеянный свет был 0x28323a×0.7 (почти чёрный), в игре — полусфера ×1.8.
+        // ?csl=1.2 в адресной строке — общий множитель яркости витрины для подбора.
+        let csl = 1; try { const v = parseFloat(new URLSearchParams(location.search).get('csl')); if (isFinite(v) && v > 0) csl = v; } catch (e) {}
+        const amb = new THREE.HemisphereLight(0xb4c6dc, 0x6a6258, 1.45 * csl);
         this.csPreviewGroup.add(amb);
 
-        const keyLight = new THREE.DirectionalLight(0xffecd0, 2.3);
+        const keyLight = new THREE.DirectionalLight(0xffecd0, 2.1 * csl);
         keyLight.position.set(1.5, 3.8, 3.0);
         keyLight.castShadow = true;
         keyLight.shadow.mapSize.width = 1024;
@@ -616,7 +620,7 @@ class AveloraGame {
                     }
 
                     const model = gltf.scene;
-                    if (window.AveloraColor) { if (pv) window.AveloraColor.srgb(model); else window.AveloraColor.srgb(model, 1.0); }
+                    if (window.AveloraColor) { window.AveloraColor.srgb(model, 1.0); }
                     if (!pv && classId === 'mage' && window.AveloraColor) window.AveloraColor.liftNavyFabric(model);
                     const scale = pv ? (pv.scale || 1.0) : (charConfig.scale || 1.0);
                     model.scale.set(scale, scale, scale);
@@ -833,7 +837,12 @@ class AveloraGame {
             // Icon / Avatar
             const iconBox = document.createElement('div');
             iconBox.className = 'cs-slot-icon-box';
-            iconBox.textContent = details.icon || '🔮';
+            if (details.classId === 'mage' || details.classId === 'archer') {
+                iconBox.classList.add('has-emblem');
+                iconBox.innerHTML = this._classEmblemHtml(details.classId);   // тот же огненный шар / лук, что в окне создания
+            } else {
+                iconBox.textContent = details.icon || '🔮';
+            }
             card.appendChild(iconBox);
 
             // Main Info
@@ -1078,6 +1087,33 @@ class AveloraGame {
             this.needsRender = true;
         });
         zone.addEventListener('dblclick', () => {
+            const m = this.csPreviewModel;
+            if (m) { m.rotation.y = m.userData.baseRotY || 0; this.needsRender = true; }
+        });
+    }
+
+    // Вращение сохранённого героя на экране выбора: тянуть за любое свободное место (не за панель слотов и кнопки)
+    _bindSelectDrag() {
+        const ov = document.getElementById('character-select-overlay');
+        if (!ov || ov._selDragBound) return;
+        ov._selDragBound = true;
+        let down = false, lastX = 0, pid = null;
+        const blocked = (t) => !!(t && t.closest && t.closest('button, input, textarea, select, a, .cs-right-panel, .cs-bottom-bar, .cs-slot-card, .cs-create-modal'));
+        ov.addEventListener('pointerdown', (e) => {
+            if (this.csCreating || (e.button !== undefined && e.button !== 0) || blocked(e.target)) return;
+            down = true; lastX = e.clientX; pid = e.pointerId;
+        });
+        window.addEventListener('pointermove', (e) => {
+            if (!down || e.pointerId !== pid || !this.csPreviewModel) return;
+            this.csPreviewModel.rotation.y += (e.clientX - lastX) * 0.012;
+            lastX = e.clientX;
+            this.needsRender = true;
+        });
+        const end = (e) => { if (e && e.pointerId !== pid) return; down = false; pid = null; };
+        window.addEventListener('pointerup', end);
+        window.addEventListener('pointercancel', end);
+        ov.addEventListener('dblclick', (e) => {
+            if (this.csCreating || blocked(e.target)) return;
             const m = this.csPreviewModel;
             if (m) { m.rotation.y = m.userData.baseRotY || 0; this.needsRender = true; }
         });
