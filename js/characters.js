@@ -61,8 +61,21 @@ window.CHARACTER_CATALOG = [
         previewSkills: ['spark', 'fireball', 'ice_arrow', 'lightning_strike'],
         genders: [
             { id: 'male', label: 'Мужской', title: 'Маг', name: 'Маг', icon: 'cs_male' },
-            { id: 'female', label: 'Женский', title: 'Чародейка', name: 'Чародейка', icon: 'cs_female', locked: true,
-              preview: { modelKey: 'npcs/academy_mage', faceAngle: 0, scale: 1.0, idle: 'Idle' } }
+            { id: 'female', label: 'Женский', title: 'Чародейка', name: 'Чародейка', icon: 'cs_female',
+              // витрина меню: настоящая модель Чародейки (лицом к камере), в игре — overrides поверх конфига мага
+              preview: { modelKey: 'sorceress', faceAngle: 0, scale: 1.05, idle: 'Idle' },
+              overrides: {
+                  modelKey: 'sorceress',
+                  portrait: 'heroPortrait_sorceress',     // иконка героя в HUD и в списке слотов
+                  noNavyLift: true,                       // у мага осветляется тёмно-синяя ткань; у Чародейки свой цвет
+                  scale: 1.05,
+                  facingOffset: Math.PI,
+                  animMap: { idle: 'Idle', run: 'Running', greeting: 'Greeting', cast: 'Cast' },
+                  // кулак правой кисти запечён в сетку (temp_work/rig/sorceress/build_sorceress.py печатает эти числа)
+                  staffGrip: { position: [-0.0279, 0.0202, -0.019], axis: [-0.5626, 0.0005, 0.8267] },
+                  // платье: верхом ноги почти вместе, колени вперёд (иначе подол рвётся на две половины)
+                  riderPose: { thigh: [0.82, 0.2, -0.54], shin: [0.04, 0.1, -1.0], foot: [0.9, 0.08, -0.4], lean: 5, gallopLean: 7 }
+              } }
         ],
         portrait: 'heroPortrait_mage',
         modelKey: 'azureArchmage',
@@ -136,6 +149,13 @@ window.CHARACTER_CATALOG = [
 window.getCharacterGender = function (cfg, genderId) {
     const list = (cfg && cfg.genders) || [];
     return list.find(g => g.id === genderId) || list.find(g => !g.locked) || list[0] || null;
+};
+
+// Конфиг героя с учётом пола: overrides выбранного варианта (например, Чародейка) поверх базового класса.
+window.resolveCharacterConfig = function (cfg, genderId) {
+    if (!cfg) return cfg;
+    const g = window.getCharacterGender(cfg, genderId);
+    return (g && g.overrides) ? Object.assign({}, cfg, g.overrides) : cfg;
 };
 
 window.getCharacterConfig = function (id) {

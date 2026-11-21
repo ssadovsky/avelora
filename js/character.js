@@ -203,7 +203,7 @@ class MedievalCharacter {
         loader.parse(buffer, '', (gltf) => {
             this.mesh = gltf.scene;
             if (window.AveloraColor) window.AveloraColor.srgb(this.mesh, 1.0);
-            if (this.config.id === 'mage' && window.AveloraColor) window.AveloraColor.liftNavyFabric(this.mesh);
+            if (this.config.id === 'mage' && !this.config.noNavyLift && window.AveloraColor) window.AveloraColor.liftNavyFabric(this.mesh);
 
             // Character scale & initial orientation
             const s = this.config.scale || 1.0;

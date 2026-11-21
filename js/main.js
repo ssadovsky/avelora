@@ -568,6 +568,13 @@ class AveloraGame {
         this.needsRender = true;
     }
 
+    // вариант внешности (пол) сохранённого слота: у Чародейки своя модель в превью
+    _slotPreviewVariant(details) {
+        const cfg = window.getCharacterConfig ? window.getCharacterConfig(details.classId) : null;
+        const g = cfg && window.getCharacterGender ? window.getCharacterGender(cfg, details.gender) : null;
+        return g && g.preview ? g : null;
+    }
+
     updatePreviewCharacter(classId, variant) {
         if (!classId) classId = 'mage';
         // variant.preview — витринная модель другого пола/варианта (например, «Чародейка» = Элисандра)
@@ -985,7 +992,7 @@ class AveloraGame {
         if (locEl) locEl.textContent = `${details.locationName} • Золото: ${details.gold} 🪙\nВремя в пути: ${details.playTimeStr}`;
 
         // Update 3D model in the center of the scene!
-        this.updatePreviewCharacter(details.classId);
+        this.updatePreviewCharacter(details.classId, this._slotPreviewVariant(details));
     }
 
     async enterWorldWithSlot(slot) {
@@ -1251,7 +1258,7 @@ class AveloraGame {
         const slot = slots.find(s => s.slotId === this.selectedSlotId);
         if (slot) {
             const details = window.AveloraSlots.getSlotDetails(slot);
-            this.updatePreviewCharacter(details.classId);
+            this.updatePreviewCharacter(details.classId, this._slotPreviewVariant(details));
         } else {
             this.clearPreviewCharacter();
         }
