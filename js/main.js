@@ -282,16 +282,29 @@ class AveloraGame {
         const aspect = window.innerWidth / Math.max(1, window.innerHeight);
         cam.aspect = aspect;
         // narrow / portrait screens: pull back so the hero still fits horizontally
-        const dist = aspect >= 1.2 ? 3.7 : 3.7 * Math.min(2.2, 1.2 / aspect);
+        const dist = aspect >= 1.2 ? 3.25 : 3.25 * Math.min(2.2, 1.2 / aspect);
         cam.position.set(-0.35, 1.25, dist);
         cam.lookAt(-0.35, 0.7, 0);
         // Slide the picture sideways so the hero + pedestal stand exactly above the "ВОЙТИ В МИР" button
         const W = window.innerWidth, H = window.innerHeight;
         const btn = document.getElementById('cs-btn-enter-world');
         const r = btn ? btn.getBoundingClientRect() : null;
-        const dx = (r && r.width > 0) ? Math.round(W / 2 - (r.left + r.width / 2)) : 0;
+        let dx = (r && r.width > 0) ? Math.round(W / 2 - (r.left + r.width / 2)) : 0;
+        if (this.csCreating) {
+            // экран создания: герой в свободной части слева от панели выбора (на узком портрете — по центру над панелью)
+            const box = document.querySelector('#cs-create-modal .cs-create-box');
+            const br = box ? box.getBoundingClientRect() : null;
+            dx = (br && br.width > 0 && br.left > W * 0.4) ? Math.round(W / 2 - br.left / 2) : 0;
+        }
         if (dx) cam.setViewOffset(W, H, dx, 0, W, H); else cam.clearViewOffset();
         cam.updateProjectionMatrix();
+        const bt = this.csBgTex;
+        if (bt) {   // фон «cover»: без растяжения, привязан к верху (арки и колонны)
+            const ia = this.csBgAspect || 1.78;
+            if (aspect > ia) { bt.repeat.set(1, ia / aspect); bt.offset.set(0, 1 - ia / aspect); }
+            else { bt.repeat.set(aspect / ia, 1); bt.offset.set((1 - aspect / ia) / 2, 0); }
+            bt.updateMatrix();
+        }
     }
 
     setupCharacterSelectStage() {
@@ -304,7 +317,7 @@ class AveloraGame {
         this.csPreviewGroup = new THREE.Group();
 
         // 1. Pedestal: Dark circular stone slab (proportional to character)
-        const pedestalGeo = new THREE.CylinderGeometry(0.65, 0.72, 0.08, 48);
+        const pedestalGeo = new THREE.CylinderGeometry(0.85, 0.93, 0.08, 64);
         const pedestalMat = new THREE.MeshStandardMaterial({
             color: 0x12171a,
             roughness: 0.85,
@@ -326,10 +339,9 @@ class AveloraGame {
         });
         const ring = new THREE.Mesh(ringGeo, ringMat);
         ring.position.set(-0.35, 0.003, 0);
-        this.csPreviewGroup.add(ring);
 
         // Outer ornate gold rim
-        const rimGeo = new THREE.TorusGeometry(0.65, 0.012, 12, 48);
+        const rimGeo = new THREE.TorusGeometry(0.85, 0.014, 12, 64);
         rimGeo.rotateX(Math.PI / 2);
         const rimMat = new THREE.MeshStandardMaterial({
             color: 0x9a8045,
@@ -344,7 +356,7 @@ class AveloraGame {
         const amb = new THREE.AmbientLight(0x28323a, 0.7);
         this.csPreviewGroup.add(amb);
 
-        const keyLight = new THREE.DirectionalLight(0xffecd0, 2.0);
+        const keyLight = new THREE.DirectionalLight(0xffecd0, 2.3);
         keyLight.position.set(1.5, 3.8, 3.0);
         keyLight.castShadow = true;
         keyLight.shadow.mapSize.width = 1024;
@@ -356,12 +368,191 @@ class AveloraGame {
         rimLight.position.set(-2.0, 2.5, -2.5);
         this.csPreviewGroup.add(rimLight);
 
+        // Холодный контровой свет: отделяет силуэт от фона
+        const backLight = new THREE.DirectionalLight(0xa8c8ff, 1.5);
+        backLight.position.set(2.2, 2.6, -2.8);
+        this.csPreviewGroup.add(backLight);
+
         // Cool blue fill from bottom-left
         const fillLight = new THREE.DirectionalLight(0x40607a, 0.7);
         fillLight.position.set(-2.5, 1.0, 2.0);
         this.csPreviewGroup.add(fillLight);
 
+        this._buildCharSelectFx();
+        this._loadCharSelectBackground();
         this.csScene.add(this.csPreviewGroup);
+    }
+
+    /** Фон зала (data URI из js/cs_assets.js — WebGL-текстура с file:// иначе блокируется). */
+    _loadCharSelectBackground() {
+        const src = window.CS_ASSETS && window.CS_ASSETS.bg;
+        if (!src || this.csBgTex) return;
+        const img = new Image();
+        img.onload = () => {
+            const t = new THREE.Texture(img);
+            t.minFilter = THREE.LinearFilter;
+            t.generateMipmaps = false;
+            t.needsUpdate = true;
+            this.csBgTex = t;
+            this.csBgAspect = img.width / img.height;
+            this.csScene.background = t;
+            this.csScene.fog = null;
+            this.frameCharSelectCamera();
+            this.needsRender = true;
+        };
+        img.src = src;
+    }
+
+    /** Светящийся рунный круг на плите, искры и парящие стихии вокруг героя. */
+    _buildCharSelectFx() {
+        const CX = -0.35;
+        const fx = new THREE.Group();
+        fx.position.set(CX, 0, 0);
+        this.csFx = fx;
+
+        // 1. Рунный круг (canvas-текстура: гексаграмма + кольцо рун, золотое свечение)
+        const S = 1024, c = document.createElement('canvas');
+        c.width = c.height = S;
+        const g = c.getContext('2d');
+        g.translate(S / 2, S / 2);
+        g.lineCap = 'round';
+        g.shadowColor = 'rgba(255,170,50,0.95)';
+        g.shadowBlur = 16;
+        g.strokeStyle = '#f2c867';
+        const ring = (r, w) => { g.lineWidth = w; g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.stroke(); };
+        ring(480, 5); ring(360, 4); ring(344, 2);
+        g.lineWidth = 4;
+        for (let k = 0; k < 2; k++) {
+            g.beginPath();
+            for (let i = 0; i < 3; i++) {
+                const a = (k ? Math.PI / 3 : 0) - Math.PI / 2 + i * 2 * Math.PI / 3;
+                const x = Math.cos(a) * 344, y = Math.sin(a) * 344;
+                if (i) g.lineTo(x, y); else g.moveTo(x, y);
+            }
+            g.closePath(); g.stroke();
+        }
+        const glyphs = 'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ';
+        g.fillStyle = '#ffd98a';
+        g.font = '58px "Segoe UI Historic","Noto Sans Runic","Segoe UI Symbol",serif';
+        g.textAlign = 'center'; g.textBaseline = 'middle';
+        const N = 36;
+        for (let i = 0; i < N; i++) {
+            g.save();
+            g.rotate(i * 2 * Math.PI / N);
+            g.translate(0, -420);
+            g.fillText(glyphs[i % glyphs.length], 0, 0);
+            g.restore();
+        }
+        const tex = new THREE.CanvasTexture(c);
+        tex.anisotropy = 4;
+        const runeMat = new THREE.MeshBasicMaterial({
+            map: tex, transparent: true, depthWrite: false,
+            blending: THREE.AdditiveBlending, opacity: 0.95
+        });
+        const runes = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 1.7), runeMat);
+        runes.rotation.x = -Math.PI / 2;
+        runes.position.y = 0.012;
+        fx.add(runes);
+        this.csRunes = runes;
+
+        // 2. Искры
+        const dot = document.createElement('canvas');
+        dot.width = dot.height = 64;
+        const d = dot.getContext('2d');
+        const gr = d.createRadialGradient(32, 32, 0, 32, 32, 32);
+        gr.addColorStop(0, 'rgba(255,230,160,1)'); gr.addColorStop(0.35, 'rgba(255,170,60,0.55)'); gr.addColorStop(1, 'rgba(255,140,30,0)');
+        d.fillStyle = gr; d.fillRect(0, 0, 64, 64);
+        const COUNT = 90;
+        const pos = new Float32Array(COUNT * 3), seed = [];
+        for (let i = 0; i < COUNT; i++) {
+            seed.push({ a: Math.random() * 6.283, r: 0.25 + Math.random() * 0.85, sp: 0.12 + Math.random() * 0.25, ph: Math.random() * 6.283 });
+            pos[i * 3 + 1] = Math.random() * 2.2;
+        }
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        const pts = new THREE.Points(geo, new THREE.PointsMaterial({
+            size: 0.07, map: new THREE.CanvasTexture(dot), transparent: true, depthWrite: false,
+            blending: THREE.AdditiveBlending, sizeAttenuation: true
+        }));
+        pts.frustumCulled = false;
+        fx.add(pts);
+        this.csSparks = { geo, seed, count: COUNT };
+
+        // 3. Парящие стихии (спрайты-эмодзи), набор задаёт класс (characters.js orbit)
+        this.csOrbitGroup = new THREE.Group();
+        fx.add(this.csOrbitGroup);
+        this.csOrbitList = '';
+        this.csFxTime = 0;
+        this.csAppearT = 1;
+        this.csPreviewGroup.add(fx);
+    }
+
+    _setCharSelectOrbit(list) {
+        if (!this.csOrbitGroup) return;
+        const key = (list || []).join('|');
+        if (key === this.csOrbitList) return;
+        this.csOrbitList = key;
+        while (this.csOrbitGroup.children.length) {
+            const o = this.csOrbitGroup.children.pop();
+            if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); }
+        }
+        (list || []).forEach((col, i) => {
+            const c = document.createElement('canvas');
+            c.width = c.height = 128;
+            const g = c.getContext('2d');
+            const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+            gr.addColorStop(0, 'rgba(255,255,255,1)');
+            gr.addColorStop(0.16, 'rgba(255,255,255,0.95)');
+            gr.addColorStop(0.32, col);
+            gr.addColorStop(0.62, col + '55');
+            gr.addColorStop(1, col + '00');
+            g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+            const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+            sp.scale.set(0.3, 0.3, 1);
+            sp.userData = { phase: i * 2.094, h: 1.05 + (i % 2) * 0.4 + i * 0.05 };
+            this.csOrbitGroup.add(sp);
+        });
+    }
+
+    updateCharSelectFx(dt) {
+        if (!this.csFx) return;
+        this.csFxTime += dt;
+        const t = this.csFxTime;
+        if (this.csRunes) {
+            this.csRunes.rotation.z = t * 0.12;
+            this.csRunes.material.opacity = 0.8 + Math.sin(t * 1.7) * 0.15;
+        }
+        const sp = this.csSparks;
+        if (sp) {
+            const arr = sp.geo.attributes.position.array;
+            for (let i = 0; i < sp.count; i++) {
+                const s = sp.seed[i];
+                let y = arr[i * 3 + 1] + s.sp * dt;
+                if (y > 2.3) y = 0;
+                s.a += dt * 0.25;
+                arr[i * 3] = Math.cos(s.a) * s.r + Math.sin(t + s.ph) * 0.03;
+                arr[i * 3 + 1] = y;
+                arr[i * 3 + 2] = Math.sin(s.a) * s.r;
+            }
+            sp.geo.attributes.position.needsUpdate = true;
+        }
+        const n = this.csOrbitGroup ? this.csOrbitGroup.children.length : 0;
+        for (let i = 0; i < n; i++) {
+            const o = this.csOrbitGroup.children[i];
+            const a = t * 0.45 + o.userData.phase;
+            o.position.set(Math.cos(a) * 1.05, o.userData.h + Math.sin(t * 1.3 + i) * 0.08, Math.sin(a) * 0.55 + 0.2);
+            const pulse = 0.27 + Math.sin(t * 2.4 + i * 1.7) * 0.04; o.scale.set(pulse, pulse, 1);
+        }
+        // появление героя: выходит на шаг вперёд из глубины круга (не вырастает из плиты)
+        const m = this.csPreviewModel;
+        if (m && this.csAppearT < 1) {
+            this.csAppearT = Math.min(1, this.csAppearT + dt / 0.6);
+            const e = 1 - Math.pow(1 - this.csAppearT, 3);
+            m.position.y = 0;
+            m.position.z = -(1 - e) * 0.5;
+            if (this.csRunes) this.csRunes.material.opacity = Math.min(1.4, this.csRunes.material.opacity + (1 - e) * 0.4);
+        }
+        this.needsRender = true;
     }
 
     clearPreviewCharacter() {
@@ -377,10 +568,13 @@ class AveloraGame {
         this.needsRender = true;
     }
 
-    updatePreviewCharacter(classId) {
+    updatePreviewCharacter(classId, variant) {
         if (!classId) classId = 'mage';
-        if (this.csCurrentPreviewClass === classId && this.csPreviewModel) return;
-        this.csCurrentPreviewClass = classId;
+        // variant.preview — витринная модель другого пола/варианта (например, «Чародейка» = Элисандра)
+        const pv = (variant && variant.preview) || null;
+        const key = pv ? classId + ':' + variant.id : classId;
+        if (this.csCurrentPreviewClass === key && this.csPreviewModel) return;
+        this.csCurrentPreviewClass = key;
 
         if (!this.csPreviewGroup) {
             this.setupCharacterSelectStage();
@@ -390,11 +584,12 @@ class AveloraGame {
         const charConfig = catalog.find(c => c.id === classId) || catalog[0];
         if (!charConfig) return;
 
-        const modelKey = charConfig.modelKey;
+        const modelKey = pv ? pv.modelKey : charConfig.modelKey;
+        this._setCharSelectOrbit(charConfig.orbit);
         if (!window.AveloraAssets) return;
 
         window.AveloraAssets.ensure(modelKey).then(() => {
-            if (!this.isCharacterSelectOpen || this.csCurrentPreviewClass !== classId) return;
+            if (!this.isCharacterSelectOpen || this.csCurrentPreviewClass !== key) return;
             const b64 = window.GAME_ASSETS && window.GAME_ASSETS.models[modelKey];
             if (!b64) return;
 
@@ -402,7 +597,7 @@ class AveloraGame {
                 const buffer = this.base64ToArrayBuffer(b64);
                 const loader = new THREE.GLTFLoader();
                 loader.parse(buffer, '', (gltf) => {
-                    if (!this.isCharacterSelectOpen || this.csCurrentPreviewClass !== classId) return;
+                    if (!this.isCharacterSelectOpen || this.csCurrentPreviewClass !== key) return;
 
                     if (this.csPreviewModel) {
                         this.csPreviewGroup.remove(this.csPreviewModel);
@@ -414,14 +609,14 @@ class AveloraGame {
                     }
 
                     const model = gltf.scene;
-                    if (window.AveloraColor) window.AveloraColor.srgb(model, 1.0);
-                    if (classId === 'mage' && window.AveloraColor) window.AveloraColor.liftNavyFabric(model);
-                    const scale = charConfig.scale || 1.0;
+                    if (window.AveloraColor) { if (pv) window.AveloraColor.srgb(model); else window.AveloraColor.srgb(model, 1.0); }
+                    if (!pv && classId === 'mage' && window.AveloraColor) window.AveloraColor.liftNavyFabric(model);
+                    const scale = pv ? (pv.scale || 1.0) : (charConfig.scale || 1.0);
                     model.scale.set(scale, scale, scale);
                     model.position.set(-0.35, 0, 0);
 
                     // Face toward the camera (+Z)
-                    const faceAngle = (charConfig.facingOffset || 0) + Math.PI;
+                    const faceAngle = pv ? (pv.faceAngle || 0) : (charConfig.facingOffset || 0) + Math.PI;
                     model.rotation.y = faceAngle;
 
                     model.traverse((child) => {
@@ -440,7 +635,7 @@ class AveloraGame {
                     this.csMixer = mixer;
 
                     const clips = gltf.animations || [];
-                    const idleName = (charConfig.animMap && charConfig.animMap.idle) || 'Idle';
+                    const idleName = (pv && pv.idle) || (charConfig.animMap && charConfig.animMap.idle) || 'Idle';
                     let clip = clips.find(c => c.name.toLowerCase() === idleName.toLowerCase())
                         || clips.find(c => c.name.toLowerCase().includes('idle'))
                         || clips[0];
@@ -450,7 +645,10 @@ class AveloraGame {
                         action.play();
                     }
 
+                    model.userData.baseScale = scale;
+                    model.userData.baseRotY = faceAngle;
                     this.csPreviewModel = model;
+                    this.csAppearT = 0;
                     this.csPreviewGroup.add(model);
                     this.needsRender = true;
                 }, (err) => console.error('[Avelora] GLTF parse error for preview', err));
@@ -823,6 +1021,68 @@ class AveloraGame {
         await this.startGame(customConfig, opts);
     }
 
+    /** Эмблема класса для карточки (картинка из icons/charcreate). */
+    _classEmblemHtml(classId) {
+        const f = classId === 'archer' ? 'cs_bow' : 'cs_orb';
+        return '<img src="icons/charcreate/' + f + '.png" alt="" draggable="false">';
+    }
+
+    _genderIconHtml(g) {
+        return g && g.icon ? '<img src="icons/charcreate/' + g.icon + '.png" alt="" draggable="false">' : '';
+    }
+
+    _showSkillTip(chip, d) {
+        const tip = document.getElementById('cs-skill-tip');
+        if (!tip) return;
+        const meta = [];
+        if (d.cooldown) meta.push('перезарядка ' + d.cooldown + ' с');
+        if (d.mana) meta.push('мана ' + d.mana);
+        if (d.requiresLevel) meta.push('ур. ' + d.requiresLevel);
+        tip.innerHTML = '<b></b><span></span><i></i>';
+        tip.querySelector('b').textContent = d.name || '';
+        tip.querySelector('span').textContent = d.description || '';
+        tip.querySelector('i').textContent = meta.join(' • ');
+        tip.style.display = 'block';
+        const r = chip.getBoundingClientRect();
+        const w = tip.offsetWidth, h = tip.offsetHeight;
+        tip.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
+        tip.style.top = Math.max(8, r.top - h - 10) + 'px';
+    }
+
+    _hideSkillTip() {
+        const tip = document.getElementById('cs-skill-tip');
+        if (tip) tip.style.display = 'none';
+    }
+
+    /** Вращение героя перетаскиванием (мышь и палец) на экране создания; двойной клик — сброс. */
+    _bindCreateDrag() {
+        const zone = document.getElementById('cs-create-drag');
+        if (!zone || zone._bound) return;
+        zone._bound = true;
+        let down = false, lastX = 0;
+        zone.addEventListener('pointerdown', (e) => { down = true; lastX = e.clientX; try { zone.setPointerCapture(e.pointerId); } catch (_) {} zone.classList.add('grabbing'); });
+        const end = () => { down = false; zone.classList.remove('grabbing'); };
+        zone.addEventListener('pointerup', end);
+        zone.addEventListener('pointercancel', end);
+        zone.addEventListener('pointermove', (e) => {
+            if (!down || !this.csPreviewModel) return;
+            this.csPreviewModel.rotation.y += (e.clientX - lastX) * 0.012;
+            lastX = e.clientX;
+            this.needsRender = true;
+        });
+        zone.addEventListener('dblclick', () => {
+            const m = this.csPreviewModel;
+            if (m) { m.rotation.y = m.userData.baseRotY || 0; this.needsRender = true; }
+        });
+    }
+
+    _randomHeroName(classId, genderId) {
+        const male = ['Алдрик', 'Кассиан', 'Мелиор', 'Ориан', 'Валдис', 'Тайрон', 'Альдеран', 'Эйлан', 'Дарион', 'Севрин'];
+        const female = ['Лианна', 'Ниара', 'Мирэль', 'Сельвана', 'Аурелия', 'Тамира', 'Эльвира', 'Алдара', 'Кириэль', 'Ивэйна'];
+        const list = genderId === 'male' ? male : female;
+        return list[Math.floor(Math.random() * list.length)];
+    }
+
     openCharacterCreateModal() {
         const slots = window.AveloraSlots ? window.AveloraSlots.getSlots() : [];
         const maxSlots = window.AveloraSlots ? window.AveloraSlots.MAX_SLOTS : 8;
@@ -834,73 +1094,158 @@ class AveloraGame {
         const modal = document.getElementById('cs-create-modal');
         if (!modal) return;
 
+        const catalog = (window.CHARACTER_CATALOG || []).filter(c => !c.hidden);
         const classContainer = document.getElementById('cs-class-cards');
-        if (classContainer) {
-            classContainer.innerHTML = '';
-            const catalog = (window.CHARACTER_CATALOG || []).filter(c => !c.hidden);
-            let firstSelectable = null;
+        const first = catalog.find(c => !c.disabled) || catalog[0];
+        if (!classContainer || !first) return;
 
-            catalog.forEach(char => {
-                const card = document.createElement('div');
-                card.className = 'cs-class-card' + (char.disabled ? ' disabled' : '');
-                card.dataset.classId = char.id;
+        classContainer.innerHTML = '';
+        catalog.forEach(char => {
+            const card = document.createElement('div');
+            card.className = 'cs-class-card' + (char.disabled ? ' disabled' : '');
+            card.dataset.classId = char.id;
+            const emblem = document.createElement('div');
+            emblem.className = 'cs-emblem';
+            emblem.innerHTML = this._classEmblemHtml(char.id);
+            card.appendChild(emblem);
+            const name = document.createElement('div');
+            name.className = 'cs-class-card-name';
+            name.textContent = char.className || char.name;
+            card.appendChild(name);
+            if (!char.disabled) card.addEventListener('click', () => this._createPickClass(char.id));
+            classContainer.appendChild(card);
+        });
 
-                const icon = document.createElement('div');
-                icon.className = 'cs-class-card-icon';
-                icon.textContent = char.icon || '⚔️';
-                card.appendChild(icon);
-
-                const name = document.createElement('div');
-                name.className = 'cs-class-card-name';
-                name.textContent = char.className || char.name;
-                card.appendChild(name);
-
-                const desc = document.createElement('div');
-                desc.className = 'cs-class-card-desc';
-                desc.textContent = char.disabled ? 'Скоро в игре' : (char.description || (char.id === 'mage' ? 'Владыка стихийной магии' : 'Герой Авелоры'));
-                card.appendChild(desc);
-
-                if (!char.disabled) {
-                    if (!firstSelectable) firstSelectable = char;
-                    card.addEventListener('click', () => {
-                        this._createSelectedClassId = char.id;
-                        classContainer.querySelectorAll('.cs-class-card').forEach(c => c.classList.remove('selected'));
-                        card.classList.add('selected');
-                        const nameInput = document.getElementById('cs-char-name-input');
-                        if (nameInput && (!nameInput.value || nameInput.value === 'Маг' || nameInput.value === 'Лучница' || nameInput.value === 'Воин')) {
-                            nameInput.value = char.name;
-                        }
-                        // Update 3D preview model to match clicked class!
-                        this.updatePreviewCharacter(char.id);
-                    });
-                }
-
-                classContainer.appendChild(card);
+        const nameInput = document.getElementById('cs-char-name-input');
+        const diceBtn = document.getElementById('cs-name-random');
+        if (diceBtn && !diceBtn._bound) {
+            diceBtn._bound = true;
+            diceBtn.addEventListener('click', () => {
+                const cfg = (window.CHARACTER_CATALOG || []).find(c => c.id === this._createSelectedClassId);
+                const nm = this._randomHeroName(this._createSelectedClassId, this._createGenderId);
+                if (nameInput) { nameInput.value = nm; this._createAutoName = nm; nameInput.focus(); }
             });
+        }
 
-            // Default selection
-            const defaultClass = firstSelectable || catalog[0];
-            if (defaultClass) {
-                this._createSelectedClassId = defaultClass.id;
-                const firstCard = classContainer.querySelector(`.cs-class-card[data-class-id="${defaultClass.id}"]`);
-                if (firstCard) firstCard.classList.add('selected');
-                this.updatePreviewCharacter(defaultClass.id);
+        // Рунные огоньки на фоне (однократно)
+        const runes = document.getElementById('cs-create-runes');
+        if (runes && !runes.childNodes.length) {
+            const glyphs = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᛉ'];
+            for (let i = 0; i < 10; i++) {
+                const r = document.createElement('span');
+                r.textContent = glyphs[i];
+                r.style.left = (4 + (i * 37) % 52) + '%';
+                r.style.top = (24 + (i * 23) % 56) + '%';
+                r.style.fontSize = (16 + (i % 3) * 6) + 'px';
+                r.style.animationDelay = (i * 0.9) + 's';
+                r.style.animationDuration = (6 + (i % 4)) + 's';
+                runes.appendChild(r);
             }
         }
 
+        this._createAutoName = '';
+        if (nameInput) nameInput.value = '';
+        this._bindCreateDrag();
+
+        const overlay = document.getElementById('character-select-overlay');
+        if (overlay) overlay.classList.add('creating');
+        this.csCreating = true;
+        modal.style.display = 'flex';
+        this._createPickClass(first.id);
+        this.frameCharSelectCamera();
+        requestAnimationFrame(() => { this.frameCharSelectCamera(); this.needsRender = true; });
+        setTimeout(() => { if (nameInput) { nameInput.focus(); nameInput.select(); } }, 50);
+    }
+
+    /** Выбор класса на экране создания: перерисовать пол, подпись, превью. */
+    _createPickClass(classId) {
+        const cfg = (window.CHARACTER_CATALOG || []).find(c => c.id === classId);
+        if (!cfg) return;
+        this._createSelectedClassId = classId;
+        document.querySelectorAll('#cs-class-cards .cs-class-card').forEach(c =>
+            c.classList.toggle('selected', c.dataset.classId === classId));
+
+        const genders = cfg.genders || [];
+        const row = document.getElementById('cs-gender-row');
+        if (row) {
+            row.innerHTML = '';
+            genders.forEach(g => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'cs-gender-btn' + (g.locked ? ' locked' : '');
+                b.dataset.genderId = g.id;
+                b.innerHTML = this._genderIconHtml(g) +
+                    '<span>' + g.label + '</span>' + (g.locked ? '<span class="lock">🔒</span>' : '');
+                b.addEventListener('click', () => this._createPickGender(g.id));
+                row.appendChild(b);
+            });
+        }
+        const def = window.getCharacterGender ? window.getCharacterGender(cfg, null) : null;
+        this._createPickGender(def ? def.id : null);
+
+        // иконки навыков под героем
+        const box = document.getElementById('cs-create-hero-skills');
+        if (box) {
+            box.innerHTML = '';
+            const defs = (window.GAME_CONTENT && window.GAME_CONTENT.skills) || {};
+            (cfg.previewSkills || []).forEach(id => {
+                const d = defs[id];
+                if (!d || !d.iconData) return;
+                const chip = document.createElement('div');
+                chip.className = 'cs-skill-chip';
+                chip.style.backgroundImage = `url("${d.iconData}")`;
+                const showTip = () => this._showSkillTip(chip, d);
+                chip.addEventListener('mouseenter', showTip);
+                chip.addEventListener('click', showTip);
+                chip.addEventListener('mouseleave', () => this._hideSkillTip());
+                box.appendChild(chip);
+            });
+        }
+    }
+
+    /** Выбор пола (варианта) внутри класса. Закрытый вариант («скоро») показывает превью, но создать нельзя. */
+    _createPickGender(genderId) {
+        const cfg = (window.CHARACTER_CATALOG || []).find(c => c.id === this._createSelectedClassId);
+        if (!cfg) return;
+        const g = (cfg.genders || []).find(x => x.id === genderId) || null;
+        this._createGenderId = g ? g.id : null;
+        this._createLocked = !!(g && g.locked);
+        document.querySelectorAll('#cs-gender-row .cs-gender-btn').forEach(b =>
+            b.classList.toggle('selected', !!g && b.dataset.genderId === g.id));
+
+        const label = (g && (g.title || g.label)) || cfg.className || cfg.name;
+        const nameEl = document.getElementById('cs-create-hero-name');
+        if (nameEl) nameEl.textContent = label;
+        const tagEl = document.getElementById('cs-create-hero-tag');
+        if (tagEl) tagEl.textContent = cfg.tagline || '';
+
         const nameInput = document.getElementById('cs-char-name-input');
-        if (nameInput) {
-            const defChar = (window.CHARACTER_CATALOG || []).find(c => c.id === this._createSelectedClassId);
-            nameInput.value = (defChar && defChar.name) || 'Маг';
-            setTimeout(() => { nameInput.focus(); nameInput.select(); }, 50);
+        const auto = (g && g.name) || cfg.name;
+        if (nameInput && (!nameInput.value || nameInput.value === this._createAutoName)) {
+            nameInput.value = auto;
+            this._createAutoName = auto;
         }
 
-        modal.style.display = 'flex';
+        const note = document.getElementById('cs-create-note');
+        if (note) note.textContent = this._createLocked ? `${label} появится в одном из ближайших обновлений` : '';
+        const confirm = document.getElementById('cs-create-confirm');
+        if (confirm) {
+            confirm.classList.toggle('is-locked', this._createLocked);
+            confirm.textContent = this._createLocked ? 'СКОРО' : 'СОЗДАТЬ И ВОЙТИ';
+        }
+
+        // превью: у закрытого варианта — витринная модель (если есть), иначе модель класса
+        this.updatePreviewCharacter(cfg.id, g && g.preview ? g : null);
     }
 
     closeCharacterCreateModal() {
         const modal = document.getElementById('cs-create-modal');
         if (modal) modal.style.display = 'none';
+        const overlay = document.getElementById('character-select-overlay');
+        if (overlay) overlay.classList.remove('creating');
+        this._hideSkillTip();
+        this.csCreating = false;
+        this.frameCharSelectCamera();
         // Restore preview of currently selected slot if any, or clear pedestal
         const slots = window.AveloraSlots ? window.AveloraSlots.getSlots() : [];
         const slot = slots.find(s => s.slotId === this.selectedSlotId);
@@ -913,11 +1258,16 @@ class AveloraGame {
     }
 
     confirmCharacterCreate() {
+        if (this._createLocked) {
+            const note = document.getElementById('cs-create-note');
+            if (note) { note.style.transition = 'none'; note.style.opacity = '0.3'; requestAnimationFrame(() => { note.style.transition = 'opacity 0.4s'; note.style.opacity = '1'; }); }
+            return;
+        }
         const classId = this._createSelectedClassId || 'mage';
         const nameInput = document.getElementById('cs-char-name-input');
         const customName = nameInput ? nameInput.value.trim() : '';
 
-        const newSlot = window.AveloraSlots.createCharacter(classId, customName);
+        const newSlot = window.AveloraSlots.createCharacter(classId, customName, this._createGenderId || undefined);
         if (!newSlot) return;
 
         this.closeCharacterCreateModal();
@@ -3761,6 +4111,7 @@ class AveloraGame {
         // LIVE 3D CHARACTER PREVIEW: updates idle animation in real time
         if (this.isCharacterSelectOpen) {
             if (this.csMixer) this.csMixer.update(delta);
+            this.updateCharSelectFx(delta);
             this.drawFrame();
             return;
         }

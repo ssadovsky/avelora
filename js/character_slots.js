@@ -126,7 +126,8 @@
             saveId: slot.saveId,
             classId: slot.classId,
             name: slot.name || charCfg.name || 'Герой',
-            className: charCfg.className || 'Искатель приключений',
+            className: ((window.getCharacterGender && charCfg.genders) ? (window.getCharacterGender(charCfg, slot.gender) || {}).title : '') || charCfg.className || 'Искатель приключений',
+            gender: slot.gender || null,
             icon: charCfg.icon || '🔮',
             portrait: charCfg.portrait || 'heroPortrait_mage',
             charConfig: charCfg,
@@ -141,7 +142,7 @@
         };
     }
 
-    function createCharacter(classId, customName) {
+    function createCharacter(classId, customName, gender) {
         const slots = getSlots();
         if (slots.length >= MAX_SLOTS) {
             alert('Все слоты персонажей заняты (максимум ' + MAX_SLOTS + '). Удалите одного из персонажей.');
@@ -159,6 +160,7 @@
             name: (customName && customName.trim()) || charCfg.name || 'Герой',
             createdAt: Date.now()
         };
+        if (gender) newSlot.gender = gender;   // необязательное поле: старые слоты без него = вариант по умолчанию
 
         // Clear any old garbage under this saveId just in case
         if (window.AveloraSave && window.AveloraSave.deleteSave) {

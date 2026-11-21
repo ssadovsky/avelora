@@ -51,8 +51,19 @@ window.CHARACTER_CATALOG = [
     {
         id: 'mage',
         name: 'Маг',
-        className: 'Азур Аркмаг',
+        className: 'Маг',
         icon: '🔮',
+        // Экран создания персонажа: подпись под героем, иконки навыков и варианты пола.
+        // Пол — вариант внешности внутри класса (classId остаётся 'mage'). locked — «скоро»:
+        // в меню виден (preview — другая модель только для витрины), создать пока нельзя.
+        tagline: 'Стихийная магия',
+        orbit: ['#ff7a1a', '#6ec8ff', '#ffe14a'],   // цвета парящих огней вокруг героя (стихии)
+        previewSkills: ['spark', 'fireball', 'ice_arrow', 'lightning_strike'],
+        genders: [
+            { id: 'male', label: 'Мужской', title: 'Маг', name: 'Маг', icon: 'cs_male' },
+            { id: 'female', label: 'Женский', title: 'Чародейка', name: 'Чародейка', icon: 'cs_female', locked: true,
+              preview: { modelKey: 'npcs/academy_mage', faceAngle: 0, scale: 1.0, idle: 'Idle' } }
+        ],
         portrait: 'heroPortrait_mage',
         modelKey: 'azureArchmage',
         // Rebuilt from lib/mage/'s fresh Idle/Running/Walking/Sitting/Salute
@@ -80,8 +91,15 @@ window.CHARACTER_CATALOG = [
     {
         id: 'archer',
         name: 'Лучница',
-        className: 'Арисса',
+        className: 'Лучница',
         icon: '🏹',
+        tagline: 'Дальний бой',
+        orbit: ['#7be36b', '#ff7a1a', '#6ec8ff'],
+        previewSkills: ['arrow', 'fire_arrow', 'ice_arrow', 'blink'],
+        genders: [
+            { id: 'male', label: 'Мужской', title: 'Лучник', name: 'Лучник', icon: 'cs_male2', locked: true },
+            { id: 'female', label: 'Женский', title: 'Лучница', name: 'Лучница', icon: 'cs_archer' }
+        ],
         portrait: 'heroPortrait_archer',
         modelKey: 'arissa',
         // 'Idle' will exist once we add it (see lib/3d/README.md); until then
@@ -113,6 +131,12 @@ window.CHARACTER_CATALOG = [
         handGrip: { position: [-0.002, 0.083, 0.018], rotation: [1.436, -0.504, 1.15] }
     }
 ];
+
+/** Вариант пола класса: по id, иначе первый доступный. */
+window.getCharacterGender = function (cfg, genderId) {
+    const list = (cfg && cfg.genders) || [];
+    return list.find(g => g.id === genderId) || list.find(g => !g.locked) || list[0] || null;
+};
 
 window.getCharacterConfig = function (id) {
     return window.CHARACTER_CATALOG.find(c => c.id === id) || null;

@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <title>Avelora - Medieval Experience</title>
-    <link rel="stylesheet" href="css/main.css?v=upgrade7">
+    <link rel="stylesheet" href="css/main.css?v=charcreate4">
 </head>
 <body>
 
@@ -29,7 +29,7 @@
         <!-- Center preview info of currently highlighted character -->
         <div class="cs-center-info" id="cs-selected-preview">
             <div class="cs-hero-big-name" id="cs-big-name">Маг</div>
-            <div class="cs-hero-big-class" id="cs-big-class">Азур Аркмаг • Уровень 17</div>
+            <div class="cs-hero-big-class" id="cs-big-class">Маг • Уровень 1</div>
             <div class="cs-hero-big-loc" id="cs-big-loc">Лесная опушка</div>
         </div>
 
@@ -73,25 +73,40 @@
             </div>
         </div>
 
-        <!-- Character Creation Modal / Panel -->
+        <!-- Character Creation Screen: герой в 3D слева, панель выбора справа -->
         <div class="cs-create-modal" id="cs-create-modal" style="display:none">
             <div class="cs-create-backdrop" id="cs-create-backdrop"></div>
-            <div class="cs-create-box">
-                <div class="cs-create-header">
-                    <h2>СОЗДАНИЕ ПЕРСОНАЖА</h2>
-                    <button type="button" class="cs-modal-close" id="cs-create-close" aria-label="Закрыть">×</button>
-                </div>
+            <div class="cs-create-fog" aria-hidden="true"><i></i><i></i></div>
+            <div class="cs-create-runes" id="cs-create-runes" aria-hidden="true"></div>
+            <div class="cs-create-drag" id="cs-create-drag" title="Потяните, чтобы повернуть героя"></div>
+            <div class="cs-create-title">СОЗДАНИЕ ПЕРСОНАЖА</div>
 
+            <div class="cs-create-hero" id="cs-create-hero">
+                <div class="cs-create-hero-name" id="cs-create-hero-name">Маг</div>
+                <div class="cs-create-hero-tag" id="cs-create-hero-tag"></div>
+                <div class="cs-create-hero-skills" id="cs-create-hero-skills"></div>
+            </div>
+
+            <div class="cs-skill-tip" id="cs-skill-tip"></div>
+
+            <div class="cs-create-box">
                 <div class="cs-create-body">
                     <div class="cs-create-section-title">ВЫБЕРИТЕ КЛАСС</div>
                     <div class="cs-class-cards" id="cs-class-cards">
-                        <!-- Class selection cards: Mage, Archer, Warrior -->
+                        <!-- Карточки классов (main.js) -->
+                    </div>
+
+                    <div class="cs-create-section-title">ВЫБОР ПОЛА</div>
+                    <div class="cs-gender-row" id="cs-gender-row">
+                        <!-- Варианты пола выбранного класса (main.js) -->
                     </div>
 
                     <div class="cs-create-section-title">ИМЯ ГЕРОЯ</div>
                     <div class="cs-name-row">
                         <input type="text" id="cs-char-name-input" maxlength="20" placeholder="Введите имя персонажа..." autocomplete="off">
+                        <button type="button" class="cs-name-dice" id="cs-name-random" title="Случайное имя" aria-label="Случайное имя">🎲</button>
                     </div>
+                    <div class="cs-create-note" id="cs-create-note"></div>
                 </div>
 
                 <div class="cs-create-actions">
@@ -898,9 +913,10 @@
     <script src="js/town.js?v=20261120_vtavern2"></script>
     <script src="js/hitboxes.js?v=20261005_4"></script>
     <script src="js/environment.js?v=notrees2"></script>
-    <script src="js/characters.js?v=staffgrip1"></script>
+    <script src="js/characters.js?v=charcreate4"></script>
+    <script src="js/cs_assets.js?v=charcreate4"></script>
     <script src="js/save.js?v=20261028_lvl1"></script>
-    <script src="js/character_slots.js?v=20261021_csarrows1"></script>
+    <script src="js/character_slots.js?v=charcreate1"></script>
     <script src="js/items.js?v=charred3_armor1"></script>
     <script src="js/game_state.js?v=20261030_snowfang1"></script>
     <script src="js/world_objects.js?v=dbg1"></script>
@@ -920,7 +936,7 @@
     <script src="js/mount.js?v=20261101_colormode1"></script>
     <script src="js/map.js?v=20261024_map1"></script>
     <script src="js/auto_play.js?v=nohotkeys1"></script>
-    <script src="js/main.js?v=weather1"></script>
+    <script src="js/main.js?v=charcreate4"></script>
     <script>
         // Register PWA Service Worker only on http(s) hosts (bypasses file:// cleanly)
         if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
