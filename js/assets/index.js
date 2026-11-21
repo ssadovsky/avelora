@@ -55,6 +55,7 @@ window.AVELORA_ASSET_INDEX = {
   "creatures/rooster": ["m/creatures__rooster.js", "d851f54f4c"],
   "creatures/rune_boar": ["m/creatures__rune_boar.js", "e8b14b6ece"],
   "creatures/sarcosuchus": ["m/creatures__sarcosuchus.js", "801cedca84"],
+  "creatures/silver_wolf": ["m/creatures__silver_wolf.js", "8caff96bfa"],
   "creatures/skywyrm": ["m/creatures__skywyrm.js", "0821b28fc4"],
   "creatures/snow_leopard": ["m/creatures__snow_leopard.js", "916ee50e9a"],
   "creatures/snow_tiger": ["m/creatures__snow_tiger.js", "9af95ab543"],

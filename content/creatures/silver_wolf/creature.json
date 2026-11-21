@@ -1,0 +1,30 @@
+{
+    "id": "silver_wolf",
+    "name": "Серебристый верховой волк",
+    "hp": 500,
+    "damage": [
+        0,
+        0
+    ],
+    "attackRange": 1.4,
+    "attackCooldown": 1.5,
+    "walkSpeed": 1.0,
+    "runSpeed": 6.0,
+    "behavior": "retaliate",
+    "aggroRadius": 0,
+    "leashRadius": 6,
+    "wanderRadius": 2,
+    "respawnMinutes": 5,
+    "hitRadius": 1.2,
+    "scale": 1.45,
+    "passive": true,
+    "drops": [],
+    "gold": [
+        0,
+        0
+    ],
+    "xp": 0,
+    "level": 10,
+    "rank": "normal",
+    "statMultiplier": 1.0
+}
