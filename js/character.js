@@ -252,6 +252,11 @@ class MedievalCharacter {
                     if (q) this._gripBones.push({ b: o, q: new THREE.Quaternion(q[0], q[1], q[2], q[3]) });
                 });
             }
+            // Хват формой кисти: у моделей без пальцев-костей (старый маг) кулак лежит в morph-target 'grip' меша, включается тем же applyGrip
+            this._gripMorphs = [];
+            this.mesh.traverse(o => {
+                if (o.morphTargetDictionary && o.morphTargetInfluences && o.morphTargetDictionary.grip !== undefined) this._gripMorphs.push({ m: o, i: o.morphTargetDictionary.grip });
+            });
             gltf.animations.forEach(clip => {
                 const action = this.mixer.clipAction(clip);
                 this.actions[clip.name] = action;
@@ -793,6 +798,7 @@ class MedievalCharacter {
         if (Math.abs(target - this.gripW) < 0.01) this.gripW = target;
         const w = this.gripW;
         if (w > 0) for (const f of this._gripBones) { if (w >= 1) f.b.quaternion.copy(f.q); else f.b.quaternion.slerp(f.q, w); }
+        for (const g of this._gripMorphs) g.m.morphTargetInfluences[g.i] = w;
     }
 
     applyCarryUpright(delta) {
@@ -1441,7 +1447,7 @@ class MedievalCharacter {
         this.restoreOverlay();
         if (this.mixer) {
             this.mixer.update(delta);
-            if (this._gripBones && this._gripBones.length) this.applyGrip(delta);
+            if ((this._gripBones && this._gripBones.length) || (this._gripMorphs && this._gripMorphs.length)) this.applyGrip(delta);
         }
         if (this.isChanneling && this.channelAction && !this.channelAction.paused) {
             const hold = this.config.channelHoldTime !== undefined ? this.config.channelHoldTime : 0.4;
