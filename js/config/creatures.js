@@ -47,8 +47,8 @@ window.AVELORA_CREATURES_CONFIG = {
     // Множители рангов:
     ranks: {
         normal: { hp: 1.0, dmg: 1.0,  xp: 1.0, gold: 1.0 }, // Обычный моб
-        elite:  { hp: 2.0, dmg: 1.25, xp: 2.0, gold: 2.0 }, // Элитный (x2 HP)
-        boss:   { hp: 3.0, dmg: 1.5,  xp: 3.0, gold: 3.0 }  // Босс (x3 HP)
+        elite:  { hp: 3.0, dmg: 2.0, xp: 2.0, gold: 2.0 }, // Элитный (x3 HP)
+        boss:   { hp: 5.0, dmg: 3.5,  xp: 3.0, gold: 3.0 }  // Босс (x5 HP)
     },
 
     // Множитель силы по умолчанию для всех существ (в creature.json: statMultiplier):

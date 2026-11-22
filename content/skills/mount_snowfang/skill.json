@@ -11,7 +11,7 @@
   "speedBonus": 4.7,
   "runAnimSpeed": 1.2,
   "cooldown": 2,
-  "castTime": 1.2,
+  "castTime": 1.0,
   "requiresLevel": 1,
   "price": 500,
   "riderFollow": 0.55,

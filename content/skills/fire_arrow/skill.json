@@ -16,7 +16,7 @@
   "vfx": {
     "color": "#ff8a2a",
     "core": "#fff1b0",
-    "size": 0.7,
+    "size": 0.3,
     "trail": 20,
     "impactSparks": 38,
     "impactRadius": 1.8,

@@ -41,6 +41,14 @@
       {
         "item": "primordial_core",
         "chance": 0.06
+      },
+      {
+        "item": "arcane_dust",
+        "chance": 0.03,
+        "rankChance": {
+          "elite": 0.2,
+          "boss": 1
+        }
       }
     ]
   },

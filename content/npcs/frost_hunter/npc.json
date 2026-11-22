@@ -22,6 +22,10 @@
           "next": "shaman"
         },
         {
+          "text": "Продать вещи",
+          "action": "shop"
+        },
+        {
           "text": "До встречи",
           "action": "close"
         }
@@ -82,5 +86,9 @@
     "fr_brutes",
     "fr_master",
     "bl_northern_pass"
-  ]
+  ],
+  "shop": {
+    "buy": [],
+    "sell": true
+  }
 }

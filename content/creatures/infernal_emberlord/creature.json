@@ -86,6 +86,72 @@
         "item": "element_crystal",
         "count": 6
       }
+    ],
+    "20": [
+      {
+        "pool": [
+          "ring_onyx_titan",
+          "ring_midnight_hunter",
+          "ring_twilight_sage"
+        ],
+        "forClass": true
+      },
+      {
+        "pool": [
+          "amulet_onyx_titan",
+          "amulet_midnight_hunter",
+          "amulet_twilight_sage"
+        ],
+        "chance": 0.35,
+        "forClass": true
+      },
+      {
+        "pool": [
+          "onyx_axe",
+          "bow_midnight_star",
+          "staff_twilight_rift"
+        ],
+        "chance": 0.4,
+        "forClass": true
+      },
+      {
+        "pool": [
+          "onyx_helm",
+          "onyx_cuirass",
+          "onyx_gauntlets",
+          "onyx_greaves",
+          "midnight_cap",
+          "midnight_jerkin",
+          "midnight_gloves",
+          "midnight_boots",
+          "twilight_hood",
+          "twilight_robe",
+          "twilight_gloves",
+          "twilight_shoes"
+        ],
+        "chance": 0.6,
+        "forClass": true
+      },
+      {
+        "item": "gem_diamond_1",
+        "count": 1
+      },
+      {
+        "item": "arcane_dust",
+        "count": 8
+      },
+      {
+        "item": "primordial_core",
+        "count": 2
+      },
+      {
+        "item": "primordial_core",
+        "chance": 0.5
+      },
+      {
+        "item": "element_crystal",
+        "count": 8
+      }
     ]
   }
 }

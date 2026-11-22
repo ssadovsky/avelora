@@ -516,7 +516,6 @@ window.LOCATIONS = {
             // деревня у дороги (2026-11-20): домик Timber Hearth и дом из FBX; площадки — по уровню дороги (flatSpots road:true)
             { id: 'forestEdge.timber_cottage', prop: 'timber_cottage', x: 56.0, z: -3.0, r: 0.0 },
             { id: 'forestEdge.village_house', prop: 'village_house', x: 40.0, z: -7.0, r: 0.0, dy: -0.08 },   // dy: в модели Meshy низ ступенек на 5–7 см выше пола
-            { id: 'forestEdge.dragon_huntress', prop: 'npc_dragon_huntress', x: 34.0, z: -3.0, r: 0.0 },   // копия Кайры из Долины, лицом к дороге (юг, +Z)
             { id: 'forestEdge.village_tavern', prop: 'village_tavern', x: 52.0, z: 18.6, r: Math.PI / 2 },   // Meshy-таверна: крыльцо (+X модели) к дороге (север), дверь (+Z) на восток к тропе
             // две секции навеса (столбы на z модели −4.3 / −0.07 / 4.0 → мир x 47.7 / 51.9 / 56.0): стол и две лавки в каждой, длинной стороной от стены таверны (по Z)
             { id: 'forestEdge.tavern_table1', prop: 'village_table', x: 49.8, z: 12.6, r: Math.PI / 2 },
@@ -2284,7 +2283,7 @@ window.LOCATIONS = {
             bossExit: { id: 'bossExit', x: 57.2, z: 147.0, y: 0.02, radius: 1.3, height: 2.4, color: 0xff7a30, to: 'burntLands', spawn: 'fromDepths', label: 'Выход из недр' } },
         creatures: [
             // Босс: Владыка Расплавленной Короны (раньше Сердце горы) — в центре Печати (центр зала босса, depths.js _seal)
-            { id: 'vd_boss_emberlord', type: 'infernal_emberlord', name: 'Владыка Расплавленной Короны', rank: 'boss', scale: 1.35, x: 57.2, z: 132.6, r: Math.PI, behavior: 'aggressive', aggroRadius: 16, leashRadius: 44 },
+            { id: 'vd_boss_emberlord', type: 'infernal_emberlord', name: 'Владыка Расплавленной Короны', rank: 'boss', scale: 1.35, x: 57.2, z: 132.6, r: -1.85, behavior: 'aggressive', aggroRadius: 16, leashRadius: 44 },
             // «Горло»: магмовые големы-привратники
             { id: 'vd_throat_golem_1', type: 'magma_golem', x: -6.6, z: -107.8, r: 3.14, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'elite' },
             { id: 'vd_throat_golem_2', type: 'magma_golem', x: -2.7, z: -86.7, r: 3.14, behavior: 'aggressive', aggroRadius: 9, leashRadius: 28, rank: 'normal' },

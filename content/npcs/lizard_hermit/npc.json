@@ -22,6 +22,10 @@
           "action": "teach_magic"
         },
         {
+          "text": "Продать вещи",
+          "action": "shop"
+        },
+        {
           "text": "До встречи",
           "action": "close"
         }
@@ -74,5 +78,9 @@
     "only": [
       "portal_savanna"
     ]
+  },
+  "shop": {
+    "buy": [],
+    "sell": true
   }
 }

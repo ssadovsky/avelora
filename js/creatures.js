@@ -1013,7 +1013,7 @@
             // def.ranged = {skill, range, speed?, dodge?}: моб останавливается на range и бьёт снарядом (вид — от навыка героя skill)
             const reach = (def.ranged ? (def.ranged.range || 12) : (def.attackRange || 0.8)) + (def.hitRadius || 0.4) + PLAYER_RADIUS;
             rec.speed = 0;
-            // Оглушение (стан на 5 сек): существо парализовано, не двигается и не атакует
+            // Оглушение (длительность из skill.json stun.duration): существо парализовано, не двигается и не атакует
             if (rec.stunT > 0) {
                 rec.stunT = Math.max(0, rec.stunT - dt);
                 rec.attackT = -1;
@@ -1567,7 +1567,7 @@
             rec.speed = 0;
             const ui = this.game.ui;
             if (ui && ui.floatAt) {
-                ui.floatAt('Оглушение (5 сек)', 'warn', rec.x, rec.y + rec.height + 0.45, rec.z);
+                ui.floatAt('Оглушение (' + (Math.round(finalDur * 10) / 10) + ' с)', 'warn', rec.x, rec.y + rec.height + 0.45, rec.z);
             }
         }
 

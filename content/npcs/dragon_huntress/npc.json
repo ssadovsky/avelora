@@ -18,6 +18,10 @@
           "next": "valley"
         },
         {
+          "text": "Продать вещи",
+          "action": "shop"
+        },
+        {
           "text": "До встречи",
           "action": "close"
         }
@@ -49,5 +53,9 @@
         }
       ]
     }
+  },
+  "shop": {
+    "buy": [],
+    "sell": true
   }
 }

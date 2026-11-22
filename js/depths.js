@@ -734,46 +734,7 @@
             this.materials.push(sealMat);
             add(disc, sealMat, cx, 0.06, cz).renderOrder = 2;
 
-            // 2) Восемь гномьих столпов вокруг печати: тёсаный камень с рунными жилами; два расколоты и повалены
-            const stone = new THREE.MeshStandardMaterial({ color: 0x4a4448, roughness: 0.9, metalness: 0.05 });
-            const assets = (window.GAME_ASSETS && window.GAME_ASSETS.textures) || {};
-            if (assets.stoneTrailDiff || assets.rockDiff) { const t = new THREE.TextureLoader().load(assets.stoneTrailDiff || assets.rockDiff); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 4); stone.map = t; this.textures.push(t); }
-            const rune = new THREE.ShaderMaterial({
-                uniforms: { uTime: this.time },
-                vertexShader: 'varying vec3 vW; void main() { vec4 wp = modelMatrix * vec4(position, 1.0); vW = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }',
-                fragmentShader: `uniform float uTime; varying vec3 vW;
-                    float h(float p) { return fract(sin(p * 127.1) * 43758.5453); }
-                    void main() { float seg = floor(vW.y * 1.6), on = step(0.3, h(seg + floor(vW.x + vW.z) * 3.0)); float gap = step(0.12, fract(vW.y * 1.6));
-                        float p = 0.6 + 0.4 * sin(uTime * 1.1 - vW.y * 0.6);
-                        gl_FragColor = vec4(vec3(0.30, 0.50, 1.0) * on * gap * p * 1.8, 1.0);
-                        #include <tonemapping_fragment>
-                        #include <encodings_fragment>
-                    }`
-            });
-            this.materials.push(stone, rune);
-            const pillarGeo = new THREE.CylinderGeometry(0.95, 1.3, 1, 4, 1); pillarGeo.rotateY(Math.PI / 4);      // четырёхгранный сужающийся столп (высота 1, растягивается)
-            const capGeo = new THREE.CylinderGeometry(1.25, 1.05, 0.8, 4, 1); capGeo.rotateY(Math.PI / 4);
-            const baseGeo = new THREE.CylinderGeometry(1.5, 1.75, 0.9, 4, 1); baseGeo.rotateY(Math.PI / 4);
-            const stripGeo = new THREE.BoxGeometry(0.16, 1, 0.04);
-            this.geometries.push(pillarGeo, capGeo, baseGeo, stripGeo);
-            const R = 15.5;
-            for (let i = 0; i < 8; i++) {
-                const a = i / 8 * Math.PI * 2 + Math.PI / 8, x = cx + Math.cos(a) * R, z = cz + Math.sin(a) * R, q = this._sample(x, z);
-                if (!q || q.s > -1.5 || q.L < 2.0) continue;
-                const broken = (i === 2 || i === 5), Hh = broken ? 3.2 + i * 0.3 : 10.5;
-                const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = -a + Math.PI / 2; this.group.add(g);
-                const mk = (geo, mat, y, sy) => { const m = new THREE.Mesh(geo, mat); m.position.y = y; if (sy) m.scale.y = sy; g.add(m); return m; };
-                mk(baseGeo, stone, 0.35, 0);
-                mk(pillarGeo, stone, 0.8 + Hh / 2, Hh);
-                if (!broken) mk(capGeo, stone, 0.8 + Hh + 0.4, 0);
-                // рунная жила на грани, обращённой к печати
-                const st = new THREE.Mesh(stripGeo, rune); st.scale.y = Hh * 0.82; st.position.set(0, 0.8 + Hh * 0.5, -1.16); st.rotation.x = -0.033; g.add(st);
-                if (broken) {   // отколотая верхняя часть лежит рядом
-                    const top = new THREE.Mesh(pillarGeo, stone); top.scale.set(0.9, 6.0, 0.9); top.rotation.z = Math.PI / 2 - 0.12; top.rotation.y = 0.5 + i; top.position.set(2.6, 0.95, 2.2 + (i % 2)); g.add(top);
-                    this._basalt.push([x + Math.cos(-g.rotation.y) * 2.6, z + Math.sin(-g.rotation.y) * 2.6, 2.4]);
-                }
-                this._basalt.push([x, z, 1.5]);
-            }
+            // Колонны вокруг печати убраны (выглядели кирпичными): зал остаётся природным, рукотворна только сама Печать на полу.
             this.bossSpawn = { x: cx, z: cz };
         }
 

@@ -62,6 +62,14 @@
           "elite": 0.12,
           "boss": 1
         }
+      },
+      {
+        "item": "arcane_dust",
+        "chance": 0.03,
+        "rankChance": {
+          "elite": 0.2,
+          "boss": 1
+        }
       }
     ]
   },
