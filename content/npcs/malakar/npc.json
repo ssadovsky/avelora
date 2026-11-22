@@ -57,6 +57,9 @@
     "bl_skywyrms",
     "bl_salamanders",
     "bl_wyrmguards",
-    "bl_guardians"
+    "bl_guardians",
+    "bl_northern_pass",
+    "bl_depths_emberlord",
+    "hermit_expedition_news"
   ]
 }

@@ -1345,6 +1345,14 @@
                 return;
             }
 
+            // Pick up other quests from NPCs standing nearby before leaving the camp.
+            // This lets the auto-quest collect work from a group such as Malakar and Ironbeard.
+            const nearbyQuest = this.findNearbyEligibleQuest(8);
+            if (nearbyQuest) {
+                this.executeTakeQuest(nearbyQuest);
+                return;
+            }
+
             // Execute objectives for all unready quests in parallel (closest mob / resource first)
             this.executeMultiQuestObjectives(autoUnready.length > 0 ? autoUnready.map(q => q.def) : unreadyList.map(q => q.def), delta);
         }
@@ -2093,6 +2101,28 @@
             });
 
             return candidates[0].def;
+        }
+
+        /** Finds an available quest from a giver within reach, even when other quests are active. */
+        findNearbyEligibleQuest(maxDistance = 8) {
+            const st = this.game.gameState;
+            const allQuests = (window.GAME_CONTENT && window.GAME_CONTENT.quests) || {};
+            const dialog = this.game.ui && this.game.ui.dialog;
+            const character = this.game.character;
+            if (!st || !character || !character.position) return null;
+
+            const candidates = [];
+            for (const [qid, q] of Object.entries(allQuests)) {
+                if (!q.giver || (st.quests && (st.quests[qid] === 'done' || st.quests[qid] === 'active'))) continue;
+                const npcLoc = this.findNpcLocation(q.giver);
+                if (!npcLoc || npcLoc.locId !== this.curLocId()) continue;
+                const distance = Math.hypot(npcLoc.x - character.position.x, npcLoc.z - character.position.z);
+                if (distance > maxDistance) continue;
+                const available = dialog ? dialog.questAvailable(q) : this._checkRequires(q, st);
+                if (available) candidates.push({ def: q, distance });
+            }
+            candidates.sort((a, b) => a.distance - b.distance || (a.def.level || 1) - (b.def.level || 1));
+            return candidates.length ? candidates[0].def : null;
         }
 
         _checkRequires(q, st) {

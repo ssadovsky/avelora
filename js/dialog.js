@@ -673,7 +673,9 @@
 
         renderTalk() {
             let node = (this.npc.dialog || {})[this.nodeId];
-            if (this.nodeId && this.nodeId.indexOf('quest:') === 0) node = this.questNode(this.nodeId.slice(6));
+            const isQuestReading = !!(this.nodeId && this.nodeId.indexOf('quest:') === 0);
+            if (this.panel) this.panel.classList.toggle('quest-reading', isQuestReading);
+            if (isQuestReading) node = this.questNode(this.nodeId.slice(6));
             else if (node && this.nodeId === (this.npc.start || 'start') && this.npc.quests) {
                 // Доступные (ещё не взятые) квесты идут в самый верх, взятые квесты переносятся ниже
                 const available = [];

@@ -2800,6 +2800,8 @@
             scrollbar-width: thin;
             scrollbar-color: rgba(195, 160, 95, 0.45) transparent;
         }
+        /* Keep the quest description scrollbar clear of the close button. */
+        #dialog-panel.quest-reading .dlg-text { margin-right: 32px; }
         .dlg-text::-webkit-scrollbar { width: 3px; }
         .dlg-text::-webkit-scrollbar-track { background: transparent; }
         .dlg-text::-webkit-scrollbar-thumb { background: rgba(195, 160, 95, 0.4); border-radius: 2px; }
