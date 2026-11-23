@@ -157,6 +157,9 @@ grass: [
 
 ---
 
+## 5b. Heroes (playable characters) — read `docs/CHARACTERS.md` first
+Adding a hero/gender variant, simplifying a hero model without damaging face/details/colour, building clips (Idle/Cast/Greeting), Meshy rig proportions, staff/bow grips (finger bones or morph-target), riding pose and seat — all in **`docs/CHARACTERS.md`**. Ready tools: `temp_work/rig/tools/` (README there). Do not improvise grips or poses by eye: render and measure as described.
+
 ## 6. How to Add New 3D Models or Textures
 1. Keep models game-ready (< 2–3 MB, reasonable polygon count).
 2. Place `.glb` or `.jpg`/`.png` in `temp_work/temp_models/` or `temp_work/temp_tex/`.
