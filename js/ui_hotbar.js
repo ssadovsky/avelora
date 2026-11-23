@@ -3364,8 +3364,11 @@
                 // the grip frame suits a carried tool (shaft forward-down, like the axe);
                 // a staff is rotated upright with `hold.rotation`.
                 let hold = def && def.hold;
-                const cid = this.game.currentCharacterConfig && this.game.currentCharacterConfig.id;
-                if (hold && cid && hold[cid]) hold = hold[cid];   // per-character pose (different hand grips)
+                const currentConfig = this.game.currentCharacterConfig;
+                const cid = currentConfig && currentConfig.id;
+                const poseKey = (currentConfig && currentConfig.itemHoldKey) || cid;
+                if (hold && poseKey && hold[poseKey]) hold = hold[poseKey];
+                else if (hold && cid && hold[cid]) hold = hold[cid];   // per-character pose (different hand grips)
                 if (hold && (hold.rotation || hold.position)) {
                     const g = new THREE.Group();
                     g.add(obj);
@@ -3374,6 +3377,7 @@
                     g.position.set(pp[0] || 0, pp[1] || 0, pp[2] || 0);
                     obj = g;
                 }
+                if (def && def.weapon && def.weapon.style) { obj.userData = obj.userData || {}; obj.userData.weaponStyle = def.weapon.style; }
                 if (def && def.weapon && def.weapon.style === 'staff') { obj.userData = obj.userData || {}; obj.userData.upright = true; }
                 if (def && def.glow !== undefined) { obj.userData = obj.userData || {}; obj.userData.glow = def.glow; }   // item.json glow: false | {color, y}
                 c.setHandItem(obj);

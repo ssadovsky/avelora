@@ -4,9 +4,9 @@
   "giver": "lirael",
   "requires": [
     "home_camp_visit",
-    "potion_trial",
-    "spark_trial"
+    "potion_trial"
   ],
+  "requiresByClass": { "mage": ["spark_trial"], "archer": ["archer_trial"], "default": ["spark_trial"] },
   "summary": "Убей 5 лесных пчёл. Они кружат над цветущей поляной клевера к западу отсюда.",
   "objective": {
     "type": "kill",

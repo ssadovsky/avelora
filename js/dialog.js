@@ -325,7 +325,11 @@
                 return 'Поговори с Лираэль';
             }
             if (o.type === 'hit_creature' || o.type === 'learn_and_hit') {
-                if (!p.ready) return 'Порази «Искрой» любого монстра: 0/1';
+                if (!p.ready) {
+                    const action = o.progressLabel || (o.skill === 'spark' ? 'Порази «Искрой» любого монстра' :
+                        o.skill === 'arrow' ? 'Порази врага навыком «Меткий выстрел»' : (o.label || 'Порази цель'));
+                    return `${action}: ${p.have}/${p.need}`;
+                }
                 return `Поговори с ${this.turnInName(q) || 'Лираэль'}`;
             }
             if (o.type === 'build_building') {
@@ -353,6 +357,9 @@
         questAvailable(q) {
             const st = this.state;
             if (!st) return false;
+            const cfg = this.game && this.game.currentCharacterConfig;
+            const classId = (cfg && cfg.id) || (this.game && this.game.character && this.game.character.id);
+            if (Array.isArray(q.classes) && q.classes.length && q.classes.indexOf(classId) < 0) return false;
             if (q.minLevel) {
                 const heroLevel = this.game.hero ? this.game.hero.level : 1;
                 if (heroLevel < q.minLevel) return false;
@@ -363,8 +370,10 @@
                 if (req === 'bear_hunt' && st.questStatus('doe_report') === 'done') return true;
                 return false;
             };
-            if (Array.isArray(q.requires)) return q.requires.every(isDone);
-            return isDone(q.requires);
+            if (Array.isArray(q.requires) && !q.requires.every(isDone)) return false;
+            const classRequires = q.requiresByClass && (q.requiresByClass[classId] || q.requiresByClass.default);
+            if (Array.isArray(classRequires) && !classRequires.every(isDone)) return false;
+            return !q.requires || Array.isArray(q.requires) || isDone(q.requires);
         }
 
         /** game:creatureKilled — counts kills for active kill quests; a quest may kill a creature for good. */
@@ -404,6 +413,9 @@
                     if (st.quests[id] !== 'active') return;
                     const q = this.questDef(id);
                     if (!q) return;
+                    const cfg = this.game && this.game.currentCharacterConfig;
+                    const classId = (cfg && cfg.id) || (this.game && this.game.character && this.game.character.id);
+                    if (Array.isArray(q.classes) && q.classes.length && q.classes.indexOf(classId) < 0) return;
                     const p = this.questProgress(q);
                     if (p.ready) hasReady = true;
                     activeQuests.push({ id, q, p });
@@ -787,6 +799,7 @@
                 this.abandonQuest(o.quest);
             } else if (o.action === 'questAccept') {
                 const aq = this.questDef(o.quest);
+                if (!aq || !this.questAvailable(aq)) { this.mode = 'talk'; this.nodeId = this.npc.start || 'start'; this.render(); return; }
                 if (this.state.startQuest(o.quest)) {
                     this.ui.floatText('Новое задание', 'good');
                     // Tools the quest hands out (axe for logs, pickaxe for ore): given now, shown in a window with "Надеть"

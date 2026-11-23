@@ -7,7 +7,7 @@
   "cooldown": 0.9,
   "range": 22,
   "speed": 34,
-  "castTime": 0.25,
+  "castTime": 0.4,
   "damage": {
     "min": 8,
     "max": 12,

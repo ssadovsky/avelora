@@ -249,7 +249,7 @@ class MedievalCharacter {
                 this.mesh.traverse(o => {
                     if (!o.isBone) return;
                     const q = gf[o.name.replace(/^mixamorig:?/, '')];
-                    if (q) this._gripBones.push({ b: o, q: new THREE.Quaternion(q[0], q[1], q[2], q[3]) });
+                    if (q) this._gripBones.push({ b: o, q: new THREE.Quaternion(q[0], q[1], q[2], q[3]), rest: o.quaternion.clone() });
                 });
             }
             // Хват формой кисти: у моделей без пальцев-костей (старый маг) кулак лежит в morph-target 'grip' меша, включается тем же applyGrip
@@ -481,7 +481,9 @@ class MedievalCharacter {
             hand: this.rightHandBone,
             lShoulder: this.findBone('LeftShoulder'),
             lArm: this.findBone('LeftArm'),
-            lForearm: this.findBone('LeftForeArm')
+            lForearm: this.findBone('LeftForeArm'),
+            lHand: this.findBone('LeftHand'),
+            head: this.findBone('Head')
         };
         b.all = spine.concat([b.shoulder, b.arm, b.forearm, b.hand, b.lShoulder, b.lArm, b.lForearm]).filter(Boolean); // pre-built: no per-frame arrays
         return b;
@@ -804,12 +806,14 @@ class MedievalCharacter {
     applyCarryUpright(delta) {
         const it = this.handItem, b = this.rightHandBone;
         const obj = it && it.children[0];
-        if (!obj || !obj.userData || !obj.userData.upright || !b || !b.parent) { this.carryW = 0; this.castBendW = 0; return; }
+        // config.bowCarryUpright: на ходу лук держится вертикально (как посох без staffGrip), иначе кисть из клипа бега тянет его наискось через корпус
+        const bowCarry = !!(obj && obj.userData && obj.userData.weaponStyle === 'bow' && this.config.bowCarryUpright);
+        if (!obj || !obj.userData || !(obj.userData.upright || bowCarry) || !b || !b.parent) { this.carryW = 0; this.castBendW = 0; return; }
         const grip = !!(it.userData && it.userData.staffGrip);
         const staffSwing = grip && !!this.swing && this.swing.style === 'staff';   // удар посохом = поза каста
         const alive = this.deathT < 0 && (!this.swing || staffSwing);
         // без staffGrip (старое крепление) — как раньше: только на ходу
-        const want = grip ? alive : (this.isMoving && !this.isCasting && !this.isChanneling && !this.isAttacking && alive);
+        const want = (grip || bowCarry) ? alive : (this.isMoving && !this.isCasting && !this.isChanneling && !this.isAttacking && alive);
         this.carryW = (this.carryW || 0) + ((want ? 1 : 0) - (this.carryW || 0)) * Math.min(1, delta * 10);
         const casting = grip && alive && (this.isCasting || this.isChanneling || staffSwing);
         this.castBendW = (this.castBendW || 0) + ((casting ? 1 : 0) - (this.castBendW || 0)) * Math.min(1, delta * 9);
@@ -834,7 +838,7 @@ class MedievalCharacter {
         const shaft = this._cv1 || (this._cv1 = new THREE.Vector3());
         const want_d = this._cv2 || (this._cv2 = new THREE.Vector3());
         shaft.set(0, 1, 0).applyQuaternion(qO);
-        const tilt = (grip ? 8 : 6) * DEG;                          // верх посоха чуть вперёд
+        const tilt = (grip ? 8 : bowCarry ? (this.config.bowCarryTilt !== undefined ? this.config.bowCarryTilt : 10) : 6) * DEG;                          // верх посоха чуть вперёд
         want_d.set(0, 1, 0).addScaledVector(fwd, Math.tan(tilt)).normalize();
         const horizW = rideW * (1 - this.castBendW);
         const full = this._q4 || (this._q4 = new THREE.Quaternion());
@@ -941,6 +945,18 @@ class MedievalCharacter {
         this.mesh.updateMatrixWorld(true);
         for (let i = 0; i < b.all.length; i++) this.saveOverlayBone(b.all[i]);
         const obj = this.handItem && this.handItem.children[0];
+        // config.bowDrawHold [rx,ry,rz]: pose of the bow in the hand at full draw. The carry pose (item.json hold) is vertical at the side,
+        // but with the arm raised the wrist solver below would have to bend the hand ~90deg (skin deformation) - so the bow is turned in the
+        // hand together with the arm raise; restoreOverlay() returns it next frame (derive: temp_work/rig/tools, docs/CHARACTERS.md 6.4).
+        if (obj && this.config.bowDrawHold) {
+            this.saveOverlayBone(obj);
+            const dh = this.config.bowDrawHold;
+            const qd = this._qDrawHold || (this._qDrawHold = new THREE.Quaternion());
+            qd.setFromEuler(new THREE.Euler(dh[0], dh[1], dh[2], 'XYZ'));
+            const wd = Math.max(0, Math.min(1, swingKey(BOW_KEYS.armPitch, u) / 88));
+            obj.quaternion.slerp(qd, wd);
+            obj.updateMatrixWorld(true);
+        }
         // bow orientation relative to the hand (constant: the bow is a child of the hand)
         const rel = this._q4 || (this._q4 = new THREE.Quaternion());
         const qH = this._q1, qO = this._q2;
@@ -964,11 +980,25 @@ class MedievalCharacter {
         this.rotateBoneWorld(b.arm, this._right, ap * 0.88);
         this.rotateBoneWorld(b.forearm, this._right, swingKey(BOW_KEYS.forearm, u) * DEG);
         // string arm: raised forward, out to the left, forearm folded back toward the face
-        const lp = swingKey(BOW_KEYS.lArmPitch, u) * DEG, lo = swingKey(BOW_KEYS.lArmOut, u) * DEG, pull = swingKey(BOW_KEYS.lPull, u) * DEG;
+        const lp = swingKey(BOW_KEYS.lArmPitch, u) * DEG, lo = swingKey(BOW_KEYS.lArmOut, u) * DEG;
+        const pull = swingKey(this.config.bowPullKeys || BOW_KEYS.lPull, u) * DEG;
         this.rotateBoneWorld(b.lShoulder, this._right, lp * 0.12);
         this.rotateBoneWorld(b.lArm, this._right, lp * 0.88);
         this.rotateBoneWorld(b.lArm, this._up, lo);
-        this.rotateBoneWorld(b.lForearm, this._up, -pull);
+        if (this.config.bowDrawToFace && b.lForearm) {
+            const hand = b.lHand, head = b.head;
+            if (hand && head) {
+                this.mesh.updateMatrixWorld(true);
+                const elbow = this._cv1 || (this._cv1 = new THREE.Vector3());
+                const target = this._cv2 || (this._cv2 = new THREE.Vector3());
+                b.lForearm.getWorldPosition(elbow);
+                head.getWorldPosition(target);
+                target.addScaledVector(this._fwd, 0.16).addScaledVector(this._up, -0.16).sub(elbow).normalize();
+                this.aimBoneWorld(b.lForearm, hand, target, Math.min(1, pull / (118 * DEG)));
+            }
+        } else {
+            this.rotateBoneWorld(b.lForearm, this._up, -pull);
+        }
         // wrist: bow long axis up, belly (model -X) toward the target
         if (haveBow && b.hand && b.hand.parent) {
             const X = this._cv1 || (this._cv1 = new THREE.Vector3()), Z = this._cv2 || (this._cv2 = new THREE.Vector3());

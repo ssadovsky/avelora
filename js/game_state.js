@@ -941,7 +941,12 @@
         slay(locationId, id) { (this.slain[locationId] || (this.slain[locationId] = {}))[id] = true; this.save(); }
 
         questStatus(id) { return this.quests[id] || null; }
-        startQuest(id) { if (this.quests[id]) return false; this.quests[id] = 'active'; this.save(); return true; }
+        startQuest(id) {
+            if (this.quests[id]) return false;
+            if (this.questFlags && id === 'spark_trial') delete this.questFlags.spark_hit_creature;
+            if (this.questFlags && id === 'archer_trial') delete this.questFlags.archer_arrow_hit_creature;
+            this.quests[id] = 'active'; this.save(); return true;
+        }
         completeQuest(id) { if (this.quests[id] !== 'active') return false; this.quests[id] = 'done'; this.save(); return true; }
         abandonQuest(id) {
             if (this.quests[id] !== 'active') return false;
@@ -949,6 +954,9 @@
             if (this.questKills && this.questKills[id]) delete this.questKills[id];
             if (id === 'spark_trial' && this.questFlags) {
                 delete this.questFlags['spark_hit_creature'];
+            }
+            if (id === 'archer_trial' && this.questFlags) {
+                delete this.questFlags['archer_arrow_hit_creature'];
             }
             if (id === 'potion_trial' && this.questFlags) {
                 delete this.questFlags['potion_health_small_crafted'];

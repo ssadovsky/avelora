@@ -465,7 +465,10 @@
                 const castDur = Math.max(0, def.castTime || 0);
                 this.casting = { def, target, tgt, t: castDur };
                 this.ensureResources();
-                if (c.playCast) c.playCast(castDur || 0.6);
+                const held = c.handItem && c.handItem.children && c.handItem.children[0];
+                const hasBow = held && held.userData && held.userData.weaponStyle === 'bow';
+                if (def.id === 'arrow' && hasBow && c.startSwing) c.startSwing(0.75, 'bow');
+                else if (c.playCast) c.playCast(castDur || 0.6);
                 else c.startSwing(castDur || 0.6);
                 return 'ok';
             }
@@ -1373,6 +1376,7 @@
             if (!p.fading) {
                 const cr = this.game.creatures;
                 let hit = false;
+                let hitCreature = false;
                 let onGround = false;
 
                 // --- Homing: smooth steering towards target creature if alive ---
@@ -1394,6 +1398,7 @@
                         p.pos.set(tgtX, tgtY, tgtZ);
                         p.travelled += distToTgt;
                         hit = true;
+                        hitCreature = true;
                         onGround = false;
                     } else {
                         // Smoothly adjust direction towards target
@@ -1430,6 +1435,7 @@
                             if (p.pos.y < gy + 0.05) { p.pos.y = gy + 0.08; hit = true; onGround = true; }
                             else if (!p.hostile && cr && cr.hitTest(p.pos)) {
                                 hit = true;
+                                hitCreature = true;
                                 onGround = p.pos.y - gy < 0.6;
                             }
                             else if (this.hitsBlocker(p.pos)) { hit = true; onGround = p.pos.y - gy < 1.0; }
@@ -1438,9 +1444,10 @@
                 }
 
                 if (hit) {
-                    if (!p.hostile && p.def && p.def.id === 'spark') {
+                    if (!p.hostile && hitCreature && p.def && (p.def.id === 'spark' || p.def.id === 'arrow')) {
                         const st = this.game && this.game.gameState;
-                        if (st && st.setQuestFlag) st.setQuestFlag('spark_hit_creature', true);
+                        const questFlag = p.def.id === 'arrow' ? 'archer_arrow_hit_creature' : 'spark_hit_creature';
+                        if (st && st.setQuestFlag) st.setQuestFlag(questFlag, true);
                         const dlg = (this.game && this.game.ui && this.game.ui.dialog);
                         if (dlg && dlg.updateTracker) dlg.updateTracker();
                         if (this.game && this.game.ui && this.game.ui.updateQuestsProgress) this.game.ui.updateQuestsProgress();

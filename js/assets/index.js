@@ -69,6 +69,7 @@ window.AVELORA_ASSET_INDEX = {
   "creatures/wolf": ["m/creatures__wolf.js", "bdfd179e5b"],
   "creatures/wyrmguard": ["m/creatures__wyrmguard.js", "41e3c9d521"],
   "creatures/yasha": ["m/creatures__yasha.js", "626727a291"],
+  "emeraldRanger": ["m/emeraldRanger.js", "5ec7751282"],
   "fern": ["m/fern.js", "d59385f229"],
   "fir_tree_a": ["m/fir_tree_a.js", "6b51db3281"],
   "fir_tree_a_far": ["m/fir_tree_a_far.js", "0e03054cdd"],

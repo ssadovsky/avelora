@@ -2,6 +2,7 @@
   "id": "spark_trial",
   "name": "Первая искра",
   "giver": "lirael",
+  "classes": ["mage"],
   "requires": [
     "fern_gathering"
   ],
