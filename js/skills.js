@@ -483,7 +483,7 @@
                 const held = c.handItem && c.handItem.children && c.handItem.children[0];
                 const hasBow = held && held.userData && held.userData.weaponStyle === 'bow';
                 if (def.type === 'melee') { const sd = Math.max(0.45, castDur + 0.2); if (c.playAttack) c.playAttack(sd); else c.startSwing(sd); }   // удар оружием, не заклинание
-                else if (def.id === 'arrow' && hasBow && c.startSwing) c.startSwing(0.75, 'bow');
+                else if ((def.id === 'arrow' || def.bowShot) && hasBow && c.startSwing) c.startSwing(0.75, 'bow');   // skill.bowShot: выстрел из лука анимацией натяжки
                 else if (c.playCast) c.playCast(castDur || 0.6);
                 else c.startSwing(castDur || 0.6);
                 return 'ok';
@@ -1582,9 +1582,9 @@
                 }
 
                 if (hit) {
-                    if (!p.hostile && hitCreature && p.def && (p.def.id === 'spark' || p.def.id === 'arrow')) {
+                    if (!p.hostile && hitCreature && p.def && (p.def.id === 'spark' || p.def.id === 'arrow' || p.def.questFlag)) {
                         const st = this.game && this.game.gameState;
-                        const questFlag = p.def.id === 'arrow' ? 'archer_arrow_hit_creature' : 'spark_hit_creature';
+                        const questFlag = p.def.questFlag || (p.def.id === 'arrow' ? 'archer_arrow_hit_creature' : 'spark_hit_creature');   // skill.json questFlag — зачёт задания «поразить врага этим навыком»
                         if (st && st.setQuestFlag) st.setQuestFlag(questFlag, true);
                         const dlg = (this.game && this.game.ui && this.game.ui.dialog);
                         if (dlg && dlg.updateTracker) dlg.updateTracker();

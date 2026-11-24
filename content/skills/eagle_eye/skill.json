@@ -1,0 +1,23 @@
+{
+  "id": "eagle_eye",
+  "name": "Орлиный глаз",
+  "description": "Лучник сосредотачивается: на 20 секунд наносит на 25 % больше урона. Повторное применение снимает эффект.",
+  "type": "buff",
+  "category": "defense",
+  "cooldown": 45,
+  "buff": {
+    "id": "eagle_eye",
+    "kind": "buff",
+    "duration": 20,
+    "damageMult": 1.25
+  },
+  "vfx": {
+    "color": "#8fe08a",
+    "core": "#eaffd8",
+    "radius": 1.3
+  },
+  "mana": 0,
+  "requiresLevel": 4,
+  "price": 60,
+  "teacher": "archer_mentor"
+}

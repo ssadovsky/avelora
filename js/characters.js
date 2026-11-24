@@ -111,7 +111,7 @@ window.CHARACTER_CATALOG = [
         icon: '🏹',
         tagline: 'Дальний бой',
         orbit: ['#7be36b', '#ff7a1a', '#6ec8ff'],
-        previewSkills: ['arrow', 'fire_arrow'],
+        previewSkills: ['aimed_shot', 'fire_arrow', 'eagle_eye', 'crippling_shot', 'arrow_rain'],
         genders: [
             { id: 'male', label: 'Мужской', title: 'Лучник', name: 'Лучник', icon: 'cs_male2',
               preview: { modelKey: 'emeraldRanger', faceAngle: 0, scale: 1.0, idle: 'Idle' },

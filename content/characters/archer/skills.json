@@ -1,7 +1,11 @@
 {
   "character": "archer",
   "skills": [
-    "arrow",
-    "fire_arrow"
+    "aimed_shot",
+    "fire_arrow",
+    "eagle_eye",
+    "crippling_shot",
+    "roll",
+    "arrow_rain"
   ]
-}
+}

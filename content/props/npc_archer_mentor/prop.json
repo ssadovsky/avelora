@@ -1,0 +1,6 @@
+{
+  "id": "npc_archer_mentor",
+  "name": "Вейра",
+  "obstacle": 0.5,
+  "npc": "archer_mentor"
+}

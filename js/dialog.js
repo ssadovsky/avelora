@@ -761,7 +761,12 @@
             }
             const opts = document.createElement('div');
             opts.className = 'dlg-options';
-            ((node && node.options) || [{ text: 'До встречи', action: 'close' }]).forEach(o => {
+            const flagOk = (o) => {   // option.needFlag / notFlag (строка или массив): показывать пункт по флагам состояния (спутник и т.п.)
+                const st = this.game.gameState, has = (f) => !!(st && st.getQuestFlag(f));
+                const arr = (v) => v === undefined ? [] : (Array.isArray(v) ? v : [v]);
+                return arr(o.needFlag).every(has) && !arr(o.notFlag).some(has);
+            };
+            ((node && node.options) || [{ text: 'До встречи', action: 'close' }]).filter(flagOk).forEach(o => {
                 const b = document.createElement('button');
                 b.type = 'button';
                 let prefix = '';
@@ -795,6 +800,10 @@
         choose(o) {
             if (o.action === 'close') {
                 this.close();
+            } else if (o.action === 'companion_escort') {   // companion.js: она идёт за героем
+                const npcId = this.npc && this.npc.id;
+                this.close();
+                if (this.game.companion) this.game.companion.beginEscort(npcId);
             } else if (o.action === 'questAbandon') {
                 this.abandonQuest(o.quest);
             } else if (o.action === 'questAccept') {
@@ -1019,7 +1028,9 @@
                 if (!def || def.category === 'mounts') return;
                 const known = !!st && st.knowsSkill(id);
                 if (known) return; // learned skills disappear from the teach list
-                if (def.teacher && def.teacher !== this.npc.id) return;   // навык с полем teacher учит только этот NPC
+                const tch = (def.teacherByClass && cfg && def.teacherByClass[cfg.id]) || def.teacher;   // teacherByClass: свой учитель для класса (fire_arrow: лучнице — Вейра, магу — Лираэль)
+                if (tch && tch !== this.npc.id) return;   // навык с полем teacher учит только этот NPC
+                if (this.npc.teach && Array.isArray(this.npc.teach.classes) && cfg && this.npc.teach.classes.indexOf(cfg.id) < 0) return;   // npc.teach.classes: учит только эти классы
                 if (this.npc.teach && Array.isArray(this.npc.teach.only) && this.npc.teach.only.indexOf(id) < 0) return;   // npc.teach.only: учитель с ограниченным списком
                 const need = def.requiresLevel || 1;
                 const locked = heroLevel < need;

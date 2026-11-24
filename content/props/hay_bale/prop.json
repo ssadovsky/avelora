@@ -1,0 +1,16 @@
+{
+  "id": "hay_bale",
+  "name": "Тюк сена",
+  "obstacleShapes": [
+    {
+      "type": "box",
+      "cx": 0,
+      "cz": 0,
+      "hx": 0.45,
+      "hz": 0.225,
+      "r": 0.15,
+      "step": 0.5,
+      "exact": true
+    }
+  ]
+}

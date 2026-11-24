@@ -35,10 +35,14 @@
         "max": 46,
         "type": "fire"
       },
-      "mana": 0
+      "mana": 0,
+      "bowShot": true
     }
   },
   "statByClass": {
     "archer": "dex"
+  },
+  "teacherByClass": {
+    "archer": "archer_mentor"
   }
 }

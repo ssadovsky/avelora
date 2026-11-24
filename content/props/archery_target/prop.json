@@ -1,0 +1,16 @@
+{
+  "id": "archery_target",
+  "name": "Мишень для стрельбы",
+  "obstacleShapes": [
+    {
+      "type": "box",
+      "cx": 0,
+      "cz": 0,
+      "hx": 0.95,
+      "hz": 0.5,
+      "r": 0.2,
+      "step": 0.5,
+      "exact": true
+    }
+  ]
+}

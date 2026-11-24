@@ -1,0 +1,36 @@
+{
+  "id": "crippling_shot",
+  "name": "Подрезающий выстрел",
+  "description": "Стрела бьёт по ногам: цель получает урон и двигается и бьёт вдвое медленнее (длительность в строке характеристик).",
+  "type": "projectile",
+  "category": "attack",
+  "cooldown": 9,
+  "range": 22,
+  "speed": 36,
+  "castTime": 0.4,
+  "bowShot": true,
+  "damage": {
+    "min": 18,
+    "max": 26,
+    "type": "physical"
+  },
+  "stat": "dex",
+  "slow": {
+    "factor": 0.5,
+    "duration": 3
+  },
+  "vfx": {
+    "color": "#b9d4f0",
+    "core": "#ffffff",
+    "size": 0.4,
+    "trail": 14,
+    "impactSparks": 22,
+    "impactRadius": 1.3,
+    "filaments": false,
+    "arcs": false
+  },
+  "mana": 0,
+  "requiresLevel": 5,
+  "price": 90,
+  "teacher": "archer_mentor"
+}

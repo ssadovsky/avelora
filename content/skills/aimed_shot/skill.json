@@ -1,0 +1,33 @@
+{
+  "id": "aimed_shot",
+  "name": "Прицельный выстрел",
+  "description": "Лучница замирает, целится и посылает тяжёлую стрелу точно в цель. Урон в разы выше обычного выстрела.",
+  "type": "projectile",
+  "category": "attack",
+  "cooldown": 6,
+  "range": 24,
+  "speed": 40,
+  "castTime": 0.7,
+  "bowShot": true,
+  "damage": {
+    "min": 30,
+    "max": 40,
+    "type": "physical"
+  },
+  "stat": "dex",
+  "vfx": {
+    "color": "#f4e6b0",
+    "core": "#ffffff",
+    "size": 0.4,
+    "trail": 14,
+    "impactSparks": 18,
+    "impactRadius": 1.0,
+    "filaments": false,
+    "arcs": false
+  },
+  "mana": 0,
+  "requiresLevel": 1,
+  "price": 15,
+  "teacher": "archer_mentor",
+  "questFlag": "archer_aimed_hit_creature"
+}

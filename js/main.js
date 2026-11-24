@@ -1761,6 +1761,7 @@ class AveloraGame {
         this.worldObjects = window.AveloraWorldObjects ? new AveloraWorldObjects(this, loc) : null;
         this.building = window.AveloraBuilding ? new AveloraBuilding(this, loc) : null;   // building.js: player buildings (home camp)
         this.creatures = window.AveloraCreatures ? new AveloraCreatures(this, loc) : null;
+        this.companion = window.AveloraCompanion ? new AveloraCompanion(this, loc) : null;   // companion.js: Вейра идёт за героем (диалог «Отведи меня»)
         this.harvest = window.AveloraHarvest ? new AveloraHarvest(this, loc) : null;
         this.buildExits(loc);
 
@@ -1789,6 +1790,7 @@ class AveloraGame {
         if (this.skills) this.skills.clearAll(); // no projectile/impact survives into the next location
         if (this.combat) { this.combat.cancel(); this.combat.clearTarget(); }
         if (this.map) this.map.clearAll();        // close map panel when leaving location
+        if (this.companion) { this.companion.dispose(); this.companion = null; }
         if (this.creatures) { this.creatures.dispose(); this.creatures = null; }
         if (this.harvest) { this.harvest.dispose(); this.harvest = null; }
         this._pendingElevY = undefined;
@@ -4234,6 +4236,7 @@ class AveloraGame {
         if (this.autoPlay) this.autoPlay.update(delta);     // auto-combat & auto-quest
         if (this.hero) this.hero.update(delta);           // mana regeneration
         if (this.creatures) this.creatures.update(delta); // AI, animation, corpses, respawns
+        if (this.companion) this.companion.update(delta); // спутник героя
         if (this.harvest) this.harvest.update(delta);     // chips, shakes, falling trees, regrow
         if (this.water) {
             this.water.update(delta);
