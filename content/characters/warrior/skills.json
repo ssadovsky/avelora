@@ -1,0 +1,10 @@
+{
+  "character": "warrior",
+  "skills": [
+    "power_strike",
+    "charge",
+    "war_cry",
+    "whirlwind",
+    "ground_slam"
+  ]
+}

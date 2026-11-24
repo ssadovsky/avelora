@@ -602,7 +602,7 @@ class AveloraGame {
         window.AveloraAssets.ensure(modelKey).then(() => {
             if (!this.isCharacterSelectOpen || this.csCurrentPreviewClass !== key) return;
             const b64 = window.GAME_ASSETS && window.GAME_ASSETS.models[modelKey];
-            if (!b64) return;
+            if (!b64) { console.warn('[Avelora] превью: модель не загружена', modelKey, 'вариант', key); return; }
 
             try {
                 const buffer = this.base64ToArrayBuffer(b64);
@@ -837,7 +837,7 @@ class AveloraGame {
             // Icon / Avatar
             const iconBox = document.createElement('div');
             iconBox.className = 'cs-slot-icon-box';
-            if (details.classId === 'mage' || details.classId === 'archer') {
+            if (details.classId === 'mage' || details.classId === 'archer' || details.classId === 'warrior') {
                 iconBox.classList.add('has-emblem');
                 iconBox.innerHTML = this._classEmblemHtml(details.classId);   // тот же огненный шар / лук, что в окне создания
             } else {
@@ -1039,7 +1039,7 @@ class AveloraGame {
 
     /** Эмблема класса для карточки (картинка из icons/charcreate). */
     _classEmblemHtml(classId) {
-        const f = classId === 'archer' ? 'cs_bow' : 'cs_orb';
+        const f = classId === 'archer' ? 'cs_bow' : classId === 'warrior' ? 'cs_sword' : 'cs_orb';
         return '<img src="icons/charcreate/' + f + '.png" alt="" draggable="false">';
     }
 
@@ -1232,7 +1232,8 @@ class AveloraGame {
             box.innerHTML = '';
             const defs = (window.GAME_CONTENT && window.GAME_CONTENT.skills) || {};
             (cfg.previewSkills || []).forEach(id => {
-                const d = defs[id];
+                let d = defs[id];
+                if (d && d.byClass && d.byClass[cfg.id]) d = Object.assign(Object.create(d), d.byClass[cfg.id]);   // свои цифры/текст класса (byClass)
                 if (!d || !d.iconData) return;
                 const chip = document.createElement('div');
                 chip.className = 'cs-skill-chip';

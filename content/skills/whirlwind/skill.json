@@ -1,0 +1,33 @@
+{
+  "id": "whirlwind",
+  "name": "Вихрь",
+  "description": "Круговой удар оружием по всем врагам вокруг воина. Враги слегка отлетают.",
+  "type": "nova",
+  "category": "attack",
+  "cooldown": 10,
+  "castTime": 0.25,
+  "anim": "attack",
+  "damage": {
+    "min": 14,
+    "max": 19,
+    "type": "physical"
+  },
+  "stat": "str",
+  "weaponMult": 1.5,
+  "knockback": {
+    "distance": 2,
+    "duration": 0.4
+  },
+  "vfx": {
+    "color": "#cfd6e6",
+    "core": "#ffffff",
+    "size": 1.0,
+    "impactSparks": 70,
+    "impactRadius": 4.5,
+    "nova": true,
+    "arcs": false
+  },
+  "requiresLevel": 6,
+  "price": 120,
+  "teacher": "warrior_mentor"
+}

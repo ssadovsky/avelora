@@ -111,12 +111,16 @@ window.AVELORA_PROGRESSION = {
             start:        { str: 1,   dex: 10,  int: 1,  sta: 5 },
             perLevel:     { str: 1.0, dex: 5.0, int: 1.0, sta: 1.0 },
             baseHp:       100,
-            baseMana:     60,},
+            baseMana:     60,
+            noMana:       true,   // лучник работает на кулдаунах: полоска маны серая, без цифр, зелий маны нет
+        },
         warrior: {
             start:        { str: 10,  dex: 1,   int: 1,  sta: 5 },
             perLevel:     { str: 5.0, dex: 1.0, int: 1.0, sta: 1.0 },
             baseHp:       100,
-            baseMana:     40,}
+            baseMana:     40,
+            noMana:       true,   // воин — тоже только кулдауны (см. archer)
+        }
     },
 
     // Производные характеристики (во что превращаются статы героя):

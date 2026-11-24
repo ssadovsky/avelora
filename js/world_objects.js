@@ -106,7 +106,12 @@
         return tex;
     }
 
+    // Те же правила, что dialog.js questAvailable (классовые задания и requiresByClass): иначе «!» горит над NPC
+    // из-за задания чужого класса (например, «Первая искра» мага у лучницы), которое ей не предложат.
     function isQuestAvailable(game, st, q) {
+        const cfg = game && game.currentCharacterConfig;
+        const classId = (cfg && cfg.id) || (game && game.character && game.character.id);
+        if (Array.isArray(q.classes) && q.classes.length && q.classes.indexOf(classId) < 0) return false;
         if (q.minLevel) {
             const heroLevel = game.hero ? game.hero.level : 1;
             if (heroLevel < q.minLevel) return false;
@@ -117,8 +122,10 @@
             if (req === 'bear_hunt' && st.questStatus('doe_report') === 'done') return true;
             return false;
         };
-        if (Array.isArray(q.requires)) return q.requires.every(isDone);
-        return isDone(q.requires);
+        if (Array.isArray(q.requires) && !q.requires.every(isDone)) return false;
+        const classRequires = q.requiresByClass && (q.requiresByClass[classId] || q.requiresByClass.default);
+        if (Array.isArray(classRequires) && !classRequires.every(isDone)) return false;
+        return Array.isArray(q.requires) || isDone(q.requires);
     }
 
     function getNpcQuestMarkerState(game, npc) {

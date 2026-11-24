@@ -543,6 +543,8 @@ window.LOCATIONS = {
             { id: 'forestEdge.lirael', prop: 'npc_lirael', x: 129.0, z: 19.5, r: 0.0 },   // модель — бывшая Ориэль (Sapphire Enchantress), 20.11
             // Олениха-друид (NPC): в тени одинокого большого дерева (14, 8.5), берёт отчёты по заданиям от Лираэль
             { id: 'forestEdge.doe_druid', prop: 'npc_doe_druid', x: 10.0, z: 5.0, r: 1.57 },
+            // Гаррен, наставник воинов (NPC, content/npcs/warrior_mentor, Meshy Ironbound Wanderer): у таверны, между каменной дорогой (z≈5.5) и тропкой к швее (x 61.5); лицом к дороге; учит воинским навыкам, квест «Путь воина» берут у Лираэль
+            { id: 'forestEdge.warrior_mentor', prop: 'npc_warrior_mentor', x: 58.0, z: 10.0, r: Math.PI },
 
             // Декоративные поваленные стволы в северном лесу (проходимые, персонаж переступает)
             { id: 'ne_log_1', prop: 'fallen_log', x: 106.0, z: -18.0, r: 0.8, s: 2.8, noObstacle: true },

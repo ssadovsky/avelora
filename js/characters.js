@@ -111,7 +111,7 @@ window.CHARACTER_CATALOG = [
         icon: '🏹',
         tagline: 'Дальний бой',
         orbit: ['#7be36b', '#ff7a1a', '#6ec8ff'],
-        previewSkills: ['arrow', 'fire_arrow', 'ice_arrow', 'blink'],
+        previewSkills: ['arrow', 'fire_arrow'],
         genders: [
             { id: 'male', label: 'Мужской', title: 'Лучник', name: 'Лучник', icon: 'cs_male2',
               preview: { modelKey: 'emeraldRanger', faceAngle: 0, scale: 1.0, idle: 'Idle' },
@@ -134,7 +134,25 @@ window.CHARACTER_CATALOG = [
                   // Подобрано temp_work/rig/tools/grip_solve.py + проверено tool_grip_render.py. Лук — отдельно: content/items/*bow*/item.json hold.emeraldRanger.
                   handGrip: { position: [-0.026, 0.085, -0.005], rotation: [-0.2468, 1.1758, 1.277] }
               } },
-            { id: 'female', label: 'Женский', title: 'Лучница', name: 'Лучница', icon: 'cs_archer' }
+            { id: 'female', label: 'Женский', title: 'Лучница', name: 'Лучница', icon: 'cs_archer',
+              preview: { modelKey: 'forestSentinel', faceAngle: 0, scale: 1.0, idle: 'Idle' },
+              // Лесной страж: авториг по шаблону Изумрудного лучника (hero_pack.py), поэтому хват, лук и пальцы те же, что у лучника
+              overrides: {
+                  modelKey: 'forestSentinel',
+                  portrait: 'heroPortrait_forestSentinel',
+                  scale: 1.0,
+                  facingOffset: Math.PI,
+                  animMap: { idle: 'Idle', run: 'Running' },
+                  idleFallback: 'run',
+                  noNavyLift: true,
+                  bowDrawToFace: true,
+                  bowCarryUpright: true,
+                  bowDrawHold: [-3.135, -0.0007, 3.1058],
+                  bowPullKeys: [[0, 0], [0.1, 0], [0.24, 118], [0.52, 118], [0.58, 8], [0.8, 8], [1, 0]],
+                  itemHoldKey: 'emeraldRanger',
+                  gripFingers: {"RightHandThumb3": [-0.07768, -0.00221, 0.43505, 0.89705], "RightHandThumb2": [-0.05932, 0.07809, 0.22042, 0.97046], "RightHandThumb1": [0.45169, -0.77346, -0.00878, 0.44459], "RightHandPinky3": [-0.13194, 0.01257, -0.73765, 0.66205], "RightHandPinky2": [-0.1828, 0.068, -0.54383, 0.81622], "RightHandPinky1": [-0.55851, 0.80622, 0.02502, 0.19352], "RightHandRing3": [-0.31562, -0.62952, -0.31157, 0.63798], "RightHandRing2": [-0.0263, 0.03597, -0.61947, 0.78376], "RightHandRing1": [-0.59269, 0.79319, -0.05508, 0.12858], "RightHandIndex3": [0.40831, -0.36756, -0.30519, 0.77785], "RightHandIndex2": [0.70055, -0.00955, -0.21273, 0.68109], "RightHandIndex1": [0.45606, -0.76908, 0.38331, 0.23153], "RightHandMiddle3": [0.22778, 0.91158, 0.34225, 0.00285], "RightHandMiddle2": [0.53292, -0.0586, -0.3603, 0.76338], "RightHandMiddle1": [0.49392, -0.73994, 0.38173, 0.25061]},
+                  handGrip: { position: [-0.026, 0.085, -0.005], rotation: [-0.2468, 1.1758, 1.277] }
+              } }
         ],
         portrait: 'heroPortrait_archer',
         modelKey: 'arissa',
@@ -151,20 +169,33 @@ window.CHARACTER_CATALOG = [
     },
     {
         id: 'warrior',
-        disabled: true,
-        hidden: true,           // временно скрыт из интерфейса
+        // навыков пока нет (content/characters/warrior/skills.json отсутствует): класс играбелен только с базовой атакой
         name: 'Воин',
-        className: 'Странствующий страж',
+        className: 'Воин',
         icon: '⚔️',
+        tagline: 'Ближний бой',
+        orbit: ['#ff5a3a', '#ffb347', '#ffe14a'],
         portrait: 'heroPortrait_warrior',
-        modelKey: 'soldier',
-        animMap: { idle: 'Idle', run: 'Run' },
+        genders: [
+            { id: 'male', label: 'Мужской', title: 'Воин', name: 'Воин', icon: 'cs_warrior_m' },
+            { id: 'female', label: 'Женский', title: 'Воительница', name: 'Воительница', icon: 'cs_warrior_f',
+              preview: { modelKey: 'crimsonVanguardF', faceAngle: 0, scale: 1.0, idle: 'Idle' },
+              overrides: { modelKey: 'crimsonVanguardF', portrait: 'heroPortrait_warriorF' } }
+        ],
+        // Модель получена авторигом (temp_work/rig/tools/hero_pack.py) по шаблону Изумрудного лучника: 66 костей Mixamo, клипы шаблона.
+        modelKey: 'crimsonVanguard',
+        animMap: { idle: 'Idle', run: 'Running' },
         idleFallback: 'run',
-        hasTravelerGear: true,   // cloak + staff cosmetic attachment (soldier reskin only)
-        hideNodes: ['vanguard_visor'],
+        noNavyLift: true,
+        hasTravelerGear: false,
+        hideNodes: [],
         scale: 1.0,
+        facingOffset: Math.PI,
         maxHp: 120,
-        handGrip: { position: [-0.002, 0.083, 0.018], rotation: [1.436, -0.504, 1.15] }
+        previewSkills: ['power_strike', 'charge', 'war_cry', 'whirlwind', 'ground_slam'],
+        // Пальцы и хват взяты у лучника (тот же шаблонный риг): в игре не проверено.
+        gripFingers: {"RightHandThumb3": [-0.07768, -0.00221, 0.43505, 0.89705], "RightHandThumb2": [-0.05932, 0.07809, 0.22042, 0.97046], "RightHandThumb1": [0.45169, -0.77346, -0.00878, 0.44459], "RightHandPinky3": [-0.13194, 0.01257, -0.73765, 0.66205], "RightHandPinky2": [-0.1828, 0.068, -0.54383, 0.81622], "RightHandPinky1": [-0.55851, 0.80622, 0.02502, 0.19352], "RightHandRing3": [-0.31562, -0.62952, -0.31157, 0.63798], "RightHandRing2": [-0.0263, 0.03597, -0.61947, 0.78376], "RightHandRing1": [-0.59269, 0.79319, -0.05508, 0.12858], "RightHandIndex3": [0.40831, -0.36756, -0.30519, 0.77785], "RightHandIndex2": [0.70055, -0.00955, -0.21273, 0.68109], "RightHandIndex1": [0.45606, -0.76908, 0.38331, 0.23153], "RightHandMiddle3": [0.22778, 0.91158, 0.34225, 0.00285], "RightHandMiddle2": [0.53292, -0.0586, -0.3603, 0.76338], "RightHandMiddle1": [0.49392, -0.73994, 0.38173, 0.25061]},
+        handGrip: { position: [-0.026, 0.085, -0.005], rotation: [-0.2468, 1.1758, 1.277] }
     }
 ];
 

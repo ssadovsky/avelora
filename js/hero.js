@@ -106,6 +106,9 @@
             return cl[this.charId] || cl.mage;
         }
 
+        /** Класс без маны (воин, лучник): навыки ограничены только кулдауном. */
+        get noMana() { const c = this.classCfg(); return !!(c && c.noMana); }
+
         get xp() { return this.state ? this.state.xp : 0; }
         get maxLevel() { return CFG().maxLevel; }
 
@@ -117,13 +120,13 @@
             const st = this.stats();
             const baseM = (cls && cls.baseMana) || 100;
             const manaPerInt = D.manaPerInt !== undefined ? D.manaPerInt : 10;
-            this.maxMana = Math.round((baseM + st.int * manaPerInt) * M.mana);
+            this.maxMana = cls && cls.noMana ? 0 : Math.round((baseM + st.int * manaPerInt) * M.mana);   // noMana (воин, лучник): маны нет совсем
 
             // Регенерация маны (Вариант 2: База + Интеллект * perInt):
             const cfgManaRegen = CFG().manaRegen || {};
             const baseRegen = Number.isFinite(cfgManaRegen.base) ? cfgManaRegen.base : 3.0;
             const perInt = Number.isFinite(cfgManaRegen.perInt) ? cfgManaRegen.perInt : 0.15;
-            this.manaRegen = Math.max(0.5, (baseRegen + st.int * perInt) * (M.regen || 1));
+            this.manaRegen = this.maxMana > 0 ? Math.max(0.5, (baseRegen + st.int * perInt) * (M.regen || 1)) : 0;
 
             if (this.mana > this.maxMana || heal || !Number.isFinite(this.mana) || this.mana <= 0) this.mana = this.maxMana;
             const cb = this.game.combat;
@@ -235,23 +238,35 @@
             const totalStat = (this.stats() && this.stats()[stat]) || 0;
             const D = CFG().derived || {};
             const dps = D.damagePerStat !== undefined ? D.damagePerStat : 0.05;
-            return Math.max(0.1, (1 + totalStat * dps) * CFG().multipliers.damage);
+            return Math.max(0.1, (1 + totalStat * dps) * CFG().multipliers.damage) * this.effectDamageMult();
         }
 
-        /** Damage multiplier of a skill (by its damage type, or skill.json `stat`). */
-        skillMult(def) {
+        /** Характеристика, от которой растёт урон навыка: skill.statByClass[класс] → skill.stat → по типу урона (damageStat). */
+        skillStat(def) {
             const map = CFG().damageStat || {};
-            const stat = (def && def.stat) || map[(def && def.damage && def.damage.type) || 'default'] || map.default || 'int';
+            const byCls = def && def.statByClass && this.charId && def.statByClass[this.charId];
+            return byCls || (def && def.stat) || map[(def && def.damage && def.damage.type) || 'default'] || map.default || 'int';
+        }
+
+        /** Множитель урона от активных эффектов (баффы навыков: effect.damageMult). */
+        effectDamageMult() {
+            let m = 1;
+            if (this.effects && this.effects.size) this.effects.forEach(e => { if (e.damageMult > 0) m *= e.damageMult; });
+            return m;
+        }
+
+        /** Damage multiplier of a skill (by its damage type, or skill.json `stat` / `statByClass`). */
+        skillMult(def) {
+            const stat = this.skillStat(def);
             const totalStat = (this.stats() && this.stats()[stat]) || 0;
             const D = CFG().derived || {};
             const dps = D.damagePerStat !== undefined ? D.damagePerStat : 0.05;
-            return Math.max(0.1, (1 + totalStat * dps) * CFG().multipliers.damage);
+            return Math.max(0.1, (1 + totalStat * dps) * CFG().multipliers.damage) * this.effectDamageMult();
         }
 
         /** Base damage multiplier of a skill at starting stats (level 1, no gear). */
         skillBaseMult(def) {
-            const map = CFG().damageStat || {};
-            const stat = (def && def.stat) || map[(def && def.damage && def.damage.type) || 'default'] || map.default || 'int';
+            const stat = this.skillStat(def);
             const cls = this.classCfg();
             const startStat = (cls && cls.start && cls.start[stat]) || 1;
             const D = CFG().derived || {};
@@ -262,6 +277,7 @@
         /** Dynamic mana cost of a skill, organically scaling with skill power ratio (only for damaging skills). */
         skillManaCost(def) {
             if (!def || !def.mana || def.mana <= 0) return 0;
+            if (this.noMana) return 0;   // воин и лучник: только кулдаун
             const base = def.mana;
             if (!def.damage) return Math.max(1, Math.round(base));
             const currentMult = this.skillMult(def);
@@ -412,6 +428,7 @@
          */
         absorbDamage(amount) {
             if (!(amount > 0) || !this.effects.size) return amount;
+            this.effects.forEach(e => { if (e.damageTaken > 0 && e.damageTaken < 1) amount *= e.damageTaken; });   // баффы защиты (effect.damageTaken: 0.85 = −15 %)
             let shield = null;
             this.effects.forEach(e => { if (!shield && e.manaPerDamage > 0) shield = e; });
             if (!shield) return amount;
@@ -481,12 +498,17 @@
 
         renderBars(force) {
             const shown = Math.floor(this.mana);
-            if (force || shown !== this._manaShown) {
-                this._manaShown = shown;
-                if (this.manaBar) this.manaBar.style.display = this.maxMana > 0 ? '' : 'none';
-                if (this.manaFill) this.manaFill.style.width = (this.maxMana > 0 ? Math.max(0, Math.min(1, this.mana / this.maxMana)) * 100 : 0).toFixed(1) + '%';
-                if (this.manaText) this.manaText.textContent = `${shown} / ${this.maxMana}`;
-                if (this.manaBar) this.manaBar.title = `Мана: ${shown} / ${this.maxMana}`;
+            const nm = this.noMana;
+            const mkey = shown + '|' + (nm ? 1 : 0);
+            if (force || mkey !== this._manaShown) {
+                this._manaShown = mkey;
+                if (this.manaBar) {
+                    this.manaBar.style.display = '';
+                    this.manaBar.classList.toggle('no-mana', nm);   // воин / лучник: полоска закрашена серым, без цифр
+                }
+                if (this.manaFill) this.manaFill.style.width = (nm ? 100 : (this.maxMana > 0 ? Math.max(0, Math.min(1, this.mana / this.maxMana)) * 100 : 0)).toFixed(1) + '%';
+                if (this.manaText) this.manaText.textContent = nm ? '' : `${shown} / ${this.maxMana}`;
+                if (this.manaBar) this.manaBar.title = nm ? '' : `Мана: ${shown} / ${this.maxMana}`;
             }
             const p = this.progress();
             const key = `${this.level}|${p.have}|${p.need}`;

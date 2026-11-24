@@ -371,7 +371,21 @@
 
         get(id) {
             const defs = (window.GAME_CONTENT && window.GAME_CONTENT.skills) || {};
-            return (id && Object.prototype.hasOwnProperty.call(defs, id)) ? defs[id] : null;
+            const d = (id && Object.prototype.hasOwnProperty.call(defs, id)) ? defs[id] : null;
+            if (!d || !d.byClass) return d;
+            // skill.json `byClass: { archer: { cooldown, damage, description, mana, ... } }` — правки только для этого класса
+            // (общий навык у мага и лучника). Копия наследует оригинал (iconData и пр. подтягиваются), своё перекрывает.
+            const cfg = this.game && this.game.currentCharacterConfig;
+            const ov = cfg && d.byClass[cfg.id];
+            if (!ov) return d;
+            this._classDefs = this._classDefs || {};
+            const key = id + '|' + cfg.id;
+            let c = this._classDefs[key];
+            if (!c || Object.getPrototypeOf(c) !== d) {
+                c = Object.assign(Object.create(d), ov);
+                this._classDefs[key] = c;
+            }
+            return c;
         }
 
         /** Skill defs of a character (empty -> the skills button is hidden). */
@@ -405,7 +419,7 @@
             const charCfg = g.currentCharacterConfig;
             if (!def || !g.character || !charCfg || !this.hasSkill(charCfg.id, skillId)) return 'unavailable';
             if (!g.isReady || g.isPaused || g.isTransitioning || !g.terrain) return 'unavailable';
-            if (this.casting || this.channel) return 'busy';
+            if (this.casting || this.channel || this.dash) return 'busy';
             // Re-using an active buff (mana shield) switches it off — no cost, not blocked by the cooldown
             if (def.type === 'buff' && def.buff && g.hero && g.hero.removeEffect(def.buff.id || def.id)) {
                 if (g.ui && g.ui.floatText) g.ui.floatText(this.labelOf(def).name + ': снят', 'info');
@@ -428,8 +442,9 @@
             if (def.type === 'blink') return this.startBlink(def);
             if (def.type === 'buff') return this.startBuff(def);
             if (def.type === 'nova') return this.startNova(def);
+            if (def.type === 'charge') return this.startCharge(def);
 
-            if (def.type === 'projectile' || def.type === 'rain' || def.type === 'strike') {   // need a target
+            if (def.type === 'projectile' || def.type === 'rain' || def.type === 'strike' || def.type === 'melee') {   // need a target
                 const tgt = g.combat && g.combat.selectedTarget;
                 const cr = g.creatures;
                 if (!tgt || !cr || !cr.isAlive(tgt)) {
@@ -441,7 +456,7 @@
                 }
 
                 const c = g.character;
-                const range = (def.range || 12) + 2;
+                const range = (def.range || 12) + (def.type === 'melee' ? 0.8 + (tgt.def && tgt.def.hitRadius || 0.4) : 2);
                 const dist = Math.hypot(tgt.x - c.position.x, tgt.z - c.position.z);
                 if (dist > range) {
                     if (g.ui && g.ui.floatText) g.ui.floatText('Цель слишком далеко', 'warn');
@@ -467,7 +482,8 @@
                 this.ensureResources();
                 const held = c.handItem && c.handItem.children && c.handItem.children[0];
                 const hasBow = held && held.userData && held.userData.weaponStyle === 'bow';
-                if (def.id === 'arrow' && hasBow && c.startSwing) c.startSwing(0.75, 'bow');
+                if (def.type === 'melee') { const sd = Math.max(0.45, castDur + 0.2); if (c.playAttack) c.playAttack(sd); else c.startSwing(sd); }   // удар оружием, не заклинание
+                else if (def.id === 'arrow' && hasBow && c.startSwing) c.startSwing(0.75, 'bow');
                 else if (c.playCast) c.playCast(castDur || 0.6);
                 else c.startSwing(castDur || 0.6);
                 return 'ok';
@@ -615,7 +631,7 @@
             hero.addEffect({
                 id: b.id || def.id, kind: b.kind || 'buff', name: this.labelOf(def).name, desc: def.description,
                 icon: def.iconData || null, dur: b.duration || 0,
-                manaPerDamage: b.manaPerDamage || 0, shield: !!b.shield, color: (def.vfx && def.vfx.color) || null
+                manaPerDamage: b.manaPerDamage || 0, shield: !!b.shield, damageMult: b.damageMult || 0, damageTaken: b.damageTaken || 0, color: (def.vfx && def.vfx.color) || null
             });
             this.playBurst(def, c.position.x, c.position.z, 'levelup', 1.1, true);
             if (g.ui && g.ui.floatText) g.ui.floatText(this.labelOf(def).name, 'info');
@@ -677,9 +693,129 @@
             const castDur = Math.max(0, def.castTime || 0);
             this.casting = { def, target: null, nova: true, t: castDur };
             this.ensureResources();
-            if (c.playCast) c.playCast(castDur || 0.6);
+            if (def.anim === 'attack' && c.playAttack) c.playAttack(Math.max(0.45, castDur + 0.25));   // воин: взмах оружием
+            else if (c.playCast) c.playCast(castDur || 0.6);
             else c.startSwing(castDur || 0.6);
             return 'ok';
+        }
+
+        /**
+         * Урон навыка. `weaponMult` (воин): удар оружием × множитель × meleeMult оружия — растёт вместе с экипировкой;
+         * `damage` при этом работает как нижняя планка (без оружия / со слабым). Обычные навыки: damage × skillMult.
+         */
+        rollSkillDamage(def) {
+            const g = this.game, hero = g.hero;
+            const dmg = def.damage || null;
+            const fixed = dmg && Number.isFinite(dmg.min) && Number.isFinite(dmg.max)
+                ? Math.max(1, Math.round((dmg.min + Math.random() * (dmg.max - dmg.min)) * (hero ? hero.skillMult(def) : 1))) : 0;
+            if (def.weaponMult > 0 && hero && g.combat && typeof g.combat.weapon === 'function') {
+                const w = g.combat.weapon();
+                if (w && Array.isArray(w.damage) && w.style !== 'bow' && w.style !== 'staff') {
+                    const base = w.damage[0] + Math.random() * (w.damage[1] - w.damage[0]);
+                    return Math.max(fixed, Math.max(1, Math.round(base * def.weaponMult * hero.meleeMult(w))));
+                }
+            }
+            return fixed;
+        }
+
+        /**
+         * type "melee" (Мощный удар): удар по выбранной цели в ближнем бою. `castTime` = замах, затем урон по цели (радиус 0.35 м
+         * вокруг неё — соседей не задевает), оглушение/замедление как у остальных навыков.
+         */
+        fireMelee(def, tgt, quiet) {
+            const g = this.game, c = g.character, cr = g.creatures;
+            if (!c || (g.combat && g.combat.isDead)) return;
+            const alive = (tgt && cr && cr.isAlive(tgt)) ? tgt : null;
+            if (!alive) return;
+            const reach = (def.range || 3) + 1.2 + (alive.def && alive.def.hitRadius || 0.4);
+            if (Math.hypot(alive.x - c.position.x, alive.z - c.position.z) > reach) {
+                if (g.ui && g.ui.floatText) g.ui.floatText('Цель ушла', 'warn');
+                return;
+            }
+            if (c.faceTowards) c.faceTowards(alive.x, alive.z);
+            const vfx = def.vfx || {};
+            this._novaColor = this._novaColor || new THREE.Color();
+            this._novaColor.set(vfx.color || '#ffd9a0');
+            this.ensureResources();
+            const pos = this._v1.set(alive.x, alive.y + (alive.height || 1) * 0.55, alive.z);
+            this.spawnImpact(def, pos, this._novaColor, false);
+            const amount = this.rollSkillDamage(def);
+            window.dispatchEvent(new CustomEvent('game:skillImpact', {
+                detail: { skillId: def.id, point: { x: pos.x, y: pos.y, z: pos.z }, radius: 0.35, damage: def.damage || null, amount,
+                    knockback: def.knockback || null, slow: def.slow || null, stun: (def.stun && def.stun.duration) ? def.stun : null }
+            }));
+            if (def.questFlag) {   // skill.json questFlag: зачёт задания «поразить врага этим навыком» (как у «Искры» и «Меткого выстрела»)
+                const st = g.gameState;
+                if (st && st.setQuestFlag) st.setQuestFlag(def.questFlag, true);
+                const dlg = g.ui && g.ui.dialog;
+                if (dlg && dlg.updateTracker) dlg.updateTracker();
+                if (g.ui && g.ui.updateQuestsProgress) g.ui.updateQuestsProgress();
+                window.dispatchEvent(new CustomEvent('game:questUpdated'));
+            }
+        }
+
+        /**
+         * type "charge" (Мощный рывок): герой стремительно подбегает к выбранной цели и бьёт её (урон + оглушение).
+         * Путь проверяется по проходимости (вода, камни, стены); без видимости / цели / дальше `range` не срабатывает.
+         */
+        startCharge(def) {
+            const g = this.game, c = g.character, cr = g.creatures, pf = g.pathfinder, p = c && c.position;
+            if (!c || !g.terrain || !p) return 'unavailable';
+            const tgt = g.combat && g.combat.selectedTarget;
+            if (!tgt || !cr || !cr.isAlive(tgt)) {
+                if (tgt && g.combat && g.combat.clearTarget) g.combat.clearTarget();
+                if (g.ui && g.ui.floatText) g.ui.floatText('Нет цели', 'warn');
+                return 'no_target';
+            }
+            const dx = tgt.x - p.x, dz = tgt.z - p.z, dist = Math.hypot(dx, dz);
+            if (dist > (def.range || 12) + 1) { if (g.ui && g.ui.floatText) g.ui.floatText('Цель слишком далеко', 'warn'); return 'out_of_range'; }
+            if (cr.sameLevel && !cr.sameLevel(tgt)) return 'no_los';
+            if (!this.hasLineOfSight(p, tgt)) { if (g.ui && g.ui.floatText) g.ui.floatText('Цель вне зоны видимости', 'warn'); return 'no_los'; }
+            const stopAt = (tgt.def && tgt.def.hitRadius || 0.5) + (def.stopDistance || 1.3);
+            const travel = Math.max(0, dist - stopAt);
+            const ux = dist > 1e-3 ? dx / dist : 0, uz = dist > 1e-3 ? dz / dist : 0;
+            let reached = 0;
+            for (let d = 0.5; d <= travel + 1e-6; d += 0.5) {
+                const dd = Math.min(d, travel);
+                if (pf && !pf.isWalkableWorld(p.x + ux * dd, p.z + uz * dd)) break;
+                reached = dd;
+            }
+            if (travel > 0.6 && reached < travel - 0.55) { if (g.ui && g.ui.floatText) g.ui.floatText('Путь прегражден', 'warn'); return 'blocked'; }
+            if (!this.payMana(def)) return 'mana';
+            if (c.isMoving) c.stopMovement();
+            if (g.worldObjects) g.worldObjects.cancelPending();
+            this.startCooldown(def);
+            if (c.faceTowards) c.faceTowards(tgt.x, tgt.z);
+            this.ensureResources();
+            this._novaColor = this._novaColor || new THREE.Color();
+            this._novaColor.set((def.vfx && def.vfx.color) || '#ffd9a0');
+            const sp = Math.max(8, def.speed || 30);
+            this.dash = { def, tgt, fx: p.x, fz: p.z, tx: p.x + ux * travel, tz: p.z + uz * travel, t: 0, dur: Math.max(0.12, travel / sp) };
+            this.playBurst(def, p.x, p.z, 'arrival', 0.7, false);
+            return 'ok';
+        }
+
+        updateDash(delta) {
+            const g = this.game, c = g.character, d = this.dash;
+            if (!d || !c) { this.dash = null; return; }
+            if (g.combat && g.combat.isDead) { this.dash = null; return; }
+            d.t += delta;
+            const k = Math.min(1, d.t / d.dur), e = 1 - (1 - k) * (1 - k);
+            const x = d.fx + (d.tx - d.fx) * e, z = d.fz + (d.tz - d.fz) * e;
+            c.teleport(x, z);
+            for (let i = 0; i < 2; i++) {   // шлейф искр за героем
+                this.addSpark(x + (Math.random() - 0.5) * 0.5, c.position.y + 0.3 + Math.random() * 1.0, z + (Math.random() - 0.5) * 0.5,
+                    (Math.random() - 0.5) * 1.2, 0.4 + Math.random() * 0.8, (Math.random() - 0.5) * 1.2, 0.35 + Math.random() * 0.2, 0.1 + Math.random() * 0.08, this._novaColor, 0.3);
+            }
+            if (k >= 1) {
+                this.dash = null;
+                const cr = g.creatures;
+                if (d.tgt && cr && cr.isAlive(d.tgt)) {
+                    if (c.faceTowards) c.faceTowards(d.tgt.x, d.tgt.z);
+                    if (c.playAttack) c.playAttack(0.5); else c.startSwing(0.5);
+                    this.fireMelee(d.def, d.tgt);
+                }
+            }
         }
 
         fireNova(def) {
@@ -692,10 +828,10 @@
             this.ensureResources();
             this.spawnImpact(def, pos, this._novaColor, true);
             const dmg = def.damage || null;
-            const amount = dmg && Number.isFinite(dmg.min) && Number.isFinite(dmg.max)
-                ? Math.max(1, Math.round((dmg.min + Math.random() * (dmg.max - dmg.min)) * (g.hero ? g.hero.skillMult(def) : 1))) : 0;
+            const amount = this.rollSkillDamage(def);
             window.dispatchEvent(new CustomEvent('game:skillImpact', {
-                detail: { skillId: def.id, point: { x: pos.x, y: pos.y, z: pos.z }, radius: vfx.impactRadius || 1, damage: dmg, amount, knockback: def.knockback || null, slow: def.slow || null }
+                detail: { skillId: def.id, point: { x: pos.x, y: pos.y, z: pos.z }, radius: vfx.impactRadius || 1, damage: dmg, amount, knockback: def.knockback || null, slow: def.slow || null,
+                    stun: (def.stun && def.stun.duration) ? def.stun : null }
             }));
         }
 
@@ -1313,6 +1449,7 @@
             if (this.channel) this.updateChannel(delta);
             if (this.recallFx) this.recallFx.update(delta);
             this.updateShieldFx();
+            if (this.dash) this.updateDash(delta);
 
             // Cast in progress: spawn when castTime elapses (game time)
             if (this.casting) {
@@ -1324,6 +1461,7 @@
                         if (cst.nova) this.fireNova(cst.def);
                         else if (cst.def.type === 'rain') this.startRain(cst.def, cst.target);
                         else if (cst.def.type === 'strike') this.fireStrike(cst.def, cst.target, cst.tgt);
+                        else if (cst.def.type === 'melee') this.fireMelee(cst.def, cst.tgt);
                         else {
                             const cr = this.game.creatures;
                             const aliveTgt = (cst.tgt && cr && cr.isAlive(cst.tgt)) ? cst.tgt
@@ -1777,6 +1915,7 @@
         clearAll() {
             this.casting = null;
             this.channel = null;
+            this.dash = null;
             this.rain = null;
             if (this.recallFx) this.recallFx.clearAll();
             this._blockers = null;

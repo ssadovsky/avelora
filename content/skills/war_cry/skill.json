@@ -1,0 +1,23 @@
+{
+  "id": "war_cry",
+  "name": "Боевой клич",
+  "description": "Воин входит в боевое неистовство: наносит на 20 % больше урона и получает на 15 % меньше. Повторное применение снимает эффект.",
+  "type": "buff",
+  "category": "defense",
+  "cooldown": 45,
+  "buff": {
+    "id": "war_cry",
+    "kind": "buff",
+    "duration": 20,
+    "damageMult": 1.2,
+    "damageTaken": 0.85
+  },
+  "vfx": {
+    "color": "#ff6a3a",
+    "core": "#ffe3c2",
+    "radius": 1.4
+  },
+  "requiresLevel": 4,
+  "price": 60,
+  "teacher": "warrior_mentor"
+}

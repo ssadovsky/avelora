@@ -25,5 +25,20 @@
   },
   "mana": 20,
   "requiresLevel": 3,
-  "price": 45
+  "price": 45,
+  "byClass": {
+    "archer": {
+      "description": "Стрела с горящим наконечником. Бьёт в несколько раз сильнее обычного выстрела и взрывается вспышкой пламени.",
+      "cooldown": 5,
+      "damage": {
+        "min": 36,
+        "max": 46,
+        "type": "fire"
+      },
+      "mana": 0
+    }
+  },
+  "statByClass": {
+    "archer": "dex"
+  }
 }

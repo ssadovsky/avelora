@@ -945,6 +945,7 @@
             if (this.quests[id]) return false;
             if (this.questFlags && id === 'spark_trial') delete this.questFlags.spark_hit_creature;
             if (this.questFlags && id === 'archer_trial') delete this.questFlags.archer_arrow_hit_creature;
+            if (this.questFlags && id === 'warrior_trial') delete this.questFlags.warrior_strike_hit_creature;
             this.quests[id] = 'active'; this.save(); return true;
         }
         completeQuest(id) { if (this.quests[id] !== 'active') return false; this.quests[id] = 'done'; this.save(); return true; }
@@ -957,6 +958,9 @@
             }
             if (id === 'archer_trial' && this.questFlags) {
                 delete this.questFlags['archer_arrow_hit_creature'];
+            }
+            if (id === 'warrior_trial' && this.questFlags) {
+                delete this.questFlags['warrior_strike_hit_creature'];
             }
             if (id === 'potion_trial' && this.questFlags) {
                 delete this.questFlags['potion_health_small_crafted'];

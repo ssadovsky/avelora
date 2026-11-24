@@ -46,12 +46,13 @@
         const mana = cost ? ` · Мана ${cost}` : (def.mana ? ` · Мана ${def.mana}` : '');
         const kb = (def.knockback && def.knockback.distance) ? ` · Отбрасывание ${def.knockback.distance} м` : '';
         const stun = (def.stun && def.stun.duration) ? ` · Оглушение ${def.stun.duration} с` : '';
+        const wm = def.weaponMult ? ` · Урон оружия ×${def.weaponMult}` : '';
         if (def.type === 'teleport') return `Каст ${def.castTime || 0} с · ${cd}`;
-        if (def.type === 'nova') return `${cd} · Радиус ${(def.vfx && def.vfx.impactRadius) || 0} м` + kb + stun + mana;
+        if (def.type === 'nova') return `${cd} · Радиус ${(def.vfx && def.vfx.impactRadius) || 0} м` + wm + kb + stun + mana;
         if (def.type === 'rain') return `${cd} · Дальность ${def.range || 0} м · Радиус ${(def.rain && def.rain.radius) || 0} м` + kb + stun + mana;
         if (def.type === 'buff') return cd + (def.buff && def.buff.duration ? ` · Длительность ${def.buff.duration} с` : '') + mana;
         const slow = (def.slow && def.slow.factor < 1) ? ` · Замедление −${Math.round((1 - def.slow.factor) * 100)} % на ${def.slow.duration} с` : '';
-        return `${cd} · Дальность ${def.range || 0} м` + slow + kb + stun + mana;
+        return `${cd} · Дальность ${def.range || 0} м` + wm + slow + kb + stun + mana;
     }
 
     /** Icon element for an item/skill def: its icon.png, or a styled first-letter tile. */
@@ -2538,9 +2539,13 @@
 
             // Mana
             if (hero) {
-                setText('hero-mana-val', `${Math.floor(hero.mana)} / ${hero.maxMana}`);
+                const nm = hero.noMana;   // воин / лучник: полоска серая, без цифр
+                setText('hero-mana-val', nm ? '' : `${Math.floor(hero.mana)} / ${hero.maxMana}`);
                 const mf = document.getElementById('hero-mana-fill');
-                if (mf) mf.style.width = (hero.maxMana > 0 ? Math.max(0, Math.min(1, hero.mana / hero.maxMana)) * 100 : 0).toFixed(1) + '%';
+                if (mf) {
+                    mf.classList.toggle('no-mana', nm);
+                    mf.style.width = (nm ? 100 : (hero.maxMana > 0 ? Math.max(0, Math.min(1, hero.mana / hero.maxMana)) * 100 : 0)).toFixed(1) + '%';
+                }
             }
 
             // Attributes: total, with the gear bonus in green

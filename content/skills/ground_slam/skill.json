@@ -1,0 +1,36 @@
+{
+  "id": "ground_slam",
+  "name": "Сокрушение",
+  "description": "Удар по земле раскалывает почву: все враги рядом получают большой урон, оглушаются и отлетают.",
+  "type": "nova",
+  "category": "attack",
+  "cooldown": 18,
+  "castTime": 0.5,
+  "anim": "attack",
+  "damage": {
+    "min": 28,
+    "max": 38,
+    "type": "physical"
+  },
+  "stat": "str",
+  "weaponMult": 3.0,
+  "stun": {
+    "duration": 1.5
+  },
+  "knockback": {
+    "distance": 3,
+    "duration": 0.5
+  },
+  "vfx": {
+    "color": "#c98a4b",
+    "core": "#ffe0b0",
+    "size": 1.3,
+    "impactSparks": 100,
+    "impactRadius": 6,
+    "nova": true,
+    "arcs": false
+  },
+  "requiresLevel": 8,
+  "price": 200,
+  "teacher": "warrior_mentor"
+}

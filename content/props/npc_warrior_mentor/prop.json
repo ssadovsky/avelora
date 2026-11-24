@@ -1,0 +1,6 @@
+{
+  "id": "npc_warrior_mentor",
+  "name": "Гаррен",
+  "obstacle": 0.5,
+  "npc": "warrior_mentor"
+}

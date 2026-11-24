@@ -1,0 +1,34 @@
+{
+  "id": "charge",
+  "name": "Мощный рывок",
+  "description": "Воин срывается с места и на полной скорости врезается в выбранную цель: наносит урон и оглушает её. Не проходит через воду, камни и стены.",
+  "type": "charge",
+  "category": "attack",
+  "cooldown": 9,
+  "range": 12,
+  "speed": 32,
+  "stopDistance": 1.3,
+  "damage": {
+    "min": 14,
+    "max": 18,
+    "type": "physical"
+  },
+  "stat": "str",
+  "weaponMult": 1.6,
+  "stun": {
+    "duration": 1.0
+  },
+  "vfx": {
+    "color": "#ffb347",
+    "core": "#fff3d0",
+    "radius": 1.2,
+    "size": 0.6,
+    "impactSparks": 34,
+    "impactRadius": 1.3,
+    "filaments": false,
+    "arcs": false
+  },
+  "requiresLevel": 3,
+  "price": 40,
+  "teacher": "warrior_mentor"
+}

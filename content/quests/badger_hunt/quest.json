@@ -6,7 +6,7 @@
     "home_camp_visit",
     "potion_trial"
   ],
-  "requiresByClass": { "mage": ["spark_trial"], "archer": ["archer_trial"], "default": ["spark_trial"] },
+  "requiresByClass": { "mage": ["spark_trial"], "archer": ["archer_trial"], "warrior": ["warrior_trial"], "default": ["spark_trial"] },
   "summary": "Убей 5 радужных барсуков в лесочке к югу от тропы.",
   "objective": {
     "type": "kill",
