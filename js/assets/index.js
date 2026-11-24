@@ -108,7 +108,7 @@ window.AVELORA_ASSET_INDEX = {
   "items/stone": ["m/items__stone.js", "175548bf51"],
   "items/war_hammer": ["m/items__war_hammer.js", "54f11004b4"],
   "npcs/academy_mage": ["m/npcs__academy_mage.js", "c6f84c0b63"],
-  "npcs/archer_mentor": ["m/npcs__archer_mentor.js", "745d457a40"],
+  "npcs/archer_mentor": ["m/npcs__archer_mentor.js", "e704501bef"],
   "npcs/blacksmith": ["m/npcs__blacksmith.js", "2fd968f3c9"],
   "npcs/dragon_huntress": ["m/npcs__dragon_huntress.js", "349c9525ed"],
   "npcs/forest_wanderer": ["m/npcs__forest_wanderer.js", "c0a974f126"],
