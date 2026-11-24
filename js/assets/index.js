@@ -194,7 +194,7 @@ window.AVELORA_ASSET_INDEX = {
   "props/village_bench": ["m/props__village_bench.js", "433ae544d4"],
   "props/village_house": ["m/props__village_house.js", "4b89f1459e"],
   "props/village_table": ["m/props__village_table.js", "f6f09c5cca"],
-  "props/village_tavern": ["m/props__village_tavern.js", "4b43f62798"],
+  "props/village_tavern": ["m/props__village_tavern.js", "9162b29121"],
   "props/violet_flowerbed": ["m/props__violet_flowerbed.js", "5c4bf6b7bd"],
   "props/woodshed": ["m/props__woodshed.js", "25b8c6c8d3"],
   "quiver_tree": ["m/quiver_tree.js", "51f67149ae"],

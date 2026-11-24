@@ -139,7 +139,7 @@ window.LOCATIONS = {
                 },
                 {   // ответвление от тропинки к домику швеи (x 61.5) на запад к двери деревенской таверны (town villageTavern, дверь z 19.3, ступень x 56.0)
                     type: 'dirt', thin: true, width: 1.6, clearMargin: 0.6,
-                    points: [[61.5, 18.2], [59.0, 18.2], [57.0, 18.2]]
+                    points: [[61.5, 18.25], [59.0, 18.25], [56.9, 18.25]]
                 }
             ]
         },
@@ -516,14 +516,15 @@ window.LOCATIONS = {
             // деревня у дороги (2026-11-20): домик Timber Hearth и дом из FBX; площадки — по уровню дороги (flatSpots road:true)
             { id: 'forestEdge.timber_cottage', prop: 'timber_cottage', x: 56.0, z: -3.0, r: 0.0 },
             { id: 'forestEdge.village_house', prop: 'village_house', x: 40.0, z: -7.0, r: 0.0, dy: -0.08 },   // dy: в модели Meshy низ ступенек на 5–7 см выше пола
-            { id: 'forestEdge.village_tavern', prop: 'village_tavern', x: 52.0, z: 18.6, r: Math.PI / 2 },   // Meshy-таверна: крыльцо (+X модели) к дороге (север), дверь (+Z) на восток к тропе
-            // две секции навеса (столбы на z модели −4.3 / −0.07 / 4.0 → мир x 47.7 / 51.9 / 56.0): стол и две лавки в каждой, длинной стороной от стены таверны (по Z)
-            { id: 'forestEdge.tavern_table1', prop: 'village_table', x: 49.8, z: 12.6, r: Math.PI / 2 },
-            { id: 'forestEdge.tavern_bench1a', prop: 'village_bench', x: 49.0, z: 12.6, r: Math.PI / 2 },
-            { id: 'forestEdge.tavern_bench1b', prop: 'village_bench', x: 50.6, z: 12.6, r: Math.PI / 2 },
-            { id: 'forestEdge.tavern_table2', prop: 'village_table', x: 54.0, z: 12.6, r: Math.PI / 2 },
-            { id: 'forestEdge.tavern_bench2a', prop: 'village_bench', x: 53.2, z: 12.6, r: Math.PI / 2 },
-            { id: 'forestEdge.tavern_bench2b', prop: 'village_bench', x: 54.8, z: 12.6, r: Math.PI / 2 },
+            { id: 'forestEdge.village_tavern', prop: 'village_tavern', x: 52.85, z: 18.5, r: Math.PI / 2 },   // Timber Hearth Cottage (S=5.5): навес (+X модели) к дороге (север), дверь (+Z) на восток к тропе, порог мира x≈55.9 z≈18.24
+            // навес: стойки на мировых x 50.25 / 52.85 / 55.45, z 12.45; стена таверны z 15.5. Два стола длинной стороной вдоль стены (r 0), между стойками (x 51.55 и 54.15),
+            // лавки по бокам на 1.0 м от центра стола (зазор от края стола 0.27 м — можно сажать)
+            { id: 'forestEdge.tavern_table1', prop: 'village_table', x: 51.55, z: 13.78, r: 0 },
+            { id: 'forestEdge.tavern_bench1a', prop: 'village_bench', x: 51.55, z: 12.78, r: 0 },
+            { id: 'forestEdge.tavern_bench1b', prop: 'village_bench', x: 51.55, z: 14.78, r: 0 },
+            { id: 'forestEdge.tavern_table2', prop: 'village_table', x: 54.15, z: 13.78, r: 0 },
+            { id: 'forestEdge.tavern_bench2a', prop: 'village_bench', x: 54.15, z: 12.78, r: 0 },
+            { id: 'forestEdge.tavern_bench2b', prop: 'village_bench', x: 54.15, z: 14.78, r: 0 },
             { id: 'forestEdge.gazebo', prop: 'gazebo', x: 25.5, z: -20.1, r: -0.41 },
             // Каменный проход в Долину Забытых Эпох: ущелье встроено в южный горный пояс (вход с севера)
             { id: 'forestEdge.stone_pass', prop: 'stone_pass', x: 0.0, z: 93.0, r: Math.PI, dy: 0.26 },
