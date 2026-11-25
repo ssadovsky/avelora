@@ -542,6 +542,8 @@ class LakesideTerrain {
             waterDepth = (this.waterConfig.depth !== undefined) ? this.waterConfig.depth : -2.0;
             beachWidth = (this.waterConfig.beachWidth !== undefined) ? this.waterConfig.beachWidth : 14.0;
 
+            // bedSlope — за сколько метров от берега дно уходит на полную глубину (порт: крутой причал); shoreNoise 0 — ровная линия берега
+            if (this.waterConfig.bedSlope !== undefined) bedSlope = this.waterConfig.bedSlope;
             // Natural organic fractal curves along the coast
             if (side === 'west') {
                 const curve = shoreLine + this.noise.noise2D(nz * 2.5, 0.5) * 6.5 + this.noise.noise2D(nz * 6.0, 1.2) * 2.5;
@@ -550,8 +552,10 @@ class LakesideTerrain {
                 const curve = shoreLine - (this.noise.noise2D(nz * 2.5, 0.5) * 6.5 + this.noise.noise2D(nz * 6.0, 1.2) * 2.5);
                 distFromShore = curve - x;
             } else if (side === 'north') {
-                const curve = shoreLine + this.noise.noise2D(nx * 2.5, 0.5) * 6.5 + this.noise.noise2D(nx * 6.0, 1.2) * 2.5;
+                const curve = shoreLine + ((this.waterConfig.shoreNoise !== undefined) ? this.waterConfig.shoreNoise : 1) * (this.noise.noise2D(nx * 2.5, 0.5) * 6.5 + this.noise.noise2D(nx * 6.0, 1.2) * 2.5);
                 distFromShore = z - curve;
+                // endX: море только западнее этой линии (порт на северо-западе); восточнее — суша
+                if (this.waterConfig.endX !== undefined) distFromShore = Math.max(distFromShore, x - this.waterConfig.endX);
             } else if (side === 'south') {
                 const curve = shoreLine - (this.noise.noise2D(nx * 2.5, 0.5) * 6.5 + this.noise.noise2D(nx * 6.0, 1.2) * 2.5);
                 distFromShore = curve - z;
@@ -656,7 +660,15 @@ class LakesideTerrain {
             const noWest = !!(this.locTerrain.mountainRim && this.locTerrain.mountainRim.noWest);
             const noEast = !!(this.locTerrain.mountainRim && this.locTerrain.mountainRim.noEast);
             const distFromEdgeX = noWest ? (this.halfX - x) : (noEast ? (this.halfX + x) : (this.halfX - Math.abs(x)));
-            const distFromEdgeZ = this.halfZ - Math.abs(z);
+            const mrz = this.locTerrain.mountainRim || {};
+            // noNorth / noSouth: горы только у противоположного края (море с этой стороны)
+            let distFromEdgeZ = this.halfZ - Math.abs(z);
+            if (mrz.noNorth && z < 0) {
+                // северного хребта нет; с noNorthX гора плавно возвращается восточнее x = noNorthX (за noNorthBlend м)
+                let kN = 0;
+                if (mrz.noNorthX !== undefined) { const qn = Math.min(1.0, Math.max(0.0, (x - mrz.noNorthX) / (mrz.noNorthBlend || 20.0))); kN = qn * qn * (3.0 - 2.0 * qn); }
+                distFromEdgeZ += (1.0 - kN) * rimWidth;
+            } else if (mrz.noSouth && z > 0) distFromEdgeZ += rimWidth;
             const distFromEdge = Math.min(distFromEdgeX, distFromEdgeZ);
 
             if (distFromEdge < rimWidth) {
@@ -746,6 +758,8 @@ class LakesideTerrain {
                     mHeight *= (1.0 - cut);
                 }
 
+                // rimFade (waterBody): горный край гаснет у берега и совсем не поднимается над морем (скала в воде)
+                if (this.waterConfig && this.waterConfig.rimFade) { const kf = Math.min(1.0, Math.max(0.0, distFromShore / this.waterConfig.rimFade)); mHeight *= kf * kf * (3.0 - 2.0 * kf); }
                 height += mHeight;
 
                 // Level floor inside cave interior so the 3D model's stone floor sits proud of grass

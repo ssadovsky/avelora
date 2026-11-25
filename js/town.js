@@ -355,6 +355,7 @@
         const mws = imgTex('townWallStone', 0.4831, true);   // кирпич+цоколь, снятые с нижней части башен ворот; по длине бесшовный (период 1.667 м)
         M.mstone = ms ? std(ms, T.stone.bump, { roughness: 0.92, bumpScale: 1.4 }) : M.stone;
         M.mplinth = mp ? std(mp, T.stone.bump, { roughness: 0.9,  bumpScale: 1.0 }) : M.stone;
+        M.raw = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.93, metalness: 0, vertexColors: true });   // сырое дерево без текстуры: цвет задаётся вершинами (как мостик домашнего лагеря)
         M.mbeam = mb ? std(mb, null, { roughness: 0.85 }) : M.wood;
         M.mdoor = md ? new THREE.MeshStandardMaterial({ map: md, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x2a1806, emissiveMap: md, emissiveIntensity: 0.25 }) : M.wood;
         M.mwin = mw ? new THREE.MeshStandardMaterial({ map: mw, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x3a2508, emissiveMap: mw, emissiveIntensity: 0.35 }) : M.glass;
@@ -386,6 +387,8 @@
         const vd = imgTex('villageTavernDoor', 0, true), vw = imgTex('villageTavernWindow', 0, true), vg = imgTex('villageTavernSign', 0, true);
         M.vplaster = vp ? std(vp, null, { roughness: 0.95 }) : M.plaster;
         M.vbeam = vb ? std(vb, null, { roughness: 0.85 }) : M.wood;
+        const pp = imgTex('portPlank');
+        M.plank = pp ? std(pp, null, { roughness: 0.92 }) : M.wood;   // доски настила порта (текстура с лавочки таверны)
         M.vshingle = vs ? std(vs, null, { roughness: 0.9 }) : M.slate;
         M.vdoor = vd ? new THREE.MeshStandardMaterial({ map: vd, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x2a1806, emissiveMap: vd, emissiveIntensity: 0.2 }) : M.wood;
         M.vwin = vw ? new THREE.MeshStandardMaterial({ map: vw, roughness: 0.8, metalness: 0, vertexColors: true, emissive: 0x3a2508, emissiveMap: vw, emissiveIntensity: 0.35 }) : M.glass;
@@ -1562,7 +1565,61 @@
         B.poly('gatePortal', [[ox - hw, -0.1, 0], [ox + hw, -0.1, 0], [ox + hw, h, 0], [ox - hw, h, 0]], [0, 0, 1], { uv: TEX_M * k, ou: -ox * k });
         return { rects: [] };
     }
-    const TYPES = { templeGate: buildTempleGate, portalVeil: buildPortalVeil, stoneHouse: buildStoneHouse, hearthCottage: buildHearthCottage, marbleTemple: buildMarbleTemple, tavern: buildTavern, villageTavern: buildVillageTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall, buildTempleGate };
+
+    // ------------------------------------------------------------------ порт: каменная набережная и дощатые пирсы над глубокой водой
+    // seaQuay: ровная каменная стенка вдоль локальной оси X (море — локальный −Z, суша — +Z), верх на уровне земли (B.y), стенка уходит под дно.
+    // gaps: [[xc, w], …] в локальных X — разрывы под пирсы (там нет кромки и не закрыт проход). Узкая полоса у края не проходима.
+    function buildSeaQuay(B, cfg) {
+        const L = cfg.L || 40, DEEP = cfg.deep || 5.6, FACE = -0.85, TH = 1.6;   // стенка lz −0.85…+0.75: перекрывает склон одной клетки рельефа (1 м) у берега — за стенкой нет «канавы»; лицо глубже ватерлинии рельефа (нет мерцания на линии воды)
+        const WE = cfg.wallExtra || [0, 0];   // wallExtra [a, b]: стенка длиннее на a (у −X) и b (у +X) — перекрытие с соседней набережной в углу (парапеты не перекрываются)
+        const gs = (cfg.gaps || []).map(g => [g[0] - g[1] / 2, g[0] + g[1] / 2]).sort((a, b) => a[0] - b[0]);
+        const segs = []; let cur = -L / 2;
+        for (const g of gs) { if (g[0] > cur) segs.push([cur, Math.min(g[0], L / 2)]); cur = Math.max(cur, g[1]); }
+        if (cur < L / 2) segs.push([cur, L / 2]);
+        // сплошная стенка: лицо на lz = −TH/2−0.3 … кладка уходит под дно
+        B.box('mstone', (WE[1] - WE[0]) / 2, -DEEP / 2, FACE + TH / 2, L + WE[0] + WE[1], DEEP, TH, { uv: 0.45, t: [0.82, 0.82, 0.84] });
+        const rects = [];
+        for (const [a, b] of segs) {
+            B.box('mplinth', (a + b) / 2, 0.08, -0.05, b - a, 0.16, 1.9, { uv: 0.5 });            // каменная кромка (парапет) над стенкой
+            rects.push({ x0: a, x1: b, z0: -1.4, z1: 0.55 });   // верховой зверь ~2.2 м: центр не ближе ~1.4 м к кромке
+        }   // швартовые тумбы и утки — модели content/props (post_*, cleat_*), расставлены в world_data.js
+        return { rects, platform: null, w: L, d: 1.2, h: 0.7 };
+    }
+
+    // seaPier: дощатый пирс на сваях над глубокой водой. Начало — на линии набережной (локальный −Z — в море), настил заходит на сушу на ROOT м.
+    // W — ширина, D — длина в море; headW/headD — поперечная «головка» на конце (Т-образный пирс). Ходимый настил (terrain.addPlatform);
+    // у краёв (1.5 м) клетки навигации закрыты (поле nav) — упасть в воду нельзя, у берега проход открыт. Тумбы по краям — только вид.
+    function buildSeaPier(B, cfg) {
+        const W = cfg.W || 8, D = cfg.D || 20, ROOT = cfg.root !== undefined ? cfg.root : 1.6, TOP = 0.08, DEEP = cfg.deep || 5.5;
+        const HEAD = cfg.headW ? { W: cfg.headW, D: cfg.headD || 6 } : null;
+        const rs = [{ cx: 0, cz: (ROOT - D) / 2, hx: W / 2, hz: (D + ROOT) / 2, stem: true }];
+        if (HEAD) rs.push({ cx: 0, cz: -D + HEAD.D / 2, hx: HEAD.W / 2, hz: HEAD.D / 2, stem: false });
+        for (const R of rs) {
+            const zMin = R.cz - R.hz, zMax = R.cz + R.hz;
+            // настил: доски ПОПЕРЁК пирса на всю ширину (текстура с лавочки таверны), щели тёмные, снизу продольные брусья (текстура бруса таверны)
+            const len = zMax - zMin, GAP = 0.03;
+            B.box('raw', R.cx, TOP - 0.12, R.cz, 2 * R.hx - 0.02, 0.04, len - 0.02, { t: [0.06, 0.04, 0.02] });             // тёмная подложка: щели между досками
+            for (let z = zMin; z < zMax - 0.05;) {
+                const w = Math.min(0.52 + B.rnd() * 0.16, zMax - z);
+                B.box('plank', R.cx, TOP - 0.05, z + w / 2, 2 * R.hx, 0.1, w - GAP, { uv: 0.6, ou: B.rnd(), ov: B.rnd(), t: 0.85 + B.rnd() * 0.3 });
+                z += w;
+            }
+            for (const fx of [-0.34, 0, 0.34]) B.box('vbeam', R.cx + fx * 2 * R.hx, TOP - 0.21, R.cz, 0.26, 0.18, len - 0.1, { uv: 0.484, t: 0.7 });   // продольные брусья под настилом (верх ниже верха подложки)
+            for (const sx of [-1, 1]) B.box('vbeam', R.cx + sx * (R.hx + 0.04), TOP - 0.2, R.cz, 0.3, 0.34, 2 * R.hz + 0.02, { uv: 0.484, t: 0.8 + B.rnd() * 0.12 });   // боковая обвязка
+            if (!(R.stem && HEAD)) B.box('vbeam', R.cx, TOP - 0.2, zMin - 0.04, 2 * R.hx + 0.6, 0.34, 0.3, { uv: 0.484, t: 0.8 });                 // торцевая обвязка
+            // сваи: два ряда по длинным сторонам, шаг ~3.5 м, от дна до настила
+            const nz = Math.max(1, Math.round((Math.min(zMax, -0.8) - zMin) / 3.5));
+            for (let i = 0; i <= nz; i++) {
+                const z = zMin + 0.4 + (Math.min(zMax, -0.8) - zMin - 0.8) * i / nz;
+                for (const sx of [-1, 1]) B.cyl('vbeam', R.cx + sx * (R.hx - 0.35), -DEEP, z, 0.27, 0.24, DEEP + TOP - 0.3, 8, { jit: 0.15, uv: 0.484, rings: 1, t: 0.75 });
+                if (R.hx > 5) B.cyl('vbeam', R.cx, -DEEP, z, 0.27, 0.24, DEEP + TOP - 0.3, 8, { jit: 0.15, uv: 0.484, rings: 1, t: 0.75 });
+            }
+        }
+        const platforms = rs.map(R => ({ cx: R.cx, cz: R.cz, hx: R.hx, hz: R.hz, y: TOP, rampLen: 0, rampHx: R.hx, endY: TOP, nav: true, openPlus: R.stem }));
+        return { rects: [], platform: null, platforms, w: W, d: D, h: 0.7 };
+    }
+
+    const TYPES = { seaQuay: buildSeaQuay, seaPier: buildSeaPier, templeGate: buildTempleGate, portalVeil: buildPortalVeil, stoneHouse: buildStoneHouse, hearthCottage: buildHearthCottage, marbleTemple: buildMarbleTemple, tavern: buildTavern, villageTavern: buildVillageTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall, buildTempleGate };
     const CAMERA_BLOCK = { templeGate: ['stone'], stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], hearthCottage: ['stone', 'slate', 'wood', 'plaster', 'deck', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], villageTavern: ['vplaster', 'vbeam', 'vshingle', 'mplinth'], corral: [], castleWall: ['wallstone', 'wallcap'] };
 
     // ------------------------------------------------------------------ менеджер локации
@@ -1615,7 +1672,8 @@
         add(b) {
             const game = this.game, terrain = game.terrain, build = TYPES[b.type];
             if (!build) return;
-            const gy = terrain.getRawHeightAt(b.x, b.z), r = b.r || 0;
+            // gy / gyAt: уровень постройки задаётся явно (порт: настил над морем, под зданием глубокое дно)
+            const gy = (b.gy !== undefined) ? b.gy : (b.gyAt ? terrain.getRawHeightAt(b.gyAt[0], b.gyAt[1]) : terrain.getRawHeightAt(b.x, b.z)), r = b.r || 0;
             const B = new Builder(b.x, gy, b.z, r, b.seed || 11);
             const info = build(B, b), blockers = CAMERA_BLOCK[b.type] || [];
             const group = new THREE.Group(); group.name = 'town:' + (b.id || b.type);
@@ -1637,18 +1695,41 @@
             if (info.platforms) {      // несколько настилов со смещением от начала здания (таверна: терраса, ступени, сцена)
                 info.platforms.forEach((p, i) => {
                     const id = 'town:' + (b.id || b.type) + ':' + i;
-                    terrain.addPlatform({ id, x: b.x + p.cx * rec.cos + p.cz * rec.sin, z: b.z - p.cx * rec.sin + p.cz * rec.cos, cos: rec.cos, sin: rec.sin, hx: p.hx, hz: p.hz, y: gy + p.y, rampLen: p.rampLen, rampHx: p.rampHx, endY: gy + p.endY, reach2: Math.pow(Math.hypot(p.hx, p.hz) + p.rampLen + 1.5, 2) });
+                    terrain.addPlatform({ id, x: b.x + p.cx * rec.cos + p.cz * rec.sin, z: b.z - p.cx * rec.sin + p.cz * rec.cos, cos: rec.cos, sin: rec.sin, hx: p.hx, hz: p.hz, y: gy + p.y, rampLen: p.rampLen, rampHx: p.rampHx, endY: gy + p.endY, reach2: Math.pow(Math.hypot(p.hx, p.hz) + p.rampLen + 1.5, 2), nav: !!p.nav });
                     this.platformIds.push(id);
                 });
             }
             if (info.platform) {
                 const p = info.platform, id = 'town:' + (b.id || b.type);
-                const plat = { id, x: b.x, z: b.z, cos: rec.cos, sin: rec.sin, hx: p.hx, hz: p.hz, y: gy + p.y, rampLen: p.rampLen, rampHx: p.hx, endY: gy, reach2: Math.pow(Math.hypot(p.hx, p.hz) + p.rampLen + 1.5, 2) };
+                const plat = { id, x: b.x, z: b.z, cos: rec.cos, sin: rec.sin, hx: p.hx, hz: p.hz, y: gy + p.y, rampLen: p.rampLen, rampHx: p.hx, endY: gy, reach2: Math.pow(Math.hypot(p.hx, p.hz) + p.rampLen + 1.5, 2), nav: !!p.nav };
                 terrain.addPlatform(plat); this.platformIds.push(id);
             }
             const pf = game.pathfinder;
             if (pf) for (const R of info.rects) this.blockRect(pf, rec, R);
+            if (pf && info.platforms && info.platforms.some(p => p.nav)) this.openDeckNav(pf, rec, info.platforms.filter(p => p.nav));
             this.items.push(rec);
+        }
+
+        /**
+         * Настил над глубокой водой (platform.nav): клетки навигации под настилом открываются, кроме полосы 0.6 м у края
+         * (клетка 0.75 м, герой доходит до её края; 1.5 м — чтобы верховой зверь ~2.2 м целиком оставался на настиле). openPlus — сторона +Z (суша) без края.
+         */
+        openDeckNav(pf, b, plats) {
+            const M = 1.5, items = plats.map(p => ({ p, cx: b.x + p.cx * b.cos + p.cz * b.sin, cz: b.z - p.cx * b.sin + p.cz * b.cos }));
+            let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
+            for (const it of items) for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+                const lx = sx * it.p.hx, lz = sz * it.p.hz;
+                const wx = it.cx + lx * b.cos + lz * b.sin, wz = it.cz - lx * b.sin + lz * b.cos;
+                x0 = Math.min(x0, wx); x1 = Math.max(x1, wx); z0 = Math.min(z0, wz); z1 = Math.max(z1, wz);
+            }
+            const allow = (wx, wz) => {
+                for (const it of items) {
+                    const dx = wx - it.cx, dz = wz - it.cz, lx = dx * b.cos - dz * b.sin, lz = dx * b.sin + dz * b.cos;
+                    if (Math.abs(lx) <= it.p.hx - M && lz >= -it.p.hz + M && lz <= it.p.hz - (it.p.openPlus ? 0 : M)) return true;
+                }
+                return false;
+            };
+            pf.refreshSurfaceCells(x0 - 1, z0 - 1, x1 + 1, z1 + 1, allow);
         }
 
         blockRect(pf, b, R) {

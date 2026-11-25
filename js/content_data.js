@@ -7390,6 +7390,18 @@ window.GAME_CONTENT = {
    },
    "modelKey": "props/chest"
   },
+  "cleat_a": {
+   "id": "cleat_a",
+   "name": "cleat_a",
+   "obstacle": 0.24,
+   "modelKey": "props/cleat_a"
+  },
+  "cleat_b": {
+   "id": "cleat_b",
+   "name": "cleat_b",
+   "obstacle": 0.24,
+   "modelKey": "props/cleat_b"
+  },
   "cottage": {
    "id": "cottage",
    "name": "Домик",
@@ -10234,6 +10246,48 @@ window.GAME_CONTENT = {
    "name": "Гаррен",
    "obstacle": 0.5,
    "npc": "warrior_mentor"
+  },
+  "post_barrel_short": {
+   "id": "post_barrel_short",
+   "name": "post_barrel_short",
+   "obstacle": 0.15,
+   "modelKey": "props/post_barrel_short"
+  },
+  "post_barrel_tall": {
+   "id": "post_barrel_tall",
+   "name": "post_barrel_tall",
+   "obstacle": 0.15,
+   "modelKey": "props/post_barrel_tall"
+  },
+  "post_pair_rope": {
+   "id": "post_pair_rope",
+   "name": "post_pair_rope",
+   "obstacle": 0.45,
+   "modelKey": "props/post_pair_rope"
+  },
+  "post_pointed_a": {
+   "id": "post_pointed_a",
+   "name": "post_pointed_a",
+   "obstacle": 0.15,
+   "modelKey": "props/post_pointed_a"
+  },
+  "post_pointed_b": {
+   "id": "post_pointed_b",
+   "name": "post_pointed_b",
+   "obstacle": 0.15,
+   "modelKey": "props/post_pointed_b"
+  },
+  "post_stump_rope": {
+   "id": "post_stump_rope",
+   "name": "post_stump_rope",
+   "obstacle": 0.17,
+   "modelKey": "props/post_stump_rope"
+  },
+  "post_tall_rope": {
+   "id": "post_tall_rope",
+   "name": "post_tall_rope",
+   "obstacle": 0.15,
+   "modelKey": "props/post_tall_rope"
   },
   "rune_chapel": {
    "id": "rune_chapel",

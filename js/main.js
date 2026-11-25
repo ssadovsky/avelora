@@ -3510,7 +3510,14 @@ class AveloraGame {
                         Math.abs(lx) > p.rampHx - 0.18 && Math.abs(lx) < p.rampHx + 0.28) return true;
                 }
             }
-            const elevatedSurface = terrain && c.position.y > rawY + 1.0 &&
+            // настил с nav-полем (пирс над глубокой водой): сетка навигации действует и наверху — иначе WASD/джойстик сходит с края в воду
+            let navDeck = false;
+            if (terrain && terrain.platforms) for (const p of terrain.platforms) {
+                if (!p.nav) continue;
+                const dx = x - p.x, dz = z - p.z, lx = dx * p.cos - dz * p.sin, lz = dx * p.sin + dz * p.cos;
+                if (Math.abs(lx) <= p.hx + 0.3 && Math.abs(lz) <= p.hz + 0.3) { navDeck = true; break; }
+            }
+            const elevatedSurface = !navDeck && terrain && c.position.y > rawY + 1.0 &&
                 terrain.getHeightAt(x, z, c.position.y) > rawY + 1.0;
             // На возвышении (2 этаж) сетка земли не действует; препятствия того же этажа — building.blockedAtLevel
             if (elevatedSurface) return !!(this.building && this.building.blockedAtLevel && this.building.blockedAtLevel(x, z, c.position.y));

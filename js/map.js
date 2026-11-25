@@ -286,7 +286,7 @@
                     const w = toR(sizeX * 0.15);
                     if (side === 'west')  { ctx.fillRect(offX, offZ, w, mapH); }
                     if (side === 'east')  { ctx.fillRect(offX + mapW - w, offZ, w, mapH); }
-                    if (side === 'north') { ctx.fillRect(offX, offZ, mapW, w); }
+                    if (side === 'north') { ctx.fillRect(offX, offZ, (wb.endX !== undefined) ? toR(sizeX / 2 + wb.endX) : mapW, (wb.shoreLine !== undefined) ? toR(halfZ + wb.shoreLine) : w); }   // с shoreLine — ровно до берега
                     if (side === 'south') { ctx.fillRect(offX, offZ + mapH - w, mapW, w); }
                 } else if (wb.type === 'river' && Array.isArray(wb.points)) {
                     // Речка: ломаная по контрольным точкам, толщиной в ширину русла

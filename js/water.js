@@ -113,6 +113,14 @@ class LakesideWater {
                 sizeX = seaSpan; sizeZ = mapSize * 1.2;
                 posX = 0; posZ = shoreLine + sizeZ / 2 - 2;
             }
+            // oceanExtent: вода от берега до края карты и ещё на E метров за край (в тумане края воды не видно)
+            if (waterConfig.oceanExtent !== undefined) {
+                const hx = (locTerrain.sizeX || mapSize) / 2, hz = (locTerrain.sizeZ || mapSize) / 2, E = waterConfig.oceanExtent;
+                if (side === 'north')      { sizeX = 2 * hx + 2 * E; sizeZ = (shoreLine + 2) + hz + E; posX = 0; posZ = ((shoreLine + 2) - hz - E) / 2; }
+                else if (side === 'south') { sizeX = 2 * hx + 2 * E; sizeZ = hz + E - (shoreLine - 2); posX = 0; posZ = ((shoreLine - 2) + hz + E) / 2; }
+                else if (side === 'west')  { sizeZ = 2 * hz + 2 * E; sizeX = (shoreLine + 2) + hx + E; posZ = 0; posX = ((shoreLine + 2) - hx - E) / 2; }
+                else                       { sizeZ = 2 * hz + 2 * E; sizeX = hx + E - (shoreLine - 2); posZ = 0; posX = ((shoreLine - 2) + hx + E) / 2; }
+            }
         } else if (wType === 'coast_lake') {
             // Вода закрывает ровно карту (озеро внутри) + океан ЗА краем только со стороны берега (side), остальные края — туман (фон сцены).
             // Раньше плоскость торчала на 70–90 м за все края и «океан» был виден с горной стороны.
@@ -153,18 +161,27 @@ class LakesideWater {
         if (wType === 'river') {
             return;
         }
+        if (wType === 'coast' && waterConfig.foam === false) {
+            return;   // foam: false — без полосы пены у берега (порт: вертикальная стенка набережной)
+        }
         if (wType === 'coast') {
             const side = waterConfig.side || 'west';
             const shoreLine = (waterConfig.shoreLine !== undefined) ? waterConfig.shoreLine : -10.0;
             const isHorizontal = (side === 'north' || side === 'south');
             const foamGeo = new THREE.PlaneGeometry(
-                isHorizontal ? mapSize * 1.3 : 8.0,
-                isHorizontal ? 8.0 : mapSize * 1.3
+                isHorizontal ? ((waterConfig.oceanExtent !== undefined) ? (locTerrain.sizeX || mapSize) : mapSize * 1.3) : 8.0,
+                isHorizontal ? 8.0 : ((waterConfig.oceanExtent !== undefined) ? (locTerrain.sizeZ || mapSize) : mapSize * 1.3)
             );
             foamGeo.rotateX(-Math.PI / 2);
             this.foamMesh = new THREE.Mesh(foamGeo, this.foamMat);
             if (side === 'west' || side === 'east') {
                 this.foamMesh.position.set(shoreLine, 0.02, 0);
+            } else if (waterConfig.endX !== undefined && isHorizontal) {
+                // пена только вдоль берега западнее endX: от края карты до endX
+                const hxF = (locTerrain.sizeX || mapSize) / 2;
+                this.foamMesh.geometry.dispose();
+                this.foamMesh.geometry = new THREE.PlaneGeometry(waterConfig.endX + hxF, 8.0).rotateX(-Math.PI / 2);
+                this.foamMesh.position.set((waterConfig.endX - hxF) / 2, 0.02, shoreLine);
             } else {
                 this.foamMesh.position.set(0, 0.02, shoreLine);
             }
