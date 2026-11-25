@@ -1479,6 +1479,13 @@
                 if (r.forClass) {   // only what the hero's class can wear/wield
                     const cls = this.game.character && this.game.character.config && this.game.character.config.id;
                     pool = pool.filter(id => !Items.classRestriction(id, cls) && (!Items.get(id).dropClass || Items.get(id).dropClass === cls));   // dropClass: бижутерия «для класса» падает только своему
+                    // Чужой основной стат (инт / ловкость / сила) = бесполезная вещь: ткань с интом не падает лучнику
+                    const own = { mage: 'int', archer: 'dex', warrior: 'str' }[cls];
+                    if (own) pool = pool.filter(id => {
+                        const st = Items.get(id).stats || {};
+                        const prim = ['str', 'dex', 'int'].filter(k => st[k] > 0);
+                        return !prim.length || prim.indexOf(own) >= 0;
+                    });
                 }
                 if (!pool.length) return;
                 const id = pool[Math.floor(Math.random() * pool.length)], want = Math.max(1, (r.rankCount && r.rankCount[rec.rank]) || r.count || 1);

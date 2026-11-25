@@ -33,7 +33,6 @@
     0.4
   ],
   "statMultiplier": 1.4,
-  "goldDrop": true,
   "drops": [
     {
       "item": "meat",

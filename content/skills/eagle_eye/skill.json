@@ -3,7 +3,7 @@
   "name": "Орлиный глаз",
   "description": "Лучник сосредотачивается: на 20 секунд наносит на 25 % больше урона. Повторное применение снимает эффект.",
   "type": "buff",
-  "category": "defense",
+  "category": "attack",
   "cooldown": 45,
   "buff": {
     "id": "eagle_eye",

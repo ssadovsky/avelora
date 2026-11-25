@@ -25,7 +25,6 @@
   ],
   "xp": 330,
   "statMultiplier": 1.25,
-  "goldDrop": true,
   "lootTiers": {
     "20": [
       {

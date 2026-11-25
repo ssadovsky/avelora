@@ -673,7 +673,7 @@
 
             // Target Validation
             let tgt = customTarget || combat.selectedTarget;
-            if (tgt && (!cr.isAlive(tgt) || tgt.state === 'return')) {
+            if (tgt && (!cr.isTargetable(tgt) || tgt.state === 'return')) {
                 combat.clearTarget();
                 tgt = null;
             }
@@ -681,7 +681,7 @@
             // Target Acquisition:
             if (!tgt) {
                 // Priority 1: Enemies currently aggressive/attacking the player
-                const attackers = (cr.list || []).filter(rec => cr.isAlive(rec) && rec.aggro && (rec.state === 'chase' || rec.state === 'attack'));
+                const attackers = (cr.list || []).filter(rec => cr.isTargetable(rec) && rec.aggro && (rec.state === 'chase' || rec.state === 'attack'));
                 if (attackers.length > 0) {
                     attackers.sort((a, b) => {
                         const losA = skills ? skills.hasLineOfSight(c.position, a) : true;
@@ -696,7 +696,7 @@
                     if (this.questEnabled) {
                         const huntTypes = this.getHuntCreatureTypes();
                         if (huntTypes && huntTypes.size > 0) {
-                            const huntCandidates = (cr.list || []).filter(rec => cr.isAlive(rec) && huntTypes.has(rec.type) && this.matchesActiveHuntObjective(rec));
+                            const huntCandidates = (cr.list || []).filter(rec => cr.isTargetable(rec) && huntTypes.has(rec.type) && this.matchesActiveHuntObjective(rec));
                             if (huntCandidates.length > 0) {
                                 huntCandidates.sort((a, b) => (cr.sameLevel(b) - cr.sameLevel(a)) || Math.hypot(a.x - c.position.x, a.z - c.position.z) - Math.hypot(b.x - c.position.x, b.z - c.position.z));
                                 tgt = huntCandidates[0];
@@ -709,7 +709,7 @@
                     if (!tgt) {
                         const maxDist = this.combatRadius > 0 ? this.combatRadius : 4.0;
                         const hostiles = (cr.list || []).filter(rec => {
-                            if (!cr.isAlive(rec) || !rec.def) return false;
+                            if (!cr.isTargetable(rec) || !rec.def) return false;
                             const isAggro = rec.def.behavior === 'aggressive';
                             const isNeutral = !isAggro && rec.def.behavior !== 'friendly' && rec.def.behavior !== 'npc';
                             const canTarget = isAggro || (this.combatAttackNeutrals && isNeutral);
@@ -761,10 +761,9 @@
 
             // Динамический расчет комфортной дистанции:
             // У посоха и боевых заклинаний дальность 20м (у лука 22м). Держим дистанцию ~18.5м (с запасом 1.5м на движение моба).
-            let rangedDist = 18.5;
-            if (isRangedWeapon && w && w.range) {
-                rangedDist = Math.max(rangedDist, w.range - 1.5);
-            }
+            // Без готовых скиллов держим дистанцию ОРУЖИЯ (лук 13 м): иначе автобой «стоит» на 18 м, а базовая стрельба
+            // (combat.updateEngagement) хочет подойти на 13 м, они спорят, герой дёргается, а погоня сбрасывается.
+            let rangedDist = (isRangedWeapon && w && w.range) ? Math.max(3, w.range - 1.5) : 18.5;
             if (hasReadyRangedSpell) {
                 const readySpells = allSkills.filter(s => (s.type === 'projectile' || s.type === 'strike' || s.type === 'rain') && skills.cooldownRemaining(s.id) === 0 && this.canAfford(s));
                 const maxRange = Math.max(...readySpells.map(s => s.range || 20));
@@ -796,6 +795,12 @@
                     }
                 }
 
+                // Мощный рывок (type charge) — сближение: если цель далеко, но в пределах рывка, рвёмся к ней, а не бежим
+                if (hasLoS && !otherFloor && skills && !skills.casting && !skills.channel && !skills.dash) {
+                    const gap = allSkills.find(s => s.type === 'charge' && skills.cooldownRemaining(s.id) === 0 && this.canAfford(s) && dist >= 4.5 && dist <= (s.range || 12));
+                    if (gap && skills.activate(gap.id) === 'ok') return;
+                }
+
                 // Move towards target until within attack distance!
                 this.navigateTowards(tgt.x, tgt.z, tgt);
                 return;
@@ -814,14 +819,21 @@
             // Wait if currently casting or channeling
             if (skills && (skills.casting || skills.channel)) return;
 
-            // 1. Defensive Buff / Shield (Metadata: s.type === 'buff' or 'defense')
-            if (this.combatUseDefense) {
-                const buffSkill = allSkills.find(s => (s.type === 'buff' || s.type === 'defense' || s.isDefense) && skills.cooldownRemaining(s.id) === 0 && this.canAfford(s));
-                if (buffSkill && hero && this.isUnderThreat(tgt)) {
-                    const buffId = (buffSkill.buff && buffSkill.buff.id) ? buffSkill.buff.id : buffSkill.id;
-                    if (!hero.hasEffect(buffId)) {
-                        if (skills.activate(buffSkill.id) === 'ok') return;
-                    }
+            // 1. Buffs, split by what they do (not by category, that is only the skills-panel grouping):
+            //    - damage buffs (damageMult, e.g. Eagle Eye) are always cast at the start of a fight;
+            //    - skills with autoUse:'always' in skill.json (Hunter's Stance) are cast like damage buffs;
+            //    - other defensive buffs (shield / damageTaken / manaPerDamage) need the "Defense skills" checkbox
+            //      and a dangerous fight. Every ready buff is checked, one active buff must not block the others.
+            const isBuffSkill = s => s.type === 'buff' || s.type === 'defense' || s.isDefense;
+            const isDamageBuff = s => !!(s.buff && s.buff.damageMult > 1 && !s.buff.shield && !(s.buff.damageTaken > 0 && s.buff.damageTaken < 1));
+            if (hero) {
+                const underThreat = this.combatUseDefense ? this.isUnderThreat(tgt) : false;
+                for (const s of allSkills) {
+                    if (!isBuffSkill(s) || skills.cooldownRemaining(s.id) > 0 || !this.canAfford(s)) continue;
+                    if (!isDamageBuff(s) && s.autoUse !== 'always' && !underThreat) continue;
+                    const buffId = (s.buff && s.buff.id) ? s.buff.id : s.id;
+                    if (hero.hasEffect(buffId)) continue;   // re-cast would cancel the toggle buff
+                    if (skills.activate(s.id) === 'ok') return;
                 }
             }
 
@@ -1788,7 +1800,7 @@
             let bestMobDist = Infinity;
             if (neededCreatures.size > 0 && cr && cr.list) {
                 for (const rec of cr.list) {
-                    if (!cr.isAlive(rec)) continue;
+                    if (!cr.isTargetable(rec)) continue;
                     if (!neededCreatures.has(rec.type)) continue;
 
                     const d = Math.hypot(rec.x - px, rec.z - pz);

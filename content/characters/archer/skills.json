@@ -3,9 +3,11 @@
   "skills": [
     "aimed_shot",
     "fire_arrow",
+    "roll",
     "eagle_eye",
     "crippling_shot",
-    "roll",
+    "pinning_shot",
+    "hunters_stance",
     "arrow_rain"
   ]
 }

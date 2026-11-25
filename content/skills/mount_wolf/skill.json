@@ -8,6 +8,7 @@
   "mountScale": 1.3,
   "rideHeight": 0.58,
   "seatForward": 0.05,
+  "seatDropByClass": { "archer": 0.12, "warrior": 0.12 },
   "speedBonus": 3.7,
   "cooldown": 2,
   "castTime": 1.0,

@@ -1,7 +1,7 @@
 {
   "id": "copper_ring",
   "name": "Медное кольцо",
-  "description": "Кольцо с голубым камнем. Слегка обостряет разум.",
+  "description": "Кольцо с голубым камнем. Слегка укрепляет тело.",
   "category": "armor",
   "quality": "common",
   "stackMax": 1,
@@ -16,7 +16,7 @@
   },
   "armor": 0,
   "stats": {
-    "int": 2
+    "sta": 2
   },
   "requires": {
     "level": 2

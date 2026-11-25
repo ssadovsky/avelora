@@ -26,7 +26,6 @@
   ],
   "xp": 520,
   "statMultiplier": 1.25,
-  "goldDrop": true,
   "drops": [
     {
       "item": "meat",

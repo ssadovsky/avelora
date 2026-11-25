@@ -1,0 +1,32 @@
+{
+  "id": "stunning_blow",
+  "name": "Оглушающий удар",
+  "description": "Короткий тяжёлый удар по голове: урон выше обычного и оглушение цели на 2 секунды.",
+  "type": "melee",
+  "category": "attack",
+  "cooldown": 9,
+  "range": 2.6,
+  "castTime": 0.3,
+  "damage": {
+    "min": 22,
+    "max": 30,
+    "type": "physical"
+  },
+  "stat": "str",
+  "weaponMult": 1.8,
+  "stun": {
+    "duration": 2.0
+  },
+  "vfx": {
+    "color": "#ffe28a",
+    "core": "#ffffff",
+    "size": 0.5,
+    "impactSparks": 30,
+    "impactRadius": 1.2,
+    "filaments": false,
+    "arcs": false
+  },
+  "requiresLevel": 5,
+  "price": 90,
+  "teacher": "warrior_mentor"
+}

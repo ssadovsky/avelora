@@ -460,6 +460,9 @@
             c.mesh.quaternion.copy(d0).multiply(st._qy);
             const off = st._p1.copy(st.hipsOff).applyQuaternion(c.mesh.quaternion);
             c.mesh.position.copy(p0).sub(off);
+            // seatDropByClass (skill JSON): у лучника и воина кость таза выше, чем у мага, — на волке они сидят высоко; опускаем на N м
+            const cc = this.game.currentCharacterConfig, drop = (m.def.seatDropByClass && cc && m.def.seatDropByClass[cc.id]) || 0;
+            if (drop) c.mesh.position.y -= drop;
             c.position.y = c.mesh.position.y;
 
             // torso stays a bit more upright than the wolf's back (legs and pelvis follow it fully)

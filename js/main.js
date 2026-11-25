@@ -561,6 +561,7 @@ class AveloraGame {
 
     clearPreviewCharacter() {
         this.csCurrentPreviewClass = null;
+        this.csShownKey = null;
         if (this.csPreviewModel && this.csPreviewGroup) {
             this.csPreviewGroup.remove(this.csPreviewModel);
             this.csPreviewModel = null;
@@ -584,7 +585,9 @@ class AveloraGame {
         // variant.preview — витринная модель другого пола/варианта (например, «Чародейка» = Элисандра)
         const pv = (variant && variant.preview) || null;
         const key = pv ? classId + ':' + variant.id : classId;
-        if (this.csCurrentPreviewClass === key && this.csPreviewModel) return;
+        // csShownKey — ключ модели, которая РЕАЛЬНО стоит на сцене. Раньше сравнивали с csCurrentPreviewClass (ставится до загрузки):
+        // вошёл в мир, пока модель Фионы грузилась, — загрузка отменялась, ключ оставался, а на сцене висел старый герой (первый в списке).
+        if (this.csShownKey === key && this.csPreviewModel) return;
         this.csCurrentPreviewClass = key;
 
         if (!this.csPreviewGroup) {
@@ -659,6 +662,7 @@ class AveloraGame {
                     model.userData.baseScale = scale;
                     model.userData.baseRotY = faceAngle;
                     this.csPreviewModel = model;
+                    this.csShownKey = key;
                     this.csAppearT = 0;
                     this.csPreviewGroup.add(model);
                     this.needsRender = true;
@@ -1120,9 +1124,10 @@ class AveloraGame {
     }
 
     _randomHeroName(classId, genderId) {
-        const male = ['Алдрик', 'Кассиан', 'Мелиор', 'Ориан', 'Валдис', 'Тайрон', 'Альдеран', 'Эйлан', 'Дарион', 'Севрин'];
-        const female = ['Лианна', 'Ниара', 'Мирэль', 'Сельвана', 'Аурелия', 'Тамира', 'Эльвира', 'Алдара', 'Кириэль', 'Ивэйна'];
-        const list = genderId === 'male' ? male : female;
+        // Случайное имя: не длиннее 7 букв (влезает в слот и в плашку над героем)
+        const male = ['Алдрик', 'Кассиан', 'Мелиор', 'Ориан', 'Валдис', 'Тайрон', 'Эйлан', 'Дарион', 'Севрин', 'Арвин', 'Бранн', 'Гаррет', 'Дориан', 'Эдрик', 'Зигран', 'Каэлан', 'Лорен', 'Мирон', 'Нериан', 'Орвин', 'Рейнар', 'Талеон', 'Ульрик', 'Фергус', 'Хельгар', 'Эльдар', 'Яррик', 'Торвин', 'Кейран', 'Лайрон', 'Рагнар', 'Вальтер', 'Айрон', 'Борин', 'Дэрион', 'Элиас', 'Гидеон', 'Кайден', 'Лучиан', 'Тарек', 'Альдер', 'Вейлан', 'Кельвин', 'Ронан', 'Тристан'];
+        const female = ['Лианна', 'Ниара', 'Мирэль', 'Тамира', 'Эльвира', 'Алдара', 'Кириэль', 'Ивэйна', 'Аэлла', 'Дарина', 'Зарина', 'Нимуэ', 'Орелия', 'Селена', 'Талия', 'Фиона', 'Эйра', 'Эльза', 'Ясмина', 'Алира', 'Беатрис', 'Лейла', 'Мирана', 'Нэйла', 'Рианна', 'Сильва', 'Таэлла', 'Фэйра', 'Кэйра', 'Ларэна', 'Иллара', 'Эвелин', 'Мелина', 'Дэлиса', 'Арвена', 'Исольда', 'Ванесса', 'Элиана', 'Лавинья', 'Калиста', 'Миранда', 'Ренара', 'Сарина', 'Тиана', 'Эйлин', 'Вирена', 'Ирэна'];
+        const list = (genderId === 'male' ? male : female).filter(n => n.length <= 7);
         return list[Math.floor(Math.random() * list.length)];
     }
 

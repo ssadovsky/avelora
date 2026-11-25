@@ -1,0 +1,23 @@
+{
+  "id": "iron_will",
+  "name": "Стальная воля",
+  "description": "Воин стискивает зубы и принимает удары на броню: на 12 секунд получает на 50 % меньше урона. Повторное применение снимает эффект.",
+  "type": "buff",
+  "category": "defense",
+  "autoUse": "always",
+  "cooldown": 24,
+  "buff": {
+    "id": "iron_will",
+    "kind": "buff",
+    "duration": 12,
+    "damageTaken": 0.5
+  },
+  "vfx": {
+    "color": "#9fb8ff",
+    "core": "#eef3ff",
+    "radius": 1.4
+  },
+  "requiresLevel": 5,
+  "price": 80,
+  "teacher": "warrior_mentor"
+}

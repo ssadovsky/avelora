@@ -458,10 +458,7 @@
                 const c = g.character;
                 const range = (def.range || 12) + (def.type === 'melee' ? 0.8 + (tgt.def && tgt.def.hitRadius || 0.4) : 2);
                 const dist = Math.hypot(tgt.x - c.position.x, tgt.z - c.position.z);
-                if (dist > range) {
-                    if (g.ui && g.ui.floatText) g.ui.floatText('Цель слишком далеко', 'warn');
-                    return 'out_of_range';
-                }
+                if (dist > range) return this.approachTarget(def, tgt);   // далеко: подбегаем и применяем, как только достанем
 
                 if (cr.sameLevel && !cr.sameLevel(tgt)) return 'no_los';   // другой этаж: молча (автобой сам подойдёт по лестнице)
                 if (!this.hasLineOfSight(c.position, tgt)) {
@@ -768,7 +765,7 @@
                 return 'no_target';
             }
             const dx = tgt.x - p.x, dz = tgt.z - p.z, dist = Math.hypot(dx, dz);
-            if (dist > (def.range || 12) + 1) { if (g.ui && g.ui.floatText) g.ui.floatText('Цель слишком далеко', 'warn'); return 'out_of_range'; }
+            if (dist > (def.range || 12) + 1) return this.approachTarget(def, tgt);
             if (cr.sameLevel && !cr.sameLevel(tgt)) return 'no_los';
             if (!this.hasLineOfSight(p, tgt)) { if (g.ui && g.ui.floatText) g.ui.floatText('Цель вне зоны видимости', 'warn'); return 'no_los'; }
             const stopAt = (tgt.def && tgt.def.hitRadius || 0.5) + (def.stopDistance || 1.3);
@@ -793,6 +790,34 @@
             this.dash = { def, tgt, fx: p.x, fz: p.z, tx: p.x + ux * travel, tz: p.z + uz * travel, t: 0, dur: Math.max(0.12, travel / sp) };
             this.playBurst(def, p.x, p.z, 'arrival', 0.7, false);
             return 'ok';
+        }
+
+        /** Цель вне дальности навыка: бежим к ней (как обычная атака) и применяем навык сами, когда достанем. */
+        approachTarget(def, tgt) {
+            const g = this.game;
+            if (!g.combat || !g.combat.attackCreature) {
+                if (g.ui && g.ui.floatText) g.ui.floatText('Цель слишком далеко', 'warn');
+                return 'out_of_range';
+            }
+            this.approach = { id: def.id, tgt, until: g.gameTime + 10 };
+            if (g.ui && g.ui.floatText) g.ui.floatText('Подбегаю к цели…', 'info');
+            g.combat.attackCreature(tgt);
+            return 'approach';
+        }
+
+        updateApproach() {
+            const a = this.approach;
+            if (!a) return;
+            const g = this.game, cr = g.creatures, c = g.character, cb = g.combat, def = this.get(a.id);
+            const eng = cb && cb.engagement;
+            // отмена: цель умерла / другая цель / игрок повёл героя сам (клик гасит engagement) / время вышло
+            if (!def || !c || !cr || !cr.isAlive(a.tgt) || g.gameTime > a.until || !eng || eng.rec !== a.tgt || cb.selectedTarget !== a.tgt) { this.approach = null; return; }
+            if (this.casting || this.channel || this.dash) return;
+            const hitR = (a.tgt.def && a.tgt.def.hitRadius) || 0.4;
+            const range = def.type === 'charge' ? (def.range || 12) + 1 : (def.range || 12) + (def.type === 'melee' ? 0.8 + hitR : 2);
+            if (Math.hypot(a.tgt.x - c.position.x, a.tgt.z - c.position.z) > range - 0.3) return;
+            this.approach = null;
+            this.activate(a.id);
         }
 
         updateDash(delta) {
@@ -1450,6 +1475,7 @@
             if (this.recallFx) this.recallFx.update(delta);
             this.updateShieldFx();
             if (this.dash) this.updateDash(delta);
+            if (this.approach) this.updateApproach();
 
             // Cast in progress: spawn when castTime elapses (game time)
             if (this.casting) {

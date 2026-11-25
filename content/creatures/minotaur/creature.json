@@ -30,14 +30,20 @@
       {
         "pool": [
           "ring_labyrinth",
-          "ring_arcane_ward"
-        ]
+          "ring_arcane_ward",
+          "ring_galewind",
+          "ring_stoneheart"
+        ],
+        "forClass": true
       },
       {
         "pool": [
           "amulet_catacombs",
-          "amulet_sapphire_eye"
+          "amulet_sapphire_eye",
+          "amulet_galewind",
+          "amulet_stoneheart"
         ],
+        "forClass": true,
         "chance": 0.25
       },
       {

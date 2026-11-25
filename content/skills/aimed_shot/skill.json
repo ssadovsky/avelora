@@ -10,8 +10,8 @@
   "castTime": 0.7,
   "bowShot": true,
   "damage": {
-    "min": 30,
-    "max": 40,
+    "min": 34,
+    "max": 46,
     "type": "physical"
   },
   "stat": "dex",

@@ -808,7 +808,7 @@ class MedievalCharacter {
         const obj = it && it.children[0];
         // config.bowCarryUpright: на ходу лук держится вертикально (как посох без staffGrip), иначе кисть из клипа бега тянет его наискось через корпус
         const bowCarry = !!(obj && obj.userData && obj.userData.weaponStyle === 'bow' && this.config.bowCarryUpright);
-        if (!obj || !obj.userData || !(obj.userData.upright || bowCarry) || !b || !b.parent) { this.carryW = 0; this.castBendW = 0; return; }
+        if (!obj || !obj.userData || !(obj.userData.upright || bowCarry) || !b || !b.parent || (it.userData && it.userData.bowStowed)) { this.carryW = 0; this.castBendW = 0; return; }
         const grip = !!(it.userData && it.userData.staffGrip);
         const staffSwing = grip && !!this.swing && this.swing.style === 'staff';   // удар посохом = поза каста
         const alive = this.deathT < 0 && (!this.swing || staffSwing);
@@ -1475,6 +1475,12 @@ class MedievalCharacter {
 
     update(delta) {
         this.restoreOverlay();
+        // Верхом оружие и инструмент (лук, посох, кирка, топор…) в руке не держим: прячем, при спешивании возвращаем.
+        const hi0 = this.handItem;
+        if (hi0) {
+            if (this.isMounted) { if (!hi0.userData.bowStowed) { hi0.userData.bowStowed = true; hi0.visible = false; } }
+            else if (hi0.userData.bowStowed) { hi0.userData.bowStowed = false; hi0.visible = true; }
+        }
         if (this.mixer) {
             this.mixer.update(delta);
             if ((this._gripBones && this._gripBones.length) || (this._gripMorphs && this._gripMorphs.length)) this.applyGrip(delta);

@@ -1,0 +1,24 @@
+{
+  "id": "hunters_stance",
+  "name": "Стойка охотника",
+  "description": "Лучник собран и осторожен: на 12 с получает вдвое меньше урона. Повторное применение снимает эффект.",
+  "type": "buff",
+  "category": "defense",
+  "autoUse": "always",
+  "cooldown": 24,
+  "buff": {
+    "id": "hunters_stance",
+    "kind": "buff",
+    "duration": 12,
+    "damageTaken": 0.5
+  },
+  "vfx": {
+    "color": "#8fd08a",
+    "core": "#eaffd8",
+    "radius": 1.3
+  },
+  "mana": 0,
+  "requiresLevel": 5,
+  "price": 80,
+  "teacher": "archer_mentor"
+}

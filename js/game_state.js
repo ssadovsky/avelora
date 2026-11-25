@@ -45,7 +45,7 @@
     // Skills EVERY character has, regardless of content/characters/<id>/skills.json.
     // They are always appended LAST: combat skills are added to a character's skills.json
     // and therefore always come before these.
-    const UNIVERSAL_SKILLS = ['home_recall', 'mount_wolf', 'mount_snowfang'];
+    const UNIVERSAL_SKILLS = ['home_recall', 'mount_wolf', 'mount_snowfang', 'portal_gazebo', 'portal_savanna', 'portal_runelands', 'portal_frost'];   // телепорты учат все классы (маны не требуют)
 
     // Skills that every save made before skills had to be learned already owns
     const LEGACY_SKILLS = [];

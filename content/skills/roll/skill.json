@@ -4,7 +4,7 @@
   "description": "Лучник перекатывается на несколько метров туда, куда смотрит или бежит, уходя от удара. Не проходит через воду, камни и стены.",
   "type": "blink",
   "category": "defense",
-  "cooldown": 10,
+  "cooldown": 8,
   "range": 7,
   "minRange": 1.5,
   "mana": 0,
@@ -13,7 +13,7 @@
     "core": "#fff6dc",
     "radius": 1.1
   },
-  "requiresLevel": 6,
-  "price": 120,
+  "requiresLevel": 3,
+  "price": 40,
   "teacher": "archer_mentor"
 }

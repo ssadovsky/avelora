@@ -1208,6 +1208,7 @@
                 const r = allRecipes[id];
                 if (!r) return false;
                 if (only && !only.includes(id)) return false;
+                if (Array.isArray(r.classes) && heroClassId && r.classes.indexOf(heroClassId) < 0) return false;   // recipe.classes: рецепт учат только эти классы (зелья маны: маг)
                 const resultItemId = r.result && r.result.item;
                 if (resultItemId && window.AveloraItems && window.AveloraItems.classRestriction &&
                     window.AveloraItems.classRestriction(resultItemId, heroClassId)) return false;

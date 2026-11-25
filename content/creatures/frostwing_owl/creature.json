@@ -21,6 +21,5 @@
     "gold": [10, 18],
     "xp": 320,
     "statMultiplier": 1.25,
-    "goldDrop": true,
     "drops": [{ "item": "meat", "count": 1 }]
 }
