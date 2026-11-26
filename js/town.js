@@ -944,8 +944,8 @@
             for (const sx of [-1, 1]) B.box(MB, sx * bhw / 2, yB + ph / 2 + 0.07, sz * (hzE + 0.02), bhw / Math.cos(ang) + 0.06, 0.2, 0.5, { rz: -sx * ang, t: 1.04 });
         }
         const yEv = yB + 0.02, yRg = yEv + (bhw + 0.1) * tan, rl = 2 * hzE + 0.7, rw = (bhw + 0.1) / Math.cos(ang) + 0.1;
-        for (const sx of [-1, 1]) B.box(MB, sx * (bhw + 0.1) / 2, (yEv + yRg) / 2 + 0.08, 0, rw, 0.16, rl, { rz: -sx * ang, t: [0.93, 0.95, 1.0], bottom: true, uv: 1.0 });
-        B.box(MB, 0, yRg + 0.16, 0, 0.42, 0.2, rl, { t: 1.04 });
+        for (const sx of [-1, 1]) B.box(cfg.roof || MB, sx * (bhw + 0.1) / 2, (yEv + yRg) / 2 + 0.08, 0, rw, cfg.roof ? 0.2 : 0.16, rl - (sx < 0 && cfg.roof ? 0.05 : 0), cfg.roof ? { rz: -sx * ang, bottom: true, uv: 1.0 } : { rz: -sx * ang, t: [0.93, 0.95, 1.0], bottom: true, uv: 1.0 });   // cfg.roof: 'slate' — синяя черепица как у домиков
+        B.box(MB, 0, yRg + 0.16, 0, 0.42, 0.2, rl + 0.1, { t: 1.04 });   // торцы конька выступают за торцы скатов: общие плоскости z = ±rl/2 мерцали
 
         // целла: стены, дверной проём 2.2 м, фризовая надстройка под крышей
         const cx = 1.7, wt = 0.4, cTop = yB + 0.42, zF = 2.6, zB = -3.6, dh = 1.1;
@@ -1672,7 +1672,7 @@
     }
 
     const TYPES = { seaWarehouse: buildSeaWarehouse, seaQuay: buildSeaQuay, seaPier: buildSeaPier, templeGate: buildTempleGate, portalVeil: buildPortalVeil, stoneHouse: buildStoneHouse, hearthCottage: buildHearthCottage, marbleTemple: buildMarbleTemple, tavern: buildTavern, villageTavern: buildVillageTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall, buildTempleGate };
-    const CAMERA_BLOCK = { seaWarehouse: ['mplinth', 'vbeam', 'plank', 'slate', 'mbeam'], templeGate: ['stone'], stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], hearthCottage: ['stone', 'slate', 'wood', 'plaster', 'deck', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble', 'mgrey'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], villageTavern: ['vplaster', 'vbeam', 'vshingle', 'mplinth'], corral: [], castleWall: ['wallstone', 'wallcap'] };
+    const CAMERA_BLOCK = { seaWarehouse: ['mplinth', 'vbeam', 'plank', 'slate', 'mbeam'], templeGate: ['stone'], stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], hearthCottage: ['stone', 'slate', 'wood', 'plaster', 'deck', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble', 'mgrey', 'slate'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], villageTavern: ['vplaster', 'vbeam', 'vshingle', 'mplinth'], corral: [], castleWall: ['wallstone', 'wallcap'] };
 
     // ------------------------------------------------------------------ менеджер локации
     class AveloraTown {
