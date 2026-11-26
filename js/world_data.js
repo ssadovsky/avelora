@@ -2492,12 +2492,13 @@ window.LOCATIONS = {
             border: 0,
             baseHeight: 1.7,
             landFloor: 0.85,
+            flatKeepSea: true,   // площадки (flatSpots) не поднимают дно моря: у угла порта они оставляли кусок суши
             // Ровное основание на уровне центральных дорог; горный край сохраняется.
             groundNoise: 0,
-            mountainRim: { width: 16.0, height: 6.0, noNorth: true, noNorthX: 20.0, noNorthBlend: 24.0 },   // северного хребта нет только западнее x = 20 (там море), дальше на восток гора плавно возвращается
+            mountainRim: { width: 16.0, height: 6.0, noNorth: true, noNorthX: 49.0, noNorthBlend: 24.0 },   // северного хребта нет только западнее x = 20 (там море), дальше на восток гора плавно возвращается
             mountainPasses: [],
             // Северное море только на северо-западе (x < endX = 21): ровный берег z = -51 (вершина сетки рельефа; склон в 1 м прячет стенка набережной), глубина -3.2 м сразу у стенки (bedSlope 1.6), горный край над морем гаснет (rimFade), без полосы пены, вода и за краем карты
-            waterBody: { type: 'coast', side: 'north', shoreLine: -51.0, depth: -3.2, beachWidth: 0.8, bedSlope: 1.6, shoreNoise: 0, oceanExtent: 500, endX: 21.0, rimFade: 12.0, foam: false },
+            waterBody: { type: 'coast', side: 'north', shoreLine: -51.0, depth: -3.2, beachWidth: 0.8, bedSlope: 1.6, shoreNoise: 0, oceanExtent: 500, endX: 50.0, rimFade: 12.0, foam: false },
             hills: { amplitude: 0.0, inclineX: 0.0, inclineZ: 0.0 },
             stoneTexture: 'pebbleTrailDiff',
             // мощёная улица от портала к входу в подвал и площадь (само мощение — просто дороги рельефа)
@@ -2508,6 +2509,7 @@ window.LOCATIONS = {
                 { x: 70, z: -18, radius: 10, blend: 8, hFrom: [71.0, 0.0] },   // академия
                 { x: 70, z: -38, radius: 10, blend: 8, hFrom: [71.0, 0.0] },   // Meshy-дом (сдвинут на север; с 2026-11-26 дом стоит на x 88.4, z −15)
                 { x: 89, z: -15, radius: 11, blend: 8, hFrom: [71.0, 0.0] },   // Meshy-дом за академией (над подвалом)
+                { x: 90.6, z: 14.4, radius: 11, blend: 8, hFrom: [71.0, 0.0] },   // казарма (над подвалом)
                 { x: 70, z: 17, radius: 11, blend: 8, hFrom: [71.0, 0.0] },                                                    // конюшня (загон выравнивает town.js)                                                  // Meshy-дом
                 { x: 42, z: -15, radius: 11, blend: 8, hFrom: [71.0, 0.0] },   // лавка портного
                 { x: 44, z: -33, radius: 11, blend: 8, hFrom: [71.0, 0.0] },   // процедурный коттедж
@@ -2527,7 +2529,7 @@ window.LOCATIONS = {
                 { type: 'stone', width: 14.0, points: [[77.0, 0.0], [106.15, 0.0]] },     // продолжение главной улицы на восток за заднюю дорогу: сплошной камень до x 110.0 (затухает к 113.15)
                 // Порт: мощёная улица вдоль набережной (z -50…-41) и вдоль восточной стенки моря (x 22…30). Шейдер размывает камень к краям: сплошной он только на (width/2 − 3.15) от оси, исчезает на width/2 — поэтому ось и width подобраны так, чтобы сплошной камень доходил ПОД парапет (без песчаной обочины), а край улицы затухал ровно на z = -41 / x = 30
                 { type: 'stone', width: 15.4, thin: true, points: [[-133.0, -45.55], [57.1, -45.55]] },   // северная дорога порта: сплошной камень z −50.1…−41.0 (затухает к −37.9), продолжена на восток до городской дороги x = 57.1 у процедурного дома с террасой (x 40…49, z −40.6…−22.6)
-                { type: 'stone', width: 11.6, thin: true, points: [[24.2, -45.55], [24.2, -86.0]] },
+                { type: 'stone', width: 11.6, thin: true, points: [[53.2, -45.55], [53.2, -86.0]] },
                 { type: 'stone', width: 14.0, points: [[57.1, -50.0], [57.1, 50.0]] },
                 { type: 'stone', width: 13.0, thin: true, points: [[49.85, 8.0], [49.85, 42.0]] },
                 { type: 'stone', width: 13.0, thin: true, points: [[49.85, -42.5], [49.85, -12.0]] },   // камень у фасада лавки портного и коттеджа напротив Meshy-дома (z −41…−22)
@@ -2585,15 +2587,15 @@ window.LOCATIONS = {
                 { id: 'rl_wall_gate_east', type: 'castleWall', x: 61.2, z: 50.0, r: Math.PI / 2, sections: 4, capS: 0.7, capE: 0.0 },
                 // ПОРТ (js/town.js): каменная набережная вдоль берега z = −50 (X −134…20) и вдоль восточной кромки моря x = 20; уровень земли — как в городе (gyAt).
                 // Три пирса над глубокой водой на сваях (ходимый настил 8×32 м, края закрыты навигацией на 1.5 м): между ними по 32 м воды — с обеих сторон каждого пирса встанет корабль; от восточной стенки до первого пирса 16 м.
-                { id: 'rl_quay_north', type: 'seaQuay', x: -55.9, z: -50.3, r: 0, L: 156.2, gyAt: [71.0, 0.0], prep: false, gaps: [[51.9, 9], [11.9, 9], [-28.1, 9]] },
+                { id: 'rl_quay_north', type: 'seaQuay', x: -41.4, z: -50.3, r: 0, L: 185.2, gyAt: [71.0, 0.0], prep: false, gaps: [[66.4, 9], [26.4, 9], [-13.6, 9]] },
                 // восточная набережная кончается у лица северной (z −51.3) — парапеты не перекрываются (было мерцание в углу); стенка заходит под северную на 0.4 м
-                { id: 'rl_quay_east', type: 'seaQuay', x: 21.3, z: -75.65, r: Math.PI / 2, L: 48.7, wallExtra: [0.4, 0], gyAt: [71.0, 0.0], prep: false },
-                { id: 'rl_pier_1', type: 'seaPier', x: -4, z: -50.3, r: 0, W: 8, D: 32, gyAt: [71.0, 0.0], prep: false, seed: 21 },
-                { id: 'rl_pier_2', type: 'seaPier', x: -44, z: -50.3, r: 0, W: 8, D: 32, gyAt: [71.0, 0.0], prep: false, seed: 22 },
-                { id: 'rl_pier_3', type: 'seaPier', x: -84, z: -50.3, r: 0, W: 8, D: 32, gyAt: [71.0, 0.0], prep: false, seed: 23 },
+                { id: 'rl_quay_east', type: 'seaQuay', x: 50.3, z: -75.65, r: Math.PI / 2, L: 48.7, wallExtra: [0.4, 0], gyAt: [71.0, 0.0], prep: false },
+                { id: 'rl_pier_1', type: 'seaPier', x: 25, z: -50.3, r: 0, W: 8, D: 32, gyAt: [71.0, 0.0], prep: false, seed: 21 },
+                { id: 'rl_pier_2', type: 'seaPier', x: -15, z: -50.3, r: 0, W: 8, D: 32, gyAt: [71.0, 0.0], prep: false, seed: 22 },
+                { id: 'rl_pier_3', type: 'seaPier', x: -55, z: -50.3, r: 0, W: 8, D: 32, gyAt: [71.0, 0.0], prep: false, seed: 23 },
                 // Портовые постройки (за дорогой, z > −38; фасад на север к порту, r = π; камень/цоколь с мешей, окна первого этажа без цветов):
                 // склады, дома рыбаков, таможня (процедурный коттедж с террасой). Между ними — свободные проходы к пирсам (x = −84, −44, −4).
-                { id: 'rl_port_warehouse_2', type: 'seaWarehouse', x: -38.0, z: -33.5, r: Math.PI, W: 16.0, D: 9.0, H: 4.6 },
+                { id: 'rl_port_warehouse_2', type: 'seaWarehouse', x: -9.0, z: -33.5, r: Math.PI, W: 16.0, D: 9.0, H: 4.6 },
                 // { id: 'rl_rune_gate', type: 'runeGate', x: 69.0, z: 0.0, r: -Math.PI / 2 }
             ]
         },
@@ -2604,79 +2606,98 @@ window.LOCATIONS = {
 
         props: [
             // Корабль «Лазурный странник» (Meshy The_Azure_Voyager, 193k→33k тр., длина 26.6 м, ватерлиния на y=0): борт у западного борта пирса 1, нос в море; высота от уровня набережной (71,0): dy = −1.68 → y = 0
-            { id: 'rl.ship_1', prop: 'azure_voyager', x: -14.4, z: -66.0, r: -Math.PI / 2, s: 1.0, yFrom: [71.0, 0.0], dy: -1.68 },
+            { id: 'rl.ship_1', prop: 'azure_voyager', x: 14.60, z: -66.0, r: -Math.PI / 2, s: 1.0, yFrom: [71.0, 0.0], dy: -1.68 },
             // Деревянный портовый кран (Meshy Medieval_Wooden_Crane, 325k→32k тр., высота 11.6 м, стрела 8 м): основание (центр опоры) на набережной, стрела над водой на север (−Z); между пирсами 1 и 2
-            { id: 'rl.crane_1', prop: 'wooden_crane', x: -24.0, z: -47.5, r: -Math.PI / 2, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.crane_1', prop: 'wooden_crane', x: 5.00, z: -47.5, r: -Math.PI / 2, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
             // Склад-мастерская (Meshy Roof_Timber_Workshop, 161k→27k тр., высота 7.3 м, фасад на север, r = π): угол каменного цоколя (не крыльца) ровно в (x 10, z −41); цоколь x −5.26…10.0, z −41.0…−31.86 (крыльцо до z −42)
-            { id: 'rl.warehouse_1', prop: 'timber_warehouse', x: 27.37, z: -37.71, r: Math.PI, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.warehouse_1', prop: 'timber_warehouse', x: 24.87, z: -37.71, r: Math.PI, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
             // Груз (наборы Cargo_Collection/2, порезаны на content/props/cargo1_*, cargo2_*): только у стен складов (боковые и тыльные), не на дороге
-            { id: 'rl.cargo_1', prop: 'cargo1_crate_big', x: 19.20, z: -34.50, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_2', prop: 'cargo1_barrel_tall', x: 19.30, z: -32.60, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_3', prop: 'cargo2_crate_big', x: 35.55, z: -34.50, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_4', prop: 'cargo1_sacks', x: 35.60, z: -32.80, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_5', prop: 'cargo2_barrel_a', x: 35.45, z: -36.00, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_6', prop: 'cargo2_barrels_group', x: -46.70, z: -33.50, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_7', prop: 'cargo2_crate_ropes', x: -46.75, z: -31.00, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_8', prop: 'cargo1_net_crate', x: -37.00, z: -28.20, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_9', prop: 'cargo1_barrel_lying', x: -32.00, z: -28.30, r: 1.57, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_1', prop: 'cargo1_crate_big', x: 16.70, z: -34.50, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_2', prop: 'cargo1_barrel_tall', x: 16.80, z: -32.60, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_3', prop: 'cargo2_crate_big', x: 33.05, z: -34.50, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_4', prop: 'cargo1_sacks', x: 33.10, z: -32.80, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_5', prop: 'cargo2_barrel_a', x: 32.95, z: -36.00, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_6', prop: 'cargo2_barrels_group', x: -17.70, z: -33.50, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_7', prop: 'cargo2_crate_ropes', x: -17.75, z: -31.00, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_8', prop: 'cargo1_net_crate', x: -8.00, z: -28.20, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_9', prop: 'cargo1_barrel_lying', x: -3.00, z: -28.30, r: 1.57, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            // портовый инвентарь у фасада Meshy-склада (стена z −41.0; лестницы дверей x 19.9…22.4 и 27.4…29.9 свободны, 0.5 м запаса): куча между дверями (x 23…26.5) и по краям за лестницами
+            { id: 'rl.cargo_10', prop: 'cargo1_crate_big', x: 23.75, z: -41.55, r: 1.571, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_11', prop: 'cargo1_barrel_s1', x: 23.75, z: -41.50, r: 0.400, s: 1.0, yFrom: [71.0, 0.0], dy: 0.78 },
+            { id: 'rl.cargo_12', prop: 'cargo2_crate_big', x: 25.45, z: -41.60, r: 0.080, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_13', prop: 'cargo2_crate_b', x: 25.40, z: -41.60, r: 0.350, s: 1.0, yFrom: [71.0, 0.0], dy: 0.71 },
+            { id: 'rl.cargo_14', prop: 'cargo2_barrel_tall', x: 23.45, z: -42.55, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_15', prop: 'cargo1_barrel_rope', x: 24.40, z: -42.65, r: 0.700, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_16', prop: 'cargo2_sacks_crate', x: 25.55, z: -42.75, r: -0.100, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_17', prop: 'cargo2_barrel_small', x: 26.45, z: -42.10, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_18', prop: 'cargo1_barrel_s2', x: 17.85, z: -41.60, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_19', prop: 'cargo2_crate_a', x: 18.75, z: -41.70, r: 0.200, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_20', prop: 'cargo2_barrel_cloth', x: 18.75, z: -41.70, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.52 },
+            { id: 'rl.cargo_21', prop: 'cargo1_crate_a', x: 30.95, z: -41.70, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_22', prop: 'cargo2_sack', x: 31.90, z: -41.55, r: 0.500, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_23', prop: 'cargo2_barrel_lying', x: 31.00, z: -42.65, r: 1.200, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_24', prop: 'cargo1_barrel_s3', x: 31.90, z: -42.40, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
             // Порт: тумбы, утки и столбы с канатами (набор Harbor_Mooring_Posts, порезан на content/props/post_*, cleat_*); высота — от уровня набережной (71,0)
             { id: 'rl.qn0', prop: 'cleat_a', x: -130.50, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
             { id: 'rl.qn1', prop: 'post_pointed_a', x: -123.50, z: -50.80, r: 0.300, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
             { id: 'rl.qn2', prop: 'cleat_b', x: -116.50, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
             { id: 'rl.qn3', prop: 'post_stump_rope', x: -109.50, z: -50.80, r: 0.900, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
             { id: 'rl.qn4', prop: 'cleat_a', x: -102.50, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qn5', prop: 'post_pointed_a', x: -95.50, z: -50.80, r: 1.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qn6', prop: 'cleat_a', x: -76.00, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qn7', prop: 'post_pointed_a', x: -69.00, z: -50.80, r: 0.300, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qn8', prop: 'cleat_b', x: -62.00, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qn9', prop: 'post_stump_rope', x: -55.00, z: -50.80, r: 0.900, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qn10', prop: 'cleat_a', x: -36.00, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qn11', prop: 'post_pointed_a', x: -29.00, z: -50.80, r: 0.300, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qn12', prop: 'cleat_b', x: -22.00, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qn13', prop: 'post_stump_rope', x: -15.00, z: -50.80, r: 0.900, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qn14', prop: 'cleat_a', x: 4.00, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qn15', prop: 'post_pointed_a', x: 11.00, z: -50.80, r: 0.300, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qn16', prop: 'cleat_b', x: 18.00, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qe17', prop: 'cleat_a', x: 20.80, z: -96.50, r: 1.571, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qe18', prop: 'post_pointed_b', x: 20.80, z: -89.50, r: 0.400, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qe19', prop: 'cleat_a', x: 20.80, z: -82.50, r: 1.571, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qe20', prop: 'post_pointed_b', x: 20.80, z: -75.50, r: 1.200, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qe21', prop: 'cleat_a', x: 20.80, z: -68.50, r: 1.571, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qe22', prop: 'post_pointed_b', x: 20.80, z: -61.50, r: 2.000, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.qe23', prop: 'cleat_a', x: 20.80, z: -54.50, r: 1.571, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
-            { id: 'rl.p1w0', prop: 'cleat_a', x: -7.70, z: -74.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p1w1', prop: 'post_pointed_a', x: -7.70, z: -67.70, r: 0.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p1w2', prop: 'cleat_b', x: -7.70, z: -60.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p1w3', prop: 'post_pointed_b', x: -7.70, z: -53.70, r: 1.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p1l0', prop: 'cleat_a', x: -0.30, z: -74.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p1l1', prop: 'post_pointed_a', x: -0.30, z: -67.70, r: 0.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p1l2', prop: 'cleat_b', x: -0.30, z: -60.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p1l3', prop: 'post_pointed_b', x: -0.30, z: -53.70, r: 1.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p1end_a', prop: 'post_tall_rope', x: -7.30, z: -81.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p1end_b', prop: 'post_tall_rope', x: -0.70, z: -81.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p1end_e', prop: 'post_pair_rope', x: -4.00, z: -81.50, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p2w0', prop: 'cleat_a', x: -47.70, z: -74.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p2w1', prop: 'post_pointed_a', x: -47.70, z: -67.70, r: 0.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p2w2', prop: 'cleat_b', x: -47.70, z: -60.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p2w3', prop: 'post_pointed_b', x: -47.70, z: -53.70, r: 1.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p2l0', prop: 'cleat_a', x: -40.30, z: -74.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p2l1', prop: 'post_pointed_a', x: -40.30, z: -67.70, r: 0.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p2l2', prop: 'cleat_b', x: -40.30, z: -60.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p2l3', prop: 'post_pointed_b', x: -40.30, z: -53.70, r: 1.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p2end_a', prop: 'post_tall_rope', x: -47.30, z: -81.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p2end_b', prop: 'post_tall_rope', x: -40.70, z: -81.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p2end_e', prop: 'post_pair_rope', x: -44.00, z: -81.50, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p3w0', prop: 'cleat_a', x: -87.70, z: -74.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p3w1', prop: 'post_pointed_a', x: -87.70, z: -67.70, r: 0.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p3w2', prop: 'cleat_b', x: -87.70, z: -60.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p3w3', prop: 'post_pointed_b', x: -87.70, z: -53.70, r: 1.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p3l0', prop: 'cleat_a', x: -80.30, z: -74.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p3l1', prop: 'post_pointed_a', x: -80.30, z: -67.70, r: 0.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p3l2', prop: 'cleat_b', x: -80.30, z: -60.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p3l3', prop: 'post_pointed_b', x: -80.30, z: -53.70, r: 1.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p3end_a', prop: 'post_tall_rope', x: -87.30, z: -81.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p3end_b', prop: 'post_tall_rope', x: -80.70, z: -81.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
-            { id: 'rl.p3end_e', prop: 'post_pair_rope', x: -84.00, z: -81.50, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.qn5', prop: 'post_pointed_a', x: -95.50, z: -50.80, r: 0.300, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qn6', prop: 'cleat_b', x: -88.50, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qn7', prop: 'post_stump_rope', x: -81.50, z: -50.80, r: 0.900, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qn8', prop: 'cleat_a', x: -74.50, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qn9', prop: 'post_pointed_a', x: -67.50, z: -50.80, r: 0.300, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qn10', prop: 'cleat_b', x: -46.50, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qn11', prop: 'post_stump_rope', x: -39.50, z: -50.80, r: 0.900, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qn12', prop: 'cleat_a', x: -32.50, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qn13', prop: 'post_pointed_a', x: -25.50, z: -50.80, r: 0.300, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qn14', prop: 'cleat_b', x: -4.50, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qn15', prop: 'post_stump_rope', x: 2.50, z: -50.80, r: 0.900, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qn16', prop: 'cleat_a', x: 9.50, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qn17', prop: 'post_pointed_a', x: 16.50, z: -50.80, r: 0.300, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qn18', prop: 'cleat_b', x: 37.50, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qn19', prop: 'post_stump_rope', x: 44.50, z: -50.80, r: 0.900, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qe17', prop: 'cleat_a', x: 49.80, z: -96.50, r: 1.571, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qe18', prop: 'post_pointed_b', x: 49.80, z: -89.50, r: 0.400, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qe19', prop: 'cleat_a', x: 49.80, z: -82.50, r: 1.571, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qe20', prop: 'post_pointed_b', x: 49.80, z: -75.50, r: 1.200, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qe21', prop: 'cleat_a', x: 49.80, z: -68.50, r: 1.571, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qe22', prop: 'post_pointed_b', x: 49.80, z: -61.50, r: 2.000, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.qe23', prop: 'cleat_a', x: 49.80, z: -54.50, r: 1.571, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
+            { id: 'rl.p1w0', prop: 'cleat_a', x: 21.30, z: -74.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p1w1', prop: 'post_pointed_a', x: 21.30, z: -67.70, r: 0.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p1w2', prop: 'cleat_b', x: 21.30, z: -60.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p1w3', prop: 'post_pointed_b', x: 21.30, z: -53.70, r: 1.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p1l0', prop: 'cleat_a', x: 28.70, z: -74.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p1l1', prop: 'post_pointed_a', x: 28.70, z: -67.70, r: 0.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p1l2', prop: 'cleat_b', x: 28.70, z: -60.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p1l3', prop: 'post_pointed_b', x: 28.70, z: -53.70, r: 1.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p1end_a', prop: 'post_tall_rope', x: 21.70, z: -81.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p1end_b', prop: 'post_tall_rope', x: 28.30, z: -81.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p1end_e', prop: 'post_pair_rope', x: 25.00, z: -81.50, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p2w0', prop: 'cleat_a', x: -18.70, z: -74.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p2w1', prop: 'post_pointed_a', x: -18.70, z: -67.70, r: 0.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p2w2', prop: 'cleat_b', x: -18.70, z: -60.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p2w3', prop: 'post_pointed_b', x: -18.70, z: -53.70, r: 1.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p2l0', prop: 'cleat_a', x: -11.30, z: -74.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p2l1', prop: 'post_pointed_a', x: -11.30, z: -67.70, r: 0.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p2l2', prop: 'cleat_b', x: -11.30, z: -60.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p2l3', prop: 'post_pointed_b', x: -11.30, z: -53.70, r: 1.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p2end_a', prop: 'post_tall_rope', x: -18.30, z: -81.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p2end_b', prop: 'post_tall_rope', x: -11.70, z: -81.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p2end_e', prop: 'post_pair_rope', x: -15.00, z: -81.50, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p3w0', prop: 'cleat_a', x: -58.70, z: -74.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p3w1', prop: 'post_pointed_a', x: -58.70, z: -67.70, r: 0.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p3w2', prop: 'cleat_b', x: -58.70, z: -60.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p3w3', prop: 'post_pointed_b', x: -58.70, z: -53.70, r: 1.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p3l0', prop: 'cleat_a', x: -51.30, z: -74.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p3l1', prop: 'post_pointed_a', x: -51.30, z: -67.70, r: 0.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p3l2', prop: 'cleat_b', x: -51.30, z: -60.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p3l3', prop: 'post_pointed_b', x: -51.30, z: -53.70, r: 1.500, s: 1.8, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p3end_a', prop: 'post_tall_rope', x: -58.30, z: -81.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p3end_b', prop: 'post_tall_rope', x: -51.70, z: -81.70, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.p3end_e', prop: 'post_pair_rope', x: -55.00, z: -81.50, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.08 },
             // Южные городские ворота. Фасад на юг, проход открыт; препятствия только на башнях.
             { id: 'runeLands.starlit_castle_gate', prop: 'starlit_castle_gate', x: 56.5, z: 50.0, r: Math.PI, s: 7.0 },
             // Дозорная башня (Meshy Azure Starwatch Tower): стоит на земле в конце стены (западный конец, 40 м от ворот)
@@ -2691,6 +2712,8 @@ window.LOCATIONS = {
             // «Старинный дом с синими крышами» (Meshy Moonlit Hearth Cottage, S=9.5, 90k тр.): фасадом на запад к поперечной дороге; основание пристройки (самое выдвинутое) на x=63.1,
             // сдвинут на север за академию через 2 м: южный край z=−28, тянется на север до z≈−46
             { id: 'runeLands.hearth_cottage', prop: 'hearth_cottage', x: 88.4, z: -15.0, r: -Math.PI / 2, dy: -0.05, over: 'oldCellar' },   // за академией, над залом подвала: угол с верандой (без входной лестницы) в (x 86, z −6), фасад на запад, севернее главной улицы; лестница и пристройка выступают до x ≈ 83.5
+            // Казарма «Синее знамя» (Meshy Blue_Banner_Lodge, S=9.0, 666k→140k тр.; проход-ворота с двумя фасадами и баннерами, дымовая труба в тыловой половине): за конюшней, через заднюю дорогу (x 78); фасад на запад к дороге, труба на востоке (назад от дороги); цоколь: СЗ угол (x 86, z 6), здание тянется на юг до z≈23; крыша/второй этаж выступают на 1 м к дороге (x 85); над залом подвала (z < 15): препятствия только наверху
+            { id: 'runeLands.barracks', prop: 'barracks', x: 90.58, z: 14.44, r: -Math.PI / 2, dy: -0.05, over: 'oldCellar' },
             // конюшня «Синяя подкова» (Meshy Blue Horseshoe Inn, S=9.5, 90k тр.): восточная сторона поперечной дороги, СЗ угол основания (63; 8), тянется на ЮВ до (73.6; 25.9); фасад на запад, к дороге; стойла — южный конец
             { id: 'runeLands.blue_horseshoe_stable', prop: 'blue_horseshoe_stable', x: 68.13, z: 16.96, r: -Math.PI / 2, dy: -0.05 },
             // каменный коттедж (Meshy Moonlit Hearth Cottage 1029103728, S=6.65, 90k тр.): южная сторона главной улицы напротив таверны, фундамент по линии z 6 (ступени выступают до 5.2), x 22.6…35; дверь на север, к таверне
@@ -2741,7 +2764,7 @@ window.LOCATIONS = {
                 // здание «Рунные врата» (town.js, runeGate) над траншеей — для камеры (cellar.camOk): lz0…lz1 — нава (от фасада до задней стены),
                 // hw — просвет нефа, top — потолок (под балками), wx/roof — габарит стен и крыши, tw/tz0/tz1/tower — колокольня, pillars — обелиски (lx, lz)
                 gate: { lz0: -2.4, lz1: 10.4, nz0: -0.5, nz1: 8.9, hw: 2.3, top: 3.1, wx: 4.4, roof: 7.4, tw: 2.4, tcx: -1.55, tz0: 5.3, tz1: 10.2, tower: 13.6, door: [1.0, 2.0] },   // Meshy-часовня S=7: запас ≥0.5 м от стен (ближняя плоскость камеры); nz0/nz1 — неф изнутри, door — проход через дверной проём
-                camBoxes: [{ x: 68.97, z: -17.0, hx: 6.4, hz: 9.5, h: 12.0 }, { x: 68.3, z: 17.0, hx: 5.9, hz: 9.5, h: 11.1 }, { x: 88.6, z: -15.0, hx: 5.8, hz: 9.5, h: 11.0 }],   // дома на поверхности в зоне камеры подвала (мировые оси, с запасом 0.5 м): академия магии (модель x 63.1…74.8, z −26.0…−8.0, высота 11.5; прежние коробки стояли под старым домом и не закрывали заднюю стену) и Meshy-дом у перекрёстка
+                camBoxes: [{ x: 68.97, z: -17.0, hx: 6.4, hz: 9.5, h: 12.0 }, { x: 68.3, z: 17.0, hx: 5.9, hz: 9.5, h: 11.1 }, { x: 88.6, z: -15.0, hx: 5.8, hz: 9.5, h: 11.0 }, { x: 90.6, z: 14.4, hx: 6.3, hz: 9.3, h: 12.4 }],   // дома на поверхности в зоне камеры подвала (мировые оси, с запасом 0.5 м): академия магии (модель x 63.1…74.8, z −26.0…−8.0, высота 11.5; прежние коробки стояли под старым домом и не закрывали заднюю стену) и Meshy-дом у перекрёстка
                 surface: []   // строений на поверхности нет (дома/башня/фонтан убраны)
             }
         ]

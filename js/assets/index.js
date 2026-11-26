@@ -128,6 +128,7 @@ window.AVELORA_ASSET_INDEX = {
   "props/archery_target": ["m/props__archery_target.js", "d837cc3b5a"],
   "props/azure_starwatch_tower": ["m/props__azure_starwatch_tower.js", "f3258cd5de"],
   "props/azure_voyager": ["m/props__azure_voyager.js", "616c983400"],
+  "props/barracks": ["m/props__barracks.js", "917ab39987"],
   "props/blue_horseshoe_stable": ["m/props__blue_horseshoe_stable.js", "7592763065"],
   "props/bone_pile_1": ["m/props__bone_pile_1.js", "02474f9f42"],
   "props/bone_pile_2": ["m/props__bone_pile_2.js", "3c9c82938b"],

@@ -7157,6 +7157,35 @@ window.GAME_CONTENT = {
    "obstacle": 0,
    "modelKey": "props/azure_voyager"
   },
+  "barracks": {
+   "id": "barracks",
+   "name": "Казарма «Синее знамя»",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": -5.0,
+     "cz": 0.0,
+     "hx": 3.5,
+     "hz": 4.7,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    },
+    {
+     "type": "box",
+     "cx": 5.0,
+     "cz": 0.0,
+     "hx": 3.5,
+     "hz": 4.7,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/barracks"
+  },
   "blue_horseshoe_stable": {
    "id": "blue_horseshoe_stable",
    "name": "Конюшня «Синяя подкова»",

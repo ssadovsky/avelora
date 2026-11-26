@@ -379,6 +379,8 @@ class LakesideTerrain {
         if (!fs || !fs.length) return this.lava ? h + this.lava.dh(x, z) : h;
         if (!this._flatH) this._flatH = [];
         let out = h;
+        // flatKeepSea: площадки не поднимают дно моря/пляж (порт: площадки дороги x 57 задевали угол моря) — вес гаснет там, где сырая высота ниже ~0.6 м
+        const keepSea = this.locTerrain.flatKeepSea ? Math.min(1.0, Math.max(0.0, (h - 0.05) / 0.55)) : 1.0;
         for (let i = 0; i < fs.length; i++) {
             const f = fs[i];
             const bl = (f.blend !== undefined) ? f.blend : 5.0;
@@ -391,6 +393,7 @@ class LakesideTerrain {
             }   // hFrom: высота берётся в другой точке (ущелье в горном поясе: дно = уровень луга перед входом)
             const t = d <= f.radius ? 1.0 : 1.0 - (d - f.radius) / bl;
             let w = t * t * (3.0 - 2.0 * t);
+            w *= keepSea;
             if (f.road) w *= this._roadKeep(x, z);   // road: на полотне сглаженной дороги площадка не действует (дорогу не ломаем)
             out += (this._flatH[i] - out) * w;
         }
