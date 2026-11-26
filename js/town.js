@@ -322,6 +322,7 @@
             mats: {
                 stone: std(T.stone.map, T.stone.bump),
                 marble: std(T.marble.map, null, { roughness: 0.38, color: 0xd8d6d0 }),
+                mgrey: std(T.marble.map, null, { roughness: 0.7, color: 0x9d9686 }),
                 wood: std(T.wood.map, null, { roughness: 0.85 }),
                 slate: std(T.slate.map, T.slate.bump, { roughness: 0.8 }),
                 glass: new THREE.MeshStandardMaterial({ color: 0x24384c, roughness: 0.15, metalness: 0, emissive: 0x0b1622, vertexColors: true }),
@@ -899,20 +900,21 @@
 
     // ------------------------------------------------------------------ белый мраморный храм (греческий периптер)
     function buildMarbleTemple(B, cfg) {
+        const MB = cfg.grey ? 'mgrey' : 'marble';   // grey: серый мрамор под цвет академии
         const HX = cfg.HX || 3.9, HZ = cfg.HZ || 5.0, y0 = 0.45, rect = (x0, x1, z0, z1) => ({ x0, x1, z0, z1 });
         const rects = [];
         // стилобат: фундамент и три ступени (верх последней — пол на y0)
-        B.box('marble', 0, -0.225, 0, 2 * HX + 1.6, 0.75, 2 * HZ + 1.6, { t: 0.95 });   // нижняя ступень уходит под землю одним куском: стык граней ровно на уровне земли мерцал со всех сторон
-        B.box('marble', 0, 0.225, 0, 2 * HX + 0.8, 0.15, 2 * HZ + 0.8, { t: 1.0 });
-        B.box('marble', 0, 0.375, 0, 2 * HX, 0.15, 2 * HZ, { t: 1.02 });
+        B.box(MB, 0, -0.225, 0, 2 * HX + 1.6, 0.75, 2 * HZ + 1.6, { t: 0.95 });   // нижняя ступень уходит под землю одним куском: стык граней ровно на уровне земли мерцал со всех сторон
+        B.box(MB, 0, 0.225, 0, 2 * HX + 0.8, 0.15, 2 * HZ + 0.8, { t: 1.0 });
+        B.box(MB, 0, 0.375, 0, 2 * HX, 0.15, 2 * HZ, { t: 1.02 });
         // колонны: 4 по фасаду и тылу, по 3 на боках между угловыми
         const colX = [-3.0, -1.0, 1.0, 3.0], colZ = [-4.4, 4.4], sideZ = [-2.2, 0, 2.2];
         const col = (x, z) => {
-            B.cyl('marble', x, y0, z, 0.44, 0.40, 0.12, 16, { t: 0.95 });
-            B.cyl('marble', x, y0 + 0.12, z, 0.38, 0.36, 0.10, 16, { t: 1.0 });
-            B.cyl('marble', x, y0 + 0.22, z, 0.35, 0.29, 3.2, 36, { flute: true, rings: 4, ent: 0.03, t: 1.0 });
-            B.cyl('marble', x, y0 + 3.42, z, 0.30, 0.43, 0.2, 16, { t: 0.97 });
-            B.box('marble', x, y0 + 3.7, z, 0.9, 0.16, 0.9, { t: 1.0 });
+            B.cyl(MB, x, y0, z, 0.44, 0.40, 0.12, 16, { t: 0.95 });
+            B.cyl(MB, x, y0 + 0.12, z, 0.38, 0.36, 0.10, 16, { t: 1.0 });
+            B.cyl(MB, x, y0 + 0.22, z, 0.35, 0.29, 3.2, 36, { flute: true, rings: 4, ent: 0.03, t: 1.0 });
+            B.cyl(MB, x, y0 + 3.42, z, 0.30, 0.43, 0.2, 16, { t: 0.97 });
+            B.box(MB, x, y0 + 3.7, z, 0.9, 0.16, 0.9, { t: 1.0 });
             rects.push(rect(x - 0.2, x + 0.2, z - 0.2, z + 0.2));
         };
         for (const z of colZ) for (const x of colX) col(x, z);
@@ -920,46 +922,46 @@
 
         // антаблемент: архитрав, фриз с триглифами, карниз
         const yA = y0 + 3.78, hxE = 3.55, hzE = 4.95;
-        B.box('marble', 0, yA + 0.275, hzE - 0.25, 2 * hxE, 0.55, 0.5, { t: 0.98 }); B.box('marble', 0, yA + 0.275, -hzE + 0.25, 2 * hxE, 0.55, 0.5, { t: 0.98 });
-        for (const sx of [-1, 1]) B.box('marble', sx * (hxE - 0.25), yA + 0.275, 0, 0.5, 0.55, 2 * hzE - 1.0, { t: 0.98 });
+        B.box(MB, 0, yA + 0.275, hzE - 0.25, 2 * hxE, 0.55, 0.5, { t: 0.98 }); B.box(MB, 0, yA + 0.275, -hzE + 0.25, 2 * hxE, 0.55, 0.5, { t: 0.98 });
+        for (const sx of [-1, 1]) B.box(MB, sx * (hxE - 0.25), yA + 0.275, 0, 0.5, 0.55, 2 * hzE - 1.0, { t: 0.98 });
         const yF = yA + 0.55;
-        B.box('marble', 0, yF + 0.3, hzE - 0.25, 2 * hxE - 0.1, 0.6, 0.3, { t: 0.96 }); B.box('marble', 0, yF + 0.3, -hzE + 0.25, 2 * hxE - 0.1, 0.6, 0.3, { t: 0.96 });
-        for (const sx of [-1, 1]) B.box('marble', sx * (hxE - 0.25), yF + 0.3, 0, 0.3, 0.6, 2 * hzE - 0.6, { t: 0.96 });
+        B.box(MB, 0, yF + 0.3, hzE - 0.25, 2 * hxE - 0.1, 0.6, 0.3, { t: 0.96 }); B.box(MB, 0, yF + 0.3, -hzE + 0.25, 2 * hxE - 0.1, 0.6, 0.3, { t: 0.96 });
+        for (const sx of [-1, 1]) B.box(MB, sx * (hxE - 0.25), yF + 0.3, 0, 0.3, 0.6, 2 * hzE - 0.6, { t: 0.96 });
         const trig = (x, z, yaw) => B.frame({ x, z, yaw }, () => {
-            B.box('marble', 0, yF + 0.3, 0.1, 0.26, 0.56, 0.07, { t: 1.02 });
+            B.box(MB, 0, yF + 0.3, 0.1, 0.26, 0.56, 0.07, { t: 1.02 });
             for (const gx of [-0.05, 0.05]) B.box('dark', gx, yF + 0.3, 0.14, 0.025, 0.46, 0.02, {});
         });
         for (let x = -3.3; x <= 3.31; x += 0.55) { trig(x, hzE - 0.1, 0); trig(x, -hzE + 0.1, Math.PI); }
         for (let z = -4.2; z <= 4.21; z += 0.55) { trig(hxE - 0.1, z, Math.PI / 2); trig(-hxE + 0.1, z, -Math.PI / 2); }
         const yC = yF + 0.6;
-        B.box('marble', 0, yC + 0.12, 0, 2 * hxE + 0.6, 0.24, 2 * hzE + 0.6, { t: 1.03, bottom: true });
+        B.box(MB, 0, yC + 0.12, 0, 2 * hxE + 0.6, 0.24, 2 * hzE + 0.6, { t: 1.03, bottom: true });
         const yB = yC + 0.24;
 
         // фронтоны, крыша (мрамор), акротерии
         const bhw = hxE + 0.25, ph = 0.95, ang = Math.atan2(ph, bhw), tan = ph / bhw;
         for (const sz of [-1, 1]) {
-            B.prism('marble', 'z', sz * (hzE - 0.12), yB, bhw - 0.05, ph - 0.03, 0.3, { t: 0.96 });
-            for (const sx of [-1, 1]) B.box('marble', sx * bhw / 2, yB + ph / 2 + 0.07, sz * (hzE + 0.02), bhw / Math.cos(ang) + 0.06, 0.2, 0.5, { rz: -sx * ang, t: 1.04 });
+            B.prism(MB, 'z', sz * (hzE - 0.12), yB, bhw - 0.05, ph - 0.03, 0.3, { t: 0.96 });
+            for (const sx of [-1, 1]) B.box(MB, sx * bhw / 2, yB + ph / 2 + 0.07, sz * (hzE + 0.02), bhw / Math.cos(ang) + 0.06, 0.2, 0.5, { rz: -sx * ang, t: 1.04 });
         }
         const yEv = yB + 0.02, yRg = yEv + (bhw + 0.1) * tan, rl = 2 * hzE + 0.7, rw = (bhw + 0.1) / Math.cos(ang) + 0.1;
-        for (const sx of [-1, 1]) B.box('marble', sx * (bhw + 0.1) / 2, (yEv + yRg) / 2 + 0.08, 0, rw, 0.16, rl, { rz: -sx * ang, t: [0.93, 0.95, 1.0], bottom: true, uv: 1.0 });
-        B.box('marble', 0, yRg + 0.16, 0, 0.42, 0.2, rl, { t: 1.04 });
+        for (const sx of [-1, 1]) B.box(MB, sx * (bhw + 0.1) / 2, (yEv + yRg) / 2 + 0.08, 0, rw, 0.16, rl, { rz: -sx * ang, t: [0.93, 0.95, 1.0], bottom: true, uv: 1.0 });
+        B.box(MB, 0, yRg + 0.16, 0, 0.42, 0.2, rl, { t: 1.04 });
 
         // целла: стены, дверной проём 2.2 м, фризовая надстройка под крышей
         const cx = 1.7, wt = 0.4, cTop = yB + 0.42, zF = 2.6, zB = -3.6, dh = 1.1;
-        B.box('marble', 0, (y0 + cTop) / 2, zB - wt / 2, 2 * cx + 0.0, cTop - y0, wt, { t: 0.99 });
-        for (const sx of [-1, 1]) B.box('marble', sx * (cx - wt / 2), (y0 + cTop) / 2, (zF + zB) / 2 - wt / 2, wt, cTop - y0, zF - zB - wt, { t: 0.99, ou: sx * 0.3 });
-        for (const sx of [-1, 1]) B.box('marble', sx * (dh + (cx - dh) / 2), (y0 + cTop) / 2, zF - wt / 2, cx - dh, cTop - y0, wt, { t: 1.0 });
-        B.box('marble', 0, y0 + 2.9 + (cTop - y0 - 2.9) / 2, zF - wt / 2, 2 * dh, cTop - y0 - 2.9, wt, { t: 1.0 });
-        B.prism('marble', 'z', zF - wt / 2, cTop, cx, 0.46, wt, { t: 0.96 }); B.prism('marble', 'z', zB + wt / 2, cTop, cx, 0.46, wt, { t: 0.96 });
+        B.box(MB, 0, (y0 + cTop) / 2, zB - wt / 2, 2 * cx + 0.0, cTop - y0, wt, { t: 0.99 });
+        for (const sx of [-1, 1]) B.box(MB, sx * (cx - wt / 2), (y0 + cTop) / 2, (zF + zB) / 2 - wt / 2, wt, cTop - y0, zF - zB - wt, { t: 0.99, ou: sx * 0.3 });
+        for (const sx of [-1, 1]) B.box(MB, sx * (dh + (cx - dh) / 2), (y0 + cTop) / 2, zF - wt / 2, cx - dh, cTop - y0, wt, { t: 1.0 });
+        B.box(MB, 0, y0 + 2.9 + (cTop - y0 - 2.9) / 2, zF - wt / 2, 2 * dh, cTop - y0 - 2.9, wt, { t: 1.0 });
+        B.prism(MB, 'z', zF - wt / 2, cTop, cx, 0.46, wt, { t: 0.96 }); B.prism(MB, 'z', zB + wt / 2, cTop, cx, 0.46, wt, { t: 0.96 });
         rects.push(rect(-cx, cx, zB - 0.02, zB + wt), rect(-cx, -cx + wt, zB, zF), rect(cx - wt, cx, zB, zF),
             rect(-cx, -dh, zF - wt, zF), rect(dh, cx, zF - wt, zF));
         // внутри: постамент со статуей-амфорой и жаровня
-        B.box('marble', 0, y0 + 0.45, zB + 1.05, 1.3, 0.9, 1.3, { t: 1.03 });
-        B.box('marble', 0, y0 + 0.95, zB + 1.05, 1.6, 0.1, 1.6, { t: 1.04 });
-        B.cyl('marble', 0, y0 + 1.0, zB + 1.05, 0.25, 0.4, 0.7, 14, { rings: 2, ent: 0.15 });
-        B.cyl('marble', 0, y0 + 1.7, zB + 1.05, 0.4, 0.2, 0.28, 14, {});
-        B.cyl('marble', 0, y0 + 1.98, zB + 1.05, 0.2, 0.2, 0.5, 12, {});
+        B.box(MB, 0, y0 + 0.45, zB + 1.05, 1.3, 0.9, 1.3, { t: 1.03 });
+        B.box(MB, 0, y0 + 0.95, zB + 1.05, 1.6, 0.1, 1.6, { t: 1.04 });
+        B.cyl(MB, 0, y0 + 1.0, zB + 1.05, 0.25, 0.4, 0.7, 14, { rings: 2, ent: 0.15 });
+        B.cyl(MB, 0, y0 + 1.7, zB + 1.05, 0.4, 0.2, 0.28, 14, {});
+        B.cyl(MB, 0, y0 + 1.98, zB + 1.05, 0.2, 0.2, 0.5, 12, {});
         rects.push(rect(-0.8, 0.8, zB + 0.35, zB + 1.75));
 
         const stylo = { hx: HX, hz: HZ, y: y0, rampLen: 0.8 };
@@ -1670,7 +1672,7 @@
     }
 
     const TYPES = { seaWarehouse: buildSeaWarehouse, seaQuay: buildSeaQuay, seaPier: buildSeaPier, templeGate: buildTempleGate, portalVeil: buildPortalVeil, stoneHouse: buildStoneHouse, hearthCottage: buildHearthCottage, marbleTemple: buildMarbleTemple, tavern: buildTavern, villageTavern: buildVillageTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall, buildTempleGate };
-    const CAMERA_BLOCK = { seaWarehouse: ['mplinth', 'vbeam', 'plank', 'slate', 'mbeam'], templeGate: ['stone'], stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], hearthCottage: ['stone', 'slate', 'wood', 'plaster', 'deck', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], villageTavern: ['vplaster', 'vbeam', 'vshingle', 'mplinth'], corral: [], castleWall: ['wallstone', 'wallcap'] };
+    const CAMERA_BLOCK = { seaWarehouse: ['mplinth', 'vbeam', 'plank', 'slate', 'mbeam'], templeGate: ['stone'], stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], hearthCottage: ['stone', 'slate', 'wood', 'plaster', 'deck', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble', 'mgrey'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], villageTavern: ['vplaster', 'vbeam', 'vshingle', 'mplinth'], corral: [], castleWall: ['wallstone', 'wallcap'] };
 
     // ------------------------------------------------------------------ менеджер локации
     class AveloraTown {
