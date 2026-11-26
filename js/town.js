@@ -1586,6 +1586,56 @@
         return { rects, platform: null, w: L, d: 1.2, h: 0.7 };
     }
 
+    // seaWarehouse: портовый склад — каменный цоколь, дощатые стены (брус таверны, доски вертикально), две большие грузовые двери на фасаде (+Z),
+    // люк чердака с выносной балкой, блоком и тросом, двускатная сланцевая крыша, отдушины, ящики и бочки у фасада. Окон нет — это не жилой дом.
+    // cfg: W (вдоль x, 16), D (9), H (карниз, 4.6), seed.
+    function buildSeaWarehouse(B, cfg) {
+        const W = cfg.W || 16, D = cfg.D || 9, H = cfg.H || 4.6, FR = D / 2;
+        const rect = (x0, x1, z0, z1) => ({ x0, x1, z0, z1 });
+        const rects = [rect(-W / 2 - 0.3, W / 2 + 0.3, -D / 2 - 0.3, D / 2 + 0.3), rect(-W / 2 + 1.0, W / 2 - 1.0, FR, FR + 1.5)];
+        B.box('mplinth', 0, -0.025, 0, W + 0.4, 1.15, D + 0.4, { uv: 0.303 });                                   // цоколь −0.6…0.55
+        B.box('vbeam', 0, (0.55 + H) / 2, 0, W, H - 0.55, D, { uv: 0.484, vert: true, t: 0.78 });                 // дощатые стены, доски вертикально
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) B.box('mbeam', sx * (W / 2 - 0.05), (0.55 + H) / 2, sz * (D / 2 - 0.05), 0.34, H - 0.55, 0.34, { uv: 1.36, vert: true, t: 0.8 });   // угловые стойки
+        for (const yy of [2.3, H - 0.18]) B.box('mbeam', 0, yy, 0, W + 0.12, 0.22, D + 0.12, { uv: 1.36, t: 0.82 });   // пояса
+        // крыша
+        const a = 0.5, tan = Math.tan(a), ovh = 0.7, yW = H + 0.12, run = D / 2 + ovh;
+        const yE = yW + 0.05 - ovh * tan, yR = yW + 0.05 + (D / 2) * tan, len = run / Math.cos(a) + 0.12, wr = W + 1.2, zc = run / 2, yc = (yE + yR) / 2 + 0.1;
+        B.box('slate', 0, yc, zc, wr, 0.2, len, { rx: a, bottom: true, uv: 1.0 });
+        B.box('slate', 0, yc, -zc, wr, 0.2, len, { rx: -a, bottom: true, uv: 1.0 });
+        B.box('mbeam', 0, yR + 0.14, 0, wr + 0.08, 0.2, 0.4, { uv: 1.36, t: 0.8 });                                // конёк
+        for (const sx of [-1, 1]) B.prism('vbeam', 'x', sx * (W / 2 - 0.25), yW - 0.02, D / 2, (D / 2) * tan + 0.02, 0.5, { uv: 0.484, t: 0.78 });
+        B.prism('vbeam', 'x', 0, H + 0.1, D / 2 + 0.03, (D / 2 + 0.03) * tan, W - 0.1, { uv: 0.484, t: 0.78 });   // сплошной чердак под крышей
+        // две грузовые двери: створки из досок, рама из бруса, железные полосы
+        for (const dx of [-W * 0.25, W * 0.25]) {
+            B.box('plank', dx, 0.55 + 1.7, FR + 0.04, 3.9, 3.4, 0.14, { uv: 0.6, t: 0.82 });
+            for (const sx of [-1, 1]) B.box('mbeam', dx + sx * 2.05, 0.55 + 1.9, FR + 0.1, 0.3, 3.8, 0.3, { uv: 1.36, vert: true, t: 0.8 });
+            B.box('mbeam', dx, 0.55 + 3.6, FR + 0.1, 4.4, 0.36, 0.3, { uv: 1.36, t: 0.8 });
+            B.box('dark', dx, 0.55 + 1.7, FR + 0.12, 0.06, 3.3, 0.04, {});                                           // шов между створками
+            for (const yy of [0.7, 2.6]) for (const sx of [-1, 1]) B.box('dark', dx + sx * 1.0, 0.55 + yy, FR + 0.13, 1.7, 0.1, 0.04, {});   // полосы
+            B.box('mplinth', dx, 0.28, FR + 0.55, 4.6, 0.56, 1.1, { uv: 0.303 });                                    // грузовая площадка
+        }
+        // чердачный люк, выносная балка с блоком и тросом
+        B.box('plank', 0, H + 1.05, FR + 0.1, 1.3, 1.5, 0.1, { uv: 0.6, t: 0.8 });
+        for (const sx of [-1, 1]) B.box('mbeam', sx * 0.75, H + 1.05, FR + 0.13, 0.16, 1.7, 0.16, { uv: 1.36, vert: true, t: 0.8 });
+        B.box('mbeam', 0, H + 1.95, FR + 0.13, 1.7, 0.16, 0.16, { uv: 1.36, t: 0.8 });
+        B.box('mbeam', 0, H + 2.45, FR + 0.7, 0.22, 0.22, 2.9, { uv: 1.36, t: 0.78 });                              // выносная балка вдоль z
+        B.box('mbeam', 0, H + 1.8, FR + 0.55, 0.16, 0.16, 1.7, { uv: 1.36, rx: 0.9, t: 0.78 });                    // подкос
+        B.cyl('dark', 0, H + 2.05, FR + 1.95, 0.2, 0.2, 0.1, 10, { uv: 1.0 });                                     // блок
+        B.box('raw', 0, H + 1.2, FR + 1.95, 0.06, 1.5, 0.06, { t: [0.4, 0.3, 0.18] });                              // трос
+        B.box('dark', 0, H + 0.4, FR + 1.95, 0.14, 0.3, 0.1, {});                                                  // крюк
+        // отдушины в верхней части боковых стен и тыльной
+        for (const sz of [-1, 1]) for (const x of [-W * 0.3, 0, W * 0.3]) { B.box('dark', x, H - 0.9, sz * (D / 2 + 0.01), 0.7, 0.9, 0.04, {}); }
+        for (const sx of [-1, 1]) B.box('dark', sx * (W / 2 + 0.01), H - 0.9, 0, 0.04, 0.9, 0.7, {});
+        // ящики и бочки у фасада (между дверями и у угла)
+        const crate = (x, y, z, s2, r) => { B.box('plank', x, y + s2 / 2, z, s2, s2, s2, { uv: 0.6, ry: r, t: 0.9 }); B.box('mbeam', x, y + s2 / 2, z, s2 + 0.04, 0.1, s2 + 0.04, { uv: 1.36, ry: r, t: 0.7 }); };
+        crate(-W / 2 + 0.9, 0, FR + 1.0, 1.0, 0.1); crate(-W / 2 + 0.9, 1.0, FR + 1.0, 0.9, -0.2); crate(-W / 2 + 2.2, 0, FR + 0.9, 0.9, 0.3);
+        for (const [bx, bz] of [[W / 2 - 0.9, FR + 0.9], [W / 2 - 1.9, FR + 0.8], [W / 2 - 1.4, FR + 1.7]]) {
+            B.cyl('vbeam', bx, 0, bz, 0.4, 0.4, 0.95, 10, { uv: 0.484, t: 0.85 });
+            for (const hy of [0.18, 0.75]) B.cyl('dark', bx, hy, bz, 0.42, 0.42, 0.07, 10, { uv: 1.0 });
+        }
+        return { rects, platform: null, w: W, d: D, h: yR + 1.2 };
+    }
+
     // seaPier: дощатый пирс на сваях над глубокой водой. Начало — на линии набережной (локальный −Z — в море), настил заходит на сушу на ROOT м.
     // W — ширина, D — длина в море; headW/headD — поперечная «головка» на конце (Т-образный пирс). Ходимый настил (terrain.addPlatform);
     // у краёв (1.5 м) клетки навигации закрыты (поле nav) — упасть в воду нельзя, у берега проход открыт. Тумбы по краям — только вид.
@@ -1600,8 +1650,8 @@
             const len = zMax - zMin, GAP = 0.03;
             B.box('raw', R.cx, TOP - 0.12, R.cz, 2 * R.hx - 0.02, 0.04, len - 0.02, { t: [0.06, 0.04, 0.02] });             // тёмная подложка: щели между досками
             for (let z = zMin; z < zMax - 0.05;) {
-                const w = Math.min(0.52 + B.rnd() * 0.16, zMax - z);
-                B.box('plank', R.cx, TOP - 0.05, z + w / 2, 2 * R.hx, 0.1, w - GAP, { uv: 0.6, ou: B.rnd(), ov: B.rnd(), t: 0.85 + B.rnd() * 0.3 });
+                const w = Math.min(0.94 + B.rnd() * 0.12, zMax - z);
+                B.box('plank', R.cx, TOP - 0.05, z + w / 2, 2 * R.hx, 0.1, w - GAP, { uv: 0.5, ou: B.rnd(), ov: B.rnd(), t: 0.85 + B.rnd() * 0.3 });
                 z += w;
             }
             for (const fx of [-0.34, 0, 0.34]) B.box('vbeam', R.cx + fx * 2 * R.hx, TOP - 0.21, R.cz, 0.26, 0.18, len - 0.1, { uv: 0.484, t: 0.7 });   // продольные брусья под настилом (верх ниже верха подложки)
@@ -1619,8 +1669,8 @@
         return { rects: [], platform: null, platforms, w: W, d: D, h: 0.7 };
     }
 
-    const TYPES = { seaQuay: buildSeaQuay, seaPier: buildSeaPier, templeGate: buildTempleGate, portalVeil: buildPortalVeil, stoneHouse: buildStoneHouse, hearthCottage: buildHearthCottage, marbleTemple: buildMarbleTemple, tavern: buildTavern, villageTavern: buildVillageTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall, buildTempleGate };
-    const CAMERA_BLOCK = { templeGate: ['stone'], stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], hearthCottage: ['stone', 'slate', 'wood', 'plaster', 'deck', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], villageTavern: ['vplaster', 'vbeam', 'vshingle', 'mplinth'], corral: [], castleWall: ['wallstone', 'wallcap'] };
+    const TYPES = { seaWarehouse: buildSeaWarehouse, seaQuay: buildSeaQuay, seaPier: buildSeaPier, templeGate: buildTempleGate, portalVeil: buildPortalVeil, stoneHouse: buildStoneHouse, hearthCottage: buildHearthCottage, marbleTemple: buildMarbleTemple, tavern: buildTavern, villageTavern: buildVillageTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall, buildTempleGate };
+    const CAMERA_BLOCK = { seaWarehouse: ['mplinth', 'vbeam', 'plank', 'slate', 'mbeam'], templeGate: ['stone'], stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], hearthCottage: ['stone', 'slate', 'wood', 'plaster', 'deck', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], villageTavern: ['vplaster', 'vbeam', 'vshingle', 'mplinth'], corral: [], castleWall: ['wallstone', 'wallcap'] };
 
     // ------------------------------------------------------------------ менеджер локации
     class AveloraTown {

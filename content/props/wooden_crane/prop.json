@@ -1,0 +1,9 @@
+{
+  "id": "wooden_crane",
+  "name": "Деревянный портовый кран",
+  "obstacle": 0,
+  "obstacleShapes": [
+    { "type": "box", "cx": 0.0, "cz": 0.0, "hx": 2.0, "hz": 3.0, "r": 0.4, "step": 0.5, "exact": true }
+  ],
+  "cameraBlock": true
+}

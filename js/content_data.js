@@ -7151,6 +7151,12 @@ window.GAME_CONTENT = {
    ],
    "modelKey": "props/azure_starwatch_tower"
   },
+  "azure_voyager": {
+   "id": "azure_voyager",
+   "name": "Парусник «Лазурный странник»",
+   "obstacle": 0,
+   "modelKey": "props/azure_voyager"
+  },
   "blue_horseshoe_stable": {
    "id": "blue_horseshoe_stable",
    "name": "Конюшня «Синяя подкова»",
@@ -7366,6 +7372,150 @@ window.GAME_CONTENT = {
     "size": 1.0
    },
    "modelKey": "props/campfire"
+  },
+  "cargo1_barrel_lying": {
+   "id": "cargo1_barrel_lying",
+   "name": "cargo1_barrel_lying",
+   "obstacle": 0.6,
+   "modelKey": "props/cargo1_barrel_lying"
+  },
+  "cargo1_barrel_rope": {
+   "id": "cargo1_barrel_rope",
+   "name": "cargo1_barrel_rope",
+   "obstacle": 0.45,
+   "modelKey": "props/cargo1_barrel_rope"
+  },
+  "cargo1_barrel_s1": {
+   "id": "cargo1_barrel_s1",
+   "name": "cargo1_barrel_s1",
+   "obstacle": 0.45,
+   "modelKey": "props/cargo1_barrel_s1"
+  },
+  "cargo1_barrel_s2": {
+   "id": "cargo1_barrel_s2",
+   "name": "cargo1_barrel_s2",
+   "obstacle": 0.45,
+   "modelKey": "props/cargo1_barrel_s2"
+  },
+  "cargo1_barrel_s3": {
+   "id": "cargo1_barrel_s3",
+   "name": "cargo1_barrel_s3",
+   "obstacle": 0.45,
+   "modelKey": "props/cargo1_barrel_s3"
+  },
+  "cargo1_barrel_tall": {
+   "id": "cargo1_barrel_tall",
+   "name": "cargo1_barrel_tall",
+   "obstacle": 0.45,
+   "modelKey": "props/cargo1_barrel_tall"
+  },
+  "cargo1_crate_a": {
+   "id": "cargo1_crate_a",
+   "name": "cargo1_crate_a",
+   "obstacle": 0.45,
+   "modelKey": "props/cargo1_crate_a"
+  },
+  "cargo1_crate_b": {
+   "id": "cargo1_crate_b",
+   "name": "cargo1_crate_b",
+   "obstacle": 0.45,
+   "modelKey": "props/cargo1_crate_b"
+  },
+  "cargo1_crate_big": {
+   "id": "cargo1_crate_big",
+   "name": "cargo1_crate_big",
+   "obstacle": 0.75,
+   "modelKey": "props/cargo1_crate_big"
+  },
+  "cargo1_net_crate": {
+   "id": "cargo1_net_crate",
+   "name": "cargo1_net_crate",
+   "obstacle": 0.6,
+   "modelKey": "props/cargo1_net_crate"
+  },
+  "cargo1_sacks": {
+   "id": "cargo1_sacks",
+   "name": "cargo1_sacks",
+   "obstacle": 0.6,
+   "modelKey": "props/cargo1_sacks"
+  },
+  "cargo2_barrel_a": {
+   "id": "cargo2_barrel_a",
+   "name": "cargo2_barrel_a",
+   "obstacle": 0.45,
+   "modelKey": "props/cargo2_barrel_a"
+  },
+  "cargo2_barrel_cloth": {
+   "id": "cargo2_barrel_cloth",
+   "name": "cargo2_barrel_cloth",
+   "obstacle": 0.45,
+   "modelKey": "props/cargo2_barrel_cloth"
+  },
+  "cargo2_barrel_lying": {
+   "id": "cargo2_barrel_lying",
+   "name": "cargo2_barrel_lying",
+   "obstacle": 0.45,
+   "modelKey": "props/cargo2_barrel_lying"
+  },
+  "cargo2_barrel_small": {
+   "id": "cargo2_barrel_small",
+   "name": "cargo2_barrel_small",
+   "obstacle": 0.3,
+   "modelKey": "props/cargo2_barrel_small"
+  },
+  "cargo2_barrel_tall": {
+   "id": "cargo2_barrel_tall",
+   "name": "cargo2_barrel_tall",
+   "obstacle": 0.45,
+   "modelKey": "props/cargo2_barrel_tall"
+  },
+  "cargo2_barrels_group": {
+   "id": "cargo2_barrels_group",
+   "name": "cargo2_barrels_group",
+   "obstacle": 0.6,
+   "modelKey": "props/cargo2_barrels_group"
+  },
+  "cargo2_crate_a": {
+   "id": "cargo2_crate_a",
+   "name": "cargo2_crate_a",
+   "obstacle": 0.45,
+   "modelKey": "props/cargo2_crate_a"
+  },
+  "cargo2_crate_b": {
+   "id": "cargo2_crate_b",
+   "name": "cargo2_crate_b",
+   "obstacle": 0.45,
+   "modelKey": "props/cargo2_crate_b"
+  },
+  "cargo2_crate_big": {
+   "id": "cargo2_crate_big",
+   "name": "cargo2_crate_big",
+   "obstacle": 0.65,
+   "modelKey": "props/cargo2_crate_big"
+  },
+  "cargo2_crate_ropes": {
+   "id": "cargo2_crate_ropes",
+   "name": "cargo2_crate_ropes",
+   "obstacle": 0.6,
+   "modelKey": "props/cargo2_crate_ropes"
+  },
+  "cargo2_crate_sacks": {
+   "id": "cargo2_crate_sacks",
+   "name": "cargo2_crate_sacks",
+   "obstacle": 0.45,
+   "modelKey": "props/cargo2_crate_sacks"
+  },
+  "cargo2_sack": {
+   "id": "cargo2_sack",
+   "name": "cargo2_sack",
+   "obstacle": 0.45,
+   "modelKey": "props/cargo2_sack"
+  },
+  "cargo2_sacks_crate": {
+   "id": "cargo2_sacks_crate",
+   "name": "cargo2_sacks_crate",
+   "obstacle": 0.65,
+   "modelKey": "props/cargo2_sacks_crate"
   },
   "charred_tree": {
    "id": "charred_tree",
@@ -12336,6 +12486,25 @@ window.GAME_CONTENT = {
    "cameraBlock": true,
    "modelKey": "props/timber_cottage"
   },
+  "timber_warehouse": {
+   "id": "timber_warehouse",
+   "name": "Портовый склад",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": 0.0,
+     "cz": -1.33,
+     "hx": 7.5,
+     "hz": 4.55,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/timber_warehouse"
+  },
   "training_dummy": {
    "id": "training_dummy",
    "name": "Тренировочный манекен",
@@ -14042,6 +14211,25 @@ window.GAME_CONTENT = {
     }
    ],
    "modelKey": "props/weapon_rack"
+  },
+  "wooden_crane": {
+   "id": "wooden_crane",
+   "name": "Деревянный портовый кран",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": 0.0,
+     "cz": 0.0,
+     "hx": 2.0,
+     "hz": 3.0,
+     "r": 0.4,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "cameraBlock": true,
+   "modelKey": "props/wooden_crane"
   },
   "woodshed": {
    "id": "woodshed",
