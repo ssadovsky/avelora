@@ -378,7 +378,7 @@
 
     function sharedMaterials() {
         if (SHARED) { SHARED.refs++; return SHARED; }
-        const T = { stone: makeStoneTex(), marble: makeMarbleTex(), wood: makeWoodTex(), slate: makeSlateTex(), plaster: makePlasterTex(), deck: makeDeckTex(), sign: makeSignTex(), gatePanel: makeGatePanelTex(), gateSign: makeGateSignTex(), chGlass: makeChapelGlassTex(), chRose: makeChapelRoseTex(), chBanner: makeChapelBannerTex() };
+        const T = { stone: makeStoneTex(), marble: makeMarbleTex(), wood: makeWoodTex(), slate: makeSlateTex(), plaster: makePlasterTex(), deck: makeDeckTex(), sign: makeSignTex(), gatePanel: makeGatePanelTex(), gateSign: makeGateSignTex(), chGlass: makeChapelGlassTex(), chRose: makeChapelRoseTex(), chBanner: makeChapelBannerTex(), ofSign: makeOfficeSignTex() };
         const std = (map, bump, o) => new THREE.MeshStandardMaterial(Object.assign({ map, bumpMap: bump || null, bumpScale: bump ? 2.2 : 0, roughness: 0.92, metalness: 0, vertexColors: true }, o || {}));
         SHARED = {
             refs: 1, tex: T,
@@ -403,7 +403,8 @@
                 gateSign: new THREE.MeshStandardMaterial({ map: T.gateSign.map, roughness: 0.7, metalness: 0, vertexColors: true }),
                 chGlass: new THREE.MeshStandardMaterial({ map: T.chGlass.map, alphaTest: 0.5, roughness: 0.3, metalness: 0, vertexColors: true, emissive: 0xffffff, emissiveMap: T.chGlass.map, emissiveIntensity: 0.45 }),
                 chRose: new THREE.MeshStandardMaterial({ map: T.chRose.map, alphaTest: 0.5, roughness: 0.6, metalness: 0, vertexColors: true, emissive: 0xffffff, emissiveMap: T.chRose.map, emissiveIntensity: 0.15 }),
-                chBanner: new THREE.MeshStandardMaterial({ map: T.chBanner.map, alphaTest: 0.5, roughness: 0.9, metalness: 0, vertexColors: true, side: THREE.DoubleSide })
+                chBanner: new THREE.MeshStandardMaterial({ map: T.chBanner.map, alphaTest: 0.5, roughness: 0.9, metalness: 0, vertexColors: true, side: THREE.DoubleSide }),
+                ofSign: new THREE.MeshStandardMaterial({ map: T.ofSign.map, roughness: 0.8, metalness: 0, vertexColors: true })
             }
         };
         // текстуры из Meshy-коттеджа (build_assets: townMeshStone/Plinth/Window) для домов с meshTex: true; без них — обычный камень
@@ -1167,6 +1168,120 @@
         const platforms = [{ cx: XC, cz: PZ + 0.35, hx: PW + 0.2, hz: 0.35, y: y0, rampLen: 0.9, rampHx: PW + 0.2, endY: 0 }];
         return { rects, platform: null, platforms, w: XR - TX0 + 0.5, d: ZF - TZ0 + 2.4, h: yA + 1.2 };
     }
+    // harbourOffice: контора начальника порта (2026-11-27) — небольшой двухэтажный дом в стиле городских: каменный низ, фахверк, синяя черепица
+    // (конёк вдоль X), фронтон над входом с окном, крыльцо на двух столбах и две низкие ступени, вывеска на кованом кронштейне у угла,
+    // флагшток со знаменем на коньке, каменная труба. Фасад +Z. cfg: W (вдоль x, 9.6), D (7.4). Внутрь не заходят (rects).
+    function makeOfficeSignTex() {   // вывеска 512×256: тёмная доска, золотая кайма, якорь, надпись
+        const W = 512, H = 256, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+        g.fillStyle = '#2a1d12'; g.fillRect(0, 0, W, H);
+        g.fillStyle = '#3e2c1c'; g.fillRect(12, 12, W - 24, H - 24);
+        g.strokeStyle = '#c99a3a'; g.lineWidth = 6; g.strokeRect(22, 22, W - 44, H - 44);
+        // якорь
+        g.save(); g.translate(96, 128); g.strokeStyle = '#e8c76a'; g.fillStyle = '#e8c76a'; g.lineWidth = 9; g.lineCap = 'round';
+        g.beginPath(); g.arc(0, -62, 12, 0, Math.PI * 2); g.stroke();
+        g.beginPath(); g.moveTo(0, -50); g.lineTo(0, 62); g.stroke();
+        g.beginPath(); g.moveTo(-30, -30); g.lineTo(30, -30); g.stroke();
+        g.beginPath(); g.arc(0, 18, 46, 0.15 * Math.PI, 0.85 * Math.PI); g.stroke();
+        for (const sx of [-1, 1]) { g.beginPath(); g.moveTo(sx * 44, 34); g.lineTo(sx * 58, 18); g.lineTo(sx * 36, 20); g.closePath(); g.fill(); }
+        g.restore();
+        g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#f3dc92';
+        g.shadowColor = 'rgba(0,0,0,0.7)'; g.shadowBlur = 6;
+        g.font = 'bold 50px Georgia, "Times New Roman", serif'; g.fillText('ПОРТОВАЯ', 300, 98);
+        g.font = 'bold 50px Georgia, "Times New Roman", serif'; g.fillText('КОНТОРА', 300, 160);
+        return chapelTex(c);
+    }
+    function buildHarbourOffice(B, cfg) {
+        const W = cfg.W || 9.6, D = cfg.D || 7.4, FR = D / 2, HX = W / 2;
+        const rect = (x0, x1, z0, z1) => ({ x0, x1, z0, z1 });
+        const ST = 'mstone', PL = 'mplinth', UVS = 0.851, UVP = 0.303;
+        const yP = 0.55, yJ = 3.5, yTop = 5.9, OV = 0.25, xU = HX + OV, zU = FR + OV;
+        const beam = (x, y, z, sx, sy, sz, tint, o) => B.box('mbeam', x, y, z, sx, sy, sz, Object.assign({ t: tint === undefined ? 1.0 : Math.min(1.15, 0.45 + tint * 0.7), uv: 1.36, vert: !(o && (o.rx || o.ry || o.rz)) && sy > sx && sy > sz }, o || {}));
+        const win = (mat, x, z, yaw, y, k) => B.frame({ x, z, yaw }, () => mat === 'mwin' ? B.sign('mwin', 0, y - 0.05 * k, 0.06, 2.3 * k, 1.87 * k) : B.sign('mwinnf', 0, y + 0.14 * k, 0.06, 2.3 * k, 1.49 * k));
+        const yaw = (sx) => sx > 0 ? Math.PI / 2 : -Math.PI / 2;
+
+        // ---------- первый этаж
+        B.box(PL, 0, (yP - 0.6) / 2, 0, W + 0.4, yP + 0.6, D + 0.4, { uv: UVP });
+        B.box(ST, 0, (yP + yJ) / 2, 0, W, yJ - yP, D, { uv: UVS });
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) beam(sx * (HX - 0.06), (yP + yJ - 0.14) / 2, sz * (FR - 0.06), 0.26, yJ - 0.14 - yP, 0.26, 0.8);
+        beam(0, yJ + 0.02, 0, W + 0.65, 0.24, D + 0.65, 0.7, { bottom: true });
+
+        // ---------- второй этаж: штукатурка, фахверк
+        B.box('plaster', 0, (yJ + 0.14 + yTop) / 2, 0, 2 * xU, yTop - yJ - 0.14, 2 * zU, { uv: 1.0, t: [1.03, 1.0, 0.93] });
+        beam(0, yTop - 0.06, 0, 2 * xU + 0.2, 0.22, 2 * zU + 0.2, 0.7);
+        const yM = (yJ + 0.14 + yTop - 0.17) / 2, hM = yTop - 0.17 - yJ - 0.14;
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) beam(sx * (xU - 0.02), yM, sz * (zU - 0.02), 0.2, hM, 0.2, 0.8);
+        for (const x of [-1.85, 1.85]) beam(x, yM, zU + 0.05, 0.16, hM, 0.1, 0.78);                 // фасад: стойки по краям фронтона
+        for (const x of [-2.4, 0, 2.4]) beam(x, yM, -zU - 0.05, 0.16, hM, 0.1, 0.78);               // тыл
+        for (const sx of [-1, 1]) beam(sx * (xU + 0.05), yM, 0, 0.1, hM, 0.16, 0.78);               // бока
+        for (const sx of [-1, 1]) {                                                                   // раскосы в крайних пролётах тыла
+            const x0 = sx * (xU - 0.14), x1 = sx * 2.5, dx = x1 - x0, L = Math.hypot(dx, hM) - 0.1, a = Math.atan2(hM, Math.abs(dx));
+            beam((x0 + x1) / 2, yM, -zU - 0.04, L, 0.14, 0.08, 0.74, { rz: dx > 0 ? a : -a });
+        }
+        const yW2 = yJ + 0.22 + 0.605 * 0.8 + 0.05;
+        for (const sx of [-1, 1]) win('mwin', sx * 3.2, zU, 0, yW2 + 0.25, 0.75);                    // фасад: окна с цветами
+        for (const x of [-1.2, 1.2]) win('mwinnf', x, -zU, Math.PI, yW2, 0.8);
+        for (const sx of [-1, 1]) for (const z of [-zU / 2, zU / 2]) win('mwinnf', sx * xU, z, yaw(sx), yW2, 0.8);
+
+        // ---------- крыша (конёк вдоль X), фронтоны боков
+        const ANG = 0.6, tan = Math.tan(ANG), ov = 0.5, run = zU + ov, yE = yTop - ov * tan, yR = yTop + zU * tan;
+        const slope = run / Math.cos(ANG) + 0.12, yc = (yE + yR) / 2 + 0.1, lenR = 2 * xU + 0.9;
+        for (const s of [-1, 1]) B.box('slate', 0, yc, s * run / 2, lenR + (s > 0 ? 0.08 : 0), 0.22, slope, { rx: s * ANG, bottom: true });
+        beam(0, yR + 0.17, 0, lenR + 0.3, 0.16, 0.38, 0.72);
+        for (const s of [-1, 1]) beam(0, yE, s * run, lenR + 0.2, 0.18, 0.18, 0.72);
+        for (const sx of [-1, 1]) {
+            B.prism('plaster', 'x', sx * (xU - 0.08), yTop, zU, yR - yTop, 0.16, { uv: 1.2, t: [1.08, 1.03, 0.96] });
+            for (const sz of [-1, 1]) beam(sx * (xU + 0.06 + (sz > 0 ? 0.015 : 0)), (yTop + yR) / 2 - 0.04, sz * zU / 2, 0.14, 0.2, zU / Math.cos(ANG) + 0.15, 1.0, { rx: sz * ANG });
+            win('mwinnf', sx * xU, 0, yaw(sx), yTop + 0.6, 0.55);
+        }
+
+        // ---------- фронтон над входом (поперечный щипец): штукатурное тело до карниза щипца, треугольник, своя крыша до основного ската
+        const gH = 1.75, gA = 0.72, gT = Math.tan(gA), gEv = yTop + 0.3, gRise = gH * gT, gyR = gEv + gRise, gZ1 = 1.0;
+        B.box('plaster', 0, (yTop + 0.02 + gEv) / 2, (zU + gZ1) / 2, 2 * gH, gEv - yTop - 0.02, zU - gZ1, { uv: 1.0, t: [1.03, 1.0, 0.93] });
+        B.prism('plaster', 'z', zU - 0.08, gEv, gH, gRise, 0.16, { uv: 1.2, t: [1.08, 1.03, 0.96] });
+        const gRun = gH + 0.3, gLen = zU + 0.3 - gZ1, gZc = (zU + 0.3 + gZ1) / 2, gyE = gEv - 0.3 * gT;
+        for (const s of [-1, 1]) B.box('slate', s * gRun / 2, (gyE + gyR) / 2 + 0.1, gZc, gRun / Math.cos(gA) + 0.12, 0.2, gLen + (s > 0 ? 0.08 : 0), { rz: -s * gA, bottom: true });
+        beam(0, gyR + 0.16, gZc, 0.3, 0.14, gLen + 0.2, 0.72);
+        for (const sx of [-1, 1]) beam(sx * gH / 2, gEv + gRise / 2 + 0.02, zU + 0.12 + sx * 0.02, gH / Math.cos(gA) + 0.1, 0.18, 0.14, 1.0, { rz: -sx * gA });
+        beam(0, gEv, zU + 0.05, 2 * gH + 0.1, 0.16, 0.12, 0.8);
+        win('mwin', 0, zU, 0, gEv + 0.45, 0.5);
+
+        // ---------- вход: дверь, окна первого этажа, крыльцо
+        B.sign('mdoor', 0, yP + 1.135, FR + 0.06, 1.98, 2.27);
+        for (const sx of [-1, 1]) win('mwinnf', sx * 2.75, FR, 0, 1.95, 0.9);
+        for (const x of [-2.4, 2.4]) win('mwinnf', x, -FR, Math.PI, 1.95, 0.9);
+        for (const sx of [-1, 1]) win('mwinnf', sx * HX, 0, yaw(sx), 1.95, 0.9);
+        B.box(PL, 0, (yP - 0.6) / 2, FR + 0.2 + 0.35, 2.6, yP + 0.6, 0.7, { uv: UVP, t: 1.04 });          // площадка
+        B.box(PL, 0, (0.27 - 0.6) / 2, FR + 0.9 + 0.2, 2.6, 0.87, 0.4, { uv: UVP, t: 1.0 });              // ступень
+        // навес крыльца: односкатный от стены (y 3.3) к двум столбам (y 2.95)
+        const pZ = FR + 1.55, pTop = 2.95, pW0 = 3.3, pZ1 = pZ + 0.3, pa = Math.atan2(pW0 - pTop, pZ1 - FR), pL = Math.hypot(pZ1 - FR + 0.05, pW0 - pTop);
+        for (const sx of [-1, 1]) beam(sx * 1.3, (pTop + 0.16) / 2, pZ, 0.2, pTop + 0.16, 0.2, 0.82);   // до нижней плоскости навеса (верх уходит в черепицу)
+        beam(0, pTop + 0.02, pZ, 2.9, 0.16, 0.3, 0.72);                                                 // балка навеса шире столбов (иначе грани совпадают)
+        B.box('slate', 0, (pW0 + pTop) / 2 + 0.17, (FR + pZ1) / 2, 3.3, 0.18, pL, { rx: pa, bottom: true });
+        for (const sx of [-1, 1]) beam(sx * 1.3, pTop + 0.15 + 0.08, (FR + pZ) / 2 + 0.05, 0.14, 0.14, pZ - FR + 0.1, 0.72, { rx: pa });   // стропила навеса
+
+        // ---------- вывеска на кованом кронштейне у правого угла фасада (перпендикулярно стене)
+        const sxS = HX - 0.45, syS = 2.85;
+        B.box('dark', sxS, syS + 0.45, FR + 0.55, 0.06, 0.06, 1.1, {});                                      // кронштейн
+        B.box('dark', sxS, syS + 0.2, FR + 0.25, 0.05, 0.5, 0.05, { rx: 0.7 });                              // подкос
+        for (const z of [FR + 0.25, FR + 0.95]) B.box('dark', sxS, syS + 0.33, z, 0.03, 0.22, 0.03, {});     // цепи
+        B.box('mbeam', sxS, syS, FR + 0.6, 0.04, 0.5, 1.0, { uv: 1.36, t: 0.6 });                             // доска
+        B.frame({ x: sxS + 0.05, z: FR + 0.6, yaw: Math.PI / 2 }, () => B.sign('ofSign', 0, syS, 0, 0.96, 0.48));
+        B.frame({ x: sxS - 0.05, z: FR + 0.6, yaw: -Math.PI / 2 }, () => B.sign('ofSign', 0, syS, 0, 0.96, 0.48));
+
+        // ---------- флагшток со знаменем на коньке, труба
+        const fX = -2.9, fB = yR + 0.2, fT = yR + 3.2;
+        B.cyl('mbeam', fX, fB - 0.6, 0, 0.07, 0.05, fT - fB + 0.6, 8, { uv: 1.36, t: 0.7 });
+        B.cyl('gold', fX, fT, 0, 0.1, 0.1, 0.16, 8, { t: 0.85 });
+        B.box('mbeam', fX + 0.45, fT - 0.15, 0, 0.9, 0.06, 0.06, { uv: 1.36, t: 0.7 });
+        B.frame({ x: fX + 0.45, z: 0.02, yaw: 0 }, () => B.sign('chBanner', 0, fT - 0.2 - 0.9, 0, 0.7, 1.8));
+        const chX = 2.6, chZ = -1.6, chB = yTop + 0.5, chT = yR + 0.7;
+        B.box(ST, chX, (chB + chT) / 2, chZ, 0.75, chT - chB, 0.75, { uv: UVS });
+        B.box(PL, chX, chT + 0.08, chZ, 0.98, 0.16, 0.98, { uv: UVP });
+
+        const rects = [rect(-HX - 0.3, HX + 0.3, -FR - 0.3, FR + 0.3), rect(-1.5, 1.5, FR, FR + 1.7)];
+        return { rects, platform: null, w: W, d: D, h: fT + 0.5 };
+    }
+
     // ------------------------------------------------------------------ большая таверна «Рунный Кубок» (летняя терраса, сцена, танцпол)
     // Локальные координаты: начало — середина передней стены зала, +Z — фасад и терраса, дорога впереди. Высоты — от земли.
     // Зал 16×8 (x ±8, z −8…0) с настоящим входом; второй этаж — фахверк на штукатурке; терраса 19×17.4 с перилами,
@@ -1790,12 +1905,16 @@
     // seaWarehouse: портовый склад в стиле городских домов (2026-11-27, переделан): каменный первый этаж, фахверк со штукатуркой на втором,
     // синяя черепица (конёк вдоль X), фронтоны с накладными брусьями. Фасад +Z: двое дощатых ворот (рама из бруса, железные полосы),
     // перед каждыми — площадка и ступень (две ступени по ~0.27). Створки — дверь-картинка домов (mdoor), окна — Meshy-окна домов (mwinnf).
-    // cfg: W (вдоль x, 16), D (9), seed.
+    // cfg: W (вдоль x, 16), D (9), roofAng?, seed. Пролёты, окна, высоты этажей и ворота растут с W (ступени — нет): W 23 × D 13 ≈ габарит Meshy-склада ×1.533.
     function buildSeaWarehouse(B, cfg) {
         const W = cfg.W || 16, D = cfg.D || 9, FR = D / 2, HX = W / 2;
         const rect = (x0, x1, z0, z1) => ({ x0, x1, z0, z1 });
         const ST = 'mstone', PL = 'mplinth', UVS = 0.851, UVP = 0.303;
-        const yP = 0.55, yJ = 3.75, yTop = 6.0, OV = 0.25, xU = HX + OV, zU = FR + OV;   // цоколь, перекрытие, верх второго этажа; вынос второго этажа
+        // размеры растут с W: hs — множитель высот этажей, ворот и окон (W 16 → 1.0, W 23 → 1.2); ступени не растут
+        const hs = Math.max(1, Math.sqrt(W / 16)), big = W > 18;
+        const yP = 0.55, yJ = 3.75 * hs, yTop = 6.0 * hs, OV = 0.25, xU = HX + OV, zU = FR + OV;   // цоколь, перекрытие, верх второго этажа; вынос второго этажа
+        const nB = Math.max(4, 2 * Math.round(W / 8)), bayX = 2 * xU / nB, nS = Math.max(2, Math.round(D / 4.5)), bayZ = 2 * zU / nS;   // пролёты фахверка: фасад/тыл, бока
+        const kW = Math.min(1, 0.85 * hs), yWin2 = yJ + 0.22 + 0.605 * kW;   // низ окна на 8 см выше балки перекрытия (ниже — мерцание с балкой)                                                            // окна второго этажа
         const beam = (x, y, z, sx, sy, sz, tint, o) => B.box('mbeam', x, y, z, sx, sy, sz, Object.assign({ t: tint === undefined ? 1.0 : Math.min(1.15, 0.45 + tint * 0.7), uv: 1.36, vert: !(o && (o.rx || o.ry || o.rz)) && sy > sx && sy > sz }, o || {}));
         const window = (x, z, yaw, y, k) => B.frame({ x, z, yaw }, () => B.sign('mwinnf', 0, y + 0.14 * k, 0.06, 2.3 * k, 1.49 * k));
         const rects = [rect(-HX - 0.3, HX + 0.3, -FR - 0.3, FR + 0.3), rect(-HX + 1.0, HX - 1.0, FR, FR + 1.5)];
@@ -1811,19 +1930,19 @@
         beam(0, yTop - 0.06, 0, 2 * xU + 0.2, 0.22, 2 * zU + 0.2, 0.7);                                               // верхняя обвязка (верх на 5 см выше стены)
         const yM = (yJ + 0.14 + yTop - 0.17) / 2, hM = yTop - 0.17 - yJ - 0.14;                                          // стойки между перекрытием и обвязкой
         for (const sx of [-1, 1]) for (const sz of [-1, 1]) beam(sx * (xU - 0.02), yM, sz * (zU - 0.02), 0.2, hM, 0.2, 0.8);   // угловые стойки верха
-        for (const sz of [-1, 1]) for (const x of [-HX / 2, 0, HX / 2]) beam(x, yM, sz * (zU + 0.05), 0.16, hM, 0.1, 0.78);
-        for (const sx of [-1, 1]) beam(sx * (xU + 0.05), yM, 0, 0.1, hM, 0.16, 0.78);
+        for (const sz of [-1, 1]) for (let i = 1; i < nB; i++) beam(-xU + i * bayX, yM, sz * (zU + 0.05), 0.16, hM, 0.1, 0.78);
+        for (const sx of [-1, 1]) for (let i = 1; i < nS; i++) beam(sx * (xU + 0.05), yM, -zU + i * bayZ, 0.1, hM, 0.16, 0.78);
         // раскосы в крайних пролётах фасада и тыла
         for (const sz of [-1, 1]) for (const sx of [-1, 1]) {
-            const x0 = sx * (xU - 0.14), x1 = sx * (HX / 2 + 0.1), dx = x1 - x0, L = Math.hypot(dx, hM) - 0.1, a = Math.atan2(hM, Math.abs(dx));
+            const x0 = sx * (xU - 0.14), x1 = sx * (xU - bayX + 0.1), dx = x1 - x0, L = Math.hypot(dx, hM) - 0.1, a = Math.atan2(hM, Math.abs(dx));
             beam((x0 + x1) / 2, yM, sz * (zU + 0.04), L, 0.14, 0.08, 0.74, { rz: dx > 0 ? a : -a });   // от нижнего угла к верху средней стойки
         }
-        // окна второго этажа: по два в средних пролётах фасада и тыла, по одному в пролётах боков
-        for (const sz of [-1, 1]) for (const x of [-HX / 4, HX / 4]) window(x, sz * zU, sz > 0 ? 0 : Math.PI, 4.4, 0.85);
-        for (const sx of [-1, 1]) for (const z of [-zU / 2, zU / 2]) window(sx * xU, z, sx > 0 ? Math.PI / 2 : -Math.PI / 2, 4.4, 0.85);
+        // окна второго этажа: по одному во внутренних пролётах фасада и тыла (крайние — с раскосами), по одному в пролётах боков
+        for (const sz of [-1, 1]) for (let i = 1; i < nB - 1; i++) window(-xU + (i + 0.5) * bayX, sz * zU, sz > 0 ? 0 : Math.PI, yWin2, kW);
+        for (const sx of [-1, 1]) for (let i = 0; i < nS; i++) window(sx * xU, -zU + (i + 0.5) * bayZ, sx > 0 ? Math.PI / 2 : -Math.PI / 2, yWin2, kW);
 
         // ---------- крыша (конёк вдоль X) и фронтоны
-        const ANG = 0.58, tan = Math.tan(ANG), ov = 0.55, run = zU + ov, yE = yTop - ov * tan, yR = yTop + zU * tan;
+        const ANG = cfg.roofAng || (big ? 0.51 : 0.58), tan = Math.tan(ANG), ov = 0.55, run = zU + ov, yE = yTop - ov * tan, yR = yTop + zU * tan;
         const slope = run / Math.cos(ANG) + 0.12, yc = (yE + yR) / 2 + 0.1, lenR = 2 * xU + 1.0;
         for (const s of [-1, 1]) B.box('slate', 0, yc, s * run / 2, lenR + (s > 0 ? 0.08 : 0), 0.22, slope, { rx: s * ANG, bottom: true });
         beam(0, yR + 0.17, 0, lenR + 0.3, 0.16, 0.38, 0.72);
@@ -1831,11 +1950,11 @@
         for (const sx of [-1, 1]) {
             B.prism('plaster', 'x', sx * (xU - 0.08), yTop, zU, yR - yTop, 0.16, { uv: 1.2, t: [1.08, 1.03, 0.96] });
             for (const sz of [-1, 1]) beam(sx * (xU + 0.06 + (sz > 0 ? 0.015 : 0)), (yTop + yR) / 2 - 0.04, sz * zU / 2, 0.14, 0.2, zU / Math.cos(ANG) + 0.15, 1.0, { rx: sz * ANG });
-            window(sx * (xU + 0.0), 0, sx > 0 ? Math.PI / 2 : -Math.PI / 2, yTop + 0.55, 0.6);                       // чердачное окошко
+            window(sx * (xU + 0.0), 0, sx > 0 ? Math.PI / 2 : -Math.PI / 2, yTop + 0.55 * hs, 0.6 * hs);                       // чердачное окошко
         }
 
         // ---------- ворота: рама из бруса, створки из досок, полосы; площадка и ступень перед каждыми
-        const DW = 3.4, DH = 2.85;
+        const DW = 3.4 * hs, DH = 2.85 * hs;
         for (const dx of [-W * 0.25, W * 0.25]) B.frame({ x: dx, z: FR, yaw: 0 }, () => {
             for (const sx of [-1, 1]) B.sign('mdoor', sx * DW / 4, yP + DH / 2, 0.08, DW / 2 - 0.02, DH);        // две створки — дверь-картинка домов
             B.box('dark', 0, yP + DH / 2, 0.025, 0.08, DH, 0.03, { t: 0.5 });                                       // щель между створками
@@ -1845,10 +1964,12 @@
             B.box(PL, 0, (yP - 0.6) / 2, 0.2 + 0.4, DW + 0.6, yP + 0.6, 0.8, { uv: UVP, t: 1.04 });
             B.box(PL, 0, (0.27 - 0.6) / 2, 1.0 + 0.2, DW + 0.6, 0.87, 0.4, { uv: UVP, t: 1.0 });                  // нижняя ступень той же ширины, что площадка
         });
-        // между воротами — окно первого этажа
-        window(0, FR, 0, 1.75, 0.9);
-        window(0, -FR, Math.PI, 1.75, 0.9);
-        for (const sx of [-1, 1]) window(sx * HX, 0, sx > 0 ? Math.PI / 2 : -Math.PI / 2, 1.75, 0.9);
+        // окна первого этажа: между воротами (и в крайних пролётах у большого склада), тыл, бока
+        const yWin1 = 1.75 * hs - 0.1, k1 = 0.9 * Math.min(hs, 1.1), xEnd = (W * 0.25 + DW / 2 + 0.3 + HX) / 2;
+        window(0, FR, 0, yWin1, k1);
+        if (big) for (const sx of [-1, 1]) window(sx * xEnd, FR, 0, yWin1, k1);
+        for (const x of big ? [-W * 0.25, 0, W * 0.25] : [0]) window(x, -FR, Math.PI, yWin1, k1);
+        for (const sx of [-1, 1]) for (const z of big ? [-D / 4, D / 4] : [0]) window(sx * HX, z, sx > 0 ? Math.PI / 2 : -Math.PI / 2, yWin1, k1);
 
         return { rects, platform: null, w: W, d: D, h: yR + 1.2 };
     }
@@ -1888,8 +2009,8 @@
         return { rects: [], platform: null, platforms, w: W, d: D, h: 0.7 };
     }
 
-    const TYPES = { seaWarehouse: buildSeaWarehouse, seaQuay: buildSeaQuay, seaPier: buildSeaPier, templeGate: buildTempleGate, portalVeil: buildPortalVeil, stoneHouse: buildStoneHouse, hearthCottage: buildHearthCottage, marbleTemple: buildMarbleTemple, chapel: buildChapel, tavern: buildTavern, villageTavern: buildVillageTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall, buildTempleGate };
-    const CAMERA_BLOCK = { seaWarehouse: ['mplinth', 'mstone', 'plaster', 'slate', 'mbeam'], templeGate: ['stone'], stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], hearthCottage: ['stone', 'slate', 'wood', 'plaster', 'deck', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble', 'mgrey', 'slate'], chapel: ['mstone', 'mplinth', 'slate', 'mbeam'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], villageTavern: ['vplaster', 'vbeam', 'vshingle', 'mplinth'], corral: [], castleWall: ['wallstone', 'wallcap'] };
+    const TYPES = { seaWarehouse: buildSeaWarehouse, seaQuay: buildSeaQuay, seaPier: buildSeaPier, templeGate: buildTempleGate, portalVeil: buildPortalVeil, stoneHouse: buildStoneHouse, hearthCottage: buildHearthCottage, marbleTemple: buildMarbleTemple, chapel: buildChapel, harbourOffice: buildHarbourOffice, tavern: buildTavern, villageTavern: buildVillageTavern, runeGate: buildRuneGate, corral: buildCorral, castleWall: buildCastleWall, buildTempleGate };
+    const CAMERA_BLOCK = { seaWarehouse: ['mplinth', 'mstone', 'plaster', 'slate', 'mbeam'], templeGate: ['stone'], stoneHouse: ['stone', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], hearthCottage: ['stone', 'slate', 'wood', 'plaster', 'deck', 'mstone', 'mplinth', 'mbeam'], marbleTemple: ['marble', 'mgrey', 'slate'], chapel: ['mstone', 'mplinth', 'slate', 'mbeam'], harbourOffice: ['mstone', 'mplinth', 'plaster', 'slate', 'mbeam'], tavern: ['stone', 'plaster', 'slate', 'wood', 'mstone', 'mplinth', 'mbeam'], runeGate: ['stone', 'slate', 'wood'], villageTavern: ['vplaster', 'vbeam', 'vshingle', 'mplinth'], corral: [], castleWall: ['wallstone', 'wallcap'] };
 
     // ------------------------------------------------------------------ менеджер локации
     class AveloraTown {

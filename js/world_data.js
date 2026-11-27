@@ -2595,7 +2595,8 @@ window.LOCATIONS = {
                 { id: 'rl_pier_3', type: 'seaPier', x: -55, z: -50.3, r: 0, W: 8, D: 32, gyAt: [71.0, 0.0], prep: false, seed: 23 },
                 // Портовые постройки (за дорогой, z > −38; фасад на север к порту, r = π; камень/цоколь с мешей, окна первого этажа без цветов):
                 // склады, дома рыбаков, таможня (процедурный коттедж с террасой). Между ними — свободные проходы к пирсам (x = −84, −44, −4).
-                { id: 'rl_port_warehouse_2', type: 'seaWarehouse', x: -15.0, z: -36.3, r: Math.PI, W: 16.0, D: 9.0 },   // 2026-11-27: напротив пирса rl_pier_2 (x −15); передний край цоколя z −41.0 (без ступеней)
+                { id: 'rl_port_warehouse_2', type: 'seaWarehouse', x: -15.0, z: -34.3, r: Math.PI, W: 23.0, D: 13.0 },   // 2026-11-27: габарит как у Meshy-склада ×1.533; напротив пирса rl_pier_2 (x −15); передний край цоколя z −41.0 (без ступеней), цоколь x −26.7…−3.3
+                { id: 'rl_harbour_office', type: 'harbourOffice', x: 5.0, z: -34.1, r: Math.PI },   // контора начальника порта (2026-11-27): между складами, цоколь x 0…10, передний край цоколя z −38 (крыльцо до z ≈ −39.7), фасад на север к крану
                 // { id: 'rl_rune_gate', type: 'runeGate', x: 69.0, z: 0.0, r: -Math.PI / 2 }
             ]
         },
@@ -2610,41 +2611,47 @@ window.LOCATIONS = {
             // Деревянный портовый кран (Meshy Medieval_Wooden_Crane, 325k→32k тр., высота 11.6 м, стрела 8 м): основание (центр опоры) на набережной, стрела над водой на север (−Z); между пирсами 1 и 2
             { id: 'rl.crane_1', prop: 'wooden_crane', x: 5.00, z: -47.5, r: -Math.PI / 2, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
             // Склад-мастерская (Meshy Roof_Timber_Workshop, 161k→27k тр., высота 7.3 м, фасад на север, r = π): угол каменного цоколя (не крыльца) ровно в (x 10, z −41); цоколь x −5.26…10.0, z −41.0…−31.86 (крыльцо до z −42)
-            { id: 'rl.warehouse_1', prop: 'timber_warehouse', x: 24.87, z: -37.71, r: Math.PI, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.warehouse_1', prop: 'timber_warehouse', x: 24.87, z: -35.99, r: Math.PI, s: 1.533, yFrom: [71.0, 0.0], dy: 0.0 },
             // Груз (наборы Cargo_Collection/2, порезаны на content/props/cargo1_*, cargo2_*): только у стен складов (боковые и тыльные), не на дороге
-            // груз у процедурного склада (x −15, z −36.3; цоколь x −23.2…−6.8, z −41.0…−31.6): углы фасада, бока; не перед воротами
-            { id: 'rl.cargo_20', prop: 'cargo2_crate_big', x: -24.35, z: -39.9, r: 0.10, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_21', prop: 'cargo1_barrel_tall', x: -24.25, z: -38.3, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_22', prop: 'cargo2_barrels_group', x: -24.6, z: -34.2, r: 1.57, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_23', prop: 'cargo1_sacks', x: -24.3, z: -32.4, r: 0.30, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_24', prop: 'cargo1_crate_big', x: -5.7, z: -39.8, r: -0.08, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_25', prop: 'cargo2_crate_b', x: -5.7, z: -39.8, r: 0.35, s: 1.0, yFrom: [71.0, 0.0], dy: 0.78 },
-            { id: 'rl.cargo_26', prop: 'cargo2_barrel_tall', x: -5.6, z: -38.1, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_27', prop: 'cargo1_barrel_lying', x: -5.9, z: -34.6, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_28', prop: 'cargo2_crate_ropes', x: -22.4, z: -42.0, r: 0.20, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_29', prop: 'cargo1_barrel_s1', x: -7.6, z: -42.0, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_30', prop: 'cargo2_barrel_small', x: -8.4, z: -42.2, r: 0.50, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_1', prop: 'cargo1_crate_big', x: 16.70, z: -34.50, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_2', prop: 'cargo1_barrel_tall', x: 16.80, z: -32.60, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_3', prop: 'cargo2_crate_big', x: 33.05, z: -34.50, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_4', prop: 'cargo1_sacks', x: 33.10, z: -32.80, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
-            { id: 'rl.cargo_5', prop: 'cargo2_barrel_a', x: 32.95, z: -36.00, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            // груз у процедурного склада (W 23: ворота x −20.75 / −9.25, ступени x −23.1…−18.4 и −11.6…−6.9 до z −42.2): перед фасадом вплотную к цоколю (z −41.0), между ступенями и у краёв фасада; по бокам не ставим
+            { id: 'rl.cargo_40', prop: 'cargo2_crate_big', x: -25.6, z: -41.7, r: 0.10, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_41', prop: 'cargo1_barrel_s2', x: -24.05, z: -41.6, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_42', prop: 'cargo1_crate_big', x: -17.4, z: -41.8, r: 1.571, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_43', prop: 'cargo1_barrel_s1', x: -17.4, z: -41.75, r: 0.40, s: 1.0, yFrom: [71.0, 0.0], dy: 0.78 },
+            { id: 'rl.cargo_44', prop: 'cargo2_barrels_group', x: -12.7, z: -41.7, r: 0.0, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_45', prop: 'cargo1_sacks', x: -15.6, z: -41.65, r: 0.30, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_46', prop: 'cargo2_crate_ropes', x: -4.4, z: -41.7, r: -0.15, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_47', prop: 'cargo1_barrel_tall', x: -5.9, z: -41.6, r: 0.00, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
+            { id: 'rl.cargo_48', prop: 'cargo2_barrel_small', x: -4.3, z: -42.85, r: 0.50, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },
             // портовый инвентарь у фасада Meshy-склада (стена z −41.0; лестницы дверей x 19.9…22.4 и 27.4…29.9 свободны, 0.5 м запаса): куча между дверями (x 23…26.5) и по краям за лестницами
-            { id: 'rl.cargo_10', prop: 'cargo1_crate_big', x: 23.75, z: -41.55, r: 1.571, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
-            { id: 'rl.cargo_11', prop: 'cargo1_barrel_s1', x: 23.75, z: -41.50, r: 0.400, s: 1.0, yFrom: [71.0, 0.0], dy: 0.78 },
-            { id: 'rl.cargo_12', prop: 'cargo2_crate_big', x: 25.45, z: -41.60, r: 0.080, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
-            { id: 'rl.cargo_13', prop: 'cargo2_crate_b', x: 25.40, z: -41.60, r: 0.350, s: 1.0, yFrom: [71.0, 0.0], dy: 0.71 },
-            { id: 'rl.cargo_14', prop: 'cargo2_barrel_tall', x: 23.45, z: -42.55, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
-            { id: 'rl.cargo_15', prop: 'cargo1_barrel_rope', x: 24.40, z: -42.65, r: 0.700, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
-            { id: 'rl.cargo_16', prop: 'cargo2_sacks_crate', x: 25.55, z: -42.75, r: -0.100, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
-            { id: 'rl.cargo_17', prop: 'cargo2_barrel_small', x: 26.45, z: -42.10, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
-            { id: 'rl.cargo_18', prop: 'cargo1_barrel_s2', x: 17.85, z: -41.60, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
-            { id: 'rl.cargo_19', prop: 'cargo2_crate_a', x: 18.75, z: -41.70, r: 0.200, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
-            { id: 'rl.cargo_20', prop: 'cargo2_barrel_cloth', x: 18.75, z: -41.70, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.52 },
-            { id: 'rl.cargo_21', prop: 'cargo1_crate_a', x: 30.95, z: -41.70, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
-            { id: 'rl.cargo_22', prop: 'cargo2_sack', x: 31.90, z: -41.55, r: 0.500, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
-            { id: 'rl.cargo_23', prop: 'cargo2_barrel_lying', x: 31.00, z: -42.65, r: 1.200, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
-            { id: 'rl.cargo_24', prop: 'cargo1_barrel_s3', x: 31.90, z: -42.40, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            // набор Cargo_Collection3 (content/props/cargo3_*, 2026-11-27): ловушка у процедурного склада, рыбацкий инвентарь на пирсах 2 и 3 (в закрытой полосе у бортов, между тумбами), тачка у крана (поддон убран). Рыба (корзины, кадка), фонари, амфоры отложены для рынка
+            { id: 'rl.c3_trap_wh', prop: 'cargo3_lobster_trap_a', x: -14.15, z: -41.75, r: Math.PI / 2, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },   // у процедурного склада, между группой бочек (−12.7) и мешками (−15.6)
+            { id: 'rl.c3_trap_a', prop: 'cargo3_lobster_trap_a', x: -18.0, z: -64.2, r: Math.PI / 2, s: 1.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.c3_trap_b', prop: 'cargo3_lobster_trap_b', x: -18.0, z: -71.2, r: Math.PI / 2 + 0.15, s: 1.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.c3_coil_big', prop: 'cargo3_rope_coil_big', x: -12.0, z: -64.0, r: 0.6, s: 1.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.c3_coil', prop: 'cargo3_rope_coil', x: -12.0, z: -57.2, r: -0.4, s: 1.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.c3_oars', prop: 'cargo3_oars', x: -12.0, z: -71.2, r: Math.PI / 2, s: 1.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.c3_anchor', prop: 'cargo3_anchor', x: -12.0, z: -78.2, r: -Math.PI / 2, s: 1.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.c3_net_a', prop: 'cargo3_net_frame_a', x: -58.0, z: -64.2, r: Math.PI / 2, s: 1.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.c3_net_b', prop: 'cargo3_net_frame_b', x: -52.0, z: -71.2, r: -Math.PI / 2, s: 1.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.c3_fish_barrel', prop: 'cargo3_fish_barrel', x: -52.0, z: -64.0, r: 0.2, s: 1.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.c3_fish_basket2', prop: 'cargo3_fish_basket', x: -52.1, z: -57.2, r: 1.1, s: 1.0, yFrom: [71.0, 0.0], dy: 0.08 },
+            { id: 'rl.c3_cart', prop: 'cargo3_cart', x: 10.5, z: -47.3, r: Math.PI / 2 + 0.12, s: 1.0, yFrom: [71.0, 0.0], dy: 0.0 },   // у крана (коллизия крана x 2…8, z −49.5…−45.5), вдоль набережной
+            { id: 'rl.cargo_10', prop: 'cargo1_crate_big', x: 23.15, z: -41.55, r: 1.571, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_11', prop: 'cargo1_barrel_s1', x: 23.15, z: -41.50, r: 0.400, s: 1.0, yFrom: [71.0, 0.0], dy: 0.78 },
+            { id: 'rl.cargo_12', prop: 'cargo2_crate_big', x: 25.76, z: -41.60, r: 0.080, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_13', prop: 'cargo2_crate_b', x: 25.68, z: -41.60, r: 0.350, s: 1.0, yFrom: [71.0, 0.0], dy: 0.71 },
+            { id: 'rl.cargo_14', prop: 'cargo2_barrel_tall', x: 22.69, z: -42.55, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_15', prop: 'cargo1_barrel_rope', x: 24.15, z: -42.65, r: 0.700, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_16', prop: 'cargo2_sacks_crate', x: 25.91, z: -42.75, r: -0.100, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_17', prop: 'cargo2_barrel_small', x: 27.29, z: -42.10, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_18', prop: 'cargo1_barrel_s2', x: 14.11, z: -41.60, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_19', prop: 'cargo2_crate_a', x: 15.49, z: -41.70, r: 0.200, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_20', prop: 'cargo2_barrel_cloth', x: 15.49, z: -41.70, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.52 },
+            { id: 'rl.cargo_21', prop: 'cargo1_crate_a', x: 34.19, z: -41.70, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_22', prop: 'cargo2_sack', x: 35.65, z: -41.55, r: 0.500, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_23', prop: 'cargo2_barrel_lying', x: 34.27, z: -42.65, r: 1.200, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
+            { id: 'rl.cargo_24', prop: 'cargo1_barrel_s3', x: 35.65, z: -42.40, r: 0.000, s: 1.0, yFrom: [71.0, 0.0], dy: 0.00 },
             // Порт: тумбы, утки и столбы с канатами (набор Harbor_Mooring_Posts, порезан на content/props/post_*, cleat_*); высота — от уровня набережной (71,0)
             { id: 'rl.qn0', prop: 'cleat_a', x: -130.50, z: -50.80, r: 0.000, s: 2.0, yFrom: [71.0, 0.0], dy: 0.16 },
             { id: 'rl.qn1', prop: 'post_pointed_a', x: -123.50, z: -50.80, r: 0.300, s: 1.8, yFrom: [71.0, 0.0], dy: 0.16 },

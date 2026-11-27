@@ -1,0 +1,1 @@
+{"id": "cargo3_lobster_trap_b", "name": "Ловушка для крабов (большая)", "obstacle": 0, "obstacleShapes": [{"type": "box", "cx": 0.0, "cz": 0.0, "hx": 0.61, "hz": 0.69, "r": 0.3, "step": 0.5, "exact": true}]}

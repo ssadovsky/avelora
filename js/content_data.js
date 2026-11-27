@@ -7546,6 +7546,180 @@ window.GAME_CONTENT = {
    "obstacle": 0.65,
    "modelKey": "props/cargo2_sacks_crate"
   },
+  "cargo3_amphora_small": {
+   "id": "cargo3_amphora_small",
+   "name": "Амфора",
+   "obstacle": 0.25,
+   "modelKey": "props/cargo3_amphora_small"
+  },
+  "cargo3_amphorae_pair": {
+   "id": "cargo3_amphorae_pair",
+   "name": "Две амфоры",
+   "obstacle": 0.34,
+   "modelKey": "props/cargo3_amphorae_pair"
+  },
+  "cargo3_anchor": {
+   "id": "cargo3_anchor",
+   "name": "Якорь с канатом",
+   "obstacle": 0.4,
+   "modelKey": "props/cargo3_anchor"
+  },
+  "cargo3_cart": {
+   "id": "cargo3_cart",
+   "name": "Тачка с грузом",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": 0.0,
+     "cz": 0.0,
+     "hx": 1.05,
+     "hz": 0.82,
+     "r": 0.3,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "modelKey": "props/cargo3_cart"
+  },
+  "cargo3_fish_barrel": {
+   "id": "cargo3_fish_barrel",
+   "name": "Бочка с рыбой",
+   "obstacle": 0.33,
+   "modelKey": "props/cargo3_fish_barrel"
+  },
+  "cargo3_fish_basket": {
+   "id": "cargo3_fish_basket",
+   "name": "Корзина с рыбой",
+   "obstacle": 0.32,
+   "modelKey": "props/cargo3_fish_basket"
+  },
+  "cargo3_fish_basket_small": {
+   "id": "cargo3_fish_basket_small",
+   "name": "Корзинка с рыбой",
+   "obstacle": 0.25,
+   "modelKey": "props/cargo3_fish_basket_small"
+  },
+  "cargo3_fish_tub": {
+   "id": "cargo3_fish_tub",
+   "name": "Кадка с рыбой",
+   "obstacle": 0.35,
+   "modelKey": "props/cargo3_fish_tub"
+  },
+  "cargo3_lamp_post": {
+   "id": "cargo3_lamp_post",
+   "name": "Фонарный столб",
+   "obstacle": 0.25,
+   "modelKey": "props/cargo3_lamp_post"
+  },
+  "cargo3_lobster_trap_a": {
+   "id": "cargo3_lobster_trap_a",
+   "name": "Ловушка для крабов",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": 0.0,
+     "cz": 0.0,
+     "hx": 0.46,
+     "hz": 0.53,
+     "r": 0.3,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "modelKey": "props/cargo3_lobster_trap_a"
+  },
+  "cargo3_lobster_trap_b": {
+   "id": "cargo3_lobster_trap_b",
+   "name": "Ловушка для крабов (большая)",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": 0.0,
+     "cz": 0.0,
+     "hx": 0.61,
+     "hz": 0.69,
+     "r": 0.3,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "modelKey": "props/cargo3_lobster_trap_b"
+  },
+  "cargo3_net_frame_a": {
+   "id": "cargo3_net_frame_a",
+   "name": "Сеть на раме",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": 0.0,
+     "cz": 0.0,
+     "hx": 0.71,
+     "hz": 0.66,
+     "r": 0.3,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "modelKey": "props/cargo3_net_frame_a"
+  },
+  "cargo3_net_frame_b": {
+   "id": "cargo3_net_frame_b",
+   "name": "Сети на раме (двойные)",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": 0.0,
+     "cz": 0.0,
+     "hx": 0.94,
+     "hz": 0.59,
+     "r": 0.3,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "modelKey": "props/cargo3_net_frame_b"
+  },
+  "cargo3_oars": {
+   "id": "cargo3_oars",
+   "name": "Вёсла",
+   "obstacle": 0,
+   "modelKey": "props/cargo3_oars"
+  },
+  "cargo3_pallet_tarp": {
+   "id": "cargo3_pallet_tarp",
+   "name": "Поддон под парусиной",
+   "obstacle": 0,
+   "obstacleShapes": [
+    {
+     "type": "box",
+     "cx": 0.0,
+     "cz": 0.0,
+     "hx": 0.82,
+     "hz": 0.94,
+     "r": 0.3,
+     "step": 0.5,
+     "exact": true
+    }
+   ],
+   "modelKey": "props/cargo3_pallet_tarp"
+  },
+  "cargo3_rope_coil": {
+   "id": "cargo3_rope_coil",
+   "name": "Бухта каната (малая)",
+   "obstacle": 0.26,
+   "modelKey": "props/cargo3_rope_coil"
+  },
+  "cargo3_rope_coil_big": {
+   "id": "cargo3_rope_coil_big",
+   "name": "Бухта каната",
+   "obstacle": 0.29,
+   "modelKey": "props/cargo3_rope_coil_big"
+  },
   "charred_tree": {
    "id": "charred_tree",
    "name": "Обугленное дерево",
